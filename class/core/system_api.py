@@ -653,22 +653,22 @@ class system_api:
 
                 dist_slemp = toPath + '/slemp.zip'
                 if not os.path.exists(dist_slemp):
-                    slemp.execShell('wget -O ' + dist_slemp + ' ' + newUrl)
+                    slemp.execShell('wget --no-check-certificate -O ' + dist_slemp + ' ' + newUrl)
 
                 dist_to = toPath + "/slemp-" + version
                 if not os.path.exists(dist_to):
-                    slemp.execShell('unzip -o ' + toPath +
+                    os.execShell('unzip -o ' + toPath +
                                  '/slemp.zip' + ' -d ' + toPath)
 
-                cmd_cp = "cp -rf " + toPath + '/slemp-' + \
-                    version + "/* " + slemp.getServerDir() + "/panel"
+                cmd_cp = 'cp -rf ' + toPath + '/slemp-' + \
+                    version + '/* ' + slemp.getServerDir() + '/panel'
                 slemp.execShell(cmd_cp)
 
                 slemp.execShell('rm -rf ' + toPath + '/slemp-' + version)
                 slemp.execShell('rm -rf ' + toPath + '/slemp.zip')
 
                 self.restartSlemp()
-                return slemp.returnJson(True, 'Pembaruan berhasil diinstal, anda harus memulai ulang sendiri!')
+                return slemp.returnJson(True, 'Pembaruan berhasil diinstal!')
 
             return slemp.returnJson(False, 'Sudah up-to-date, tidak perlu diperbarui!')
         except Exception as ex:
