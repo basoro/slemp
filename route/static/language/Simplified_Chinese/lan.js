@@ -408,7 +408,7 @@ var lan = {
 		"shell":"Terminal",
 		"paste":"Paste",
 		"paste_all":"Paste all",
-		"path_root":"root",
+		"path_root":"/",
 		"all":"Batch",
 		"set_auth":"Set auth",
 		"up_title":"Upload file",
