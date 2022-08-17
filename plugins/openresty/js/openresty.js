@@ -58,7 +58,7 @@ function orPluginOpService(a, b, v) {
         case "restart":d = 'restart';break;
         case "reload":d = 'reload';break;
     }
-    layer.confirm( msgTpl('Do you really want {1}{2}{3} services？', [d,a,v]), {icon:3,closeBtn: 2}, function() {
+    layer.confirm( msgTpl('Do you really want {1}{2}{3} services？', [d,a,v]), {title:'Notification',icon:3,closeBtn: 2,btn:['Yes','No']}, function() {
         orPost('get_os',{},function(data){
             var rdata = $.parseJSON(data.data);
             if (!rdata['auth']){
