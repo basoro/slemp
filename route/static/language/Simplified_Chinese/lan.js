@@ -179,7 +179,7 @@ var lan = {
 		"TZZ5":"Friday",
 		"TZZ6":"Saturday",
 		"TZZ7":"Sunday",
-		"mem_ps": "Release the memory usage of PHP, MYSQL, PURE-FTPD, APACHE, NGINX, it is recommended to execute it in the middle of the night every day!",
+		"mem_ps": "Release the memory usage of PHP, MYSQL, NGINX, it is recommended to execute it in the middle of the night every day!",
 		"mem":"Release memory"
 	},
 
