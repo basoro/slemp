@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <title>{{data['title']}}</title>
+    <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
+    <link href="/static/bootstrap-3.3.5/css/cerulean.min.css?v={{config.version}}" rel="stylesheet">
+    <link href="/static/css/site.css?v={{config.version}}" rel="stylesheet">
+    <link href="/static/codemirror/lib/codemirror.css?v={{config.version}}" rel="stylesheet">
+    <script src="/static/language/Simplified_Chinese/lan.js?v={{config.version}}"></script>
+    <!--[if lte IE 9]>
+		<script src="/static/js/requestAnimationFrame.js"></script>
+	<![endif]-->
+</head>
+
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="/" style="margin-right:20px;">SLEMP Panel</a>
+      </div>
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+          <li class="nav-item"><div id="task" class="task cw" onclick="messageBox();"></div></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right" style="margin-right:10px;">
+          <li class="nav-item"><a href="/">Beranda</a></li>
+          <li class="nav-item"><a href="/site">Situs</a></li>
+          <li class="nav-item"><a href="/control">Monitor</a></li>
+          <li class="nav-item"><a href="/firewall">Keamanan</a></li>
+          <li class="nav-item"><a href="/files">Kelola Berkas</a></li>
+          <li class="nav-item"><a href="/crontab">Penjadwalan</a></li>
+          <li class="nav-item"><a href="/config">Pengaturan</a></li>
+          <li class="nav-item"><a href="javascript:;" id="dologin">Keluar</a></li>
+        </ul>
+      </div><!--/.nav-collapse -->
+    </nav>
+
+    <div class="bt-warp bge6">
+        <div id="container" class="container-fluid">
+            <button style="display: none;" id="bt_copys" class="bt_copy" data-clipboard-text=""></button>
+            <link rel="stylesheet" href="/static/build/xterm.css?v={{config.version}}">
+            <link rel="stylesheet" href="/static/build/addons/fullscreen/fullscreen.css?v={{config.version}}">
+            <script src="/static/js/jquery-1.10.2.min.js?v={{config.version}}"></script>
+            <script src="/static/js/bootstrap.min.js?v={{config.version}}"></script>
+            <script src="/static/layer/layer.js?v={{config.version}}"></script>
+            <script src="/static/js/jquery.fly.min.js?v={{config.version}}"></script>
+            <script src="/static/js/clipboard.min.js?v={{config.version}}"></script>
+            <script src="/static/build/xterm.js?v={{config.version}}"></script>
+            <script src="/static/build/addons/attach/attach.js?v={{config.version}}"></script>
+            <script src="/static/build/addons/fit/fit.js?v={{config.version}}"></script>
+            <script src="/static/build/addons/fullscreen/fullscreen.js?v={{config.version}}"></script>
+            <script src="/static/js/socket.io.min.js?v={{config.version}}"></script>
+            <script src="/static/build/addons/winptyCompat/winptyCompat.js?v={{config.version}}"></script>
+            <script src="/static/app/public.js?v={{config.version}}"></script>
+            <script src="/static/js/echarts.min.js?v={{config.version}}"></script>
+            <script src="/static/js/jquery.dragsort-0.5.2.min.js?v={{config.version}}"></script>
+
+            {% block content %}{% endblock %}
+            <div class="footer bgw">SLEMP &copy; 2018 - 2022</div>
+        </div>
+    </div>
+</body>
+
+<script src="/static/codemirror/lib/codemirror.js?v={{config.version}}"></script>
+<script src="/static/codemirror/addon/edit/editAll.js?v={{config.version}}"></script>
+<script src="/static/codemirror/mode/modeAll.js?v={{config.version}}"></script>
+<script src="/static/codemirror/addon/dialog/dialog.js?v={{config.version}}"></script>
+<script src="/static/codemirror/addon/search/search.js?v={{config.version}}"></script>
+<script src="/static/codemirror/addon/scroll/annotatescrollbar.js?v={{config.version}}"></script>
+<script src="/static/laydate/laydate.js?v={{config.version}}"></script>
+
+</html>

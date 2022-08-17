@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="main-content">
+		<div class="container-fluid" style="padding-bottom:54px">
+			<div class="pos-box bgw mtb15">
+				<div class="position f14 c9 pull-left">
+					<a class="plr10 c4" href="/">Beranda</a>/<span class="plr10 c4">Pengaturan</span>
+				</div>
+			</div>
+			<div class="clearfix bgw mtb15 pd15">
+				<div class="safe-port pull-left">
+
+					<div class="ss-text pull-left mr50">
+						<em>Tutup panel</em>
+						<div class="ssh-item">
+              <input class="btswitch btswitch-ios" id="closePl" type="checkbox">
+              <label class="btswitch-btn" for="closePl" onclick="closePanel()"></label>
+	          </div>
+					</div>
+
+					<div class="ss-text pull-left mr50">
+            <em title="Saat diaktifkan, izinkan akses ipv6 ke panel">Gunakan IPv6</em>
+            <div class='ssh-item'>
+                <input class='btswitch btswitch-ios' id='panelIPv6' type='checkbox' {{data['ipv6']}}>
+                <label class='btswitch-btn' for='panelIPv6' onclick="setIPv6()"></label>
+            </div>
+	        </div>
+				</div>
+			</div>
+			<div class="setbox bgw mtb15">
+				<div class="title c6 plr15">
+					<h3 class="f16">Pengaturan</h3>
+				</div>
+				<div class="info-title-tips" style="margin: 20px 30px 0px;">
+					<p>
+						<span class="glyphicon glyphicon-alert" style="color: #f39c12; margin-right: 10px;">
+						</span>Untuk meningkatkan keamanan, harap ubah alias, port default, pengguna panel, dan kata sandi!</p>
+				</div>
+				<div class="setting-con pd15">
+					<form id="set_config">
+						<p class="mtb15">
+							<span class="set-tit text-right">Nama Panel</span>
+							<input id="webname" name="webname" class="inputtxt bt-input-text" type="text" value="{{data['title']}}" ><span class="set-info c7">Nama panel</span>
+						</p>
+						<p class="mtb15">
+							<span class="set-tit text-right">Port Panel</span>
+							<input id="banport" name="port" class="inputtxt bt-input-text" type="numner" value="{{data['port']}}" maxlength="5"><span class="set-info c7">Rentang port 7200 - 65535</span>
+						</p>
+
+						<p class="mtb15">
+							<span class="set-tit text-right">Path Login</span>
+							<input id="admin_path" name="admin_path" class="inputtxt bt-input-text disable" type="text" value="{{data['admin_path']}}"><span class="modify btn btn-xs btn-success" onclick="modifyAuthPath();">Edit</span>
+							<span class="set-info c7">Anda hanya dapat masuk ke panel melalui portal keamanan yang ditentukan, seperti: /abc</span>
+						</p>
+						<p class="mtb15">
+							<span class="set-tit text-right" title="Direktori default">Direktori default</span>
+							<input name="sites_path" class="inputtxt bt-input-text" type="text" value="{{data['site_path']}}">
+							<span class="set-info c7">Situs yang baru dibuat akan disimpan ke direktori ini secara default!</span>
+						</p>
+
+						<p class="mtb15">
+							<span class="set-tit text-right" title="Direktori cadangan">Direktori cadangan</span>
+							<input name="backup_path" class="inputtxt bt-input-text" type="text" value="{{data['backup_path']}}">
+							<span class="set-info c7">Direktori cadangan untuk situs web dan basis data!</span>
+						</p>
+
+						<p class="mtb15">
+							<span class="set-tit text-right" title="IP server">IP server</span>
+							<input name="host_ip" class="inputtxt bt-input-text" type="text" value="{{data['ip']}}">
+							<span class="set-info c7">Standarnya adalah IP jaringan eksternal. Jika Anda menguji di mesin virtual lokal, silakan isi IP jaringan internal mesin virtual!</span>
+						</p>
+
+						<p class="mtb15">
+							<span class="set-tit text-right" title="Waktu server">Waktu server</span>
+							<input id="systemdate" name="systemdate" class="inputtxt bt-input-text disable" type="text" value="{{data['systemdate']}}"><span class="modify btn btn-xs btn-success" onclick="syncDate()">Edit</span>
+						</p>
+						<p class="mtb15">
+							<span class="set-tit text-right" title="Pengguna panel">Pengguna</span>
+							<input name="username_" class="inputtxt bt-input-text disable" type="text" value="{{data['username']}}" disabled><span class="modify btn btn-xs btn-success" onclick="setUserName()">Edit</span>
+						</p>
+						<p class="mtb15">
+							<span class="set-tit text-right" title="Password panel">Password</span>
+							<input name="password_" class="inputtxt bt-input-text disable" type="text" value="******" disabled><span class="modify btn btn-xs btn-success" onclick="setPassword()">Edit</span>
+						</p>
+					</form>
+					<div class="bt-submit set-submit">Simpan</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script src="/static/app/config.js?v={{config.version}}"></script>
+{% endblock %}

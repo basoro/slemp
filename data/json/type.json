@@ -1,0 +1,37 @@
+[
+	{
+		"title":"All",
+		"type":0,
+		"ps":""
+	},
+	{
+		"title":"Operating environment",
+		"type":1,
+		"ps":""
+	},
+	{
+		"title":"Data software",
+		"type":2,
+		"ps":""
+	},
+	{
+		"title":"Code management",
+		"type":3,
+		"ps":""
+	},
+	{
+		"title":"System Tools",
+		"type":4,
+		"ps":""
+	},
+	{
+		"title":"Other plugins",
+		"type":5,
+		"ps":""
+	},
+	{
+		"title":"Auxiliary plugin",
+		"type":6,
+		"ps":""
+	}
+]

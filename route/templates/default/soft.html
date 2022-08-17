@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="main-content">
+		<div class="container-fluid" style="padding-bottom:54px">
+			<div class="pos-box bgw mtb15">
+				<div class="position f14 c9 pull-left">
+					<a class="plr10 c4" href="/">Beranda</a>/<span class="plr10 c4">Aplikasi</span>
+				</div>
+				<div class="search pull-right">
+					<form target="hid" onsubmit='getSList()'>
+						<input type="text" id="SearchValue" class="ser-text pull-left" placeholder="search" />
+						<button type="button" class="ser-sub pull-left" onclick='getSList()'></button>
+					</form>
+				</div>
+			</div>
+			<div class="softbox bgw mtb15">
+				<div class="softlist">
+					<div class="divtable pd15 relative">
+
+						<div class="menu-sub softtype"></div>
+
+						<input type="file" style="display:none;" accept=".zip,.tar.gz" id="update_zip" multiple="multiple">
+						<button class="btn btn-default btn-sm" onclick="importPluginOpen()" title="Tambahkan plugin" style="position:absolute;top:12px;right:15px">Unggah</button>
+						<div id="updata_pro_info"></div>
+						<table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">
+							<thead>
+								<tr>
+									<th width="165">Nama</th>
+									<th>Deskripsi</th>
+									<th width="40">Lokasi</th>
+									<th width="40">Status</th>
+									<th width="64">Beranda</th>
+									<th style="text-align: right;" width="120">Aksi</th>
+								</tr>
+							</thead>
+							<tbody id="softList"></tbody>
+						</table>
+						<div class="dataTables_paginate paging_bootstrap pagination">
+							<ul id="softPage" class="page"></ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript" src="/static/js/jquery.dragsort-0.5.2.min.js?v={{config.version}}"></script>
+<script type="text/javascript" src="/static/laydate/laydate.js?v={{config.version}}"></script>
+<script type="text/javascript" src="/static/app/soft.js?v={{config.version}}"></script>
+<script>
+getSList();
+</script>
+
+
+{% endblock %}
