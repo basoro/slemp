@@ -38,7 +38,7 @@ elif [ "$OSNAME" == "fedora" ];then
 elif [ "$OSNAME" == "alma" ];then
     echo "alma lib"
 elif [ "$OSNAME" == "ubuntu"  ] || [ "$OSNAME" == "debian" ]; then
-    
+
     apt install -y devscripts
     apt install -y net-tools
     apt install -y python3-dev
@@ -53,13 +53,13 @@ elif [ "$OSNAME" == "ubuntu"  ] || [ "$OSNAME" == "debian" ]; then
     apt install -y lzma lzma-dev
     apt install -y libunwind-dev
 
-    apt install -y libpcre3 libpcre3-dev 
+    apt install -y libpcre3 libpcre3-dev
     apt install -y openssl
     apt install -y libssl-dev
-    
+
     apt install -y libmemcached-dev
     apt install -y libsasl2-dev
-    apt install -y imagemagick 
+    apt install -y imagemagick
     apt install -y libmagickwand-dev
 
     apt install -y libxml2 libxml2-dev libbz2-dev libmcrypt-dev libpspell-dev librecode-dev
@@ -75,7 +75,7 @@ elif [ "$OSNAME" == "ubuntu"  ] || [ "$OSNAME" == "debian" ]; then
     apt install -y libicu-dev
 
     apt install -y build-essential
-    
+
     apt install -y libcurl4-openssl-dev
     apt install -y curl libcurl4-gnutls-dev
     #https://blog.csdn.net/qq_36228377/article/details/123154344
@@ -83,25 +83,23 @@ elif [ "$OSNAME" == "ubuntu"  ] || [ "$OSNAME" == "debian" ]; then
     if [ ! -d /usr/include/curl ];then
         ln -s  /usr/include/x86_64-linux-gnu/curl  /usr/include/curl
     fi
-   
+
 
     apt install -y graphviz bison re2c flex
     apt install -y libsqlite3-dev
     apt install -y libonig-dev
 
-    apt install -y perl g++ libtool    
+    apt install -y perl g++ libtool
     apt install -y libxslt1-dev
 
     apt install -y libmariadb-dev
-    #apt install -y libmysqlclient-dev   
+    #apt install -y libmysqlclient-dev
     apt install -y libmariadb-dev-compat
     #apt install -y libmariadbclient-dev
 else
     echo "OK"
 fi
 
-
-#面板需要的库
 
 if [ ! -f /usr/local/bin/pip3 ];then
     python3 -m pip install --upgrade pip setuptools wheel -i https://mirrors.aliyun.com/pypi/simple
@@ -130,4 +128,3 @@ pip3 install -r /home/slemp/server/panel/requirements.txt
 pip3 install gevent-websocket==0.10.1
 pip3 install flask-caching==1.10.1
 pip3 install mysqlclient
-

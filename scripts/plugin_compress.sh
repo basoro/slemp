@@ -1,8 +1,5 @@
 #!/bin/bash
 
-###
-### 插件压缩
-###
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 LANG=en_US.UTF-8

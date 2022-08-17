@@ -16,8 +16,6 @@ startTime=`date +%s`
 
 zip -r -q -o slemp.zip  ./ -x@$curPath/pick_filter.txt
 
-
-
 mv slemp.zip $rootPath/scripts 
 
 endTime=`date +%s`

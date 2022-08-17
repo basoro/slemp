@@ -1,8 +1,5 @@
 #!/usr/bin/python
 # coding: utf-8
-#-----------------------------
-# 网站日志切割脚本
-#-----------------------------
 import sys
 import os
 import shutil
@@ -20,9 +17,9 @@ sys.setdefaultencoding('utf-8')
 
 import slemp
 print('==================================================================')
-print('★[' + time.strftime("%Y/%m/%d %H:%M:%S") + ']，切割日志')
+print('★[' + time.strftime("%Y/%m/%d %H:%M:%S") + ']，cut log')
 print('==================================================================')
-print('|--当前保留最新的[' + sys.argv[2] + ']份')
+print('|--Currently keep the latest [' + sys.argv[2] + ']份')
 logsPath = slemp.getLogsDir()
 px = '.log'
 
@@ -30,7 +27,7 @@ px = '.log'
 def split_logs(oldFileName, num):
     global logsPath
     if not os.path.exists(oldFileName):
-        print('|---' + oldFileName + '文件不存在!')
+        print('|---' + oldFileName + ' file does not exist!')
         return
 
     logs = sorted(glob.glob(oldFileName + "_*"))
@@ -41,11 +38,11 @@ def split_logs(oldFileName, num):
         if i > num:
             break
         os.remove(logs[i])
-        print('|---多余日志[' + logs[i] + ']已删除!')
+        print('|---redundant log [' + logs[i] + '] deleted!')
 
     newFileName = oldFileName + '_' + time.strftime("%Y-%m-%d_%H%M%S") + '.log'
     shutil.move(oldFileName, newFileName)
-    print('|---已切割日志到:' + newFileName)
+    print('|---Cut log to: ' + newFileName)
 
 
 def split_all(save):

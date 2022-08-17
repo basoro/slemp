@@ -1,7 +1,4 @@
 # coding: utf-8
-#-----------------------------
-# 网站备份工具
-#-----------------------------
 
 import sys
 import os
@@ -30,7 +27,7 @@ class backupTools:
         startTime = time.time()
         if not path:
             endDate = time.strftime('%Y/%m/%d %X', time.localtime())
-            log = "网站[" + name + "]不存在!"
+            log = "Website [" + name + "] does not exist!"
             print("★[" + endDate + "] " + log)
             print(
                 "----------------------------------------------------------------------------")
@@ -49,7 +46,7 @@ class backupTools:
 
         print(filename)
         if not os.path.exists(filename):
-            log = "网站[" + name + u"]备份失败!"
+            log = "Website [" + name + "] backup failed!"
             print("★[" + endDate + "] " + log)
             print(
                 "----------------------------------------------------------------------------")
@@ -59,13 +56,12 @@ class backupTools:
         pid = sql.table('sites').where('name=?', (name,)).getField('id')
         sql.table('backup').add('type,name,pid,filename,addtime,size', ('0', os.path.basename(
             filename), pid, filename, endDate, os.path.getsize(filename)))
-        log = "网站[" + name + "]备份成功,用时[" + str(round(outTime, 2)) + "]秒"
-        slemp.writeLog(u'计划任务', log)
+        log = "Website [" + name + "] backup was successful, time [" + str(round(outTime, 2)) + "] second"
+        slemp.writeLog('Scheduled Tasks', log)
         print("★[" + endDate + "] " + log)
-        print("|---保留最新的[" + count + "]份备份")
-        print("|---文件名:" + filename)
+        print("|---Keep the latest [" + count + "] backup")
+        print("|---File name:" + filename)
 
-        # 清理多余备份
         backups = sql.table('backup').where(
             'type=? and pid=?', ('0', pid)).field('id,filename').select()
 
@@ -75,7 +71,7 @@ class backupTools:
                 slemp.execShell("rm -f " + backup['filename'])
                 sql.table('backup').where('id=?', (backup['id'],)).delete()
                 num -= 1
-                print("|---已清理过期备份文件：" + backup['filename'])
+                print("|---Expired backup files have been cleaned up：" + backup['filename'])
                 if num < 1:
                     break
 
@@ -87,7 +83,7 @@ class backupTools:
         startTime = time.time()
         if not name:
             endDate = time.strftime('%Y/%m/%d %X', time.localtime())
-            log = "数据库[" + name + "]不存在!"
+            log = "Database [" + name + "] does not exist!"
             print("★[" + endDate + "] " + log)
             print(
                 "----------------------------------------------------------------------------")
@@ -114,10 +110,10 @@ class backupTools:
 
         slemp.execShell(db_path + "/bin/mysqldump --opt --default-character-set=utf8 " +
                      name + " | gzip > " + filename)
-                     
+
         if not os.path.exists(filename):
             endDate = time.strftime('%Y/%m/%d %X', time.localtime())
-            log = "数据库[" + name + "]备份失败!"
+            log = "Database [" + name + "] backup failed!"
             print("★[" + endDate + "] " + log)
             print(
                 "----------------------------------------------------------------------------")
@@ -135,13 +131,12 @@ class backupTools:
 
         slemp.M('backup').add('type,name,pid,filename,addtime,size', (1, os.path.basename(
             filename), pid, filename, endDate, os.path.getsize(filename)))
-        log = "数据库[" + name + "]备份成功,用时[" + str(round(outTime, 2)) + "]秒"
-        slemp.writeLog('计划任务', log)
+        log = "Database [" + name + "] backup was successful, time [" + str(round(outTime, 2)) + "] second"
+        slemp.writeLog('Scheduled Tasks', log)
         print("★[" + endDate + "] " + log)
-        print("|---保留最新的[" + count + "]份备份")
-        print("|---文件名:" + filename)
+        print("|---Keep the latest [" + count + "] backup")
+        print("|---File name:" + filename)
 
-        # 清理多余备份
         backups = slemp.M('backup').where(
             'type=? and pid=?', ('1', pid)).field('id,filename').select()
 
@@ -151,7 +146,7 @@ class backupTools:
                 slemp.execShell("rm -f " + backup['filename'])
                 slemp.M('backup').where('id=?', (backup['id'],)).delete()
                 num -= 1
-                print("|---已清理过期备份文件：" + backup['filename'])
+                print("|---Expired backup files have been cleaned up：" + backup['filename'])
                 if num < 1:
                     break
 

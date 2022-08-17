@@ -1,21 +1,18 @@
 #!/bin/bash
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
-#+------------------------------------
-#+ 释放内存脚本
-#+------------------------------------
 
 endDate=`date +"%Y-%m-%d %H:%M:%S"`
 sysName=`uname`
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 
-log="释放内存!"
+log="free memory!"
 echo "★[$endDate] $log"
 echo '----------------------------------------------------------------------------'
 
 if [ $sysName == 'Darwin' ]; then
-	echo '苹果内存释放!'
+	echo 'Apple memory free!'
 else
 	echo 'do start!'
 fi
@@ -28,11 +25,11 @@ elif [ -f $rootPath/openresty/nginx/sbin/nginx ];then
 	$rootPath/openresty/nginx/sbin/nginx -s reload
 else
 	echo "..."
-fi	
+fi
 echo "OpenResty -- END"
 
 
-PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81)
+PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81 82)
 for PHP_VER in ${PHP_VER_LIST[@]}; do
 echo "PHP${PHP_VER} -- START"
 if [ -f /usr/lib/systemd/system/php${PHP_VER}.service ];then
@@ -54,19 +51,6 @@ else
 	echo "..."
 fi
 echo "MySQL -- END"
-
-
-
-echo "PureFTPD -- START"
-if [ -f /usr/lib/systemd/system/pureftp.service ];then
-	systemctl reload pureftp
-elif [ -f ${rootPath}/pureftp/init.d/pureftp ];then
-	${rootPath}/pureftp/init.d/pureftp reload
-else
-	echo "..."
-fi
-echo "PureFTPD -- END"
-
 
 sync
 sleep 2
