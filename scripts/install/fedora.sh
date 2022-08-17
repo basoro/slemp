@@ -38,7 +38,7 @@ if [ -f /etc/init.d/iptables ];then
 		service iptables restart
 	fi
 
-	#安装时不开启
+	#Does not turn on during installation时不开启
 	service iptables stop
 fi
 
@@ -61,7 +61,7 @@ if [ "${isVersion}" == '' ];then
 	fi
 fi
 
-#安装时不开启
+#Does not turn on during installation时不开启
 systemctl stop firewalld
 
 

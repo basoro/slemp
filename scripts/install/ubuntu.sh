@@ -61,7 +61,7 @@ if [ ! -f /usr/sbin/ufw ];then
 	firewall-cmd --reload
 fi
 
-#安装时不开启
+#Does not turn on during installation时不开启
 systemctl stop firewalld
 
 

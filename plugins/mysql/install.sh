@@ -15,12 +15,12 @@ action=$1
 type=$2
 
 if [ "${2}" == "" ];then
-	echo '缺少安装脚本...' > $install_tmp
+	echo 'Missing installation script...' > $install_tmp
 	exit 0
 fi
 
 if [ ! -d $curPath/versions/$2 ];then
-	echo '缺少安装脚本2...' > $install_tmp
+	echo 'Missing install script 2...' > $install_tmp
 	exit 0
 fi
 
@@ -38,7 +38,6 @@ fi
 sh -x $curPath/versions/$2/install.sh $1
 
 if [ "${action}" == "install" ] && [ -d $serverPath/mysql ];then
-	#初始化
 	cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py start ${type}
 	cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py initd_install ${type}
 fi

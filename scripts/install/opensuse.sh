@@ -71,7 +71,7 @@ if [ -f /etc/init.d/iptables ];then
 		service iptables restart
 	fi
 
-	#安装时不开启
+	#Does not turn on during installation时不开启
 	service iptables stop
 fi
 
@@ -92,7 +92,7 @@ if [ ! -f /etc/init.d/iptables ];then
 
 	sed -i 's#AllowZoneDrifting=yes#AllowZoneDrifting=no#g' /etc/firewalld/firewalld.conf
 	firewall-cmd --reload
-	#安装时不开启
+	#Does not turn on during installation时不开启
 	systemctl stop firewalld
 fi
 

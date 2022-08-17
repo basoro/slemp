@@ -729,7 +729,7 @@ def installLib(version):
         version + ' install ' + name
 
     rettime = time.strftime('%Y-%m-%d %H:%M:%S')
-    insert_info = (None, '安装[' + name + '-' + version + ']',
+    insert_info = (None, 'Install [' + name + '-' + version + ']',
                    'execshell', '0', rettime, execstr)
     slemp.M('tasks').add('id,name,type,status,addtime,execstr', insert_info)
 
