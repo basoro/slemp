@@ -186,8 +186,8 @@ def checkWebConfig():
     result = execShell(cmd)
     searchStr = 'successful'
     if result[1].find(searchStr) == -1:
-        msg = getInfo('配置文件错误: {1}', (result[1],))
-        writeLog("软件管理", msg)
+        msg = getInfo('Configuration file error: {1}', (result[1],))
+        writeLog("Software management", msg)
         return result[1]
     return True
 

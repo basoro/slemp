@@ -9,7 +9,7 @@ function softMain(name, version) {
         layer.open({
             type: 1,
             area: '640px',
-            title: name + '-' + version + "管理",
+            title: 'Manage ' + name + '-' + version,
             closeBtn: 2,
             shift: 0,
             content: rdata
