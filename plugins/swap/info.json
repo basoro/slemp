@@ -1,0 +1,17 @@
+{
+	"sort": 7,
+	"ps": "Memori virtual di Linux",
+	"name": "swap",
+	"title": "Swap",
+	"shell": "install.sh",
+	"versions":"1.1",
+	"tip": "soft",
+	"checks": "server/swap",
+	"path": "server/swap",
+	"display": 1,
+	"author": "slemp",
+	"date": "2021-01-29",
+	"home": "swap",
+	"type": 0,
+	"pid": "4"
+}

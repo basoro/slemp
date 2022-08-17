@@ -1,0 +1,17 @@
+{
+	"title":"phpMyAdmin",
+	"tip":"soft",
+	"name":"phpmyadmin",
+	"type":"Operating environment",
+	"ps":"Manajemen MySQL berbasis web",
+	"to_ver":["4.8.4"],
+	"versions":["4.4.15","4.9.10","5.2.0"],
+	"updates":["4.4.15","4.9.10","5.2.0"],
+	"shell":"install.sh",
+	"checks":"server/phpmyadmin",
+	"path": "server/phpmyadmin",
+	"author":"phpMyAdmin",
+	"home":"https://www.phpmyadmin.net/",
+	"date":"2017-11-24",
+	"pid": "2"
+}

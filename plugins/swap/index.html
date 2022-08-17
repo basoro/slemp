@@ -1,0 +1,25 @@
+<div class="bt-form">
+	<div class="bt-w-main">
+		<div class="bt-w-menu">
+			<p class="bgw" onclick="pluginService('swap');">Service</p>
+			<p onclick="pluginInitD('swap');">Init</p>
+			<!-- <p onclick="pluginConfig('swap');">Config</p> -->
+			<p onclick="readme();">Readme</p>
+		</div>
+		<div class="bt-w-con pd15">
+			<div class="soft-man-con"></div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+pluginService('swap');
+
+
+function readme(){
+    var readme = '<ul class="help-info-text c7">';
+    readme += '<li>dd if=/dev/zero of=/home/slemp/server/swap/swapfile bs=1M count=2048</li>';
+    readme += '<li>mkswap /home/slemp/server/swap/swapfile</li>';
+    readme += '</ul>';
+    $('.soft-man-con').html(readme);
+}
+</script>
