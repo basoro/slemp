@@ -1,0 +1,22 @@
+{
+	"title":"MySQL",
+	"tip":"soft",
+	"name":"mysql",
+	"type":"运行环境",
+	"ps":"Sistem manajemen basis data relasional!",
+	"coexist": false,
+	"install_pre_inspection":true,
+	"uninstall_pre_inspection":true,
+	"checks": "server/mysql/VERSION/bin/mysql",
+	"path": "server/mysql/VERSION",
+	"todo_versions":["5.6","5.7","8.0"],
+	"versions":["5.5", "5.6", "5.7","8.0"],
+	"updates":["5.5.62","5.6.50", "5.7.32","8.0.22"],
+	"shell":"install.sh",
+	"checks":"server/mysql",
+	"path":"server/mysql",
+	"author":"mysql",
+	"home":"https://dev.mysql.com/downloads/mysql",
+	"date":"2017-11-24",
+	"pid": "2"
+}
