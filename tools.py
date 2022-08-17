@@ -16,8 +16,8 @@ def set_panel_pwd(password, ncli=False):
         'password', slemp.md5(password))
     username = sql.table('users').where('id=?', (1,)).getField('username')
     if ncli:
-        print("|-用户名: " + username)
-        print("|-新密码: " + password)
+        print("|-Username: " + username)
+        print("|-Password: " + password)
     else:
         print(username)
 
