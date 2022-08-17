@@ -496,7 +496,7 @@ function phpLibConfig(version){
 }
 
 function installPHPLib(version, name, title, pathinfo) {
-    layer.confirm('Do you really want to install {1}?'.replace('{1}', name), { icon: 3, closeBtn: 2 }, function() {
+    layer.confirm('Do you really want to install {1}?'.replace('{1}', name), { title:'Notification', icon: 3, closeBtn: 2, btn: ['Yes','No'] }, function() {
         name = name.toLowerCase();
         var data = "name=" + name + "&version=" + version + "&type=1";
 
@@ -513,7 +513,7 @@ function installPHPLib(version, name, title, pathinfo) {
 }
 
 function uninstallPHPLib(version, name, title, pathinfo) {
-    layer.confirm('Do you really want to uninstall {1}?'.replace('{1}', name), { icon: 3, closeBtn: 2 }, function() {
+    layer.confirm('Do you really want to uninstall {1}?'.replace('{1}', name), { title:'Notification', icon: 3, closeBtn: 2, btn: ['Yes','No'] }, function() {
         name = name.toLowerCase();
         var data = 'name=' + name + '&version=' + version;
         phpPost('uninstall_lib', version, data, function(data){

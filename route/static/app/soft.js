@@ -251,7 +251,7 @@ function uninstallPreInspection(name, ver, callback){
 }
 
 function runUninstallVersion(name, version){
-    layer.confirm(msgTpl('Do you really want to uninstall [{1}-{2}]?', [name, version]), { icon: 3, closeBtn: 2 }, function() {
+    layer.confirm(msgTpl('Do you really want to uninstall [{1}-{2}]?', [name, version]), { icon: 3, closeBtn: 2, btn: ['Yes','No'] }, function() {
         var data = 'name=' + name + '&version=' + version;
         var loadT = layer.msg('Processing, please wait...', { icon: 16, time: 0, shade: [0.3, '#000'] });
         $.post('/plugins/uninstall', data, function(rdata) {

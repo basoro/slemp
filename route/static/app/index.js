@@ -577,7 +577,7 @@ function reBoot() {
         var type = $(this).attr('data-id');
         switch (type) {
             case 'panel':
-                layer.confirm('Akan memulai ulang layanan panel, lanjutkan？', { title: 'Mulai ulang layanan panel', closeBtn: 2, icon: 3 }, function () {
+                layer.confirm('Akan memulai ulang layanan panel, lanjutkan？', { title: 'Mulai ulang layanan panel', closeBtn: 2, icon: 3, btn: ['Yes','No'] }, function () {
                     var loadT = layer.load();
                     $.post('/system/restart','',function (rdata) {
                         layer.close(loadT);
@@ -648,7 +648,7 @@ function reBoot() {
 }
 
 function repPanel() {
-    layer.confirm(lan.index.rep_panel_msg, { title: lan.index.rep_panel_title, closeBtn: 2, icon: 3 }, function() {
+    layer.confirm(lan.index.rep_panel_msg, { title: lan.index.rep_panel_title, closeBtn: 2, icon: 3, btn: ['Yes','No'] }, function() {
         var loadT = layer.msg(lan.index.rep_panel_the, { icon: 16, time: 0, shade: [0.3, '#000'] });
         $.get('/system?action=RepPanel', function(rdata) {
             layer.close(loadT);
