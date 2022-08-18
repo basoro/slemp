@@ -1,4 +1,5 @@
 ### SLEMP Panel
+Simple Linux Engine-X (Openresty) MySQL PHP-FPM. Panel linux untuk VPS (atau Server Dedicated) yang terinspirasi dari Panel Pagoda. Dengan menyalin antarmukanya berbasis Layui dan menulis plugin-pluginnya sesuai dengan keinginan saya. Yaitu independen, sederhana dan ringan.
 
 #### Main Plugin
 - OpenResty - Lightweight, occupies less memory, and has strong concurrency capabilities.
