@@ -380,7 +380,7 @@ def addRec():
 
     content = content.strip() + "\n" + con
     slemp.writeFile(path, content)
-    return slemp.returnJson(True, '添加成功')
+    return slemp.returnJson(True, 'Added successfully')
 
 
 def getRec():
@@ -452,8 +452,8 @@ def delRec():
     name = args['name']
     ok = delRecBy(name)
     if ok:
-        return slemp.returnJson(True, '删除成功!')
-    return slemp.returnJson(False, '删除失败!')
+        return slemp.returnJson(True, 'Successfully deleted!')
+    return slemp.returnJson(False, 'Failed to delete!')
 
 
 def cmdRecSecretKey():
@@ -614,7 +614,7 @@ def lsyncdListFindName(slist, name):
 def lsyncdList():
     data = getDefaultConf()
     send = data['send']
-    return slemp.returnJson(True, "设置成功!", send)
+    return slemp.returnJson(True, "Set successfully!", send)
 
 
 def lsyncdGet():
@@ -723,7 +723,7 @@ def lsyncdAdd():
             info['password'] = m['B']
             info['port'] = m['C']
         except Exception as e:
-            return slemp.returnJson(False, "接收密钥格式错误!")
+            return slemp.returnJson(False, "Receive key format error!")
     else:
         data = checkArgs(args, ['uname'])
         if not data[0]:
@@ -766,7 +766,7 @@ def lsyncdAdd():
 
     setDefaultConf(data)
     makeLsyncdConf(data)
-    return slemp.returnJson(True, "设置成功!")
+    return slemp.returnJson(True, "Set successfully!")
 
 
 def lsyncdRun():
@@ -781,7 +781,7 @@ def lsyncdRun():
 
     cmd = "bash " + app_dir + "/cmd >> " + app_dir + "/run.log" + " 2>&1 &"
     slemp.execShell(cmd)
-    return slemp.returnJson(True, "执行成功!")
+    return slemp.returnJson(True, "Execution succeed!")
 
 
 def lsyncdConfLog():
