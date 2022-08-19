@@ -14,6 +14,7 @@ Simple Linux Engine-X (Openresty) MySQL PHP-FPM. Linux panel for VPS (or Dedicat
 - Centos
 - Debian
 - Ubuntu
+- Raspberry Pi
 - Fedora
 - Alma Linux
 - Rocky Linux
