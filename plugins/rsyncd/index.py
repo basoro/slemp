@@ -653,6 +653,8 @@ def lsyncdGet():
         m = m.encode("utf-8")
         m = base64.b64encode(m)
         info['secret_key'] = m.decode("utf-8")
+
+    slemp.execShell('systemctl start lsyncd')
     return slemp.returnJson(True, "OK", info)
 
 
