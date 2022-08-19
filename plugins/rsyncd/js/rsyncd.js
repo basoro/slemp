@@ -244,7 +244,7 @@ function createSendTask(name = ''){
                             +'<br /><br /> <span style="color:red;">NOTE: The synchronization program will local directory: '
                             +mpath+' all data is synchronized to the target server. If there are other files in the synchronization directory of the target server, they will be deleted.!</span> <br /><br /> Risks are understood, please press OK to continue</div>';
 
-                        layer.confirm(msg,{title:'Data Security Risk Warning',icon:2,closeBtn: 1,shift: 5,
+                        layer.confirm(msg,{title:'Data Security Risk Warning',icon:2,closeBtn: 1,btn:['Yes','No'],shift: 5,
                         btn2:function(){
                             setTimeout(function(){$($("select[name='delete']").children("option")[0]).prop('selected',true);},100);
                         }
