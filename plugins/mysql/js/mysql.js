@@ -862,7 +862,7 @@ function downloadBackup(file){
 function importBackup(file,name){
     myPost('import_db_backup',{file:file,name:name}, function(data){
         // console.log(data);
-        layer.msg('执行成功!');
+        layer.msg('Execution succeed!');
     });
 }
 
