@@ -87,7 +87,7 @@ function getSshInfo(){
 }
 
 function mstsc(port) {
-	layer.confirm('When changing the remote port, all logged in accounts will be logged out, do you really want to change the remote port?', {title: 'Remote port'}, function(index) {
+	layer.confirm('When changing the remote port, all logged in accounts will be logged out, do you really want to change the remote port?', {title: 'Remote port', btn:['Yes','No']}, function(index) {
 		var data = "port=" + port;
 		var loadT = layer.load({
 			shade: true,
