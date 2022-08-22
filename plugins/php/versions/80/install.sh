@@ -16,7 +16,7 @@ function version_lt() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)"
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 
 
-version=8.0.21
+version=8.0.22
 PHP_VER=80
 Install_php()
 {
@@ -27,13 +27,14 @@ mkdir -p $serverPath/php
 
 cd $serverPath/panel/plugins/php/lib && /bin/bash freetype_new.sh
 cd $serverPath/panel/plugins/php/lib && /bin/bash zlib.sh
+cd $serverPath/panel/plugins/php/lib && /bin/bash libzip.sh
 
 if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 
 	if [ ! -f $sourcePath/php/php-${version}.tar.xz ];then
 		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://www.php.net/distributions/php-${version}.tar.xz
 	fi
-	
+
 	cd $sourcePath/php && tar -Jxf $sourcePath/php/php-${version}.tar.xz
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
 fi
@@ -95,7 +96,7 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 	$OPTIONS \
 	--enable-fpm
 	make clean && make && make install && make clean
-fi 
+fi
 #------------------------ install end ------------------------------------#
 }
 

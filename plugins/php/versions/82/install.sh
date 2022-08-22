@@ -27,6 +27,7 @@ mkdir -p $serverPath/php
 
 cd $serverPath/panel/plugins/php/lib && /bin/bash freetype_new.sh
 cd $serverPath/panel/plugins/php/lib && /bin/bash zlib.sh
+cd $serverPath/panel/plugins/php/lib && /bin/bash libzip.sh
 
 
 if [ ! -d $sourcePath/php/php${PHP_VER} ];then
@@ -34,7 +35,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	if [ ! -f $sourcePath/php/php-${version}.tar.xz ];then
 		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://downloads.php.net/~pierrick/php-8.2.0alpha2.tar.xz
 	fi
-	
+
 	cd $sourcePath/php && tar -Jxf $sourcePath/php/php-${version}.tar.xz
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
 fi
@@ -91,7 +92,7 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 	$OPTIONS \
 	--enable-fpm
 	make clean && make && make install && make clean
-fi 
+fi
 #------------------------ install end ------------------------------------#
 }
 

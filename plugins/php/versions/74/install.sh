@@ -16,7 +16,7 @@ function version_le() { test "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" 
 function version_lt() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" != "$1"; }
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 
-version=7.4.26
+version=7.4.30
 PHP_VER=74
 Install_php()
 {
@@ -34,7 +34,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	if [ ! -f $sourcePath/php/php-${version}.tar.xz ];then
 		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://museum.php.net/php7/php-${version}.tar.xz
 	fi
-	
+
 	cd $sourcePath/php && tar -Jxf $sourcePath/php/php-${version}.tar.xz
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
 fi
@@ -99,7 +99,7 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 	$OPTIONS \
 	--enable-fpm
 	make && make install && make clean
-fi 
+fi
 #------------------------ install end ------------------------------------#
 }
 

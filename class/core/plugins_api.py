@@ -110,6 +110,7 @@ class plugins_api:
             return slemp.returnJson(False, 'File konfigurasi tidak ada!', ())
 
         pluginInfo = json.loads(slemp.readFile(infoJsonPos))
+        self.hookInstall(pluginInfo)
 
         execstr = "cd " + os.getcwd() + "/plugins/" + \
             name + " && /bin/bash " + pluginInfo["shell"] \
@@ -125,6 +126,55 @@ class plugins_api:
 
         slemp.triggerTask()
         return slemp.returnJson(True, 'Penginstallan ditambahkan ke antrian!')
+
+    def hookInstallFile(self, hook_name, info):
+        hookPath = slemp.getPanelDataDir() + "/hook_" + hook_name + ".json"
+        data = []
+        if os.path.exists(hookPath):
+            t = slemp.readFile(hookPath)
+            data = json.loads(t)
+
+        isNeedAdd = True
+        for x in range(len(data)):
+            if data[x]['title'] == info['title'] and data[x]['name'] == info['name']:
+                isNeedAdd = False
+
+        if isNeedAdd:
+            tmp = {}
+            tmp['title'] = info['title']
+            tmp['name'] = info['name']
+            data.append(tmp)
+        slemp.writeFile(hookPath, json.dumps(data))
+
+    def hookUninstallFile(self, hook_name, info):
+        hookPath = slemp.getPanelDataDir() + "/hook_" + hook_name + ".json"
+        data = []
+        if os.path.exists(hookPath):
+            t = slemp.readFile(hookPath)
+            data = json.loads(t)
+
+        for idx in range(len(data)):
+            if data[idx]['title'] == info['title'] and data[idx]['name'] == info['name']:
+                data.remove(data[idx])
+        slemp.writeFile(hookPath, json.dumps(data))
+
+    def hookInstall(self, info):
+        if 'hook' in info:
+            hooks = info['hook']
+            for x in hooks:
+                if x in ['backup']:
+                    self.hookInstallFile(x, info)
+                    return True
+        return False
+
+    def hookUninstall(self, info):
+        if 'hook' in info:
+            hooks = info['hook']
+            for x in hooks:
+                if x in ['backup']:
+                    self.hookUninstallFile(x, info)
+                    return True
+        return False
 
     def uninstallOldApi(self):
         rundir = slemp.getRunDir()
@@ -169,13 +219,14 @@ class plugins_api:
             return slemp.returnJson(False, "File konfigurasi tidak ada!", ())
 
         pluginInfo = json.loads(slemp.readFile(infoJsonPos))
+        self.hookUninstall(pluginInfo)
 
         execstr = "cd " + os.getcwd() + "/plugins/" + \
             name + " && /bin/bash " + pluginInfo["shell"] \
             + " uninstall " + version
 
         data = slemp.execShell(execstr)
-        if slemp.isAppleSystem():
+        if slemp.isDebugMode():
             print(execstr)
             print(data[0], data[1])
         self.removeIndex(name, version)

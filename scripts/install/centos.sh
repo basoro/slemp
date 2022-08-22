@@ -24,7 +24,7 @@ yum install -y mysql-devel
 
 
 #https need
-if [ ! -d /root/.acme.sh ];then	
+if [ ! -d /root/.acme.sh ];then
 	curl https://get.acme.sh | sh
 fi
 
@@ -86,7 +86,7 @@ fi
 
 yum install -y libtirpc libtirpc-devel
 yum install -y rpcgen
-yum install -y openldap openldap-devel  
+yum install -y openldap openldap-devel
 yum install -y bison re2c
 yum install -y cmake3
 yum install -y autoconf
@@ -97,7 +97,7 @@ yum install -y curl curl-devel
 yum install -y zlib zlib-devel
 yum install -y libzip libzip-devel
 yum install -y pcre pcre-devel
-yum install -y icu libicu-devel 
+yum install -y icu libicu-devel
 yum install -y freetype freetype-devel
 yum install -y openssl openssl-devel
 yum install -y graphviz libxml2 libxml2-devel
@@ -108,7 +108,7 @@ yum install -y ImageMagick ImageMagick-devel
 
 yum install -y libzstd-devel
 yum install -y libevent libevent-devel unzip zip
-yum install -y python-imaging libicu-devel  bzip2-devel gcc  pcre pcre-devel
+yum install -y python-imaging libicu-devel  bzip2-devel pcre pcre-devel
 
 yum install -y gd gd-devel
 yum install -y libjpeg-devel libpng-devel libwebp libwebp-devel
@@ -162,6 +162,3 @@ done
 cd /home/slemp/server/panel && /etc/init.d/slemp stop
 cd /home/slemp/server/panel && /etc/init.d/slemp start
 cd /home/slemp/server/panel && /etc/init.d/slemp default
-
-
-
