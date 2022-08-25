@@ -143,7 +143,7 @@ data/system.db-journal
 
 plugins/l2tp
 plugins/openlitespeed
-plugins/gdrive
+#plugins/gdrive
 plugins/mtproxy
 plugins/zimg
 debug.out

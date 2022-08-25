@@ -1,0 +1,221 @@
+<style>
+
+  .upyunCon {
+    padding: 30px;
+  }
+
+  .up-place {
+    height: 62px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .up-place .btn {
+    border-radius: 0;
+  }
+
+  .up-place .place-input {
+    background-color: #f3f3f3;
+    border: 1px solid #ccc;
+    height: 30px;
+    line-height: 28px;
+    overflow: hidden;
+    margin: 1px 0 0 -1px;
+    width: 340px;
+  }
+
+  .place-input ul {
+    display: inline-block;
+    position: relative;
+    width: auto;
+  }
+
+  .place-input ul li {
+    background: url("/static/img/ico/ico-ltr.png") no-repeat right center;
+    float: left;
+    padding-left: 10px;
+    padding-right: 18px;
+  }
+
+  .place-input ul li a {
+    height: 28px;
+    cursor: pointer;
+    display: inline-block;
+  }
+
+  .upyunlist {
+    height: 516px;
+    overflow: auto;
+  }
+
+  .up-bottom {
+    background-color: #fafafa;
+    border-top: 1px solid #eee;
+    bottom: 0;
+    position: absolute;
+    width: 100%;
+  }
+
+  .up-use {
+    line-height: 50px
+  }
+
+  .list-list .cursor span {
+    line-height: 30px;
+  }
+
+  .btn-title {
+    margin-top: 1px
+  }
+
+  .step_item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .step_item .serial_box {
+    flex: 1;
+  }
+
+  .step_item .serial {
+    display: flex;
+    justify-content: center;
+    min-width: 30px;
+    margin-right: 30px;
+  }
+  .step_item .serial span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 2px solid #20a53a;
+    border-radius: 50%;
+    font-size: 12px;
+    color: #20a53a;
+  }
+  .step_item .serial_title{
+    margin-bottom: 15px;
+    font-size: 15px;
+    line-height: 30px;
+    color: #666;
+  }
+  .step_two_rul {
+    display: inline-block;
+    overflow: hidden;
+    width: 200px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    height: 30px;
+    line-height: 30px;
+    background: #ececec;
+    margin-right: 10px;
+    border-radius: 2px;
+    padding: 0 10px;
+    float: left;
+  }
+  .btn_btlink {
+    display: inline-block;
+    padding: 5px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    border: 1px solid #20a53a;
+    color: #fff;
+    background-color: #20a53a;
+    margin-right:10px;
+  }
+  .btn_btlink:hover{
+    color: #fff;
+    background-color: #10952a;
+    border-color: #398439;
+  }
+  .btn_btlink a:visited{
+    color: #fff;
+    background-color: #10952a;
+    border-color: #398439;
+  }
+  .view_video{
+    width: 350px;
+    height: 150px;
+    border: 1px solid #ececec;
+  }
+  .serial_conter textarea {
+    width: 350px;
+    height: 100px;
+  }
+  .setp_one {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 180px;
+  }
+  .setp_one i {
+    width: 30px;
+    height: 30px;
+  }
+  .setp_one_tips {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    width: 400px;
+    margin-bottom: 40px;
+    line-height: 30px;
+    font-size: 14px;
+  }
+  .setp_one_tips .text {
+    margin-left: 80px;
+  }
+</style>
+<div class="bt-form">
+	<div class="bt-w-main">
+		<div class="bt-w-menu">
+			<p class="bgw" onclick="pluginService('gdrive');">Service</p>
+			<!--<p onclick="pluginInitD('gdrive');">Init</p>-->
+			<p onclick="setup();">Setup</p>
+      <p onclick="pluginConfig('gdrive');">Config</p>
+		</div>
+		<div class="bt-w-con pd15">
+			<div class="soft-man-con"></div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+$.getScript( "/plugins/file?name=gdrive&f=js/main.js", function(){
+	pluginService('gdrive');
+});
+
+function setup() {
+  var loadT = layer.msg('Setrieving...', { icon: 16, time: 0, shade: 0.3 });
+  $.post('/plugins/run', {name:'gdrive', func:'auth_url'}, function(data) {
+    layer.close(loadT);
+    if (!data.status){
+     layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
+     return;
+    }
+    var setup = '';
+    setup += '<div class="upyunCon">';
+    setup += '  <div class="step_form">';
+    setup += '    <div class="step_item">';
+    setup += '      <div class="serial_box">';
+    setup += '        <div class="serial_title">Click the link below 👇 to complete the Google Drive authorization</div>';
+    setup += '        <div class="serial_conter step_two">';
+    setup += '          <a href="" class="step_two_rul" target="_blank"></a>';
+    setup += '          <a href="" class="btn_btlink open_btlink" target="_blank">Open link</a>';
+    setup += '        </div>';
+    setup += '      </div>';
+    setup += '    </div>';
+    setup += '  </div>';
+    setup += '</div>';
+    $('.soft-man-con').html(setup);
+    $('.step_two_rul').attr('href', data.data).text(data.data);
+    $('.open_btlink').attr('href', data.data);
+  },'json');
+}
+
+</script>
