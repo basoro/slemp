@@ -140,6 +140,7 @@ data/ssl.pl
 data/edate.pl
 data/osname.pl
 data/system.db-journal
+data/hook_backup.json
 
 plugins/l2tp
 plugins/openlitespeed
