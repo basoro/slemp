@@ -464,7 +464,7 @@ function setIndexEdit(id){
 }
 
 function webStop(wid, wname) {
-	layer.confirm('Situs tidak akan dapat diakses setelah penonaktifan, apakah Anda benar-benar ingin menonaktifkan situs ini?', {icon:3,closeBtn:2,btn:['Yes','No']},function(index) {
+	layer.confirm('Situs tidak akan dapat diakses setelah penonaktifan, apakah Anda benar-benar ingin menonaktifkan situs ini?', {title:'Notification',icon:3,closeBtn:2,btn:['Yes','No']},function(index) {
 		if (index > 0) {
 			var loadT = layer.load();
 			$.post("/site/stop","id=" + wid + "&name=" + wname, function(ret) {
