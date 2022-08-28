@@ -37,16 +37,10 @@ Install_Plugin()
 
 	echo 'Installing script file...' > $install_tmp
 
-	if [ $sysName == 'Darwin' ]; then
-		pip install -I pyOpenSSL
-		pip install -I google-api-python-client==2.39.0 google-auth-httplib2==0.1.0 google-auth-oauthlib==0.5.0 -i https://pypi.Python.org/simple
-		pip install -I httplib2==0.18.1 -i https://pypi.Python.org/simple
-	else
-		$serverPath/panel/bin/pip install -I pyOpenSSL
-		$serverPath/panel/bin/pip install -I google-api-python-client==2.39.0 google-auth-httplib2==0.1.0 google-auth-oauthlib==0.5.0 -i https://pypi.Python.org/simple
-		$serverPath/panel/bin/pip install -I httplib2==0.18.1 -i https://pypi.Python.org/simple
-		$serverPath/panel/bin/pip install cryptography==3.3.2
-	fi
+	pip install -I pyOpenSSL
+	pip install -I google-api-python-client==2.39.0 google-auth-httplib2==0.1.0 google-auth-oauthlib==0.5.0 -i https://pypi.Python.org/simple
+	pip install -I httplib2==0.18.1 -i https://pypi.Python.org/simple
+	pip install -I cryptography==3.3.2
 
 	mkdir -p $serverPath/gdrive
 	cp $serverPath/panel/plugins/gdrive/credentials.json $serverPath/gdrive/credentials.json
