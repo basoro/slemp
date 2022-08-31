@@ -146,7 +146,8 @@ def backupSite(name, count):
     if not os.path.exists(backup_path):
         slemp.execShell("mkdir -p " + backup_path)
 
-    filename = backup_path + "/web_" + name + "_" + time.strftime('%Y%m%d_%H%M%S', time.localtime()) + '.tar.gz'
+    nama_file = "web_" + name + "_" + time.strftime('%Y%m%d_%H%M%S', time.localtime()) + '.tar.gz'
+    filename = backup_path + "/" + nama_file
     #slemp.execShell("cd " + os.path.dirname(path) + " && tar zcvf '" + filename + "' '" + os.path.basename(path) + "' > /dev/null")
     slemp.execShell("cd " + os.path.dirname(path) + " && tar zcvf '" + filename + "' '" + os.path.basename(path) + "' > /dev/null")
 
@@ -196,7 +197,7 @@ def backupSite(name, count):
                 tmp_data['scopes'])
     service = build('drive', 'v3', credentials=creds)
 
-    file_metadata = {'name': filename}
+    file_metadata = {'name': nama_file}
     media = MediaFileUpload(filename, resumable=True)
     file = service.files().create(body=file_metadata, media_body=media,fields='id').execute()
     print("|---Sukses")
@@ -221,8 +222,8 @@ def backupDatabase(name, count):
     if not os.path.exists(backup_path):
         slemp.execShell("mkdir -p " + backup_path)
 
-    filename = backup_path + "/db_" + name + "_" + \
-        time.strftime('%Y%m%d_%H%M%S', time.localtime()) + ".sql.gz"
+    nama_file = "db_" + name + "_" + time.strftime('%Y%m%d_%H%M%S', time.localtime()) + ".sql.gz"
+    filename = backup_path + "/" + nama_file
 
     import re
     mysql_root = slemp.M('config').dbPos(db_path, db_name).where(
@@ -291,7 +292,7 @@ def backupDatabase(name, count):
                 tmp_data['scopes'])
     service = build('drive', 'v3', credentials=creds)
 
-    file_metadata = {'name': filename}
+    file_metadata = {'name': nama_file}
     media = MediaFileUpload(filename, resumable=True)
     file = service.files().create(body=file_metadata, media_body=media,fields='id').execute()
     print("|---Sukses")
