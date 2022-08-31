@@ -150,6 +150,19 @@ def backupSite(name, count):
     #slemp.execShell("cd " + os.path.dirname(path) + " && tar zcvf '" + filename + "' '" + os.path.basename(path) + "' > /dev/null")
     slemp.execShell("cd " + os.path.dirname(path) + " && tar zcvf '" + filename + "' '" + os.path.basename(path) + "' > /dev/null")
 
+    if os.path.exists(slemp.getServerDir() + '/gdrive/token.json'):
+        with open(slemp.getServerDir() + '/gdrive/token.json', 'rb') as token:
+            tmp_data = json.load(token)['credentials']
+            creds = google.oauth2.credentials.Credentials(
+                tmp_data['token'],
+                tmp_data['refresh_token'],
+                tmp_data['id_token'],
+                tmp_data['token_uri'],
+                tmp_data['client_id'],
+                tmp_data['client_secret'],
+                tmp_data['scopes'])
+    service = build('drive', 'v3', credentials=creds)
+
     file_metadata = {'name': filename}
     media = MediaFileUpload(filename, resumable=True)
     file = service.files().create(body=file_metadata, media_body=media,fields='id').execute()
