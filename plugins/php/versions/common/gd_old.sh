@@ -56,15 +56,15 @@ Install_lib()
 	fi
 
 	cd $serverPath/panel/plugins/php/lib && /bin/bash freetype_old.sh
-	
+
 	if [ ! -f "$extFile" ];then
 
 		if [ ! -d $sourcePath/php${version}/ext ];then
 			cd $serverPath/panel/plugins/php && /bin/bash install.sh install ${version}
 		fi
-		
+
 		cd $sourcePath/php${version}/ext/${LIBNAME}
-		
+
 		$serverPath/php/$version/bin/phpize
 
 		#--with-xpm
@@ -77,7 +77,7 @@ Install_lib()
 		--enable-gd-jis-conv \
 		--enable-gd-native-ttf
 		make clean && make && make install && make clean
-		
+
 	fi
 
 	if [ ! -f "$extFile" ];then
@@ -88,7 +88,7 @@ Install_lib()
     echo "" >> $serverPath/php/$version/etc/php.ini
 	echo "[${LIBNAME}]" >> $serverPath/php/$version/etc/php.ini
 	echo "extension=${LIBNAME}.so" >> $serverPath/php/$version/etc/php.ini
-	
+
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==========================================================='
 	echo 'successful!'
@@ -101,16 +101,16 @@ Uninstall_lib()
 		echo "php-$version is not installed, please select another version!"
 		return
 	fi
-	
+
 	if [ ! -f "$extFile" ];then
 		echo "php-$version ${LIBNAME} is not installed, please select another version!"
 		return
 	fi
-	
+
 	echo $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
-		
+
 	rm -f $extFile
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='

@@ -418,9 +418,27 @@ class system_api:
         os.system('echo > /tmp/panelBoot.pl')
         return total, count
 
+    def psutilNetIoCounters(self):
+        stat_pl = 'data/only_netio_counters.pl'
+        if os.path.exists(stat_pl):
+            local_lo = (0, 0, 0, 0)
+            ioName = psutil.net_io_counters(pernic=True).keys()
+            for x in ioName:
+
+                if x.find("lo") > -1:
+                    local_lo = psutil.net_io_counters(
+                        pernic=True).get(x)[:4]
+
+            all_io = psutil.net_io_counters()[:4]
+            result_io = tuple([all_io[i] - local_lo[i]
+                               for i in range(0, len(all_io))])
+
+            return result_io
+        return psutil.net_io_counters()[:4]
+
     def getNetWork(self):
         try:
-            networkIo = psutil.net_io_counters()[:4]
+            networkIo = self.psutilNetIoCounters()
             if not "otime" in session:
                 session['up'] = networkIo[0]
                 session['down'] = networkIo[1]
@@ -447,35 +465,7 @@ class system_api:
 
             return networkInfo
         except Exception as e:
-            return None
-
-    def getNetWorkApi(self):
-        try:
-            tmpfile = 'data/network.temp'
-            networkIo = psutil.net_io_counters()[:4]
-
-            if not os.path.exists(tmpfile):
-                slemp.writeFile(tmpfile, str(
-                    networkIo[0]) + '|' + str(networkIo[1]) + '|' + str(int(time.time())))
-
-            lastValue = slemp.readFile(tmpfile).split('|')
-
-            ntime = time.time()
-            networkInfo = {}
-            networkInfo['upTotal'] = networkIo[0]
-            networkInfo['downTotal'] = networkIo[1]
-            networkInfo['up'] = round(
-                float(networkIo[0] - int(lastValue[0])) / 1024 / (ntime - int(lastValue[2])), 2)
-            networkInfo['down'] = round(
-                float(networkIo[1] - int(lastValue[1])) / 1024 / (ntime - int(lastValue[2])), 2)
-            networkInfo['downPackets'] = networkIo[3]
-            networkInfo['upPackets'] = networkIo[2]
-
-            slemp.writeFile(tmpfile, str(
-                networkIo[0]) + '|' + str(networkIo[1]) + '|' + str(int(time.time())))
-
-            return networkInfo
-        except:
+            print("getNetWork error:", e)
             return None
 
     def getNetWorkIoData(self, start, end):
@@ -537,14 +527,19 @@ class system_api:
     def setControl(self, stype, day):
 
         filename = 'data/control.conf'
+        stat_pl = 'data/only_netio_counters.pl'
 
         if stype == '0':
-            slemp.execShell("rm -f " + filename)
+            slemp.execShell("rm -rf " + filename)
         elif stype == '1':
             _day = int(day)
             if _day < 1:
                 return slemp.returnJson(False, "Pengaturan gagal!")
             slemp.writeFile(filename, day)
+        elif stype == '2':
+            mw.execShell("rm -rf " + stat_pl)
+        elif stype == '3':
+            mw.execShell("echo 'True' > " + stat_pl)
         elif stype == 'del':
             if not slemp.isRestart():
                 return slemp.returnJson(False, 'Harap tunggu hingga semua tugas penginstalan selesai sebelum dijalankan')
@@ -567,6 +562,12 @@ class system_api:
             else:
                 data['day'] = 30
                 data['status'] = False
+
+            if os.path.exists(stat_pl):
+                data['stat_all_status'] = True
+            else:
+                data['stat_all_status'] = False
+
             return slemp.getJson(data)
 
         return slemp.returnJson(True, "Pengaturan berhasil!")

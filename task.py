@@ -229,7 +229,7 @@ def systemTask():
                 tmp['mem'] = sm.getMemUsed()
                 cpuInfo = tmp
 
-            networkIo = psutil.net_io_counters()[:4]
+            networkIo = sm.psutilNetIoCounters()
             if not network_up:
                 network_up = networkIo[0]
                 network_down = networkIo[1]

@@ -139,7 +139,7 @@ def initDReceive():
     systemDir = slemp.systemdCfgDir()
     systemService = systemDir + '/rsyncd.service'
     systemServiceTpl = getPluginDir() + '/init.d/rsyncd.service.tpl'
-    if os.path.exists(systemDir) and not os.path.exists(systemService):
+    if not os.path.exists(lock_file):
         rsync_bin = slemp.execShell('which rsync')[0].strip()
         if rsync_bin == '':
             print('rsync missing!')
@@ -199,7 +199,7 @@ def initDSend():
         slemp.writeFile(systemService, content)
         slemp.execShell('systemctl daemon-reload')
 
-    slemp.writeFile(lock_file, "ok")
+        slemp.writeFile(lock_file, "ok")
 
     lslog = getLsyncdLog()
     if os.path.exists(lslog):
