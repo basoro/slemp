@@ -1417,7 +1417,7 @@ function to301(siteName, type, obj){
 					closeBtn: 1,
 					shadeClose: true,
 					area: ['500px', '500px'],
-					btn: ['提交','关闭'],
+					btn: ['Yes','No'],
 					content: mBody,
 					success: function () {
 						editor = CodeMirror.fromTextArea(document.getElementById("configRedirectBody"), {
@@ -1606,7 +1606,7 @@ function toProxy(siteName, type, obj) {
 					closeBtn: 1,
 					shadeClose: true,
 					area: ['500px', '500px'],
-					btn: ['Submit','Tutup'],
+					btn: ['Yes','No'],
 					content: mBody,
 					success: function () {
 						editor = CodeMirror.fromTextArea(document.getElementById("configProxyBody"), {
