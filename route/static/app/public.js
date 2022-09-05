@@ -605,11 +605,11 @@ function btcopy(password) {
 
 var clipboard = new ClipboardJS('#bt_copys');
 clipboard.on('success', function (e) {
-    layer.msg('复制成功!',{icon:1});
+    layer.msg('Copy successfully!',{icon:1});
 });
 
 clipboard.on('error', function (e) {
-    layer.msg('复制失败，浏览器不兼容!',{icon:2});
+    layer.msg('Copy failed, browser is not compatible!',{icon:2});
 });
 
 function isChineseChar(b) {
