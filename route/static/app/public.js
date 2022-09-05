@@ -1409,7 +1409,7 @@ function webShell() {
 					<div class="shell-text-input">\
                     <textarea type="text" class="bt-input-text-shell" placeholder="Paste perintah disini.." value="" name="ssh_copy" />\
 					<div class="shell-btn-group">\
-                    <button class="shellbutton btn btn-success btn-sm pull-right shell_btn_1">Send (Ctrl+Enter)</button>\
+                    <button class="shellbutton btn btn-success btn-sm pull-right shell_btn_1">Send</button>\
 					<button class="shellbutton btn btn-default btn-sm pull-right shell_btn_close">Tutup</button>\
 					</div>\
                 </div>',

@@ -1,0 +1,20 @@
+<div class="bt-form">
+	<div class="bt-w-main">
+		<div class="bt-w-menu">
+			<p class="bgw" onclick="pm2List();">Project list</p>
+			<p onclick="getNodeVersions();">Node version</p>
+			<p onclick="getModList();">Template management</p>
+			<p onclick="pluginLogs('pm2', '','get_logs');">Log management</p>
+		</div>
+		<div class="bt-w-con pd15">
+			<div class="soft-man-con"></div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+
+resetPluginWinWidth(760);
+$.getScript( "/plugins/file?name=pm2&f=js/pm2.js", function(){
+	pm2List();
+});
+</script>
