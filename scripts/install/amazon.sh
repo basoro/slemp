@@ -17,9 +17,9 @@ yum install -y wget lsof crontabs
 yum install -y python3-devel
 yum install -y python3-pip
 yum install -y python-devel
-yum install -y vixie-cron
 yum install -y curl-devel libmcrypt libmcrypt-devel
 yum install -y mysql-devel
+yum install -y expect
 
 
 
@@ -44,7 +44,6 @@ if [ -f /etc/init.d/iptables ];then
 		service iptables restart
 	fi
 
-	#Does not turn on during installation时不开启
 	service iptables stop
 fi
 
@@ -66,7 +65,6 @@ if [ ! -f /etc/init.d/iptables ];then
 
 	sed -i 's#AllowZoneDrifting=yes#AllowZoneDrifting=no#g' /etc/firewalld/firewalld.conf
 	firewall-cmd --reload
-	#Does not turn on during installation时不开启
 	systemctl stop firewalld
 fi
 
@@ -107,13 +105,14 @@ yum install -y ImageMagick ImageMagick-devel
 
 yum install -y libzstd-devel
 yum install -y libevent libevent-devel unzip zip
-yum install -y python-imaging libicu-devel  bzip2-devel pcre pcre-devel
+yum install -y python-imaging libicu-devel  bzip2-devel  pcre pcre-devel
 
 yum install -y gd gd-devel
 yum install -y libjpeg-devel libpng-devel libwebp libwebp-devel
 
 yum install -y net-tools
 yum install -y ncurses-devel
+
 
 for yumPack in flex file libtool libtool-libs kernel-devel patch wget glib2 glib2-devel tar bzip2 bzip2-devel libevent libevent-devel ncurses ncurses-devel curl curl-devel libcurl libcurl-devel e2fsprogs e2fsprogs-devel libidn libidn-devel vim-minimal gettext gettext-devel ncurses-devel gmp-devel libcap diffutils ca-certificates net-tools psmisc libXpm-devel git-core c-ares-devel libicu-devel libxslt libxslt-devel zip unzip glibc.i686 libstdc++.so.6 cairo-devel ncurses-devel libaio-devel perl perl-devel perl-Data-Dumper expat-devel readline-devel;
 do yum -y install $yumPack;done

@@ -77,6 +77,12 @@ class ORM:
     def getPwd(self):
         return self.__DB_PASS
 
+    def setDbName(self, name):
+        self.__DB_NAME = name
+
+    def setUser(self, user):
+        self.__DB_USER = user
+        
     def execute(self, sql):
         if not self.__Conn():
             return self.__DB_ERR

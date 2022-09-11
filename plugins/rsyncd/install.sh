@@ -23,7 +23,7 @@ Install_rsyncd()
 	echo 'installing script file...' > $install_tmp
 
 
-	if [ "$OSNAME" == "debian'" ] || [ "$OSNAME" == "ubuntu'" ];then
+	if [ "$OSNAME" == "debian" ] || [ "$OSNAME" == "ubuntu" ];then
 		apt install -y rsync
 		apt install -y lsyncd
 	elif [[ "$OSNAME" == "arch" ]]; then

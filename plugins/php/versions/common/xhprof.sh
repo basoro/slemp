@@ -12,7 +12,7 @@ serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
 
 LIBNAME=xhprof
-LIBV=2.3.5
+LIBV=2.3.7
 sysName=`uname`
 actionType=$1
 version=$2
@@ -43,14 +43,14 @@ Install_lib()
 		echo "php-$version ${LIBNAME} is installed, please select another version!"
 		return
 	fi
-	
+
 	if [ ! -f "$extFile" ];then
 		php_lib=$sourcePath/php_lib
 		mkdir -p $php_lib
 		if [ ! -d $php_lib/${LIBNAME}-${LIBV} ];then
 			wget -O $php_lib/${LIBNAME}-${LIBV}.tgz http://pecl.php.net/get/${LIBNAME}-${LIBV}.tgz
 			cd $php_lib && tar xvf ${LIBNAME}-${LIBV}.tgz
-		fi 
+		fi
 		cd $php_lib/${LIBNAME}-${LIBV}/extension
 
 		$serverPath/php/$version/bin/phpize
@@ -59,7 +59,7 @@ Install_lib()
 		make clean && make && make install && make clean
 
 	fi
-	
+
 	if [ ! -f "$extFile" ];then
 		echo "ERROR!"
 		return
@@ -87,16 +87,16 @@ Uninstall_lib()
 		echo "php-$version is not installed, please select another version!"
 		return
 	fi
-	
+
 	if [ ! -f "$extFile" ];then
 		echo "php-$version ${LIBNAME} is not installed, please select another version!"
 		echo "php-$version not install ${LIBNAME}, Plese select other version!"
 		return
 	fi
-	
+
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
-		
+
 	rm -f $extFile
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='

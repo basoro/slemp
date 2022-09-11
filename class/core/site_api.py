@@ -488,7 +488,7 @@ class site_api:
         certName = request.form.get('certName', '')
         siteName = request.form.get('siteName', '')
         try:
-            path = self.sslDir + siteName
+            path = self.sslDir + siteName.strip()
             if not os.path.exists(path):
                 return slemp.returnJson(False, 'Sertifikat tidak ada!')
 
