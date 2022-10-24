@@ -102,8 +102,8 @@ function getSList(isdisplay) {
                 var mupdate = '';
                 //(plugin.versions[n] == plugin.updates[n]) '' : '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + plugin.versions[n].version + '\',\'' + plugin.updates[n] + '\')">Update</a> | ';
                 // if (plugin.versions[n] == '') mupdate = '';
-                handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.title + '\',\'' + plugin.setup_version + '\')">Setting</a> | <a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection +')">Uninstall</a>';
-                titleClick = 'onclick="softMain(\'' + plugin.title + '\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
+                handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\''+ plugin.name +'\',\'' + plugin.setup_version + '\')">Setting</a> | <a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection +')">Uninstall</a>';
+                titleClick = 'onclick="softMain(\'' + plugin.name + '\',\''+ plugin.name +'\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
 
                 softPath = '<span class="glyphicon glyphicon-folder-open" title="' + plugin.path + '" onclick="openPath(\'' + plugin.path + '\')"></span>';
                 if (plugin.coexist){

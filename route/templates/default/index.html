@@ -238,8 +238,8 @@ function getSListIndex(isdisplay) {
             if (plugin.setup == true) {
 
                 var mupdate = '';
-                handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + plugin.setup_version + '\')">Atur</a> | <a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection +')">Lepas</a>';
-                titleClick = 'onclick="softMain(\'' + plugin.name + '\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
+                handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\''+ plugin.name +'\',\'' + plugin.setup_version + '\')">Atur</a> | <a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection +')">Lepas</a>';
+                titleClick = 'onclick="softMain(\'' + plugin.name + '\',\''+ plugin.name +'\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
 
                 softPath = '<span class="glyphicon glyphicon-folder-open" title="' + plugin.path + '" onclick="openPath(\'' + plugin.path + '\')"></span>';
                 if (plugin.coexist){
