@@ -192,7 +192,7 @@ function recycleBin(type){
 			layer.open({
 				type: 1,
 				shift: 5,
-				closeBtn: 2,
+				closeBtn: 1,
 				area: ['80%','606px'],
 				title: lan.files.recycle_bin_title,
 				content: tablehtml
@@ -799,7 +799,7 @@ function createFile(type, path) {
 	layer.open({
 		type: 1,
 		shift: 5,
-		closeBtn: 2,
+		closeBtn: 1,
 		area: '320px',
 		title: 'Create a new blank file',
 		content: '<div class="bt-form pd20 pb70">\
@@ -839,7 +839,7 @@ function createDir(type, path) {
 	layer.open({
 		type: 1,
 		shift: 5,
-		closeBtn: 2,
+		closeBtn: 1,
 		area: '320px',
 		title: 'New directory',
 		content: '<div class="bt-form pd20 pb70">\
@@ -935,7 +935,7 @@ function downloadFile(action){
 	layer.open({
 		type: 1,
 		shift: 5,
-		closeBtn: 2,
+		closeBtn: 1,
 		area: '500px',
 		btn:["Ok","No"],
 		title: lan.files.down_title,
@@ -987,7 +987,7 @@ function reName(type, fileName) {
 	layer.open({
 		type: 1,
 		shift: 5,
-		closeBtn: 2,
+		closeBtn: 1,
 		area: '320px',
 		title: 'Double naming',
 		btn:["Ok","No"],
@@ -1135,7 +1135,7 @@ function zip(dirName,submits) {
 	layer.open({
 		type: 1,
 		shift: 5,
-		closeBtn: 2,
+		closeBtn: 1,
 		area: '650px',
 		title: lan.files.zip_title,
 		content: '<div class="bt-form pd20 pb70">'
@@ -1190,7 +1190,7 @@ function unZip(fileName,type) {
 	layer.open({
 		type: 1,
 		shift: 5,
-		closeBtn: 2,
+		closeBtn: 1,
 		area: '490px',
 		title: 'Unzip files',
 		content: '<div class="bt-form pd20 pb70">'
@@ -1243,7 +1243,7 @@ function getImage(fileName){
 	var imgUrl = '/files/download?filename='+fileName;
 	layer.open({
 		type:1,
-		closeBtn: 2,
+		closeBtn: 1,
 		title:false,
 		area: '500px',
 		shadeClose: true,
@@ -1260,7 +1260,7 @@ function uploadFiles(){
 	var path = $("#DirPathPlace input").val()+"/";
 	layer.open({
 		type:1,
-		closeBtn: 2,
+		closeBtn: 1,
 		title:lan.files.up_title,
 		area: ['500px','300px'],
 		shadeClose:false,
@@ -1304,7 +1304,7 @@ function setChmod(action,fileName){
 		// console.log(rdata);
 		layer.open({
 			type:1,
-			closeBtn: 2,
+			closeBtn: 1,
 			title: 'Setting permissions ['+fileName+']',
 			area: '400px',
 			shadeClose:false,

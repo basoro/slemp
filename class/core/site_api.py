@@ -333,10 +333,15 @@ class site_api:
         name = slemp.M('sites').where("id=?", (mid,)).getField('name')
         data = {}
         data['logs'] = self.getLogsStatus(name)
+        data['runPath'] = self.getSiteRunPath(mid)
         data['userini'] = False
         if os.path.exists(path + '/.user.ini'):
             data['userini'] = True
-        data['runPath'] = self.getSiteRunPath(mid)
+
+        if data['runPath']['runPath'] != '/':
+            if os.path.exists(path + data['runPath']['runPath'] + '/.user.ini'):
+                data['userini'] = True
+
         data['pass'] = self.getHasPwd(name)
         data['path'] = path
         data['name'] = name
@@ -344,14 +349,15 @@ class site_api:
 
     def setDirUserIniApi(self):
         path = request.form.get('path', '')
+        runPath = request.form.get('runPath', '')
         filename = path + '/.user.ini'
-        self.delUserInI(path)
         if os.path.exists(filename):
+            self.delUserInI(path)
             slemp.execShell("which chattr && chattr -i " + filename)
             os.remove(filename)
             return slemp.returnJson(True, 'Pengaturan anti-cross-site dihapus!')
-        slemp.writeFile(filename, 'open_basedir=' + path +
-                     '/:/home/slemp/server/php:/tmp/:/proc/')
+
+        self.setDirUserINI(path, runPath)
         slemp.execShell("which chattr && chattr +i " + filename)
         return slemp.returnJson(True, 'Pengaturan anti-cross-site diaktifkan!')
 
@@ -717,11 +723,11 @@ class site_api:
             if conf.find('ssl_certificate') == -1:
                 return slemp.returnJson(False, 'SSL saat ini tidak diaktifkan')
             to = """#error_page 404/404.html;
-    #HTTP_TO_HTTPS_START
+    # HTTP_TO_HTTPS_START
     if ($server_port !~ 443){
         rewrite ^(/.*)$ https://$host$1 permanent;
     }
-    #HTTP_TO_HTTPS_END"""
+    # HTTP_TO_HTTPS_END"""
             conf = conf.replace('#error_page 404/404.html;', to)
             slemp.writeFile(file, conf)
 
@@ -1066,8 +1072,7 @@ class site_api:
             conf = conf.replace(path, newPath)
             slemp.writeFile(filename, conf)
 
-        self.delUserInI(sitePath)
-        self.setDirUserINI(newPath)
+        self.setDirUserINI(sitePath, runPath)
 
         slemp.restartWeb()
         return slemp.returnJson(True, 'Pengaturan berhasil!')
@@ -1758,13 +1763,13 @@ location ^~ {from} {
         logPath = slemp.getLogsDir() + '/' + siteName + '.log'
         if not os.path.exists(logPath):
             return slemp.returnJson(False, 'Lognya kosong')
-        return slemp.returnJson(True, slemp.getNumLines(logPath, 100))
+        return slemp.returnJson(True, slemp.getLastLine(logPath, 100))
 
     def getErrorLogs(self, siteName):
         logPath = slemp.getLogsDir() + '/' + siteName + '.error.log'
         if not os.path.exists(logPath):
             return slemp.returnJson(False, 'Lognya kosong')
-        return slemp.returnJson(True, slemp.getNumLines(logPath, 100))
+        return slemp.returnJson(True, slemp.getLastLine(logPath, 100))
 
     def getLogsStatus(self, siteName):
         filename = self.getHostConf(siteName)
@@ -2009,12 +2014,15 @@ location ^~ {from} {
         return rewriteList
 
     def createRootDir(self, path):
+        autoInit = False
         if not os.path.exists(path):
+            autoInit = True
             os.makedirs(path)
         if not slemp.isAppleSystem():
             slemp.execShell('chown -R www:www ' + path)
-        slemp.writeFile(path + '/index.html', 'Situs berhasil dibuat!!!')
-        slemp.execShell('chmod -R 755 ' + path)
+        if autoInit:
+            slemp.writeFile(path + '/index.html', 'Situs berhasil dibuat!!!')
+            slemp.execShell('chmod -R 755 ' + path)
 
     def nginxAddDomain(self, webname, domain, port):
         file = self.getHostConf(webname)
@@ -2078,17 +2086,14 @@ location ^~ {from} {
                 return slemp.returnJson(False, 'Nama domain yang anda tambahkan sudah ada!')
             slemp.M('domain').where('pid=?', (opid,)).delete()
 
+        self.createRootDir(self.sitePath)
+        self.nginxAddConf()
+
         for domain in siteMenu['domainlist']:
-            sdomain = domain
-            swebname = self.siteName
-            spid = str(pid)
-            self.addDomain(domain, webname, pid)
+            self.addDomain(domain, self.siteName, pid)
 
         slemp.M('domain').add('pid,name,port,addtime',
                            (pid, self.siteName, self.sitePort, slemp.getDate()))
-
-        self.createRootDir(self.sitePath)
-        self.nginxAddConf()
 
         data = {}
         data['siteStatus'] = False
@@ -2239,7 +2244,9 @@ location ^~ {from} {
                 continue
         return True
 
-    def setDirUserINI(self, newPath):
+    def setDirUserINI(self, sitePath, runPath)):
+        newPath = sitePath + runPath
+
         filename = newPath + '/.user.ini'
         if os.path.exists(filename):
             slemp.execShell("chattr -i " + filename)
@@ -2247,8 +2254,11 @@ location ^~ {from} {
             return slemp.returnJson(True, 'Pengaturan anti-cross-site dihapus!')
 
         self.delUserInI(newPath)
-        slemp.writeFile(filename, 'open_basedir=' +
-                     newPath + '/:/home/slemp/server/php:/tmp/:/proc/')
+        openPath = 'open_basedir={}/:{}/'.format(newPath, sitePath)
+        if runPath == '/':
+            openPath = 'open_basedir={}/'.format(sitePath)
+
+        slemp.writeFile(filename, openPath + ':/www/server/php:/tmp/:/proc/')
         slemp.execShell("chattr +i " + filename)
 
         return slemp.returnJson(True, 'Pengaturan anti-cross-site diaktifkan!')

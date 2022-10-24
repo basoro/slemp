@@ -164,7 +164,7 @@ class crontab_api:
         logFile = slemp.getServerDir() + '/cron/' + echo['echo'] + '.log'
         if not os.path.exists(logFile):
             return slemp.returnJson(False, 'Log saat ini kosong!')
-        log = slemp.getNumLines(logFile, 500)
+        log = slemp.getLastLine(logFile, 500)
         return slemp.returnJson(True, log)
 
     def addApi(self):

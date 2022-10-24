@@ -12,8 +12,8 @@ if sys.platform != 'darwin':
 
 chdir = os.getcwd()
 sys.path.append(chdir + '/class/core')
-reload(sys)
-sys.setdefaultencoding('utf-8')
+# reload(sys)
+# sys.setdefaultencoding('utf-8')
 
 import slemp
 print('==================================================================')

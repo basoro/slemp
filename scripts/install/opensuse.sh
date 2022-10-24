@@ -51,7 +51,7 @@ zypper install -y freetype2-devel
 
 # zypper install -y  php-config
 #https need
-if [ ! -d /root/.acme.sh ];then	
+if [ ! -d /root/.acme.sh ];then
 	curl https://get.acme.sh | sh
 fi
 
@@ -61,7 +61,7 @@ if [ -f /etc/init.d/iptables ];then
 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 888 -j ACCEPT
-	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 7200 -j ACCEPT
+	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 7200 -j ACCEPT
 	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 3306 -j ACCEPT
 	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 30000:40000 -j ACCEPT
 	service iptables save
@@ -77,7 +77,7 @@ fi
 
 
 if [ ! -f /etc/init.d/iptables ];then
-	zypper install -y firewalld 
+	zypper install -y firewalld
 	systemctl enable firewalld
 	systemctl start firewalld
 
@@ -85,7 +85,7 @@ if [ ! -f /etc/init.d/iptables ];then
 	firewall-cmd --permanent --zone=public --add-port=80/tcp
 	firewall-cmd --permanent --zone=public --add-port=443/tcp
 	firewall-cmd --permanent --zone=public --add-port=888/tcp
-	firewall-cmd --permanent --zone=public --add-port=7200/tcp
+	# firewall-cmd --permanent --zone=public --add-port=7200/tcp
 	# firewall-cmd --permanent --zone=public --add-port=3306/tcp
 	# firewall-cmd --permanent --zone=public --add-port=30000-40000/tcp
 
@@ -120,4 +120,3 @@ done
 cd /home/slemp/server/panel && /etc/init.d/slemp stop
 cd /home/slemp/server/panel && /etc/init.d/slemp start
 cd /home/slemp/server/panel && /etc/init.d/slemp default
-

@@ -29,7 +29,7 @@ apt install -y locate
 locale-gen en_US.UTF-8
 localedef -v -c -i en_US -f UTF-8 en_US.UTF-8
 
-if [ ! -d /root/.acme.sh ];then	
+if [ ! -d /root/.acme.sh ];then
 	curl  https://get.acme.sh | sh
 fi
 
@@ -39,7 +39,7 @@ if [ -f /usr/sbin/ufw ];then
 	ufw allow 80/tcp
 	ufw allow 443/tcp
 	ufw allow 888/tcp
-	ufw allow 7200/tcp
+	# ufw allow 7200/tcp
 	# ufw allow 3306/tcp
 	# ufw allow 30000:40000/tcp
 
@@ -61,7 +61,7 @@ if [ ! -f /usr/sbin/ufw ];then
 	firewall-cmd --permanent --zone=public --add-port=80/tcp
 	firewall-cmd --permanent --zone=public --add-port=443/tcp
 	firewall-cmd --permanent --zone=public --add-port=888/tcp
-	firewall-cmd --permanent --zone=public --add-port=7200/tcp
+	# firewall-cmd --permanent --zone=public --add-port=7200/tcp
 	# firewall-cmd --permanent --zone=public --add-port=3306/tcp
 	# firewall-cmd --permanent --zone=public --add-port=30000-40000/tcp
 
@@ -105,7 +105,7 @@ rm -rf ${Install_TmpFile}
 echo -e "\e[0;32mfix libunwind-dev install question end\e[0m"
 
 
-apt install -y libvpx-dev 
+apt install -y libvpx-dev
 apt install -y libxpm-dev
 apt install -y libwebp-dev
 apt install -y libfreetype6-dev
@@ -132,4 +132,3 @@ done
 cd /home/slemp/server/panel && /etc/init.d/slemp stop
 cd /home/slemp/server/panel && /etc/init.d/slemp start
 cd /home/slemp/server/panel && /etc/init.d/slemp default
-

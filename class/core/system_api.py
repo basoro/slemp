@@ -196,6 +196,9 @@ class system_api:
         data['one'] = float(c[0])
         data['five'] = float(c[1])
         data['fifteen'] = float(c[2])
+        data['one'] = round(float(c[0]), 2)
+        data['five'] = round(float(c[1]), 2)
+        data['fifteen'] = round(float(c[2]), 2)
         data['max'] = psutil.cpu_count() * 2
         data['limit'] = data['max']
         data['safe'] = data['max'] * 0.75
@@ -263,8 +266,16 @@ class system_api:
 
     def getCpuInfo(self, interval=1):
         cpuCount = psutil.cpu_count()
+        cpuLogicalNum = psutil.cpu_count(logical=False)
         used = psutil.cpu_percent(interval=interval)
-        return used, cpuCount
+        if os.path.exists('/proc/cpuinfo'):
+            c_tmp = slemp.readFile('/proc/cpuinfo')
+            d_tmp = re.findall("physical id.+", c_tmp)
+            cpuLogicalNum = len(set(d_tmp))
+
+        used_all = psutil.cpu_percent(percpu=True)
+        cpu_name = slemp.getCpuType() + " * {}".format(cpuLogicalNum)
+        return used, cpuCount, used_all, cpu_name, cpuCount, cpuLogicalNum
 
     def getMemInfo(self):
         mem = psutil.virtual_memory()
@@ -537,9 +548,9 @@ class system_api:
                 return slemp.returnJson(False, "Pengaturan gagal!")
             slemp.writeFile(filename, day)
         elif stype == '2':
-            mw.execShell("rm -rf " + stat_pl)
+            slemp.execShell("rm -rf " + stat_pl)
         elif stype == '3':
-            mw.execShell("echo 'True' > " + stat_pl)
+            slemp.execShell("echo 'True' > " + stat_pl)
         elif stype == 'del':
             if not slemp.isRestart():
                 return slemp.returnJson(False, 'Harap tunggu hingga semua tugas penginstalan selesai sebelum dijalankan')

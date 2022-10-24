@@ -2,6 +2,7 @@
 
 import time
 import sys
+import random
 import os
 chdir = os.getcwd()
 sys.path.append(chdir + '/class/core')
@@ -13,8 +14,9 @@ cpu_info = system_api.system_api().getCpuInfo()
 workers = cpu_info[1]
 
 
-if not os.path.exists(os.getcwd() + '/logs'):
-    os.mkdir(os.getcwd() + '/logs')
+log_dir = os.getcwd() + '/logs'
+if not os.path.exists(log_dir):
+    os.mkdir(log_dir)
 
 # default port
 slemp_port = "7200"
@@ -22,6 +24,11 @@ if os.path.exists("data/port.pl"):
     slemp_port = slemp.readFile('data/port.pl')
     slemp_port.strip()
 else:
+    import firewall_api
+    import common
+    common.initDB()
+    slemp_port = str(random.randint(10000, 65530))
+    firewall_api.firewall_api().addAcceptPortArgs(slemp_port, 'WEB panel', 'port')
     slemp.writeFile('data/port.pl', slemp_port)
 
 bind = []
@@ -44,9 +51,9 @@ preload_app = True
 capture_output = True
 access_log_format = '%(t)s %(p)s %(h)s "%(r)s" %(s)s %(L)s %(b)s %(f)s" "%(a)s"'
 loglevel = 'info'
-errorlog = chdir + '/logs/error.log'
-accesslog = chdir + '/logs/access.log'
-pidfile = chdir + '/logs/slemp.pid'
+errorlog = log_dir + '/error.log'
+accesslog = log_dir + '/access.log'
+pidfile = log_dir + '/slemp.pid'
 if os.path.exists(os.getcwd() + '/data/ssl.pl'):
     certfile = 'ssl/certificate.pem'
     keyfile = 'ssl/privateKey.pem'

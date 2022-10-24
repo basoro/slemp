@@ -157,19 +157,22 @@ def isInstalledWeb():
 
 
 def restartWeb():
+    return opWeb("reload")
+
+def opWeb(method):
     if not isInstalledWeb():
         return False
 
     # systemd
     systemd = '/lib/systemd/system/openresty.service'
     if os.path.exists(systemd):
-        execShell('systemctl restart openresty')
+        execShell('systemctl ' + method + ' openresty')
         return True
 
     # initd
     initd = getServerDir() + '/openresty/init.d/openresty'
     if os.path.exists(initd):
-        execShell(initd + ' ' + 'restart')
+        execShell(initd + ' ' + method)
         return True
 
     return False
@@ -385,6 +388,29 @@ def writeFile(filename, str):
     except Exception as e:
         return False
 
+def backFile(self, file, act=None):
+    """
+        @name Backup configuration files
+        @param file Files that need to be backed up
+        @param act If it exists, make a backup copy as the default configuration
+    """
+    file_type = "_bak"
+    if act:
+        file_type = "_def"
+    execShell("/usr/bin/cp -p {0} {1}".format(file, file + file_type))
+
+
+def restoreFile(self, file, act=None):
+    """
+        @name restore configuration files
+        @param file files to restore
+        @param act If it exists, restore the default configuration
+    """
+    file_type = "_bak"
+    if act:
+        file_type = "_def"
+    execShell("/usr/bin/cp -p {1} {0}".format(file, file + file_type))
+
 
 def HttpGet(url, timeout=10):
     """
@@ -506,7 +532,7 @@ def getSpeed():
     return json.loads(data)
 
 
-def getLastLine(inputfile, lineNum):
+def getLastLineBk(inputfile, lineNum):
     try:
         fp = open(inputfile, 'rb')
         lastLine = ""
@@ -537,7 +563,7 @@ def getLastLine(inputfile, lineNum):
         return str(e)
 
 
-def getNumLines(path, num, p=1):
+def getLastLine(path, num, p=1):
     pyVersion = sys.version_info[0]
     try:
         import html
@@ -547,9 +573,9 @@ def getNumLines(path, num, p=1):
         count = start_line + num
         fp = open(path, 'rb')
         buf = ""
-        fp.seek(-1, 2)
+        fp.seek(0, 2)
         if fp.read(1) == "\n":
-            fp.seek(-1, 2)
+            fp.seek(0, 2)
         data = []
         b = True
         n = 0
@@ -576,7 +602,7 @@ def getNumLines(path, num, p=1):
                     t_buf = fp.read(to_read)
                     if pyVersion == 3:
                         if type(t_buf) == bytes:
-                            t_buf = t_buf.decode('utf-8')
+                            t_buf = t_buf.decode("utf-8", "ignore").strip()
                     buf = t_buf + buf
                     fp.seek(-to_read, 1)
                     if pos - to_read == 0:
@@ -585,7 +611,7 @@ def getNumLines(path, num, p=1):
                 break
         fp.close()
     except Exception as e:
-        return ''
+        return str(e)
 
     return "\n".join(data)
 
@@ -685,12 +711,23 @@ def getStrBetween(startStr, endStr, srcStr):
 
 
 def getCpuType():
+    cpuType = ''
+    if isAppleSystem():
+        cmd = "system_profiler SPHardwareDataType | grep 'Processor Name' | awk -F ':' '{print $2}'"
+        cpuinfo = execShell(cmd)
+        return cpuinfo[0].strip()
+
     cpuinfo = open('/proc/cpuinfo', 'r').read()
     rep = "model\s+name\s+:\s+(.+)"
-    tmp = re.search(rep, cpuinfo)
-    cpuType = None
+    tmp = re.search(rep, cpuinfo, re.I)
     if tmp:
         cpuType = tmp.groups()[0]
+    else:
+        cpuinfo = execShell('LANG="en_US.UTF-8" && lscpu')[0]
+        rep = "Model\s+name:\s+(.+)"
+        tmp = re.search(rep, cpuinfo, re.I)
+        if tmp:
+            cpuType = tmp.groups()[0]    
     return cpuType
 
 

@@ -53,6 +53,13 @@ def getArgs():
     return tmp
 
 
+def checkArgs(data, ck=[]):
+    for i in range(len(ck)):
+        if not ck[i] in data:
+            return (False, slemp.returnJson(False, 'parameter:(' + ck[i] + ')no!'))
+    return (True, slemp.returnJson(True, 'ok'))
+
+
 def status():
     data = slemp.execShell("free -m|grep Swap|awk '{print $2}'")
     if data[0].strip() == '0':
@@ -110,7 +117,7 @@ def swapOp(method):
             return 'ok'
         return 'fail'
 
-    data = slemp.execShell(file + ' start')
+    data = slemp.execShell(file + ' ' + method)
     if data[1] == '':
         return 'ok'
     return 'fail'
@@ -129,7 +136,7 @@ def restart():
 
 
 def reload():
-    return swapOp('reload')
+    return 'ok'
 
 
 def initdStatus():
@@ -157,6 +164,35 @@ def initdUinstall():
 
     slemp.execShell('systemctl disable swap')
     return 'ok'
+
+def swapStatus():
+    sfile = getServerDir() + '/swapfile'
+
+    if os.path.exists(sfile):
+        size = os.path.getsize(sfile) / 1024 / 1024
+    else:
+        size = '218'
+    data = {'size': size}
+    return slemp.returnJson(True, "ok", data)
+
+
+def changeSwap():
+    args = getArgs()
+    data = checkArgs(args, ['size'])
+    if not data[0]:
+        return data[1]
+
+    size = args['size']
+    swapOp('stop')
+
+    gsdir = getServerDir()
+
+    cmd = 'dd if=/dev/zero of=' + gsdir + '/swapfile bs=1M count=' + size
+    cmd += ' && mkswap ' + gsdir + '/swapfile && chmod 600 ' + gsdir + '/swapfile'
+    msg = slemp.execShell(cmd)
+    swapOp('start')
+
+    return slemp.returnJson(True, "Successfully modified:\n" + msg[0])
 
 if __name__ == "__main__":
     func = sys.argv[1]

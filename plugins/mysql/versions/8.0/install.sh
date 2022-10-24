@@ -57,14 +57,14 @@ fi
 VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
 
 
-VERSION=8.0.28
+VERSION=8.0.30
 Install_mysql()
 {
 	mkdir -p ${mysqlDir}
 	echo 'installing script file...' > $install_tmp
 
 
-	if id mysql &> /dev/null ;then 
+	if id mysql &> /dev/null ;then
 	    echo "mysql UID is `id -u www`"
 	    echo "mysql Shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
 	else
@@ -95,7 +95,7 @@ Install_mysql()
 	fi
 	# ----- cpu end ------
 
-	cd $serverPath/panel/plugins/mysql/lib && /bin/bash rpcgen.sh
+	cd ${rootPath}/plugins/mysql/lib && /bin/bash rpcgen.sh
 
 	INSTALL_CMD=cmake
 	# check cmake version
@@ -107,11 +107,11 @@ Install_mysql()
 	fi
 
 	if [ ! -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
-		wget -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/Downloads/MySQL-8.0/mysql-boost-${VERSION}.tar.gz
+		wget -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-8.0/mysql-boost-${VERSION}.tar.gz
 	fi
 
 	#检测文件是否损坏.
-	md5_mysql_ok=362b8141ecaf425b803fe55292e2df98
+	md5_mysql_ok=313d625fcaa932bd87b48f0cf9b40f1c
 	if [ -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
 		md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
 		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
@@ -119,7 +119,7 @@ Install_mysql()
 		else
 			# 重新下载
 			rm -rf ${mysqlDir}/mysql-${VERSION}
-			wget -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/Downloads/MySQL-8.0/mysql-boost-${VERSION}.tar.gz
+			wget -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-8.0/mysql-boost-${VERSION}.tar.gz
 		fi
 	fi
 
@@ -132,7 +132,7 @@ Install_mysql()
 	OPENSSL_VERSION=`openssl version|awk '{print $2}'|awk -F '.' '{print $1}'`
 	if [ "${OPENSSL_VERSION}" -ge "3" ];then
 		#openssl version to high
-		cd $serverPath/panel/plugins/php/lib && /bin/bash openssl.sh
+		cd ${rootPath}/plugins/php/lib && /bin/bash openssl.sh
 		export PKG_CONFIG_PATH=$serverPath/lib/openssl/lib/pkgconfig
 		OPTIONS="-DWITH_SSL=${serverPath}/lib/openssl"
 	fi

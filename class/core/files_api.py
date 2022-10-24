@@ -35,7 +35,7 @@ class files_api:
             return slemp.returnJson(False, 'File tidak ada', (path,))
 
         try:
-            data = slemp.getNumLines(path, int(line))
+            data = slemp.getLastLine(path, int(line))
             return slemp.returnJson(True, 'OK', data)
         except Exception as ex:
             return slemp.returnJson(False, u'Tidak dapat membaca file dengan benar!' + str(ex))
@@ -743,7 +743,7 @@ class files_api:
             tmps = slemp.getRunDir() + '/tmp/panelExec.log'
             if stype == 'zip':
                 os.system("cd " + path + " && unzip -d '" + dfile +
-                          "' '" + sfile + "' > " + tmps + " 2>&1")
+                          "' '" + sfile + "' > " + tmps + " 2>&1 &")
             else:
                 sfiles = ''
                 for sfile in sfile.split(','):
@@ -751,7 +751,7 @@ class files_api:
                         continue
                     sfiles += " '" + sfile + "'"
                 os.system("cd " + path + " && tar -zxvf " + sfiles +
-                          " -C " + dfile + " > " + tmps + " 2>&1")
+                          " -C " + dfile + " > " + tmps + " 2>&1 &")
             self.setFileAccept(dfile)
             slemp.writeLog("Manajemen file", 'File berhasil didekompresi!', (sfile, dfile))
             return slemp.returnJson(True, 'File berhasil didekompresi!')

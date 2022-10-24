@@ -19,14 +19,14 @@ echo "install php-${version} ..." > $install_tmp
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
-cd $serverPath/panel/plugins/php/lib && /bin/bash freetype_old.sh
-cd $serverPath/panel/plugins/php/lib && /bin/bash zlib.sh
+cd ${rootPath}/plugins/php/lib && /bin/bash freetype_old.sh
+cd ${rootPath}/plugins/php/lib && /bin/bash zlib.sh
 
 if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	if [ ! -f $sourcePath/php/php-${version}.tar.xz ];then
 		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://museum.php.net/php7/php-${version}.tar.xz
 	fi
-	
+
 	cd $sourcePath/php && tar -Jxf $sourcePath/php/php-${version}.tar.xz
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
 fi
@@ -50,6 +50,10 @@ fi
 # ----- cpu start ------
 if [ -z "${cpuCore}" ]; then
 	cpuCore="1"
+fi
+
+if [ "$cpuCore" -gt "1" ];then
+	cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
 fi
 
 if [ -f /proc/cpuinfo ];then

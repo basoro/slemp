@@ -197,7 +197,7 @@ function changePath(d) {
 		type: 1,
 		area: "650px",
 		title: 'Pilih direktori',
-		closeBtn: 2,
+		closeBtn: 1,
 		shift: 5,
 		shadeClose: false,
 		content: "<div class='changepath'><div class='path-top'><button type='button' class='btn btn-default btn-sm' onclick='backFile()'><span class='glyphicon glyphicon-share-alt'></span>Kembali</button>\
@@ -547,7 +547,7 @@ function onlineEditFile(k, f) {
 		var r = layer.open({
 			type: 1,
 			shift: 5,
-			closeBtn: 2,
+			closeBtn: 1,
 			area: ["90%", "90%"],
 			title: lan.bt.edit_title+"[" + f + "]",
 			content: '<form class="bt-form pd20 pb70"><div class="line"><p style="color:red;margin-bottom:10px">'+lan.bt.edit_ps+'			<select class="bt-input-text" name="encoding" style="width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;">' + n + '</select></p><textarea class="mCustomScrollbar bt-input-text" id="textBody" style="width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;" value="" />			</div>			<div class="bt-form-submit-btn" style="position:absolute; bottom:0; width:100%">			<button type="button" class="btn btn-danger btn-sm btn-editor-close">'+lan.public.close+'</button>			<button id="OnlineEditFileBtn" type="button" class="btn btn-success btn-sm">'+lan.public.save+'</button>			</div>			</form>'
@@ -631,7 +631,7 @@ function safeMessage(j, h, g, f) {
 		type: 1,
 		title: j,
 		area: "350px",
-		closeBtn: 2,
+		closeBtn: 1,
 		shadeClose: true,
 		content: "<div class='bt-form webDelete pd20 pb70'><p>" + h + "</p>" + f + "<div class='vcode'>"+lan.bt.cal_msg+"<span class='text'>" + sumtext + "</span>=<input type='number' id='vcodeResult' value=''></div><div class='bt-form-submit-btn'><button type='button' class='btn btn-danger btn-sm bt-cancel'>"+lan.public.cancel+"</button> <button type='button' id='toSubmit' class='btn btn-success btn-sm' >"+lan.public.ok+"</button></div></div>"
 	});
@@ -990,7 +990,7 @@ function bindPanel(a,type,ip,btid,url,user,pw){
 		type: 1,
 		area: "400px",
 		title: titleName,
-		closeBtn: 2,
+		closeBtn: 1,
 		shift: 5,
 		shadeClose: false,
 		content: "<div class='bt-form pd20 pb70'>\
@@ -1062,7 +1062,7 @@ function messageBox() {
 		type: 1,
 		title: 'Kotak Pesan',
 		area: "670px",
-		closeBtn: 2,
+		closeBtn: 1,
 		shadeClose: false,
 		content: '<div class="bt-form">\
 					<div class="bt-w-main">\
@@ -1403,7 +1403,7 @@ function webShell() {
         type: 1,
         title: "Terminal localhost",
         area: ['685px','435px'],
-        closeBtn: 2,
+        closeBtn: 1,
         shadeClose: false,
         content: '<div class="term-box"><div id="term"></div></div>\
 					<div class="shell-text-input">\
@@ -1532,6 +1532,16 @@ function remove_ssh_menu() {
     $(".contextmenu").remove();
 }
 
+function toArrayObject(str){
+	var data = {};
+    kv = str.split('&');
+    for(i in kv){
+        v = kv[i].split('=');
+        data[v[0]] = v[1];
+    }
+    return data;
+}
+
 function pluginService(_name, version){
 	var data = {name:_name, func:'status'}
 	if ( typeof(version) != 'undefined' ){
@@ -1582,7 +1592,7 @@ function pluginOpService(a, b, v) {
         case "restart":d = 'restart';break;
         case "reload":d = 'reload';break;
     }
-    layer.confirm( msgTpl('Do you really want {1}{2}{3} services? ', [d,a,v]), {title:'Notification',icon:3,closeBtn: 2,btn:['Yes','No']}, function() {
+    layer.confirm( msgTpl('Do you really want {1}{2}{3} services? ', [d,a,v]), {title:'Notification',icon:3,closeBtn: 1,btn:['Yes','No']}, function() {
         var e = layer.msg(msgTpl('Serving on {1}{2}{3}, please wait...',[d,a,v]), {icon: 16,time: 0});
         $.post("/plugins/run", c, function(g) {
             layer.close(e);
@@ -1630,11 +1640,20 @@ function pluginConfig(_name, version, func){
                 <ul class="help-info-text c7 ptb15">\
                     <li>Berikut adalah file konfigurasi utama '+ _name + version +', jika Anda tidak memahami aturan konfigurasi, jangan mengubahnya sesuka hati.</li>\
                 </ul>';
-    $(".soft-man-con").html(con);
 
     var loadT = layer.msg('Mendapatkan path config...',{icon:16,time:0,shade: [0.3, '#000']});
     $.post('/plugins/run', {name:_name, func:func_name,version:version},function (data) {
         layer.close(loadT);
+
+				try{
+        	var jdata = $.parseJSON(data.data);
+        	if (!jdata['status']){
+        		layer.msg(jdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
+                return;
+        	}
+				}catch(err){/*console.log(err);*/}
+
+				$(".soft-man-con").html(con);
 
         var loadT2 = layer.msg('Mendapatkan isi file config...',{icon:16,time:0,shade: [0.3, '#000']});
         var fileName = data.data;
@@ -1842,7 +1861,7 @@ function pluginOpInitD(a, _version, b) {
         case "initd_install":d = 'install';break;
         case "initd_uninstall":d = 'uninstall';break;
     }
-    layer.confirm( msgTpl('Do you really want {1}{2}{3} services?', [d,a,_version]), {title:'Notification',icon:3,closeBtn: 2,btn:['Yes','No']}, function() {
+    layer.confirm( msgTpl('Do you really want {1}{2}{3} services?', [d,a,_version]), {title:'Notification',icon:3,closeBtn: 1,btn:['Yes','No']}, function() {
         var e = layer.msg(msgTpl('Serving on {1}{2}{3}, please wait...',[d,a,_version]), {icon: 16,time: 0});
         $.post("/plugins/run", c, function(g) {
             layer.close(e);
@@ -1883,6 +1902,15 @@ function pluginLogs(_name, version, func, line){
     var loadT = layer.msg('Mendapatkan path log...',{icon:16,time:0,shade: [0.3, '#000']});
     $.post('/plugins/run', {name:_name, func:func_name, version:version},function (data) {
         layer.close(loadT);
+
+				try{
+        	var jdata = $.parseJSON(data.data);
+        	if (!jdata['status']){
+        		layer.msg(jdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
+                return;
+        	}
+				}catch(err){/*console.log(err);*/}
+
 
         var loadT2 = layer.msg('Mendapatkan isi file log...',{icon:16,time:0,shade: [0.3, '#000']});
         var fileName = data.data;

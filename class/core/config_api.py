@@ -200,6 +200,14 @@ class config_api:
         slemp.execShell("chown root.root " + filename)
         return slemp.returnJson(True, 'Panel ditutup!')
 
+    def openDebugApi(self):
+        filename = 'data/debug.pl'
+        if os.path.exists(filename):
+            os.remove(filename)
+            return slemp.returnJson(True, 'Development mode off!')
+        slemp.writeFile(filename, 'True')
+        return slemp.returnJson(True, 'Development mode on!')
+
     def setIpv6StatusApi(self):
         ipv6_file = 'data/ipv6.pl'
         if os.path.exists('data/ipv6.pl'):
@@ -304,10 +312,16 @@ class config_api:
             data['admin_path'] = slemp.readFile(admin_path_file)
 
         ipv6_file = 'data/ipv6.pl'
-        if os.path.exists('data/ipv6.pl'):
+        if os.path.exists(ipv6_file):
             data['ipv6'] = 'checked'
         else:
             data['ipv6'] = ''
+
+        debug_file = 'data/debug.pl'
+        if os.path.exists(debug_file):
+            data['debug'] = 'checked'
+        else:
+            data['debug'] = ''
 
         ssl_file = 'data/ssl.pl'
         if os.path.exists('data/ssl.pl'):

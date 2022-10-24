@@ -14,15 +14,8 @@ sourcePath=${serverPath}/source/php
 actionType=$1
 version=$2
 
-LIBNAME=gd
+LIBNAME=gettext
 LIBV=0
-
-
-# if [ "$version" -lt "74" ];then
-# 	echo "not need!"
-# 	exit 1
-# fi
-
 
 LIB_PATH_NAME=lib/php
 if [ -d $serverPath/php/${version}/lib64 ];then
@@ -39,23 +32,14 @@ else
 	BAK=''
 fi
 
-
-# cd ${rootPath}/plugins/php/lib && /bin/bash freetype_old.sh
-# OPTIONS="${OPTIONS} --with-freetype-dir=${serverPath}/lib/freetype_old"
-# OPTIONS="${OPTIONS} --with-gd --enable-gd-native-ttf"
-# OPTIONS="${OPTIONS} --with-jpeg --with-jpeg-dir=/usr/lib"
-
-
 Install_lib()
 {
 
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} is installed, please select another version!"
+		echo "php-$version 已安装${LIBNAME},请选择其它版本!"
 		return
 	fi
-
-	cd ${rootPath}/plugins/php/lib && /bin/bash freetype_old.sh
 
 	if [ ! -f "$extFile" ];then
 
@@ -66,16 +50,13 @@ Install_lib()
 		cd $sourcePath/php${version}/ext/${LIBNAME}
 
 		$serverPath/php/$version/bin/phpize
+		./configure --with-php-config=$serverPath/php/$version/bin/php-config
 
-		#--with-xpm
-		# =${serverPath}/lib/freetype_old
-		# =/usr/lib
-		./configure --with-php-config=$serverPath/php/$version/bin/php-config \
-		--with-gd \
-		--with-jpeg-dir \
-		--with-freetype-dir=${serverPath}/lib/freetype_old \
-		--enable-gd-jis-conv \
-		--enable-gd-native-ttf
+		FIND_C99=`cat Makefile|grep c99`
+		if [ "$FIND_C99" == "" ];then
+			sed -i $BAK 's/CFLAGS \=/CFLAGS \= -std=c99/g' Makefile
+		fi
+
 		make clean && make && make install && make clean
 
 	fi
@@ -84,6 +65,7 @@ Install_lib()
 		echo "ERROR!"
 		return
 	fi
+
 
     echo "" >> $serverPath/php/$version/etc/php.ini
 	echo "[${LIBNAME}]" >> $serverPath/php/$version/etc/php.ini
@@ -98,12 +80,12 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php-$version is not installed, please select another version!"
+		echo "php-$version 未安装,请选择其它版本!"
 		return
 	fi
 
 	if [ ! -f "$extFile" ];then
-		echo "php-$version ${LIBNAME} is not installed, please select another version!"
+		echo "php-$version 未安装${LIBNAME},请选择其它版本!"
 		return
 	fi
 

@@ -18,7 +18,7 @@ dnf install crontabs -y
 
 #https need
 
-if [ ! -d /root/.acme.sh ];then	
+if [ ! -d /root/.acme.sh ];then
 	curl  https://get.acme.sh | sh
 fi
 
@@ -28,7 +28,7 @@ if [ -f /etc/init.d/iptables ];then
 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 888 -j ACCEPT
-	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 7200 -j ACCEPT
+	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 7200 -j ACCEPT
 	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 3306 -j ACCEPT
 	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 30000:40000 -j ACCEPT
 	service iptables save
@@ -54,7 +54,7 @@ if [ "${isVersion}" == '' ];then
 		firewall-cmd --permanent --zone=public --add-port=80/tcp
 		firewall-cmd --permanent --zone=public --add-port=443/tcp
 		firewall-cmd --permanent --zone=public --add-port=888/tcp
-		firewall-cmd --permanent --zone=public --add-port=7200/tcp
+		# firewall-cmd --permanent --zone=public --add-port=7200/tcp
 		# firewall-cmd --permanent --zone=public --add-port=3306/tcp
 		# firewall-cmd --permanent --zone=public --add-port=30000-40000/tcp
 		firewall-cmd --reload
@@ -69,12 +69,12 @@ yum groupinstall -y "Development Tools"
 yum install -y epel-release
 
 yum install -y libevent libevent-devel zip libmcrypt libmcrypt-devel
-yum install -y gcc libffi-devel python-devel openssl-devel 
+yum install -y gcc libffi-devel python-devel openssl-devel
 yum install -y curl-devel libmcrypt libmcrypt-devel python3-devel
 
 yum install -y wget python-devel python-imaging libicu-devel unzip bzip2-devel gcc libxml2 libxml2-devel libjpeg-devel libpng-devel libwebp libwebp-devel pcre pcre-devel crontabs
 yum install -y net-tools
-yum install -y ncurses-devel 
+yum install -y ncurses-devel
 yum install -y python-devel
 yum install -y MySQL-python
 yum install -y python3-devel
@@ -82,7 +82,7 @@ yum install -y mysql-devel
 
 yum install -y libtirpc libtirpc-devel
 yum install -y rpcgen
-yum install -y openldap openldap-devel  
+yum install -y openldap openldap-devel
 yum install -y bison re2c
 yum install -y cmake cmake3
 yum install -y autoconf
@@ -92,7 +92,7 @@ yum install -y curl curl-devel
 yum install -y zlib zlib-devel
 yum install -y libzip libzip-devel
 yum install -y pcre pcre-devel
-yum install -y icu libicu-devel 
+yum install -y icu libicu-devel
 yum install -y freetype freetype-devel
 yum install -y openssl openssl-devel
 yum install -y graphviz libxml2 libxml2-devel
@@ -108,7 +108,7 @@ dnf install libxml2 libxml2-devel -y
 cd /home/slemp/server/panel/scripts && bash lib.sh
 chmod 755 /home/slemp/server/panel/data
 
-    
+
 cd /home/slemp/server/panel && ./cli.sh start
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 n=0
@@ -126,5 +126,3 @@ done
 cd /home/slemp/server/panel && /etc/init.d/slemp stop
 cd /home/slemp/server/panel && /etc/init.d/slemp start
 cd /home/slemp/server/panel && /etc/init.d/slemp default
-
-

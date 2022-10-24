@@ -60,18 +60,26 @@ class firewall_api:
         if not self.getFwStatus():
             return slemp.returnJson(False, 'Aturan hanya dapat ditambahkan ketika firewall diaktifkan!')
 
-        import re
-        import time
         port = request.form.get('port', '').strip()
         ps = request.form.get('ps', '').strip()
         stype = request.form.get('type', '').strip()
 
+        data = self.addAcceptPortArgs(port, ps, stype)
+        return slemp.getJson(data)
+
+    def addAcceptPortArgs(self, port, ps, stype):
+        import re
+        import time
+
+        if not self.getFwStatus():
+            self.setFw(0)
+
         rep = "^\d{1,5}(:\d{1,5})?$"
         if not re.search(rep, port):
-            return slemp.returnJson(False, 'Rentang port salah!')
+            return slemp.returnData(False, 'Rentang port salah!')
 
         if slemp.M('firewall').where("port=?", (port,)).count() > 0:
-            return slemp.returnJson(False, 'Port yang ingin anda buka sudah ada, tidak perlu dibuka lagi!')
+            return slemp.returnData(False, 'Port yang ingin anda buka sudah ada, tidak perlu dibuka lagi!')
 
         msg = slemp.getInfo('Port [{1}] berhasil dibuka', (port,))
         slemp.writeLog("Manajemen Firewall", msg)
@@ -80,7 +88,7 @@ class firewall_api:
 
         self.addAcceptPort(port)
         self.firewallReload()
-        return slemp.returnJson(True, 'Tambahkan port (' + port + ') untuk dibuka berhasil!')
+        return slemp.returnData(True, 'Tambahkan port (' + port + ') untuk dibuka berhasil!')
 
     def delDropAddressApi(self):
         if not self.getFwStatus():
@@ -283,6 +291,9 @@ class firewall_api:
             return slemp.returnJson(True, 'Tidak support untuk MacOS!')
 
         status = request.form.get('status', '1')
+        return slemp.getJson(self.setFw(status))
+
+    def setFw(self, status):
         if status == '1':
             if self.__isUfw:
                 slemp.execShell('/usr/sbin/ufw disable')
@@ -306,7 +317,7 @@ class firewall_api:
                 slemp.execShell('/etc/init.d/iptables save')
                 slemp.execShell('/etc/init.d/iptables restart')
 
-        return slemp.returnJson(True, '设置成功!')
+        return slemp.returnData(True, 'Set successfully!')
 
     def delPanelLogsApi(self):
         slemp.M('logs').where('id>?', (0,)).delete()

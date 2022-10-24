@@ -15,7 +15,7 @@ fi
 if [ ! -d /home/slemp/server/openresty ];then
 	cd /home/slemp/server/panel/plugins/openresty && bash install.sh install 1.21.4.1
 else
-	echo "openresty alreay exist!"
+	echo "openresty already exist!"
 fi
 
 
@@ -23,7 +23,7 @@ fi
 if [ ! -d /home/slemp/server/php/71 ];then
 	cd /home/slemp/server/panel/plugins/php && bash install.sh install 71
 else
-	echo "php71 alreay exist!"
+	echo "php71 already exist!"
 fi
 
 
@@ -31,24 +31,30 @@ fi
 if [ ! -d /home/slemp/server/php/74 ];then
 	cd /home/slemp/server/panel/plugins/php && bash install.sh install 74
 else
-	echo "php74 alreay exist!"
+	echo "php74 already exist!"
+fi
+
+# swap
+if [ ! -d /home/slemp/server/swap ];then
+	cd /home/slemp/server/panel/plugins/swap && bash install.sh install 1.1
+else
+	echo "swap alreay exist!"
 fi
 
 # mysql
 if [ ! -d /home/slemp/server/mysql ];then
 	cd /home/slemp/server/panel/plugins/mysql && bash install.sh install 5.6
 else
-	echo "mysql alreay exist!"
+	echo "mysql already exist!"
 fi
 
 # phpmyadmin
 if [ ! -d /home/slemp/server/phpmyadmin ];then
 	cd /home/slemp/server/panel/plugins/phpmyadmin && bash install.sh install 4.4.15
 else
-	echo "phpmyadmin alreay exist!"
+	echo "phpmyadmin already exist!"
 fi
 
 endTime=`date +%s`
 ((outTime=(${endTime}-${startTime})/60))
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
-

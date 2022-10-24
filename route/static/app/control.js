@@ -172,7 +172,7 @@ function setControl(act, value=false){
 }
 
 function closeControl(){
-	layer.confirm('Apakah Anda benar-benar menghapus semua catatan pemantauan?？',{title:'Hapus catatan pemantauan',icon:3,closeBtn:2,btn:['Yes','No']}, function() {
+	layer.confirm('Apakah Anda benar-benar menghapus semua catatan pemantauan?？',{title:'Hapus catatan pemantauan',icon:3,closeBtn:1,btn:['Yes','No']}, function() {
 		loadT = layer.msg('Memproses ... tunggu sebentar...',{icon:16,time:0})
 		$.post('/system/set_control','type=del',function(rdata){
 			layer.close(loadT);

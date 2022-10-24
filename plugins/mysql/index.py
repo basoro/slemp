@@ -332,7 +332,7 @@ def getErrorLog():
     if 'close' in args:
         slemp.writeFile(filename, '')
         return slemp.returnJson(False, 'Log cleared')
-    info = slemp.getNumLines(filename, 18)
+    info = slemp.getLastLine(filename, 18)
     return slemp.returnJson(True, 'OK', info)
 
 
@@ -403,6 +403,7 @@ def initMysqlPwd():
     time.sleep(5)
 
     serverdir = getServerDir()
+    myconf = serverdir + "/etc/my.cnf"
     pwd = slemp.getRandomString(16)
     # cmd_pass = serverdir + '/bin/mysqladmin -uroot password ' + pwd
 
@@ -423,6 +424,16 @@ def initMysqlPwd():
     drop_test_db = serverdir + '/bin/mysql -uroot -p' + \
         pwd + ' -e "drop database test";'
     slemp.execShell(drop_test_db)
+
+    hostname = slemp.execShell('hostname')[0].strip()
+
+    drop_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
+        myconf + ' -uroot -p' + pwd + ' -e "drop user \'\'@\'' + hostname + '\'";'
+    slemp.execShell(drop_hostname)
+
+    drop_root_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
+        myconf + ' -uroot -p' + pwd + ' -e "drop user \'root\'@\'' + hostname + '\'";'
+    slemp.execShell(drop_root_hostname)
 
     pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
     return True
@@ -465,6 +476,16 @@ def initMysql8Pwd():
         myconf + ' -uroot -p' + pwd + ' -e "drop database test";'
     slemp.execShell(drop_test_db)
 
+    hostname = slemp.execShell('hostname')[0].strip()
+
+    drop_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
+        myconf + ' -uroot -p' + pwd + ' -e "drop user \'\'@\'' + hostname + '\'";'
+    slemp.execShell(drop_hostname)
+
+    drop_root_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
+        myconf + ' -uroot -p' + pwd + ' -e "drop user \'root\'@\'' + hostname + '\'";'
+    slemp.execShell(drop_root_hostname)
+
     pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
 
     return True
@@ -472,7 +493,7 @@ def initMysql8Pwd():
 
 def myOp(version, method):
     # import commands
-    init_file = initDreplace()
+    init_file = initDreplace(version)
     try:
         isInited = initMysqlData()
         if not isInited:
@@ -2330,7 +2351,7 @@ def installPreInspection(version):
 
 def uninstallPreInspection(version):
     stop(version)
-    if mw.isDebugMode():
+    if slemp.isDebugMode():
         return 'ok'
 
     return "Please manually delete MySQL[{}]<br/> rm -rf {}".format(version, getServerDir())

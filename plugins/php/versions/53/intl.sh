@@ -33,14 +33,14 @@ Install_lib()
 		echo "php-$version ${LIBNAME} is installed, please select another version!"
 		return
 	fi
-	
-	
+
+
 	if [ ! -f "$extFile" ];then
 
 		php_lib=$sourcePath/php_lib
 		mkdir -p $php_lib
 
-		cd $serverPath/panel/plugins/php/lib && /bin/bash icu.sh
+		cd ${rootPath}/plugins/php/lib && /bin/bash icu.sh
 
 		wget -O $php_lib/${LIBNAME}-${LIBV}.tgz http://pecl.php.net/get/${LIBNAME}-${LIBV}.tgz
 
@@ -51,9 +51,9 @@ Install_lib()
 		--with-icu-dir=${serverPath}/lib/icu
 
 		make && make install && make clean
-		
+
 	fi
-	
+
 	if [ ! -f "$extFile" ];then
 		echo "ERROR!"
 		return
@@ -75,16 +75,16 @@ Uninstall_lib()
 		echo "php$version is not installed, please select another version!"
 		return
 	fi
-	
+
 	if [ ! -f "$extFile" ];then
 		echo "php$version ${LIBNAME} is not installed, please select another version!"
 		echo "php-$vphp not install ${LIBNAME}, Plese select other version!"
 		return
 	fi
-	
+
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
-		
+
 	rm -f $extFile
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='

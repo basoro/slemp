@@ -1,14 +1,3 @@
-
-function str2Obj(str){
-    var data = {};
-    kv = str.split('&');
-    for(i in kv){
-        v = kv[i].split('=');
-        data[v[0]] = v[1];
-    }
-    return data;
-}
-
 function phpPost(method, version, args,callback){
     var loadT = layer.msg('Retrieving...', { icon: 16, time: 0, shade: 0.3 });
 
@@ -18,7 +7,7 @@ function phpPost(method, version, args,callback){
     req_data['version'] = version;
 
     if (typeof(args) == 'string'){
-        req_data['args'] = JSON.stringify(str2Obj(args));
+        req_data['args'] = JSON.stringify(toArrayObject(args));
     } else {
         req_data['args'] = JSON.stringify(args);
     }
@@ -45,7 +34,7 @@ function phpPostCallbak(method, version, args,callback){
     args['version'] = version;
 
     if (typeof(args) == 'string'){
-        req_data['args'] = JSON.stringify(str2Obj(args));
+        req_data['args'] = JSON.stringify(toArrayObject(args));
     } else {
         req_data['args'] = JSON.stringify(args);
     }
@@ -183,7 +172,7 @@ function getFpmConfig(version){
             "<option value='3' " + (rdata.max_children == 100 ? 'selected' : '') + ">100 concurrent</option>" +
             "<option value='4' " + (rdata.max_children == 200 ? 'selected' : '') + ">200 concurrent</option>" +
             "<option value='5' " + (rdata.max_children == 300 ? 'selected' : '') + ">300 concurrent</option>" +
-            "<option value='6' " + (rdata.max_children == 500 ? 'selected' : '') + ">500 concurrent</option>"
+            "<option value='6' " + (rdata.max_children == 500 ? 'selected' : '') + ">500 concurrent</option>";
         var pms = [{ 'name': 'static', 'title': 'Static' }, { 'name': 'dynamic', 'title': 'Dynamic' }];
         var pmList = '';
         for (var i = 0; i < pms.length; i++) {
@@ -326,6 +315,147 @@ function getFpmStatus(version){
                      </table></div>";
         $(".soft-man-con").html(con);
         $(".GetPHPStatus td,.GetPHPStatus th").css("padding", "7px");
+    });
+}
+
+function getSessionConfig(version){
+    phpPost('get_session_conf', version, '', function(ret_data){
+        var rdata = $.parseJSON(ret_data.data);
+        if(!rdata.status){
+            layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+            return;
+        }
+        var rdata = rdata.data;
+
+         var cacheList = "<option value='file' " + (rdata.save_handler == "file" ? 'selected' : '') + ">file</option>" +
+            "<option value='redis' " + (rdata.save_handler == "redis" ? 'selected' : '') + ">redis</option>" +
+            "<option value='memcache' " + (rdata.save_handler == "memcache" ? 'selected' : '') + ">memcache</option>" +
+            "<option value='memcached' " + (rdata.save_handler == "memcached" ? 'selected' : '') + ">memcached</option>";
+
+
+        var info = rdata.save_path.split(":");
+        var con = "<div class='conf_p'>" +
+            "<p class='line'><span class='span_tit'>Storage mode：</span><select class='bt-input-text' name='save_handler' style='width:200px;'>" + cacheList + "</select></p>" +
+            "<p class='line'><span class='span_tit'>IP address：</span><input class='bt-input-text' type='text' name='ip' style='width:200px;' value='"+ info[0] +"' /></p>" +
+            "<p class='line'><span class='span_tit'>Port：</span><input class='bt-input-text' type='text' name='port' style='width:200px;' value='"+rdata.port+"' /></p>" +
+            "<p class='line'><span class='span_tit'>Password：</span><input class='bt-input-text' type='text' name='passwd' style='width:200px;' value='"+rdata.passwd+"' /></p>" +
+            "<p class='line'><div class='mtb15' style='margin-left:100px;'><button class='btn btn-success btn-sm' onclick='setSessionConfig(\"" + version + "\",1)'>Save</button></div></p>" +
+            "</div>\
+            <ul class='help-info-text c7'>\
+                <li>If your site has high concurrency, using Redis and Memcache can effectively improve PHP concurrency</li>\
+                <li>If the website access is abnormal after adjusting the session mode, please switch back to the original mode</li>\
+                <li>Switching the session mode will cause the online user session to be lost, please switch it when the traffic is small</li>\
+            </ul>\
+            <div id='session_clear' class='session_clear' style='border-top: #ccc 1px dashed;padding-top: 15px;margin-top: 15px;'>\
+            </div>\
+            </div>";
+
+        $(".soft-man-con").html(con);
+
+        if (rdata.save_handler == 'file'){
+            $('input[name="ip"]').attr('disabled','disabled');
+            $('input[name="port"]').attr('disabled','disabled');
+            $('input[name="passwd"]').attr('placeholder','Leave blank if no password');
+            $('input[name="passwd"]').attr('disabled','disabled');
+        }
+
+        // change event
+        $("select[name='save_handler']").change(function() {
+            var type = $(this).val();
+
+            var passwd = $('input[name="passwd"]').val();
+            if (passwd == ""){
+                $('input[name="passwd"]').attr('placeholder','Leave blank if no password');
+            }
+
+            var ip = $('input[name="ip"]').val();
+            if (ip == ""){
+                $('input[name="ip"]').val('127.0.0.1');
+            }
+
+            switch (type) {
+                case 'redis':
+                    var port = $('input[name="port"]').val();
+                    if (port == ""){
+                        $('input[name="port"]').val('6379');
+                    }
+                    $('input[name="ip"]').removeAttr('disabled');
+                    $('input[name="port"]').removeAttr('disabled');
+                    $('input[name="passwd"]').removeAttr('disabled');
+                    break;
+                case 'file':
+                    $('input[name="ip"]').val("").attr('disabled','disabled');
+                    $('input[name="port"]').val("").attr('disabled','disabled');
+                    $('input[name="passwd"]').val("").attr('disabled','disabled');
+                    break;
+                case 'memcache':
+                    var port = $('input[name="port"]').val();
+                    if (port == ""){
+                        $('input[name="port"]').val('11211');
+                    }
+                    $('input[name="ip"]').removeAttr('disabled');
+                    $('input[name="port"]').removeAttr('disabled');
+                    $('input[name="passwd"]').removeAttr('disabled');
+                    break;
+                case 'memcached':
+                    var port = $('input[name="port"]').val();
+                    if (port == ""){
+                        $('input[name="port"]').val('11211');
+                    }
+                    $('input[name="ip"]').removeAttr('disabled');
+                    $('input[name="port"]').removeAttr('disabled');
+                    $('input[name="passwd"]').removeAttr('disabled');
+                    break;
+            }
+        });
+
+        //load session stats
+        phpPost('get_session_count', version, '', function(ret_data){
+            var rdata = $.parseJSON(ret_data.data);
+            if(!rdata.status){
+                layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+                return;
+            }
+            var rdata = rdata.data;
+
+            var html_var = "<div class='clear_title' style='padding-bottom:15px;'>Clean up the Session file</div>\
+                <div class='clear_conter'>\
+                    <div class='session_clear_list'>\
+                        <div class='line'><span>Total number of session files</span><span>"+rdata.total+"</span></div>\
+                        <div class='line'><span>Number of cleanable session files</span><span>"+rdata.oldfile+"</span></div>\
+                    </div>\
+                <button id='clean_func' class='btn btn-success btn-sm clear_session_file'>Clean up session files</button>";
+
+            $("#session_clear").html(html_var);
+
+
+            $('#clean_func').click(function(){
+                phpPost('clean_session_old', version, '', function(ret_data){
+                    var rdata = $.parseJSON(ret_data.data);
+                    showMsg(rdata.msg,function(){
+                        getSessionConfig(version);
+                    },{ icon: rdata.status ? 1 : 2 });
+                });
+            });
+        });
+    });
+
+}
+
+function setSessionConfig(version){
+    var ip = $('input[name="ip"]').val();
+    var port = $('input[name="port"]').val();
+    var passwd = $('input[name="passwd"]').val();
+    var save_handler = $("select[name='save_handler']").val();
+    var data = {
+        ip:ip,
+        port:port,
+        passwd:passwd,
+        save_handler:save_handler,
+    };
+    phpPost('set_session_conf', version, data, function(ret_data){
+        var rdata = $.parseJSON(ret_data.data);
+        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
 

@@ -114,6 +114,8 @@ slemp_stop_panel()
             kill -9 $p &>/dev/null
     done
 
+    pidfile=${mw_path}/logs/slemp.pid
+
     if [ -f $pidfile ];then
         rm -f $pidfile
     fi
@@ -178,6 +180,11 @@ error_logs()
 	tail -n 100 $slemp_path/logs/error.log
 }
 
+slemp_update()
+{
+    curl -fsSL  https://raw.githubusercontent.com/basoro/slemp/master/scripts/update.sh | bash
+}
+
 case "$1" in
     'start') slemp_start;;
     'stop') slemp_stop;;
@@ -193,6 +200,7 @@ case "$1" in
         slemp_start_task;;
     'status') slemp_status;;
     'logs') error_logs;;
+    'update') slemp_update;;
     'default')
         cd $slemp_path
         port=7200
@@ -226,12 +234,13 @@ case "$1" in
                 echo 'True' > $slemp_path/data/ipv6.pl
                 address="SLEMP-Panel-Url: http://[$v6]:$port$auth_path"
             else
-                address="No v4 or v6 available"
+                address="SLEMP-Panel-Url: http://you-network-ip:$port$auth_path"
             fi
         else
             address="SLEMP-Panel-Url: http://$address:$port$auth_path"
         fi
 
+        show_panel_ip="$port|"
         echo -e "=================================================================="
         echo -e "\033[32mSLEMP-Panel default info!\033[0m"
         echo -e "=================================================================="
@@ -239,8 +248,11 @@ case "$1" in
         echo -e `python3 $slemp_path/tools.py username`
         echo -e "password: $password"
         echo -e "\033[33mWarning:\033[0m"
-        echo -e "\033[33mIf you cannot access the panel, \033[0m"
-        echo -e "\033[33mrelease the following port (7200|888|80|443|22) in the security group\033[0m"
+        echo -e "\033[33mIf you cannot access the panel. \033[0m"
+        echo -e "\033[33mrelease the following port (${show_panel_ip}888|80|443|22) in the security group\033[0m"
         echo -e "=================================================================="
+        ;;
+    *)
+        cd $mw_path && python3 $mw_path/tools.py cli $1
         ;;
 esac

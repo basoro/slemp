@@ -46,10 +46,9 @@ CREATE TABLE IF NOT EXISTS `firewall` (
 
 INSERT INTO `firewall` (`id`, `port`, `ps`, `addtime`) VALUES
 (1, '80', 'Port utama situs web', '0000-00-00 00:00:00'),
-(2, '7200', 'Panel WEB', '0000-00-00 00:00:00'),
-(3, '22', 'Akses SSH', '0000-00-00 00:00:00'),
-(4, '888', 'Port phpMyAdmin', '0000-00-00 00:00:00'),
-(5, '443', 'HTTPS', '0000-00-00 00:00:00');
+(2, '22', 'Akses SSH', '0000-00-00 00:00:00'),
+(3, '443', 'HTTPS', '0000-00-00 00:00:00'),
+(4, '888', 'Port phpMyAdmin', '0000-00-00 00:00:00');
 
 
 

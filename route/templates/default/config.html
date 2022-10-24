@@ -19,6 +19,14 @@
 					</div>
 
 					<div class="ss-text pull-left mr50">
+						<em>Development mode</em>
+						<div class="ssh-item">
+              <input class="btswitch btswitch-ios" id="debugMode" type="checkbox" {{data['debug']}}>
+              <label class="btswitch-btn" for="debugMode" onclick="debugMode()"></label>
+	          </div>
+					</div>
+
+					<div class="ss-text pull-left mr50">
             <em title="Saat diaktifkan, izinkan akses ipv6 ke panel">Gunakan IPv6</em>
             <div class='ssh-item'>
                 <input class='btswitch btswitch-ios' id='panelIPv6' type='checkbox' {{data['ipv6']}}>

@@ -4,6 +4,7 @@ import sys
 import io
 import os
 import time
+import threading
 import subprocess
 
 sys.path.append(os.getcwd() + "/class/core")
@@ -213,6 +214,33 @@ def restyOp(method):
     return data[1]
 
 
+def op_submit_systemctl_restart():
+    slemp.execShell('systemctl restart openresty')
+
+
+def op_submit_init_restart(file):
+    slemp.execShell(file + ' restart')
+
+
+def restyOp_restart():
+    file = initDreplace()
+
+    # When starting, first check the configuration file
+    check = getServerDir() + "/bin/openresty -t"
+    check_data = slemp.execShell(check)
+    if not check_data[1].find('test is successful') > -1:
+        return check_data[1]
+
+    if not slemp.isAppleSystem():
+        threading.Timer(2, op_submit_systemctl_restart, args=()).start()
+        # submit_restart1()
+        return 'ok'
+
+    threading.Timer(2, op_submit_init_restart, args=(file,)).start()
+    # submit_restart2(file)
+    return 'ok'
+
+
 def start():
     return restyOp('start')
 
@@ -222,7 +250,7 @@ def stop():
 
 
 def restart():
-    return restyOp('restart')
+    return restyOp_restart()
 
 
 def reload():

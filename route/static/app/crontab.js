@@ -24,7 +24,7 @@ function getLogs(id){
 			title:lan.crontab.task_log_title,
 			area: ['60%','500px'],
 			shadeClose:false,
-			closeBtn:2,
+			closeBtn:1,
 			content:'<div class="setchmod bt-form pd20 pb70">'
 					+'<pre id="crontab-log" style="overflow: auto; border: 0px none; line-height:23px;padding: 15px; margin: 0px; white-space: pre-wrap; height: 405px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>'
 					+'<div class="bt-form-submit-btn" style="margin-top: 0px;">'
@@ -53,14 +53,27 @@ function getCronData(page){
 				'<span class="btOpen" onclick="setTaskStatus(' + rdata.data[i].id + ',0)" style="color:rgb(92, 184, 92);cursor:pointer" title="Disable this scheduled task">Active<span class="glyphicon glyphicon-play"></span></span>'
 				:'<span onclick="setTaskStatus('+ rdata.data[i].id +',1)" class="btClose" style="color:red;cursor:pointer" title="Enable this scheduled task">Deactive<span style="color:rgb(255, 0, 0);" class="glyphicon glyphicon-pause"></span></span>';
 
+				var cron_save = '--';
+				if (rdata.data[i]['save'] != ''){
+					cron_save = rdata.data[i]['save']+'份';
+				}
+
+				var cron_backupto = '-';
+				if (rdata.data[i]['stype'] == 'site' || rdata.data[i]['stype']=='database' ){
+					cron_backupto = 'Local Disk';
+					if (rdata.data[i]['backup_to'] != 'localhost'){
+						cron_backupto = rdata.data[i]['backup_to'];
+					}
+				}
+
 				cbody += "<tr>\
 							<td><input type='checkbox' onclick='checkSelect();' title='"+rdata.data[i].name+"' name='id' value='"+rdata.data[i].id+"'></td>\
 							<td>"+rdata.data[i].name+"</td>\
 							<td>"+status+"</td>\
 							<td>"+rdata.data[i].type+"</td>\
 							<td>"+rdata.data[i].cycle+"</td>\
-							<td>-</td>\
-							<td>--</td>\
+							<td>"+cron_save +"</td>\
+							<td>"+cron_backupto+"</td>\
 							<td>"+rdata.data[i].addtime+"</td>\
 							<td>\
 								<a href=\"javascript:startTask("+rdata.data[i].id+");\" class='btlink'>Exe</a> | \
@@ -77,7 +90,7 @@ function getCronData(page){
 }
 
 function setTaskStatus(id,status){
-	var confirm = layer.confirm(status == '0'?'After a scheduled task is suspended, it will not continue to run. Do you really want to deactivate this scheduled task?':'The scheduled task is disabled, do you want to enable this scheduled task', {title:'Hint',icon:3,closeBtn:2,btn:['Yes','No']},function(index) {
+	var confirm = layer.confirm(status == '0'?'After a scheduled task is suspended, it will not continue to run. Do you really want to deactivate this scheduled task?':'The scheduled task is disabled, do you want to enable this scheduled task', {title:'Hint',icon:3,closeBtn:1,btn:['Yes','No']},function(index) {
 		if (index > 0) {
 			var loadT = layer.msg('Setting status, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
 			$.post('/crontab/set_cron_status',{id:id},function(rdata){
@@ -191,7 +204,6 @@ function planAdd(){
 	var type = $(".plancycle").find("b").attr("val");
 	$("#set-Config input[name='type']").val(type);
 
-	var where1 = $("#ptime input[name='where1']").val();
 	var is1;
 	var is2 = 1;
 	switch(type){
@@ -293,6 +305,11 @@ function planAdd(){
 		return;
 	}
 
+	if (type == 'minute-n'){
+		var where1 = $("#ptime input[name='where1']").val();
+		$("#set-Config input[name='where1']").val(where1);
+	}
+	
 	$("#set-Config input[name='sName']").val(sName);
 	layer.msg('Adding, please wait...!',{icon:16,time:0,shade: [0.3, '#000']});
 	var data = $("#set-Config").serialize() + '&sBody='+sBody + '&urladdress=' + urladdress;

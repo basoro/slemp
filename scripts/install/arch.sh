@@ -26,7 +26,7 @@ echo y | pacman -Sy pcre
 echo y | pacman -Sy libmcrypt
 echo y | pacman -Sy oniguruma
 echo y | pacman -Sy libmemcached
-echo y | pacman -Sy bison re2c 
+echo y | pacman -Sy bison re2c
 echo y | pacman -Sy graphviz
 echo y | pacman -Sy mhash
 echo y | pacman -Sy ncurses
@@ -54,7 +54,7 @@ echo y | pacman -Syu icu
 hwclock --systohc
 
 #https need
-if [ ! -d /root/.acme.sh ];then	
+if [ ! -d /root/.acme.sh ];then
 	curl https://get.acme.sh | sh
 fi
 
@@ -64,7 +64,7 @@ if [ -f /etc/init.d/iptables ];then
 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 888 -j ACCEPT
-	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 7200 -j ACCEPT
+	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 7200 -j ACCEPT
 	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 3306 -j ACCEPT
 	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 30000:40000 -j ACCEPT
 	service iptables save
@@ -88,7 +88,7 @@ if [ ! -f /etc/init.d/iptables ];then
 	firewall-cmd --permanent --zone=public --add-port=80/tcp
 	firewall-cmd --permanent --zone=public --add-port=443/tcp
 	firewall-cmd --permanent --zone=public --add-port=888/tcp
-	firewall-cmd --permanent --zone=public --add-port=7200/tcp
+	# firewall-cmd --permanent --zone=public --add-port=7200/tcp
 	# firewall-cmd --permanent --zone=public --add-port=3306/tcp
 	# firewall-cmd --permanent --zone=public --add-port=30000-40000/tcp
 

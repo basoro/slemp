@@ -17,7 +17,7 @@ sysName=`uname`
 install_tmp=${rootPath}/tmp/slemp_install.pl
 mysqlDir=${serverPath}/source/mysql
 
-VERSION="5.7.37"
+VERSION="5.7.39"
 
 
 Install_mysql()
@@ -61,14 +61,13 @@ Install_mysql()
 	fi
 	# ----- cpu end ------
 
-	cd $serverPath/panel/plugins/mysql/lib && /bin/bash rpcgen.sh
+	cd ${rootPath}/plugins/mysql/lib && /bin/bash rpcgen.sh
 
 	if [ ! -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
-		wget -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/Downloads/MySQL-5.7/mysql-boost-${VERSION}.tar.gz
+		wget -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-5.7/mysql-boost-${VERSION}.tar.gz
 	fi
 
-	#检测文件是否损坏.
-	md5_mysql_ok=d0489fc3880248a58759c50bfb286dbb
+	md5_mysql_ok=d949b0ef81c3f52f7ef0874066244221
 	if [ -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
 		md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
 		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
@@ -76,7 +75,7 @@ Install_mysql()
 		else
 			# 重新下载
 			rm -rf ${mysqlDir}/mysql-${VERSION}
-			wget -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/Downloads/MySQL-5.7/mysql-boost-${VERSION}.tar.gz
+			wget -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-5.7/mysql-boost-${VERSION}.tar.gz
 		fi
 	fi
 
@@ -89,7 +88,7 @@ Install_mysql()
 	OPENSSL_VERSION=`openssl version|awk '{print $2}'|awk -F '.' '{print $1}'`
 	if [ "${OPENSSL_VERSION}" -ge "3" ];then
 		#openssl version to high
-		cd $serverPath/panel/plugins/php/lib && /bin/bash openssl.sh
+		cd ${rootPath}/plugins/php/lib && /bin/bash openssl.sh
 		export PKG_CONFIG_PATH=$serverPath/lib/openssl/lib/pkgconfig
 		OPTIONS="-DWITH_SSL=${serverPath}/lib/openssl"
 	fi
