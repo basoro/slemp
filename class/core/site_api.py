@@ -2244,7 +2244,7 @@ location ^~ {from} {
                 continue
         return True
 
-    def setDirUserINI(self, sitePath, runPath)):
+    def setDirUserINI(self, sitePath, runPath):
         newPath = sitePath + runPath
 
         filename = newPath + '/.user.ini'
