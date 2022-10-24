@@ -19,7 +19,7 @@ import slemp
 print('==================================================================')
 print('★[' + time.strftime("%Y/%m/%d %H:%M:%S") + ']，cut log')
 print('==================================================================')
-print('|--Currently keep the latest [' + sys.argv[2] + ']份')
+print('|--Currently keep the latest [' + sys.argv[2] + '] copy')
 logsPath = slemp.getLogsDir()
 px = '.log'
 

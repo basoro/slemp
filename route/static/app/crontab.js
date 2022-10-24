@@ -55,7 +55,7 @@ function getCronData(page){
 
 				var cron_save = '--';
 				if (rdata.data[i]['save'] != ''){
-					cron_save = rdata.data[i]['save']+'份';
+					cron_save = rdata.data[i]['save']+' copy';
 				}
 
 				var cron_backupto = '-';
@@ -309,7 +309,7 @@ function planAdd(){
 		var where1 = $("#ptime input[name='where1']").val();
 		$("#set-Config input[name='where1']").val(where1);
 	}
-	
+
 	$("#set-Config input[name='sName']").val(sName);
 	layer.msg('Adding, please wait...!',{icon:16,time:0,shade: [0.3, '#000']});
 	var data = $("#set-Config").serialize() + '&sBody='+sBody + '&urladdress=' + urladdress;
