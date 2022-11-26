@@ -410,8 +410,8 @@ class crontab_api:
                     param['backup_to'] + "/index.py"
                 wheres = {
                     'path': head + "python3 " + cfile + " path " + param['sname'] + " " + str(param['save']),
-                    'site':   head + "cd " + panel_dir + " && python3 " + cfile + " site " + param['sname'] + " " + str(param['save']),
-                    'database': head + "cd " + panel_dir + " && python3 " + cfile + " database " + param['sname'] + " " + str(param['save']),
+                    'site':   head + "cd " + panel_dir + " && " + panel_dir + "/bin/python3 " + cfile + " site " + param['sname'] + " " + str(param['save']),
+                    'database': head + "cd " + panel_dir + " && " + panel_dir + "/bin/python3 " + cfile + " database " + param['sname'] + " " + str(param['save']),
                     'logs':   head + "python3 " + script_dir + "/logs_backup.py " + param['sname'] + log + " " + str(param['save']),
                     'rememory': head + "/bin/bash " + script_dir + '/rememory.sh'
                 }
