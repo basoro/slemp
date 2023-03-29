@@ -146,6 +146,7 @@ data/hook_backup.json
 plugins/l2tp
 plugins/openlitespeed
 #plugins/gdrive
+plugins/tbot
 plugins/mtproxy
 plugins/zimg
 debug.out
