@@ -205,7 +205,7 @@ class App():
 
         enstr = slemp.enDoubleCrypt('slemp', json.dumps(info))
         slemp.writeFile(dst_host_dir + '/info.json', enstr)
-        return slemp.returnJson(True, '添加成功!')
+        return slemp.returnJson(True, 'Added successfully!')
 
 if __name__ == "__main__":
     func = sys.argv[1]
