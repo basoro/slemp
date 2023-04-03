@@ -74,7 +74,6 @@ if slemp.isAppleSystem():
 
 # Session(app)
 
-# 设置BasicAuth
 basic_auth_conf = 'data/basic_auth.json'
 app.config['BASIC_AUTH_OPEN'] = False
 if os.path.exists(basic_auth_conf):
@@ -149,7 +148,6 @@ def funConvert(fun):
 
 
 def sendAuthenticated():
-    # 发送http认证信息
     request_host = slemp.getHostAddr()
     result = Response(
         '', 401, {'WWW-Authenticate': 'Basic realm="%s"' % request_host.strip()})
@@ -160,7 +158,6 @@ def sendAuthenticated():
 
 @app.before_request
 def requestCheck():
-    # Flask请求勾子
     if app.config['BASIC_AUTH_OPEN']:
         auth = request.authorization
         if request.path in ['/download', '/hook', '/down']:
@@ -189,7 +186,6 @@ def isLogined():
         now_time = int(time.time())
 
         if 'overdue' in session and now_time > session['overdue']:
-            # 自动续期
             session['overdue'] = int(time.time()) + 7 * 24 * 60 * 60
             return False
 
@@ -217,10 +213,9 @@ def publicObject(toObject, func, action=None, get=None):
         data = {'msg': '404,not find api[' + name + ']', "status": False}
         return slemp.getJson(data)
     except Exception as e:
-        # API发生错误记录
         if slemp.isDebugMode():
             print(traceback.print_exc())
-        data = {'msg': '访问异常:' + str(e) + '!', "status": False}
+        data = {'msg': 'Access exception:' + str(e) + '!', "status": False}
         return slemp.getJson(data)
 
 
@@ -234,7 +229,6 @@ def publicObject(toObject, func, action=None, get=None):
 
 @app.route("/.well-known/acme-challenge/<val>")
 def wellknow(val=None):
-    # 申请面板ssl使用
     f = slemp.getRunDir() + "/tmp/.well-known/acme-challenge/" + val
     if os.path.exists(f):
         return slemp.readFile(f)
@@ -243,7 +237,6 @@ def wellknow(val=None):
 
 @app.route("/hook", methods=['POST', 'GET'])
 def webhook():
-    # 仅针对webhook插件
     input_args = {
         'access_key': request.args.get('access_key', '').strip(),
         'params': request.args.get('params', '').strip()
@@ -257,7 +250,7 @@ def webhook():
 
     wh_install_path = slemp.getServerDir() + '/webhook'
     if not os.path.exists(wh_install_path):
-        return slemp.returnJson(False, '请先安装WebHook插件!')
+        return slemp.returnJson(False, 'Please install the WebHook plugin first!')
 
     sys.path.append('plugins/webhook')
     import index
@@ -308,7 +301,7 @@ def doLogin():
 
     filename = 'data/close.pl'
     if os.path.exists(filename):
-        return slemp.returnJson(False, '面板已经关闭!')
+        return slemp.returnJson(False, 'Panel is closed!')
 
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '').strip()
@@ -323,13 +316,13 @@ def doLogin():
 
             if login_cache_limit >= login_cache_count:
                 slemp.writeFile(filename, 'True')
-                return slemp.returnJson(False, '面板已经关闭!')
+                return slemp.returnJson(False, 'Panel is closed!')
 
             cache.set('login_cache_limit', login_cache_limit, timeout=10000)
             login_cache_limit = cache.get('login_cache_limit')
-            code_msg = slemp.getInfo("验证码错误,您还可以尝试[{1}]次!", (str(
+            code_msg = slemp.getInfo("The verification code is wrong, you can try [{1}] more times!", (str(
                 login_cache_count - login_cache_limit)))
-            slemp.writeLog('用户登录', code_msg)
+            slemp.writeLog('User login', code_msg)
             return slemp.returnJson(False, code_msg)
 
     userInfo = slemp.M('users').where(
@@ -341,7 +334,7 @@ def doLogin():
     # print('md5-pass', password)
 
     if userInfo['username'] != username or userInfo['password'] != password:
-        msg = "<a style='color: red'>密码错误</a>,帐号:{1},密码:{2},登录IP:{3}", ((
+        msg = "<a style='color: red'>Password error</a>, account: {1}, password: {2}, login IP: {3}", ((
             '****', '******', request.remote_addr))
 
         if login_cache_limit == None:
@@ -351,12 +344,12 @@ def doLogin():
 
         if login_cache_limit >= login_cache_count:
             slemp.writeFile(filename, 'True')
-            return slemp.returnJson(False, '面板已经关闭!')
+            return slemp.returnJson(False, 'Panel is closed!')
 
         cache.set('login_cache_limit', login_cache_limit, timeout=10000)
         login_cache_limit = cache.get('login_cache_limit')
-        slemp.writeLog('用户登录', slemp.getInfo(msg))
-        return slemp.returnJson(False, slemp.getInfo("用户名或密码错误,您还可以尝试[{1}]次!", (str(login_cache_count - login_cache_limit))))
+        slemp.writeLog('User login', slemp.getInfo(msg))
+        return slemp.returnJson(False, slemp.getInfo("Username or password is wrong, you can try [{1}] more times!", (str(login_cache_count - login_cache_limit))))
 
     cache.delete('login_cache_limit')
     session['login'] = True
@@ -364,9 +357,8 @@ def doLogin():
     session['overdue'] = int(time.time()) + 7 * 24 * 60 * 60
     # session['overdue'] = int(time.time()) + 7
 
-    # fix 跳转时,数据消失，可能是跨域问题
     # slemp.writeFile('data/api_login.txt', userInfo['username'])
-    return slemp.returnJson(True, '登录成功,正在跳转...')
+    return slemp.returnJson(True, 'Login successful, jumping...')
 
 
 @app.errorhandler(404)
@@ -401,27 +393,27 @@ def admin_safe_path(path, req, data, pageFile):
 
 def login_temp_user(token):
     if len(token) != 48:
-        return '错误的参数!'
+        return 'Wrong parameter!'
 
     skey = slemp.getClientIp() + '_temp_login'
     if not getErrorNum(skey, 10):
-        return '连续10次验证失败，禁止1小时'
+        return '10 consecutive authentication failures, ban for 1 hour'
 
     stime = int(time.time())
     data = slemp.M('temp_login').where('state=? and expire>?',
                                     (0, stime)).field('id,token,salt,expire,addtime').find()
     if not data:
         setErrorNum(skey)
-        return '验证失败!'
+        return 'Verification failed!'
 
     if stime > int(data['expire']):
         setErrorNum(skey)
-        return "过期"
+        return "Expired"
 
     r_token = slemp.md5(token + data['salt'])
     if r_token != data['token']:
         setErrorNum(skey)
-        return '验证失败!'
+        return 'Verification failed!'
 
     userInfo = slemp.M('users').where(
         "id=?", (1,)).field('id,username').find()
@@ -433,7 +425,7 @@ def login_temp_user(token):
     session['uid'] = data['id']
 
     login_addr = slemp.getClientIp() + ":" + str(request.environ.get('REMOTE_PORT'))
-    slemp.writeLog('用户登录', "登录成功,帐号:{1},登录IP:{2}",
+    slemp.writeLog('User login', "Successful login, account: {1}, login IP: {2}",
                 (userInfo['username'], login_addr))
     slemp.M('temp_login').where('id=?', (data['id'],)).update(
         {"login_time": stime, 'state': 1, 'login_addr': login_addr})
@@ -451,7 +443,7 @@ def api(reqClass=None, reqAction=None, reqData=None):
     import config_api
     isOk, data = config_api.config_api().checkPanelToken()
     if not isOk:
-        return slemp.returnJson(False, '未开启API')
+        return slemp.returnJson(False, 'API is not enabled')
 
     request_time = request.form.get('request_time', '')
     request_token = request.form.get('request_token', '')
@@ -460,19 +452,19 @@ def api(reqClass=None, reqAction=None, reqData=None):
 
     # print(request_time, request_token)
     if not slemp.inArray(data['limit_addr'], request_ip):
-        return slemp.returnJson(False, 'IP校验失败,您的访问IP为[' + request_ip + ']')
+        return slemp.returnJson(False, 'IP verification failed, your access IP is [' + request_ip + ']')
 
     local_token = slemp.deCrypt(data['token'], data['token_crypt'])
     token_md5 = slemp.md5(str(request_time) + slemp.md5(local_token))
 
     if not (token_md5 == request_token):
-        return slemp.returnJson(False, '密钥错误')
+        return slemp.returnJson(False, 'Wrong key')
 
     if reqClass == None:
-        return slemp.returnJson(False, '请指定请求方法类')
+        return slemp.returnJson(False, 'Please specify the request method class')
 
     if reqAction == None:
-        return slemp.returnJson(False, '请指定请求方法')
+        return slemp.returnJson(False, 'Please specify the request method')
 
     classFile = ('config_api', 'crontab_api', 'files_api', 'firewall_api',
                  'plugins_api', 'system_api', 'site_api', 'task_api')
@@ -499,7 +491,6 @@ def index(reqClass=None, reqAction=None, reqData=None):
     if comReturn:
         return comReturn
 
-    # 页面请求
     if reqAction == None:
         import config_api
         data = config_api.config_api().get()
@@ -515,10 +506,8 @@ def index(reqClass=None, reqAction=None, reqData=None):
             if token != '':
                 return login_temp_user(token)
 
-        # 设置了安全路径
         ainfo = get_admin_safe()
 
-        # 登录页
         if reqClass == 'login':
 
             signout = request.args.get('signout', '')
@@ -546,7 +535,6 @@ def index(reqClass=None, reqAction=None, reqData=None):
     if not isLogined():
         return 'error request!'
 
-    # API请求
     classFile = ('config_api', 'crontab_api', 'files_api', 'firewall_api',
                  'plugins_api', 'system_api', 'site_api', 'task_api')
     className = reqClass + '_api'
@@ -567,7 +555,7 @@ shell_client = None
 @socketio.on('webssh_websocketio')
 def webssh_websocketio(data):
     if not isLogined():
-        emit('server_response', {'data': '会话丢失，请重新登陆面板!\r\n'})
+        emit('server_response', {'data': 'Session lost, please log in to the panel again!\r\n'})
         return
 
     global shell_client
@@ -583,7 +571,7 @@ def webssh_websocketio(data):
 def webssh(msg):
     global shell
     if not isLogined():
-        emit('server_response', {'data': '会话丢失，请重新登陆面板!\r\n'})
+        emit('server_response', {'data': 'Session lost, please log in to the panel again!\r\n'})
         return None
 
     if not shell:
