@@ -138,10 +138,10 @@ class App():
                 if 'pkey_passwd' in info_tmp:
                     host_info['pkey_passwd'] = info_tmp['pkey_passwd']
             except Exception as e:
-                return slemp.returnJson(False, '错误:' + str(e))
+                return slemp.returnJson(False, 'Mistake:' + str(e))
 
             return slemp.returnJson(True, 'ok!', host_info)
-        return slemp.returnJson(False, '不存在此配置')
+        return slemp.returnJson(False, 'This configuration does not exist')
 
     def get_server_list(self):
         host_list = []
@@ -176,7 +176,7 @@ class App():
         host = args['host']
         info_file = self.__host_dir + '/' + host
         slemp.execShell('rm -rf {}'.format(info_file))
-        return slemp.returnJson(True, '删除成功!')
+        return slemp.returnJson(True, 'successfully deleted!')
 
     def add_server(self):
         args = self.getArgs()
@@ -211,7 +211,7 @@ if __name__ == "__main__":
     func = sys.argv[1]
     classApp = App()
     try:
-        data = eval("classApp." + func + "()")
+        data = eval('classApp.' + func + '()')
         print(data)
     except Exception as e:
         print(slemp.getTracebackInfo())

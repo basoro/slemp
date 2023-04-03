@@ -15,7 +15,7 @@ VERSION=$2
 
 Install_webssh()
 {
-	echo '正在安装脚本文件...' > $install_tmp
+	echo 'Installing script file...' > $install_tmp
 	mkdir -p $serverPath/webssh
 	echo "${VERSION}" > $serverPath/webssh/version.pl
 	echo '安装完成' > $install_tmp
@@ -25,7 +25,7 @@ Install_webssh()
 Uninstall_webssh()
 {
 	rm -rf $serverPath/webssh
-	echo "卸载完成" > $install_tmp
+	echo "uninstall complete" > $install_tmp
 }
 
 action=$1

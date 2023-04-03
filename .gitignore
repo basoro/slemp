@@ -149,4 +149,5 @@ plugins/openlitespeed
 plugins/tbot
 plugins/mtproxy
 plugins/zimg
+plugins/webssh
 debug.out
