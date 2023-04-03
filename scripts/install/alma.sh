@@ -30,7 +30,6 @@ echo "SSH PORT:${SSH_PORT}"
 # 		service iptables restart
 # 	fi
 
-# 	#安装时不开启
 # 	service iptables stop
 # fi
 
