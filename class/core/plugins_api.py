@@ -126,7 +126,7 @@ class plugins_api:
 
         plugin_names = {
             'openresty': '1.21.4.1',
-            'php': '56',
+            'php': '73',
             'swap': '1.1',
             'mysql': '5.7',
             'phpmyadmin': '4.4.15',
