@@ -68,7 +68,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, slemp.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, slemp.returnJson(False, 'Parameter: (' + ck[i] + ') none!'))
     return (True, slemp.returnJson(True, 'ok'))
 
 
