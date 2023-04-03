@@ -150,4 +150,9 @@ plugins/tbot
 plugins/mtproxy
 plugins/zimg
 plugins/webssh
+data/api.json
+data/hook_menu.json
+data/letsencrypt.json
+data/notify.json
+
 debug.out
