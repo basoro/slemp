@@ -72,8 +72,7 @@ def start():
         'scopes': credentials.scopes}
     with open(slemp.getServerDir() + '/gdrive/token.json', 'w') as token:
         json.dump(credentials_data,token)
-    return "Verification succeeded. Gdrive started."
-    #return slemp.returnMsg(True, "Verification succeeded")
+    return 'ok'
 
 def status():
     with open(slemp.getServerDir() + '/gdrive/credentials.json', 'rb') as credential:
