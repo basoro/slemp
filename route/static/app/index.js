@@ -794,14 +794,13 @@ function pluginInit(){
             content:"\
         <div class='rec-install'>\
             <div class='important-title'>\
-                <p><span class='glyphicon glyphicon-alert' style='color: #f39c12; margin-right: 10px;'></span>The following one-click packages are recommended, or you can choose according to your needs in <a href='javascript:jump()' style='color:#20a53a'>software management</a>.</p>\
-                <!-- <button style='margin-top: 8px;height: 30px;' type='button' class='btn btn-sm btn-default no-show-rec-btn'>Do not show recommendations again</button> -->\
+                <p><span class='glyphicon glyphicon-alert' style='color: #f39c12; margin-right: 10px;'></span>The following are recommended <a href='javascript:jump()' style='color:#20a53a'>application</a>.</p>\
             </div>\
             <div class='rec-box'>\
                 <h3 style='text-align: center'>Classic LNMP</h3>\
                 <div class='rec-box-con'>\
                     <ul class='rec-list'>" + plugin_list + "</ul>\
-                    <div class='onekey'>A key installation</div>\
+                    <div class='onekey'>Install</div>\
                 </div>\
             </div>\
         </div>",
