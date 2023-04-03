@@ -5,12 +5,15 @@ import string
 
 
 class Page():
+    #--------------------------
+    # Pagination class - JS callback version
+    #--------------------------
     __PREV = 'Prev'
     __NEXT = 'Next'
     __START = 'Start'
     __END = 'End'
-    __COUNT_START = 'From '
-    __COUNT_END = ' Data'
+    __COUNT_START = 'Count Start'
+    __COUNT_END = 'Count End'
     __FO = 'From'
     __LINE = 'Item'
     __LIST_NUM = 4
@@ -61,6 +64,7 @@ class Page():
         pages['7'] = "<span class='Pline'>" + str(self.__FO) + \
             str(self.__START_NUM) + "-" + \
             str(self.__END_NUM) + str(self.__LINE) + "</span>"
+
         pages['8'] = "<span class='Pcount'>" + str(self.__COUNT_START) + \
             str(self.__COUNT_ROW) + str(self.__COUNT_END) + "</span>"
 

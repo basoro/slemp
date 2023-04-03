@@ -1,3 +1,4 @@
+
 <style type="text/css">
 .bt-w-main{
 	height: 642px;
@@ -36,21 +37,21 @@
 </style>
 <div class="bt-form">
 	<div class='plugin_version'></div>
-	<div class="bt-w-main">
+	<div class="bt-w-main" >
 		<div class="bt-w-menu">
 			<p class="bgw" onclick="pluginService('php', $('.plugin_version').attr('version'));">Service</p>
-			<p onclick="pluginInitD('php', $('.plugin_version').attr('version'));">Init</p>
+			<p onclick="pluginInitD('php', $('.plugin_version').attr('version'));">Install Service</p>
 			<p onclick="phpLibConfig($('.plugin_version').attr('version'));">Extension</p>
 			<p onclick="phpSetConfig($('.plugin_version').attr('version'));">Set Config</p>
 			<p onclick="phpUploadLimitReq($('.plugin_version').attr('version'));">Upload limit</p>
 			<p onclick="phpTimeLimitReq($('.plugin_version').attr('version'));">Timeout limit</p>
-			<p onclick="pluginConfig('php', $('.plugin_version').attr('version'));">File Config</p>
+			<p onclick="pluginConfig('php', $('.plugin_version').attr('version'));">Config file</p>
 			<p onclick="pluginConfig('php', $('.plugin_version').attr('version'),'get_fpm_conf_file');">FPM config</p>
 			<p onclick="disableFunc($('.plugin_version').attr('version'));">Disable function</p>
-			<p onclick="getFpmConfig($('.plugin_version').attr('version'));">FPM Tuning</p>
-			<p onclick="getFpmStatus($('.plugin_version').attr('version'));">FPM Status</p>
-			<p onclick="getSessionConfig($('.plugin_version').attr('version'));" title="Session management">Session</p>
-			<p onclick="pluginLogs('php',$('.plugin_version').attr('version'),'fpm_log');">FPM logs</p>
+			<p onclick="getFpmConfig($('.plugin_version').attr('version'));">Performance tuning</p>
+			<p onclick="getFpmStatus($('.plugin_version').attr('version'));">Load status</p>
+			<p onclick="getSessionConfig($('.plugin_version').attr('version'));" title="session management">Session</p>
+			<p onclick="pluginLogs('php',$('.plugin_version').attr('version'),'fpm_log');">FPM log</p>
 			<p onclick="pluginLogs('php',$('.plugin_version').attr('version'),'fpm_slow_log');">Slow log</p>
 			<p onclick="getPhpinfo($('.plugin_version').attr('version'));">PHPIFNO</p>
 			<p onclick="pluginConfig('php',$('.plugin_version').attr('version'),'app_start');">Preload script</p>
@@ -61,6 +62,7 @@
 	</div>
 
 </div>
+
 <script type="text/javascript">
 $.getScript( "/plugins/file?name=php&f=js/php.js", function(){
 	pluginService('php', $('.plugin_version').attr('version'));

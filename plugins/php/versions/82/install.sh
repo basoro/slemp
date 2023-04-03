@@ -16,24 +16,23 @@ function version_lt() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)"
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 
 
-version=8.2.0RC3
+version=8.2.2
 PHP_VER=82
 Install_php()
 {
 #------------------------ install start ------------------------------------#
-echo "install php-${version} ..." > $install_tmp
+echo "install php -${version} ..." > $install_tmp
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
 cd ${rootPath}/plugins/php/lib && /bin/bash freetype_new.sh
 cd ${rootPath}/plugins/php/lib && /bin/bash zlib.sh
-#cd $serverPath/panel/plugins/php/lib && /bin/bash libzip.sh
 
 
 if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 
 	if [ ! -f $sourcePath/php/php-${version}.tar.xz ];then
-		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://downloads.php.net/~pierrick/php-8.2.0alpha2.tar.xz
+		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://www.php.net/distributions/php-${version}.tar.xz
 	fi
 
 	cd $sourcePath/php && tar -Jxf $sourcePath/php/php-${version}.tar.xz
@@ -74,14 +73,17 @@ else
     cpuCore="1"
 fi
 
-if [ "$cpuCore" -gt "1" ];then
+if [ "$cpuCore" -gt "2" ];then
 	cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
+else
+	cpuCore="1"
 fi
 # ----- cpu end ------
 
 ZIP_OPTION='--with-zip'
 libzip_version=`pkg-config libzip --modversion`
 if version_lt "$libzip_version" "0.11.0" ;then
+	cd ${rootPath}/plugins/php/lib && /bin/bash libzip.sh
 	export PKG_CONFIG_PATH=$serverPath/lib/libzip/lib/pkgconfig
 	ZIP_OPTION="--with-zip=$serverPath/lib/libzip"
 fi

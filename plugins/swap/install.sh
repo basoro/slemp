@@ -14,7 +14,11 @@ VERSION=$2
 
 Install_swap()
 {
-	echo 'installing script file...' > $install_tmp
+	if [ -d $serverPath/swap ];then
+		exit 0
+	fi
+
+	echo 'Installing script file...' > $install_tmp
 	mkdir -p $serverPath/source
 	mkdir -p $serverPath/swap
 	echo "${VERSION}" > $serverPath/swap/version.pl

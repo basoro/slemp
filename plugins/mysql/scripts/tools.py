@@ -26,7 +26,7 @@ export PATH
 pwd=$1
 ${server}/init.d/mysql stop
 ${server}/bin/mysqld_safe --skip-grant-tables&
-echo '正在修改密码...';
+echo 'Changing password...';
 echo 'The set password...';
 sleep 6
 m_version=$(cat ${server}/version.pl|grep -E "(5.1.|5.5.|5.6.|mariadb)")
@@ -78,10 +78,10 @@ def set_panel_username(username=None):
     sql = db.Sql()
     if username:
         if len(username) < 5:
-            print("|-Error, username cannot be less than 5 characters long")
+            print("|-Error, username length cannot be less than 5 characters")
             return
         if username in ['admin', 'root']:
-            print("|-Error, too simple username cannot be used")
+            print("|-Error, too simple a username cannot be used")
             return
 
         sql.table('users').where('id=?', (1,)).setField('username', username)

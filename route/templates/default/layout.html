@@ -8,13 +8,24 @@
     <meta name="renderer" content="webkit">
     <title>{{data['title']}}</title>
     <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
-    <link href="/static/bootstrap-3.3.5/css/cerulean.min.css?v={{config.version}}" rel="stylesheet">
+    <link href="/static/bootstrap-3.3.5/css/bootstrap.min.css?v={{config.version}}" rel="stylesheet">
     <link href="/static/css/site.css?v={{config.version}}" rel="stylesheet">
     <link href="/static/codemirror/lib/codemirror.css?v={{config.version}}" rel="stylesheet">
     <script src="/static/language/Simplified_Chinese/lan.js?v={{config.version}}"></script>
     <!--[if lte IE 9]>
 		<script src="/static/js/requestAnimationFrame.js"></script>
 	<![endif]-->
+    {% for menu in data['hook_menu'] %}
+    {% if menu['css_path'] and data['hook_tag'] == menu['name'] %}
+    <link href="/plugins/file?name={{menu['name']}}&v={{config.version}}&f={{menu['css_path']}}" rel="stylesheet" />
+    {% endif %}
+    {% endfor %}
+
+    {% for menu in data['hook_global_static'] %}
+    {% if menu['css_path'] %}
+    <link href="/plugins/file?name={{menu['name']}}&v={{config.version}}&f={{menu['css_path']}}" rel="stylesheet" />
+    {% endif %}
+    {% endfor %}
 </head>
 
 <body>
@@ -39,15 +50,19 @@
           <li class="nav-item"><a href="/firewall">Keamanan</a></li>
           <li class="nav-item"><a href="/files">Kelola Berkas</a></li>
           <li class="nav-item"><a href="/crontab">Penjadwalan</a></li>
+          {% for menu in data['hook_menu'] %}
+          <li class="nav-item"><a href="/plugins/menu?tag={{menu['name']}}">{{menu['title']}}</a></li>
+          {% endfor %}
+          <li class="nav-item"><a href="/soft">Aplikasi</a></li>
           <li class="nav-item"><a href="/config">Pengaturan</a></li>
-          <li class="nav-item"><a href="javascript:;" id="dologin">Keluar</a></li>
+          <li class="nav-item"><a href="javascript:;" id="signout">Keluar</a></li>
         </ul>
       </div><!--/.nav-collapse -->
     </nav>
 
     <div class="bt-warp bge6">
         <div id="container" class="container-fluid">
-            <button style="display: none;" id="bt_copys" class="bt_copy" data-clipboard-text=""></button>
+            <button style="display: none;" id="slemp_copys" class="slemp_copy" data-clipboard-text=""></button>
             <link rel="stylesheet" href="/static/build/xterm.css?v={{config.version}}">
             <link rel="stylesheet" href="/static/build/addons/fullscreen/fullscreen.css?v={{config.version}}">
             <script src="/static/js/jquery-1.10.2.min.js?v={{config.version}}"></script>
@@ -61,16 +76,78 @@
             <script src="/static/build/addons/fullscreen/fullscreen.js?v={{config.version}}"></script>
             <script src="/static/js/socket.io.min.js?v={{config.version}}"></script>
             <script src="/static/build/addons/winptyCompat/winptyCompat.js?v={{config.version}}"></script>
+            <script src="/static/js/term-websocketio.js?v={{config.version}}"></script>
+            <script src="/static/app/upload.js?v={{config.version}}"></script>
             <script src="/static/app/public.js?v={{config.version}}"></script>
             <script src="/static/js/echarts.min.js?v={{config.version}}"></script>
             <script src="/static/js/jquery.dragsort-0.5.2.min.js?v={{config.version}}"></script>
 
             {% block content %}{% endblock %}
-            <div class="footer bgw">SLEMP &copy; 2018 - 2022</div>
+            <div class="footer bgw">SLEMP &copy; 2018 - 2023. (<a class='btlink panel_ad_list_mode'>Ataaka</a>)
         </div>
+    </div>
     </div>
 </body>
 
+<script type="text/javascript">
+
+(function ($) {
+    $.getUrlParam = function (name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return unescape(r[2]); return null;
+    }
+})(jQuery);
+
+function showAd(){
+    layer.open({
+        type: 1
+        ,title: "[AD] Advertisiment"
+        ,closeBtn: 1
+        ,area: '300px;'
+        ,shade: 0.8
+        ,id: 'panel_ad_list_mode'
+        ,btnAlign: 'c'
+        ,moveType: 1
+        ,content: '<div style="padding: 10px; line-height: 22px; font-weight: 300;">\
+                <table class="table table-hover">\
+                    <thead><tr><td style="text-align: center;">Merchant</td><td style="text-align: center;">Promo Code</td><tr></thead>\
+                    <tbody>\
+                        <tr><td><a target="_blank" href="https://digitalvirt.com/aff.php?aff=154"><img src="https://digitalvirt.com/templates/BlueWhite/img/logo-dark.svg"/></a></td><td>SLEMP Panel</td></tr>\
+                    </tbody>\
+                </table>\
+        </div>'
+        ,success: function(layero){
+        }
+    });
+}
+
+$('.panel_ad_list_mode').click(function(){
+    showAd();
+});
+
+
+function getUrlPath(){
+    var thisUrl = window.location.href;
+    var pathArr = thisUrl.split('/');
+    return pathArr[pathArr.length - 1];
+}
+var thisPath = getUrlPath();
+if (thisPath.indexOf('?')>-1){
+    var tag = $.getUrlParam('tag');
+    if(tag != undefined){
+        $('#memuAplugins_'+tag).css('background-color','#2c3138');
+    } else {
+        $('#memuA').css('background-color','#f2f2f2');
+    }
+} else{
+    if(thisPath != undefined){
+        $('#memuA'+thisPath).css('background-color','#2c3138');
+    } else {
+        $('#memuA').css('background-color','#f2f2f2');
+    }
+}
+</script>
 <script src="/static/codemirror/lib/codemirror.js?v={{config.version}}"></script>
 <script src="/static/codemirror/addon/edit/editAll.js?v={{config.version}}"></script>
 <script src="/static/codemirror/mode/modeAll.js?v={{config.version}}"></script>
@@ -78,5 +155,17 @@
 <script src="/static/codemirror/addon/search/search.js?v={{config.version}}"></script>
 <script src="/static/codemirror/addon/scroll/annotatescrollbar.js?v={{config.version}}"></script>
 <script src="/static/laydate/laydate.js?v={{config.version}}"></script>
+
+{% for menu in data['hook_menu'] %}
+{% if menu['js_path'] and data['hook_tag'] == menu['name'] %}
+<script src="/plugins/file?name={{menu['name']}}&f={{menu['js_path']}}&v={{config.version}}"></script>
+{% endif %}
+{% endfor %}
+
+{% for menu in data['hook_global_static'] %}
+{% if menu['js_path'] %}
+<script src="/plugins/file?name={{menu['name']}}&f={{menu['js_path']}}&v={{config.version}}"></script>
+{% endif %}
+{% endfor %}
 
 </html>

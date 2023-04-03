@@ -27,6 +27,7 @@ function app_xhprof_end() {
 
     $profiler_url = sprintf('http://{$LOCAL_IP}:5858/index.php?run=%s&source=xhprof_foo', $run_id);
     echo "<script language='javascript'>window.open('{$profiler_url}')</script>";
+    // echo '<a href="' . $profiler_url . '" target="_blank">Profiler output</a>';
 
 }
 

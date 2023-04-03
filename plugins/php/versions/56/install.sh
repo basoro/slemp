@@ -15,7 +15,7 @@ PHP_VER=56
 Install_php()
 {
 #------------------------ install start ------------------------------------#
-echo "install php-${version} ..." > $install_tmp
+echo "install php -${version} ..." > $install_tmp
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
@@ -26,7 +26,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	if [ ! -f $sourcePath/php/php-${version}.tar.xz ];then
 		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://museum.php.net/php5/php-${version}.tar.xz
 	fi
-
+	
 	cd $sourcePath/php && tar -Jxf $sourcePath/php/php-${version}.tar.xz
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
 fi
@@ -65,10 +65,13 @@ else
     cpuCore="1"
 fi
 
-if [ "$cpuCore" -gt "1" ];then
+if [ "$cpuCore" -gt "2" ];then
 	cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
+else
+	cpuCore="1"
 fi
 # ----- cpu end ------
+
 
 if [ ! -d $serverPath/php/56 ];then
 	cd $sourcePath/php/php${PHP_VER} && ./configure \
@@ -97,7 +100,7 @@ if [ ! -d $serverPath/php/56 ];then
 	$OPTIONS \
 	--enable-fpm
 	make clean && make -j${cpuCore} && make install && make clean
-fi
+fi 
 
 #------------------------ install end ------------------------------------#
 }

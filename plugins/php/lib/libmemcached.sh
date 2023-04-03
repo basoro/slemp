@@ -10,8 +10,6 @@ rootPath=$(dirname "$rootPath")
 
 # echo $rootPath
 
-# cd /home/slemp/server/panel/plugins/php/lib && /bin/bash libmemcached.sh
-
 SERVER_ROOT=$rootPath/lib
 SOURCE_ROOT=$rootPath/source/lib
 
@@ -32,7 +30,7 @@ SOURCE_ROOT=$rootPath/source/lib
 if [ ! -d ${SERVER_ROOT}/libmemcached ];then
     cd ${SOURCE_ROOT}
     if [ ! -f ${SOURCE_ROOT}/libmemcached-1.0.18.tar.gz ];then
-        wget -O libmemcached-1.0.18.tar.gz https://launchpad.net/libmemcached/1.0/1.0.18/+download/libmemcached-1.0.18.tar.gz -T 20
+        wget --no-check-certificate -O libmemcached-1.0.18.tar.gz https://launchpad.net/libmemcached/1.0/1.0.18/+download/libmemcached-1.0.18.tar.gz -T 20
     fi 
     tar -zxf libmemcached-1.0.18.tar.gz
     cd libmemcached-1.0.18

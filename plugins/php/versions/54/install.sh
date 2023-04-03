@@ -16,7 +16,7 @@ PHP_VER=54
 Install_php()
 {
 #------------------------ install start ------------------------------------#
-echo "install php-${version} ..." > $install_tmp
+echo "install php -${version} ..." > $install_tmp
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
@@ -27,7 +27,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	if [ ! -f $sourcePath/php/php-${version}.tar.gz ];then
 		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.gz https://museum.php.net/php5/php-${version}.tar.gz
 	fi
-
+	
 	cd $sourcePath/php && tar -zxvf $sourcePath/php/php-${version}.tar.gz
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
 fi
@@ -66,10 +66,13 @@ else
     cpuCore="1"
 fi
 
-if [ "$cpuCore" -gt "1" ];then
+if [ "$cpuCore" -gt "2" ];then
 	cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
+else
+	cpuCore="1"
 fi
 # ----- cpu end ------
+
 
 if [ ! -d $serverPath/php/${PHP_VER} ];then
 	cd $sourcePath/php/php${PHP_VER} && ./configure \
@@ -124,7 +127,7 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 
 
 	make install && make clean
-fi
+fi 
 
 #------------------------ install end ------------------------------------#
 }
@@ -133,7 +136,7 @@ Uninstall_php()
 {
 	$serverPath/php/init.d/php54 stop
 	rm -rf $serverPath/php/54
-	echo "uninstall php-5.4.45 ..." > $install_tmp
+	echo "卸载php-5.4.45 ..." > $install_tmp
 }
 
 action=${1}

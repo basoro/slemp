@@ -10,7 +10,7 @@
 				</div>
 				<div class="search pull-right">
 					<form target="hid" onsubmit='getSList()'>
-						<input type="text" id="SearchValue" class="ser-text pull-left" placeholder="search" />
+						<input type="text" id="SearchValue" class="ser-text pull-left" placeholder="Search" />
 						<button type="button" class="ser-sub pull-left" onclick='getSList()'></button>
 					</form>
 				</div>
@@ -22,17 +22,17 @@
 						<div class="menu-sub softtype"></div>
 
 						<input type="file" style="display:none;" accept=".zip,.tar.gz" id="update_zip" multiple="multiple">
-						<button class="btn btn-default btn-sm" onclick="importPluginOpen()" title="Tambahkan plugin" style="position:absolute;top:12px;right:15px">Unggah</button>
+						<button class="btn btn-default btn-sm" onclick="importPluginOpen()" title="Add plugin" style="position:absolute;top:12px;right:15px">Add plugin</button>
 						<div id="updata_pro_info"></div>
 						<table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">
 							<thead>
 								<tr>
-									<th width="165">Nama</th>
-									<th>Deskripsi</th>
-									<th width="40">Lokasi</th>
+									<th width="185">Aplikasi</th>
+									<th>Caption</th>
+									<th width="40">Location</th>
 									<th width="40">Status</th>
-									<th width="64">Beranda</th>
-									<th style="text-align: right;" width="120">Aksi</th>
+									<th width="64">Homepage</th>
+									<th style="text-align: right;" width="120">Action</th>
 								</tr>
 							</thead>
 							<tbody id="softList"></tbody>

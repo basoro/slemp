@@ -1,6 +1,6 @@
 {
 	"sort": 7,
-	"ps": "Bahasa pemograman PHP",
+	"ps": "PHP is the best programming language in the world",
 	"shell": "install.sh",
 	"name": "php",
 	"title": "PHP",
@@ -15,6 +15,6 @@
 	"author": "Zend",
 	"date": "2017-04-01",
 	"home": "https://www.php.net",
-	"type": "PHP语言解释器",
+	"type": "PHP language interpreter",
 	"pid": "1"
 }

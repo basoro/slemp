@@ -65,7 +65,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, slemp.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, slemp.returnJson(False, 'Parameter: (' + ck[i] + ') none!'))
     return (True, slemp.returnJson(True, 'ok'))
 
 
@@ -97,9 +97,6 @@ def getPhpSocket(version):
 
 
 def status(version):
-    '''
-    sock file to determine whether to start
-    '''
     sock = getPhpSocket(version)
     if sock.find(':'):
         return status_progress(version)
@@ -115,6 +112,7 @@ def contentReplace(content, version):
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$PHP_VERSION}', version)
     content = content.replace('{$LOCAL_IP}', slemp.getLocalIp())
+    content = content.replace('{$SSL_CRT}', slemp.getSslCrt())
 
     if slemp.isAppleSystem():
         # user = slemp.execShell(
@@ -217,12 +215,12 @@ def phpFpmWwwReplace(version):
     if not os.path.exists(service_php_fpm_dir):
         os.mkdir(service_php_fpm_dir)
 
-    service_php_fpmwww = service_php_fpm_dir + '/www.conf'
-    if not os.path.exists(service_php_fpmwww):
-        tpl_php_fpmwww = getPluginDir() + '/conf/www.conf'
-        content = slemp.readFile(tpl_php_fpmwww)
+    service_php_fpslempww = service_php_fpm_dir + '/www.conf'
+    if not os.path.exists(service_php_fpslempww):
+        tpl_php_fpslempww = getPluginDir() + '/conf/www.conf'
+        content = slemp.readFile(tpl_php_fpslempww)
         content = contentReplace(content, version)
-        slemp.writeFile(service_php_fpmwww, content)
+        slemp.writeFile(service_php_fpslempww, content)
 
 
 def makePhpIni(version):
@@ -378,9 +376,9 @@ def getPhpConf(version):
         {'name': 'max_input_vars', 'type': 2, 'ps': 'Maximum number of inputs'},
         {'name': 'memory_limit', 'type': 2, 'ps': 'Script memory limit'},
         {'name': 'post_max_size', 'type': 2, 'ps': 'POST data maximum size'},
-        {'name': 'file_uploads', 'type': 1, 'ps': 'Whether to allow uploading of files'},
-        {'name': 'upload_max_filesize', 'type': 2, 'ps': 'Maximum size allowed to upload files'},
-        {'name': 'max_file_uploads', 'type': 2, 'ps': 'Maximum number of files allowed to be uploaded at the same time'},
+        {'name': 'file_uploads', 'type': 1, 'ps': 'Whether to allow uploading files'},
+        {'name': 'upload_max_filesize', 'type': 2, 'ps': 'The maximum size allowed for uploaded files'},
+        {'name': 'max_file_uploads', 'type': 2, 'ps': 'The maximum number of files allowed to be uploaded simultaneously'},
         {'name': 'default_socket_timeout', 'type': 2, 'ps': 'Socket timeout'},
         {'name': 'error_reporting', 'type': 3, 'ps': 'Error level'},
         {'name': 'display_errors', 'type': 1, 'ps': 'Whether to output detailed error information'},
@@ -477,7 +475,7 @@ def setMaxTime(version):
     rep = "max_input_time\s*=\s*([0-9]+)\r?\n"
     phpini = re.sub(rep, "max_input_time = " + time + "\n", phpini)
     slemp.writeFile(fileini, phpini)
-    return slemp.returnJson(True, 'Set successfully!')
+    return slemp.returnJson(True, 'Successfully set!')
 
 
 def setMaxSize(version):
@@ -488,7 +486,7 @@ def setMaxSize(version):
 
     maxVal = args['max']
     if int(maxVal) < 2:
-        return slemp.returnJson(False, 'Upload size limit cannot be less than 2MB!')
+        return slemp.returnJson(False, 'The upload size limit cannot be less than 2MB!')
 
     path = getConf(version)
     conf = slemp.readFile(path)
@@ -500,7 +498,7 @@ def setMaxSize(version):
 
     msg = slemp.getInfo('Set PHP-{1} maximum upload size to [{2}MB]!', (version, maxVal,))
     slemp.writeLog('Plugin Management [PHP]', msg)
-    return slemp.returnJson(True, 'Set successfully!')
+    return slemp.returnJson(True, 'Successfully set!')
 
 
 def getFpmConfig(version):
@@ -568,7 +566,7 @@ def setFpmConfig(version):
     msg = slemp.getInfo('Set PHP-{1} concurrency settings,max_children={2},start_servers={3},min_spare_servers={4},max_spare_servers={5}', (version, max_children,
                                                                                                                       start_servers, min_spare_servers, max_spare_servers,))
     slemp.writeLog('Plugin Management [PHP]', msg)
-    return slemp.returnJson(True, 'Set successfully!')
+    return slemp.returnJson(True, 'Successfully set!')
 
 
 # def checkFpmStatusFile(version):
@@ -611,11 +609,11 @@ def getFpmAddress(version):
 def getFpmStatus(version):
 
     if version == '52':
-        return slemp.returnJson(False, 'PHP[' + version + '] not support!!!')
+        return slemp.returnJson(False, 'PHP[' + version + '] is not supported!!!')
 
     stat = status(version)
     if stat == 'stop':
-        return slemp.returnJson(False, 'PHP[' + version + '] have not started!!!')
+        return slemp.returnJson(False, 'PHP[' + version + '] is not started!!!')
 
     sock_file = getFpmAddress(version)
     try:
@@ -679,7 +677,7 @@ def setSessionConf(version):
     passwd = args['passwd']
     save_handler = args['save_handler']
 
-    if save_handler != "file":
+    if save_handler != "files":
         iprep = r"(2(5[0-5]{1}|[0-4]\d{1})|[0-1]?\d{1,2})\.(2(5[0-5]{1}|[0-4]\d{1})|[0-1]?\d{1,2})\.(2(5[0-5]{1}|[0-4]\d{1})|[0-1]?\d{1,2})\.(2(5[0-5]{1}|[0-4]\d{1})|[0-1]?\d{1,2})"
         if not re.search(iprep, ip):
             return slemp.returnJson(False, 'Please enter the correct IP address')
@@ -743,7 +741,7 @@ def setSessionConf(version):
             phpini = re.sub('\n;session.save_path = "' + session_tmp + '"',
                             '\n;session.save_path = "' + session_tmp + '"' + val, phpini)
 
-    if save_handler == "file":
+    if save_handler == "files":
         rep = r'\nsession.save_path\s*=\s*(.+)\r?\n'
         val = r'\nsession.save_path = "' + session_tmp + '"\n'
         if re.search(rep, phpini):
@@ -754,7 +752,7 @@ def setSessionConf(version):
 
     slemp.writeFile(filename, phpini)
     reload(version)
-    return slemp.returnJson(True, 'Set successfully!')
+    return slemp.returnJson(True, 'Successfully set!')
 
 
 def getSessionCount_Origin(version):
@@ -797,7 +795,7 @@ def cleanSessionOld(version):
     slemp.execShell(s)
     old_file_conf = getSessionCount_Origin(version)["oldfile"]
     if old_file_conf == 0:
-        return slemp.returnJson(True, 'Cleaned up successfully')
+        return slemp.returnJson(True, 'Clean up successfully')
     else:
         return slemp.returnJson(True, 'Cleanup failed')
 
@@ -832,13 +830,13 @@ def setDisableFunc(version):
     slemp.writeLog('Plugin Management [PHP]', msg)
     slemp.writeFile(filename, phpini)
     reload(version)
-    return slemp.returnJson(True, 'Set successfully!')
+    return slemp.returnJson(True, 'Successfully set!')
 
 
 def getPhpinfo(version):
     stat = status(version)
     if stat == 'stop':
-        return 'PHP[' + version + '] not activated, not accessible!!!'
+        return 'PHP[' + version + '] is not started, not accessible!!!'
 
     sock_file = getFpmAddress(version)
     root_dir = slemp.getRootDir() + '/phpinfo'
@@ -899,12 +897,12 @@ def installLib(version):
         version + ' install ' + name
 
     rettime = time.strftime('%Y-%m-%d %H:%M:%S')
-    insert_info = (None, 'Install [' + name + '-' + version + ']',
+    insert_info = (None, 'install [' + name + '-' + version + ']',
                    'execshell', '0', rettime, execstr)
     slemp.M('tasks').add('id,name,type,status,addtime,execstr', insert_info)
 
     slemp.triggerTask()
-    return slemp.returnJson(True, 'Download task added to queue!')
+    return slemp.returnJson(True, 'Added download task to queue!')
 
 
 def uninstallLib(version):
@@ -920,9 +918,9 @@ def uninstallLib(version):
     data = slemp.execShell(execstr)
     # data[0] == '' and
     if data[1] == '':
-        return slemp.returnJson(True, 'Uninstalled successfully!')
+        return slemp.returnJson(True, 'Has been uninstalled successfully!')
     else:
-        return slemp.returnJson(False, 'Unload info![Channel 0]:' + data[0] + "[Channel 0]:" + data[1])
+        return slemp.returnJson(False, 'Uninstall information! [Channel 0]:' + data[0] + "[Channel 0]:" + data[1])
 
 
 def getConfAppStart():
@@ -938,7 +936,7 @@ def installPreInspection(version):
         "cat /etc/*-release | grep PRETTY_NAME |awk -F = '{print $2}' | awk -F '\"' '{print $2}'| awk '{print $1}'")
 
     if sys[1] != '':
-        return 'System modification is not supported'
+        return 'Does not support changing the system'
 
     sys_id = slemp.execShell(
         "cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F '\"' '{print $2}'")
@@ -947,7 +945,7 @@ def installPreInspection(version):
     sysId = sys_id[0].strip()
 
     if sysName == 'ubuntu':
-        return 'Ubuntu can\'t be installed'
+        return 'ubuntu can not be installed'
 
     if sysName == 'debian' and int(sysId) > 10:
         return 'debian10 can be installed'
@@ -960,8 +958,9 @@ def installPreInspection(version):
             "cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}'")
         sysId = sys_id[0].strip()
         if int(sysId) > 31:
-            return 'fedora[{}]not installable'.format(sysId)
+            return 'fedora[{}] cannot be installed'.format(sysId)
     return 'ok'
+
 
 if __name__ == "__main__":
 

@@ -43,10 +43,10 @@ Install_lib()
 {
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "$isInstall" != "" ];then
-		echo "php-$version ${LIBNAME} is installed, please select another version!"
+		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
 		return
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
 
 		php_lib=$sourcePath/php_lib
@@ -56,7 +56,7 @@ Install_lib()
 			wget -O $php_lib/${LIBNAME}-${LIBV}.tgz http://pecl.php.net/get/${LIBNAME}-${LIBV}.tgz
 			cd $php_lib
 			tar xvf ${LIBNAME}-${LIBV}.tgz
-		fi
+		fi 
 		cd $php_lib/${LIBNAME}-${LIBV}
 
 		$serverPath/php/$version/bin/phpize
@@ -64,17 +64,17 @@ Install_lib()
 		make clean && make && make install && make clean
 		cd ..
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
 		echo "ERROR!"
 		return;
 	fi
-
+	
 	echo  "" >> $serverPath/php/$version/etc/php.ini
 	echo  "[${LIBNAME}]" >> $serverPath/php/$version/etc/php.ini
 	echo  "extension=${LIBNAME}.so" >> $serverPath/php/$version/etc/php.ini
 	echo  "${LIBNAME}.use_namespace=1" >> $serverPath/php/$version/etc/php.ini
-
+	
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==========================================================='
 	echo 'successful!'
@@ -83,19 +83,19 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php$version is not installed, please select another version!"
+		echo "php$version is not installed, please choose another version!"
 		return
 	fi
 
 	if [ ! -f "$extFile" ];then
-		echo "php$version yaf is not installed, please select another version!"
+		echo "php$version 未安装yaf,请选择其它版本!"
 		return
 	fi
-
+	
 	echo $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/\[${LIBNAME}\]/d"  $serverPath/php/$version/etc/php.ini
-
+		
 	rm -f $extFile
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='

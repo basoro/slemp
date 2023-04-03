@@ -1,0 +1,54 @@
+
+
+<div class="main-content">
+    <div class="container-fluid">
+        <div class="safe bgw mtb15 pd15 radius4" style="height: 300px;">
+
+            <div class="term_box" id="term_box_view">
+                <div class="term_item_tab">
+                    <div class="list">
+                        <span class="item active" data-host="127.0.0.1" data-id="localhost">
+                            <i class="icon-sucess icon"></i>
+                        <div class="content">
+                            <span>Local server</span>
+                        </div>
+                        <span class="icon-trem-close"></span>
+                    </div>
+                    <span class="addServer" title="Add server SSH information">
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true" ></span>
+                    </span>
+                    <span class="tab_tootls">
+                        <span class="glyphicon full_exit_screen glyphicon-resize-full" aria-hidden="true"></span>
+                    </span>
+                </div>
+
+                <div class="term_content_tab">
+                    <div class="term-tool-button tool-hide"><span class="glyphicon glyphicon-menu-right"></span></div>
+                    <div class="term_item active" id="localhost" data-host="127.0.0.1"></div>
+                </div>
+            </div>
+            <div class="term_tootls">
+
+              <div class="tab-nav">
+                  <span class="on" data-type="host">Server list</span>
+                  <span data-type="shell">Common commands</span>
+              </div>
+              <div class="tab-con">
+                  <div class="tab-block on">
+                      <div>
+                          <button class="btn btn-success btn-sm tootls_host_btn" type="button" data-type="host">Add server</button>
+                      </div>
+                      <ul class="tootls_host_list"></ul>
+                  </div>
+                  <div class="tab-block">
+                      <div>
+                          <button class="btn btn-success tootls_commonly_btn btn-sm" type="button" data-type="shell">Add command</button>
+                      </div>
+                      <ul class="tootls_commonly_list"></ul>
+                  </div>
+              </div>
+
+            </div>
+        </div>
+    </div>
+</div>

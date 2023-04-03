@@ -44,7 +44,7 @@ function swapStatus() {
                         </select>\
                         <span>Current: </span><input style="width:70px;background-color:#eee;" class="bt-input-text mr5" name="cur_size" type="text" value="' + size + '" readonly>MB\
                         </div>\
-                        <p><span>修改</span><input style="width: 70px;" class="bt-input-text mr5" name="size" value="' + size + '" type="number" >MB</p>\
+                        <p><span>Modify</span><input style="width: 70px;" class="bt-input-text mr5" name="size" value="' + size + '" type="number" >MB</p>\
                         <div style="margin-top:10px; padding-right:15px" class="text-right"><button class="btn btn-success btn-sm" onclick="submitSwap()">Submit</button></div>\
                     </div>';
 
@@ -73,8 +73,8 @@ function submitSwap(){
 
 function readme(){
     var readme = '<ul class="help-info-text c7">';
-    readme += '<li>dd if=/dev/zero of=/www/server/swap/swapfile bs=1M count=2048</li>';
-    readme += '<li>mkswap /www/server/swap/swapfile</li>';
+    readme += '<li>dd if=/dev/zero of=/home/slemp/server/swap/swapfile bs=1M count=2048</li>';
+    readme += '<li>mkswap /home/slemp/server/swap/swapfile</li>';
     readme += '</ul>';
     $('.soft-man-con').html(readme);
 }

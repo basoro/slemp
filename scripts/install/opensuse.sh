@@ -27,6 +27,7 @@ zypper install -y libjpeg-devel libpng-devel
 zypper install -y libevent-devel
 zypper install -y libtirpc-devel
 zypper install -y rpcgen
+zypper install -y expect
 
 zypper install -y libzip libzip-devel
 zypper install -y libmemcached libmemcached-devel
@@ -50,73 +51,47 @@ zypper install -y libXpm-devel
 zypper install -y freetype2-devel
 
 # zypper install -y  php-config
-#https need
-if [ ! -d /root/.acme.sh ];then
-	curl https://get.acme.sh | sh
-fi
 
-if [ -f /etc/init.d/iptables ];then
+SSH_PORT=`netstat -ntpl|grep sshd|grep -v grep | sed -n "1,1p" | awk '{print $4}' | awk -F : '{print $2}'`
+echo "SSH PORT:${SSH_PORT}"
 
-	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
-	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
-	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
-	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 888 -j ACCEPT
-	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 7200 -j ACCEPT
-	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 3306 -j ACCEPT
-	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 30000:40000 -j ACCEPT
-	service iptables save
+# if [ -f /usr/sbin/iptables ];then
 
-	iptables_status=`service iptables status | grep 'not running'`
-	if [ "${iptables_status}" == '' ];then
-		service iptables restart
-	fi
+# 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+# 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+# 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+# 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 888 -j ACCEPT
+# 	service iptables save
 
-	#Does not turn on during installation时不开启
-	service iptables stop
-fi
+# 	iptables_status=`service iptables status | grep 'not running'`
+# 	if [ "${iptables_status}" == '' ];then
+# 		service iptables restart
+# 	fi
+
+# 	service iptables stop
+# fi
 
 
-if [ ! -f /etc/init.d/iptables ];then
+if [ ! -f /usr/sbin/firewalld ];then
 	zypper install -y firewalld
 	systemctl enable firewalld
 	systemctl start firewalld
 
-	firewall-cmd --permanent --zone=public --add-port=22/tcp
+	if [ "$SSH_PORT" != "" ];then
+		firewall-cmd --permanent --zone=public --add-port=${SSH_PORT}/tcp
+	else
+		firewall-cmd --permanent --zone=public --add-port=22/tcp
+	fi
+
 	firewall-cmd --permanent --zone=public --add-port=80/tcp
 	firewall-cmd --permanent --zone=public --add-port=443/tcp
 	firewall-cmd --permanent --zone=public --add-port=888/tcp
-	# firewall-cmd --permanent --zone=public --add-port=7200/tcp
-	# firewall-cmd --permanent --zone=public --add-port=3306/tcp
-	# firewall-cmd --permanent --zone=public --add-port=30000-40000/tcp
-
 
 	sed -i 's#AllowZoneDrifting=yes#AllowZoneDrifting=no#g' /etc/firewalld/firewalld.conf
 	firewall-cmd --reload
-	#Does not turn on during installation时不开启
 	systemctl stop firewalld
 fi
 
 
-
-
 cd /home/slemp/server/panel/scripts && bash lib.sh
 chmod 755 /home/slemp/server/panel/data
-
-
-cd /home/slemp/server/panel && ./cli.sh start
-isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
-n=0
-while [[ ! -f /etc/init.d/slemp ]];
-do
-    echo -e ".\c"
-    sleep 1
-    let n+=1
-    if [ $n -gt 20 ];then
-    	echo -e "start slemp fail"
-        exit 1
-    fi
-done
-
-cd /home/slemp/server/panel && /etc/init.d/slemp stop
-cd /home/slemp/server/panel && /etc/init.d/slemp start
-cd /home/slemp/server/panel && /etc/init.d/slemp default

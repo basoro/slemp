@@ -3,14 +3,14 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Verifikasi entri keamanan gagal</title>
+    <title>Security entry verification failed</title>
 </head>
 <body>
-    <h1>Silakan gunakan entri yang benar untuk masuk ke panel</h1>
-    <p><b>Alasan:</b>Mesin yang baru diinstal saat ini telah membuka login entri keamanan, mesin yang baru diinstal akan memiliki nama entri keamanan 8 karakter acak, yang juga dapat dimodifikasi di pengaturan panel , jika Anda tidak merekam atau Tidak ingat, Anda dapat menggunakan metode berikut untuk menyelesaikannya</p>
-    <p><b>Solusi:</b> Masukkan salah satu perintah berikut di terminal SSH untuk menyelesaikannya</p>
-    <p>1. Lihat detail login: /etc/init.d/slemp default</p>
-    <p>2. Hapus admin path：rm -f /home/slemp/server/panel/data/admin_path.pl</p>
-    <p style="color:red;">Catatan: [Hapus Admin Path] akan langsung membuka alamat login panel Anda ke Internet, yang sangat berbahaya, harap operasikan dengan hati-hati</p>
+    <h1>Please use the correct entry to log in to the panel</h1>
+    <p><b>Error reason: </b> The security entrance login has been enabled for the newly installed machine, and the newly installed machine will randomly have an 8-character security entrance name, which can also be modified in the panel settings. If you do not record or do not remember, you can use Solved in the following way</p>
+    <p><b>Solution:</b> Enter the following command in the SSH terminal to solve</p>
+    <p>1. Check the panel entry: sleepp default</p>
+    <p>2. Close the security entrance: sleepp close_admin_path</p>
+    <p style="color:red;">Note: [Close the security entrance] will directly expose your panel login address to the Internet, which is very dangerous, please operate with caution</p>
 </body>
 </html>

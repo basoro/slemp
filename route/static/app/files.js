@@ -1,3 +1,5 @@
+// console.log(lan);
+
 function isDiskWidth(){
 	var comlistWidth = $("#comlist").width();
 	var bodyWidth = $(".file-box").width();
@@ -159,22 +161,22 @@ function recycleBin(type){
 
 		var tablehtml = '<div class="re-head">\
 				<div style="margin-left: 3px;" class="ss-text">\
-                        <em>File Recycle Bin</em>\
+                        <em>File recycle bin</em>\
                         <div class="ssh-item">\
                                 <input class="btswitch btswitch-ios" id="setRecycleBin" type="checkbox" '+(rdata.status?'checked':'')+'>\
                                 <label class="btswitch-btn" for="setRecycleBin" onclick="setRecycleBin()"></label>\
                         </div>\
                 </div>\
 				<span style="line-height: 32px; margin-left: 30px;">Note: Close the recycle bin, deleted files cannot be recovered!</span>\
-                <button style="float: right" class="btn btn-default btn-sm" onclick="closeRecycleBin();">Empty Recycle Bin</button>\
+                <button style="float: right" class="btn btn-default btn-sm" onclick="closeRecycleBin();">Empty trash</button>\
 				</div>\
 				<div class="re-con">\
 					<div class="re-con-menu">\
 						<p class="on" onclick="recycleBin(1)">All</p>\
 						<p onclick="recycleBin(2)">Folder</p>\
-						<p onclick="recycleBin(3)">Document</p>\
+						<p onclick="recycleBin(3)">File</p>\
 						<p onclick="recycleBin(4)">Picture</p>\
-						<p onclick="recycleBin(5)">Documentation</p>\
+						<p onclick="recycleBin(5)">Document</p>\
 					</div>\
 					<div class="re-con-con">\
 					<div style="margin: 15px;" class="divtable">\
@@ -227,7 +229,7 @@ function reisImage(fileName){
 }
 
 function reRecycleBin(path,obj){
-	layer.confirm(lan.files.recycle_bin_re_msg,{title:lan.files.recycle_bin_re_title,closeBtn:2,btn:['Yes','No'],icon:3},function(){
+	layer.confirm(lan.files.recycle_bin_re_msg,{title:lan.files.recycle_bin_re_title,closeBtn:2,icon:3},function(){
 		var loadT = layer.msg(lan.files.recycle_bin_re_the,{icon:16,time:0,shade: [0.3, '#000']});
 		$.post('/files/re_recycle_bin','path='+encodeURIComponent(path),function(rdata){
 			layer.close(loadT);
@@ -238,7 +240,7 @@ function reRecycleBin(path,obj){
 }
 
 function delRecycleBin(path,obj){
-	layer.confirm(lan.files.recycle_bin_del_msg,{title:lan.files.recycle_bin_del_title,closeBtn:2,btn:['Yes','No'],icon:3},function(){
+	layer.confirm(lan.files.recycle_bin_del_msg,{title:lan.files.recycle_bin_del_title,closeBtn:2,icon:3},function(){
 		var loadT = layer.msg(lan.files.recycle_bin_del_the,{icon:16,time:0,shade: [0.3, '#000']});
 		$.post('/files/del_recycle_bin','path='+encodeURIComponent(path),function(rdata){
 			layer.close(loadT);
@@ -249,7 +251,7 @@ function delRecycleBin(path,obj){
 }
 
 function closeRecycleBin(){
-	layer.confirm('Empty Recycle Bin will permanently delete files in Recycle Bin. Continue?',{title:'Empty Recycle Bin',closeBtn:2,btn:['Yes','No'],icon:3},function(){
+	layer.confirm('Empty the recycle bin will permanently delete the files in the recycle bin, continue？',{title:'Empty trash',closeBtn:2,icon:3},function(){
 		var loadT = layer.msg("<div class='myspeed'>Deleting, please wait...</div>",{icon:16,time:0,shade: [0.3, '#000']});
 		setTimeout(function(){
 			getSpeed('.myspeed');
@@ -262,6 +264,7 @@ function closeRecycleBin(){
 	});
 }
 
+
 function setRecycleBin(db){
 	var loadT = layer.msg('Processing, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
 	var data = {}
@@ -272,6 +275,42 @@ function setRecycleBin(db){
 		layer.close(loadT);
 		layer.msg(rdata.msg,{icon:rdata.status?1:5});
 	},'json');
+}
+
+function openFilename(obj){
+	var path = $(obj).attr('data-path');
+	var ext = getSuffixName(path);
+
+	// console.log(path,ext);
+	if (inArray(ext,['html','htm','php','txt','md','js','css','scss','json','c','h','pl','py','java','log','conf','sh','json'])){
+		onlineEditFile(0, path);
+	}
+
+	if (inArray(ext,['png','jpeg','gif','jpg','ico'])){
+        getImage(path);
+	}
+
+	if (inArray(ext,['svg'])){
+
+		$.post("/files/get_body", "path=" + encodeURIComponent(path), function(rdata) {
+			if (rdata.data.status){
+				layer.open({
+					type:1,
+					closeBtn: 1,
+					title:"SVG preview",
+					area: '400px',
+					shadeClose: true,
+					content: '<div class="showpicdiv">'+rdata.data.data+'</div>'
+				});
+			} else {
+				layer.msg("Tidak bisa ditampilkan");
+			}
+		},'json');
+	}
+}
+
+function searchFile(p){
+	getFiles(p);
 }
 
 function getFiles(Path) {
@@ -298,7 +337,14 @@ function getFiles(Path) {
 	var data = 'path=' + Path;
 	var loadT = layer.load();
 	var totalSize = 0;
-	$.post('/files/get_dir?p=' + p + '&showRow=' + showRow + search, data, function(rdata) {
+
+	var search_all = '';
+	var all = $('#search_all').hasClass('active');
+	if(all){
+		search_all = "&all=yes";
+	}
+
+	$.post('/files/get_dir?p=' + p + '&showRow=' + showRow + search + search_all, data, function(rdata) {
 		layer.close(loadT);
 
 		var rows = ['10','50','100','200','500','1000','2000'];
@@ -310,19 +356,19 @@ function getFiles(Path) {
 		}
 
 		$("#filePage").html(rdata.PAGE);
-		$("#filePage div").append("<span class='Pcount-item'>Perpage<select style='margin-left: 3px;margin-right: 3px;border:#ddd 1px solid' class='showRow'>"+rowOption+"</select>item</span>");
+		$("#filePage div").append("<span class='Pcount-item'>每页<select style='margin-left: 3px;margin-right: 3px;border:#ddd 1px solid' class='showRow'>"+rowOption+"</select>条</span>");
 		$("#filePage .Pcount").css("left","16px");
 		if(rdata.DIR == null) rdata.DIR = [];
 		for (var i = 0; i < rdata.DIR.length; i++) {
 			var fmp = rdata.DIR[i].split(";");
 			var cnametext =fmp[0] + fmp[5];
-			fmp[0] = fmp[0].replace(/'/,"\\'");
+			fmp[0] = fmp[0].replace(/'/, "\\'");
 			if(cnametext.length>20){
-				cnametext = cnametext.substring(0,20)+'...'
+				cnametext = cnametext.substring(0,20) + '...';
 			}
 			if(isChineseChar(cnametext)){
 				if(cnametext.length>10){
-					cnametext = cnametext.substring(0,10)+'...'
+					cnametext = cnametext.substring(0,10) + '...';
 				}
 			}
 			var timetext ='--';
@@ -342,7 +388,7 @@ function getFiles(Path) {
 						<a class='btlink' href='javascript:;' onclick=\"cutFile('" + rdata.PATH +"/"+ fmp[0]+ "')\">Cut</a> | \
 						<a class='btlink' href=\"javascript:reName(0,'" + fmp[0] + "');\">Rename</a> | \
 						<a class='btlink' href=\"javascript:setChmod(0,'" + rdata.PATH + "/"+fmp[0] + "');\">Chmod</a> | \
-						<a class='btlink' href=\"javascript:zip('" + rdata.PATH +"/" +fmp[0] + "');\">Compress</a> | \
+						<a class='btlink' href=\"javascript:zip('" + rdata.PATH +"/" +fmp[0] + "');\">Zip</a> | \
 						<a class='btlink' href='javascript:;' onclick=\"deleteDir('" + rdata.PATH +"/"+ fmp[0] + "')\">Del</a></span>\
 					</td></tr>";
 			} else {
@@ -365,15 +411,15 @@ function getFiles(Path) {
 			var cnametext =fmp[0] + fmp[5];
 			fmp[0] = fmp[0].replace(/'/,"\\'");
 			if(cnametext.length>48){
-				cnametext = cnametext.substring(0,48)+'...'
+				cnametext = cnametext.substring(0,48) + '...';
 			}
 			if(isChineseChar(cnametext)){
 				if(cnametext.length>16){
-					cnametext = cnametext.substring(0,16)+'...'
+					cnametext = cnametext.substring(0,16) + '...';
 				}
 			}
 			if(displayZip != -1){
-				bodyZip = "<a class='btlink' href='javascript:;' onclick=\"unZip('" + rdata.PATH +"/" +fmp[0] + "'," + displayZip + ")\">Uncompress</a> | ";
+				bodyZip = "<a class='btlink' href='javascript:;' onclick=\"unZip('" + rdata.PATH +"/" +fmp[0] + "'," + displayZip + ")\">Unzip</a> | ";
 			}
 
 			if(isText(fmp[0])){
@@ -388,71 +434,71 @@ function getFiles(Path) {
 
 			totalSize +=  parseInt(fmp[1]);
 			if(getCookie("rank")=="a"){
-				body += "<tr class='folderBoxTr' data-path='" + rdata.PATH +"/"+ fmp[0] + "' filetype='" + fmp[0] + "'><td><input type='checkbox' name='id' value='"+fmp[0]+"'></td>\
-						<td class='column-name'><span class='ico ico-"+(getExtName(fmp[0]))+"'></span><a class='text' title='" + fmp[0] + fmp[5] + "'>" + cnametext + "</a></td>\
-						<td>" + (toSize(fmp[1])) + "</td>\
-						<td>" + ((fmp[2].length > 11)?fmp[2]:getLocalTime(fmp[2])) + "</td>\
-						<td>"+fmp[3]+"</td>\
-						<td>"+fmp[4]+"</td>\
-						<td class='editmenu'>\
-						<span><a class='btlink' href='javascript:;' onclick=\"copyFile('" + rdata.PATH +"/"+ fmp[0] + "')\">Copy</a> | \
-						<a class='btlink' href='javascript:;' onclick=\"cutFile('" + rdata.PATH +"/"+ fmp[0] + "')\">Cut</a> | \
-						<a class='btlink' href='javascript:;' onclick=\"reName(0,'" + fmp[0] + "')\">Rename</a> | \
-						<a class='btlink' href=\"javascript:setChmod(0,'" + rdata.PATH +"/"+ fmp[0] + "');\">Chmod</a> | \
-						<a class='btlink' href=\"javascript:zip('" + rdata.PATH +"/" +fmp[0] + "');\">Compress</a> | \
-						"+bodyZip+download+"\
-						<a class='btlink' href='javascript:;' onclick=\"deleteFile('" + rdata.PATH +"/"+ fmp[0] + "')\">Del</a>\
-						</span></td></tr>";
+				body += "<tr style='cursor:pointer;' class='folderBoxTr' data-path='" + rdata.PATH +"/"+ fmp[0] + "' filetype='" + fmp[0] + "' ondblclick='openFilename(this)'>\
+					<td><input type='checkbox' name='id' value='"+fmp[0]+"'></td>\
+					<td class='column-name'><span class='ico ico-"+(getExtName(fmp[0]))+"'></span><a class='text' title='" + fmp[0] + fmp[5] + "'>" + cnametext + "</a></td>\
+					<td>" + (toSize(fmp[1])) + "</td>\
+					<td>" + ((fmp[2].length > 11)?fmp[2]:getLocalTime(fmp[2])) + "</td>\
+					<td>"+fmp[3]+"</td>\
+					<td>"+fmp[4]+"</td>\
+					<td class='editmenu'>\
+					<span><a class='btlink' href='javascript:;' onclick=\"copyFile('" + rdata.PATH +"/"+ fmp[0] + "')\">Copy</a> | \
+					<a class='btlink' href='javascript:;' onclick=\"cutFile('" + rdata.PATH +"/"+ fmp[0] + "')\">Cut</a> | \
+					<a class='btlink' href='javascript:;' onclick=\"reName(0,'" + fmp[0] + "')\">Rename</a> | \
+					<a class='btlink' href=\"javascript:setChmod(0,'" + rdata.PATH +"/"+ fmp[0] + "');\">Chmod</a> | \
+					<a class='btlink' href=\"javascript:zip('" + rdata.PATH +"/" +fmp[0] + "');\">Zip</a> | "+bodyZip+download+"\
+					<a class='btlink' href='javascript:;' onclick=\"deleteFile('" + rdata.PATH +"/"+ fmp[0] + "')\">Del</a>\
+					</span></td>\
+				</tr>";
 			}
 			else{
-				body += "<div class='file folderBox menufile' data-path='" + rdata.PATH +"/"+ fmp[0] + "' filetype='"+fmp[0]+"' title='File name: " + fmp[0]+"&#13;Size: "
-						+ toSize(fmp[1])+"&#13;Updated："+getLocalTime(fmp[2])+"&#13;Chmod："+fmp[3]+"&#13;Owner："+fmp[4]+"'>\
-						<input type='checkbox' name='id' value='"+fmp[0]+"'>\
-						<div class='ico ico-"+(getExtName(fmp[0]))+"'></div>\
-						<div class='titleBox'><span class='tname'>" + fmp[0] + "</span></div>\
-						</div>";
+				body += "<div class='file folderBox menufile' data-path='" + rdata.PATH +"/"+ fmp[0] + "' filetype='"+fmp[0]+"' title='Filename：" + fmp[0]+"&#13;size："
+					+ toSize(fmp[1])+"&#13;Modified："+getLocalTime(fmp[2])+"&#13;Permissions："+fmp[3]+"&#13;Owner："+fmp[4]+"' >\
+					<input type='checkbox' name='id' value='"+fmp[0]+"'>\
+					<div data-path='" + rdata.PATH +"/"+ fmp[0] + "' filetype='"+fmp[0]+"' class='ico ico-"+(getExtName(fmp[0]))+"' ondblclick='javascript;openFilename(this)'></div>\
+					<div class='titleBox'><span class='tname'>" + fmp[0] + "</span></div>\
+				</div>";
 			}
 		}
-		var dirInfo = '({1} directories, {2} files, size: '.replace('{1}',rdata.DIR.length+'').replace('{2}',rdata.DIR.length+'')+'<font id="pathSize">'
-			+ (toSize(totalSize))+'<a class="btlink ml5" onClick="getPathSize()">Get</a></font>)';
-		$("#DirInfo").html(dirInfo);
-		if(getCookie('rank')=='a'){
+		var dirInfo = '(Total {1} folder and {2} files, size:'.replace('{1}',rdata.DIR.length+'').replace('{2}',rdata.FILES.length+'')+'<font id="pathSize">'
+			+ (toSize(totalSize))+'<a class="btlink ml5" onClick="getPathSize()">Obtain</a></font>)';
+		$("#dir_info").html(dirInfo);
+		if( getCookie('rank') == 'a' ){
 			var tablehtml = '<table width="100%" border="0" cellpadding="0" cellspacing="0" class="table table-hover">\
-							<thead>\
-								<tr>\
-									<th width="30"><input type="checkbox" id="setBox" placeholder=""></th>\
-									<th>File name</th>\
-									<th>Size</th>\
-									<th>Update</th>\
-									<th>Permission</th>\
-									<th>Owner</th>\
-									<th style="text-align: right;" width="330">Action</th>\
-								</tr>\
-							</thead>\
-							<tbody id="filesBody" class="list-list">'+body+'</tbody>\
-						</table>';
+						<thead>\
+							<tr>\
+								<th width="30"><input type="checkbox" id="setBox" placeholder=""></th>\
+								<th>Filename</th>\
+								<th>Size</th>\
+								<th>Modified</th>\
+								<th>Permissions</th>\
+								<th>Owner</th>\
+								<th style="text-align: right;" width="330">Action</th>\
+							</tr>\
+						</thead>\
+						<tbody id="filesBody" class="list-list">'+body+'</tbody>\
+					</table>';
 			$("#fileCon").removeClass("fileList").html(tablehtml);
 			$("#tipTools").width($("#fileCon").width());
-		}
-		else{
+		} else {
 			$("#fileCon").addClass("fileList").html(body);
 			$("#tipTools").width($("#fileCon").width());
 		}
 		$("#DirPathPlace input").val(rdata.PATH);
 		var BarTools = '<div class="btn-group">\
 						<button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\
-						New<span class="caret"></span>\
+						Create<span class="caret"></span>\
 						</button>\
 						<ul class="dropdown-menu">\
-						<li><a href="javascript:createFile(0,\'' + Path + '\');">Blank File</a></li>\
-						<li><a href="javascript:createDir(0,\'' + Path + '\');">Directory</a></li>\
+						<li><a href="javascript:createFile(0,\'' + Path + '\');">New file</a></li>\
+						<li><a href="javascript:createDir(0,\'' + Path + '\');">New directory</a></li>\
 						</ul>\
-						</div>';
+					</div>';
 		if (rdata.PATH != '/') {
 			BarTools += ' <button onclick="javascript:backDir();" class="btn btn-default btn-sm glyphicon glyphicon-arrow-left" title="Back to previous"></button>';
 		}
 		setCookie('open_dir_path',rdata.PATH);
-		BarTools += ' <button onclick="javascript:getFiles(\'' + rdata.PATH + '\');" class="btn btn-default btn-sm glyphicon glyphicon-refresh" title="Back to previous"></button>\
+		BarTools += ' <button onclick="javascript:getFiles(\'' + rdata.PATH + '\');" class="btn btn-default btn-sm glyphicon glyphicon-refresh" title="Refresh"></button>\
 			<button onclick="webShell()" title="Terminal" type="button" class="btn btn-default btn-sm"><em class="ico-cmd"></em></button>';
 		var copyName = getCookie('copyFileName');
 		var cutName = getCookie('cutFileName');
@@ -467,7 +513,7 @@ function getFiles(Path) {
 		var batchTools = '';
 		var isBatch = getCookie('BatchSelected');
 		if (isBatch == 1 || isBatch == '1') {
-			batchTools += ' <button onclick="javascript:batchPaste();" class="btn btn-default btn-sm">Paste all</button>';
+			batchTools += ' <button onclick="javascript:batchPaste();" class="btn btn-default btn-sm">Paste All</button>';
 		}
 		$("#Batch").html(batchTools);
 
@@ -498,12 +544,27 @@ function getFiles(Path) {
 			}
 			showSeclect();
 		});
-
 		$("#filesBody .btlink").click(function(e){
 			e.stopPropagation();
 		});
 		$("input[name=id]").dblclick(function(e){
 			e.stopPropagation();
+		});
+
+		$("#fileCon").bind("contextmenu",function(e){
+			return false;
+		});
+		bindselect();
+
+		$("#fileCon").mousedown(function(e){
+			var count = totalFile();
+			if(e.which == 3) {
+				if(count>1){
+					rightMenuClickAll(e);
+				} else {
+					return;
+				}
+			}
 		});
 
 		$(".folderBox,.folderBoxTr").mousedown(function(e){
@@ -565,7 +626,6 @@ function bindselect(){
 		}
 	});
 	$("#filesBody,#fileCon").selectable("refresh");
-
 	$(".ico-folder").click(function(){
 		$(this).parent().addClass("ui-selected").siblings().removeClass("ui-selected");
 		$(".ui-selectee").find("input").prop("checked", false);
@@ -580,8 +640,8 @@ function showSeclect(){
 	if(count > 1){
 		batchTools = '<button onclick="javascript:batch(1);" class="btn btn-default btn-sm">Copy</button>\
 		  <button onclick="javascript:batch(2);" class="btn btn-default btn-sm">Cut</button>\
-		  <button onclick="javascript:batch(3);" class="btn btn-default btn-sm">Permission</button>\
-		  <button onclick="javascript:batch(5);" class="btn btn-default btn-sm">Compress</button>\
+		  <button onclick="javascript:batch(3);" class="btn btn-default btn-sm">Chmod</button>\
+		  <button onclick="javascript:batch(5);" class="btn btn-default btn-sm">Zip</button>\
 		  <button onclick="javascript:batch(4);" class="btn btn-default btn-sm">Del</button>';
 	}else{
 		//setCookie('BatchSelected', null);
@@ -663,7 +723,7 @@ function batch(type,access){
 
 	myloadT = layer.msg("<div class='myspeed'>Processing, please wait...</div>",{icon:16,time:0,shade: [0.3, '#000']});
 	setTimeout(function(){getSpeed('.myspeed');},1000);
-	console.log(data);
+	// console.log(data);
 	$.post('/files/set_batch_data',data,function(rdata){
 		layer.close(myloadT);
 		getFiles(path);
@@ -683,10 +743,10 @@ function batchPaste(){
 			for(var i=0;i<result.length;i++){
 				tbody += '<tr><td>'+result[i].filename+'</td><td>'+toSize(result[i].size)+'</td><td>'+getLocalTime(result[i].mtime)+'</td></tr>';
 			}
-			var mbody = '<div class="divtable"><table class="table table-hover" width="100%" border="0" cellpadding="0" cellspacing="0"><thead><th>File name</th><th>Size</th><th>Last Modified</th></thead>\
+			var mbody = '<div class="divtable"><table class="table table-hover" width="100%" border="0" cellpadding="0" cellspacing="0"><thead><th>Filename</th><th>Size</th><th>Modified</th></thead>\
 						<tbody>'+tbody+'</tbody>\
 						</table></div>';
-			safeMessage('The following files are about to be overwritten',mbody,function(){
+			safeMessage('The following files will be overwritten',mbody,function(){
 				batchPasteTo(data,path);
 			});
 			$(".layui-layer-page").css("width","500px");
@@ -707,6 +767,30 @@ function batchPasteTo(data,path){
 	},'json');
 }
 
+
+function getSuffixName(fileName){
+	var extArr = fileName.split(".");
+	var exts = ['folder','folder-unempty','sql','c','cpp','cs','flv','css','js',
+	'htm','html','java','log','mht','url','xml','ai','bmp','cdr','gif','ico',
+	'jpeg','jpg','JPG','png','psd','webp','ape','avi','flv','mkv','mov','mp3','mp4',
+	'mpeg','mpg','rm','rmvb','swf','wav','webm','wma','wmv','rtf','docx','fdf','potm',
+	'pptx','txt','xlsb','xlsx','7z','cab','iso','rar','zip','gz','bt','file','apk','bookfolder',
+	'folder','folder-empty','folder-unempty','fromchromefolder','documentfolder','fromphonefolder',
+	'mix','musicfolder','picturefolder','videofolder','sefolder','access','mdb','accdb','sql','c',
+	'cpp','cs','js','fla','flv','htm','html','java','mht','url','xml','ai','bmp','cdr',
+	'gif','ico','jpeg','jpg','JPG','png','psd','webp','ape','avi','flv','mkv','mov','mp3','mp4','mpeg',
+	'mpg','rm','rmvb','swf','wav','webm','wma','wmv','doc','docm','dotx','dotm','dot','rtf','docx','pdf',
+	'fdf','ppt','pptm','pot','potm','pptx','txt','xls','csv','xlsm','xlsb','xlsx','7z','gz','cab','iso',
+	'rar','zip','bt','file','apk','css','scss','svg','pl','py','php','md','json','sh'];
+	var extLastName = extArr[extArr.length - 1];
+	for(var i=0; i<exts.length; i++){
+		if(exts[i]==extLastName){
+			return exts[i];
+		}
+	}
+	return 'file';
+}
+
 function getExtName(fileName){
 	var extArr = fileName.split(".");
 	var exts = ['folder','folder-unempty','sql','c','cpp','cs','flv','css','js',
@@ -716,7 +800,7 @@ function getExtName(fileName){
 	'pptx','txt','xlsb','xlsx','7z','cab','iso','rar','zip','gz','bt','file','apk','bookfolder',
 	'folder','folder-empty','folder-unempty','fromchromefolder','documentfolder','fromphonefolder',
 	'mix','musicfolder','picturefolder','videofolder','sefolder','access','mdb','accdb','sql','c',
-	'cpp','cs','js','fla','flv','htm','html','java','log','mht','php','url','xml','ai','bmp','cdr',
+	'cpp','cs','js','fla','flv','htm','html','java','log','mht','url','xml','ai','bmp','cdr',
 	'gif','ico','jpeg','jpg','JPG','png','psd','webp','ape','avi','flv','mkv','mov','mp3','mp4','mpeg',
 	'mpg','rm','rmvb','swf','wav','webm','wma','wmv','doc','docm','dotx','dotm','dot','rtf','docx','pdf',
 	'fdf','ppt','pptm','pot','potm','pptx','txt','xls','csv','xlsm','xlsb','xlsx','7z','gz','cab','iso',
@@ -807,8 +891,8 @@ function createFile(type, path) {
 					<input type="text" class="bt-input-text" name="Name" id="newFileName" value="" placeholder="File name" style="width:100%" />\
 					</div>\
 					<div class="bt-form-submit-btn">\
-					<button type="button" class="btn btn-danger btn-sm" onclick="layer.closeAll()">Close</button>\
-					<button id="createFileBtn" type="button" class="btn btn-success btn-sm" onclick="createFile(1,\'' + path + '\')">Create</button>\
+					<button type="button" class="btn btn-danger btn-sm" onclick="layer.closeAll()">Cancel</button>\
+					<button id="createFileBtn" type="button" class="btn btn-success btn-sm" onclick="createFile(1,\'' + path + '\')">New File</button>\
 					</div>\
 				</div>',
 		success:function(){
@@ -847,8 +931,8 @@ function createDir(type, path) {
 					<input type="text" class="bt-input-text" name="Name" id="newDirName" value="" placeholder="Directory name" style="width:100%" />\
 					</div>\
 					<div class="bt-form-submit-btn">\
-					<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Close</button>\
-					<button type="button" id="createDirBtn" class="btn btn-success btn-sm btn-title" onclick="createDir(1,\'' + path + '\')">Create</button>\
+					<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Cancel</button>\
+					<button type="button" id="createDirBtn" class="btn btn-success btn-sm btn-title" onclick="createDir(1,\'' + path + '\')">New Directory</button>\
 					</div>\
 				</div>',
 		success:function(){
@@ -861,7 +945,7 @@ function createDir(type, path) {
 }
 
 function deleteFile(fileName){
-	layer.confirm(lan.get('recycle_bin_confirm',[fileName]),{title:'Delete Files',closeBtn:2,btn:['Yes','No'],icon:3},function(){
+	layer.confirm(lan.get('recycle_bin_confirm',[fileName]),{title:'Delete Files',closeBtn:2,icon:3},function(){
 		layer.msg('Processing, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
 		$.post('/files/delete', 'path=' + encodeURIComponent(fileName), function(rdata) {
 			layer.closeAll();
@@ -874,7 +958,7 @@ function deleteFile(fileName){
 }
 
 function deleteDir(dirName){
-	layer.confirm(lan.get('recycle_bin_confirm_dir',[dirName]),{title:'Delete directory',closeBtn:2,btn:['Yes','No'],icon:3},function(){
+	layer.confirm(lan.get('recycle_bin_confirm_dir',[dirName]),{title:'Delete directory',closeBtn:2,icon:3},function(){
 		layer.msg('Processing, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
 		$.post('/files/delete_dir', 'path=' + encodeURIComponent(dirName), function(rdata) {
 			layer.closeAll();
@@ -887,7 +971,7 @@ function deleteDir(dirName){
 }
 
 function allDeleteFileSub(data,path){
-	layer.confirm('Are you sure you want to put these files in the recycle bin?',{title:'Delete files in bulk',closeBtn:2,btn:['Yes','No'],icon:3},function(){
+	layer.confirm('Are you sure you want to put these files in the trash?',{title:'Batch delete files',closeBtn:2,icon:3},function(){
 		layer.msg("<div class='myspeed'>Processing, please wait...</div>",{icon:16,time:0,shade: [0.3, '#000']});
 		setTimeout(function(){getSpeed('.myspeed');},1000);
 		$.post('/files/set_batch_data',data,function(rdata){
@@ -937,7 +1021,7 @@ function downloadFile(action){
 		shift: 5,
 		closeBtn: 1,
 		area: '500px',
-		btn:["Ok","No"],
+		btn:["Yes","No"],
 		title: lan.files.down_title,
 		content: '<form class="bt-form pd20">\
 					<div class="line">\
@@ -949,8 +1033,8 @@ function downloadFile(action){
 						<input type="text" class="bt-input-text" name="path" id="dpath" value="'+path+'" placeholder="Download to" style="width:330px" />\
 					</div>\
 					<div class="line">\
-						<span class="tname">File name:</span>\
-						<input type="text" class="bt-input-text" name="filename" id="dfilename" value="" placeholder="File name" style="width:330px" />\
+						<span class="tname">Filename:</span>\
+						<input type="text" class="bt-input-text" name="filename" id="dfilename" value="" placeholder="Filename" style="width:330px" />\
 					</div>\
 				</form>',
 		success:function(){
@@ -989,16 +1073,16 @@ function reName(type, fileName) {
 		shift: 5,
 		closeBtn: 1,
 		area: '320px',
-		title: 'Double naming',
-		btn:["Ok","No"],
+		title: 'Rename',
+		btn:["Yes","No"],
 		content: '<div class="bt-form pd20">\
 					<div class="line">\
-					<input type="text" class="bt-input-text" name="Name" id="newFileName" value="' + fileName + '" placeholder="File name" style="width:100%" />\
+					<input type="text" class="bt-input-text" name="Name" id="newFileName" value="' + fileName + '" placeholder="Filename" style="width:100%" />\
 					</div>\
 				</div>',
 		success:function(){
 			$("#newFileName").focus().keyup(function(e){
-				if(e.keyCode == 13) $("#ReNameBtn").click();
+				if(e.keyCode == 13) $(".layui-layer-btn0").click();
 			});
 		},
 		yes:function(){
@@ -1048,10 +1132,10 @@ function pasteFile(fileName) {
 			for(var i=0;i<result.length;i++){
 				tbody += '<tr><td>'+result[i].filename+'</td><td>'+toSize(result[i].size)+'</td><td>'+getLocalTime(result[i].mtime)+'</td></tr>';
 			}
-			var mbody = '<div class="divtable"><table class="table table-hover" width="100%" border="0" cellpadding="0" cellspacing="0"><thead><th>File name</th><th>Size</th><th>Last Modified</th></thead>\
+			var mbody = '<div class="divtable"><table class="table table-hover" width="100%" border="0" cellpadding="0" cellspacing="0"><thead><th>Filename</th><th>Size</th><th>Modified</th></thead>\
 						<tbody>'+tbody+'</tbody>\
 						</table></div>';
-			safeMessage('The following files are about to be overwritten',mbody,function(){
+			safeMessage('The following files will be overwritten',mbody,function(){
 				pasteTo(path,copyName,cutName,fileName);
 			});
 		} else {
@@ -1166,7 +1250,7 @@ function zip(dirName,submits) {
 
 }
 
-function unZip(fileName,type) {
+function unZip(fileName, type) {
 	var path = $("#DirPathPlace input").val();
 	if(type.length ==3){
 		var sfile = encodeURIComponent($("#sfile").val());
@@ -1182,7 +1266,7 @@ function unZip(fileName,type) {
 		return
 	}
 
-	type = (type == 1) ? 'tar':'zip'
+	type = (type == 1) ? 'tar':'zip';
 	var umpass = '';
 	if(type == 'zip'){
 		umpass = '<div class="line"><span class="tname">'+lan.files.zip_pass_title+'</span><input type="text" class="bt-input-text" id="unpass" value="" placeholder="'+lan.files.zip_pass_msg+'" style="width:330px" /></div>'
@@ -1194,19 +1278,19 @@ function unZip(fileName,type) {
 		area: '490px',
 		title: 'Unzip files',
 		content: '<div class="bt-form pd20 pb70">'
-					+'<div class="line unzipdiv">'
-					+'<span class="tname">'+lan.files.unzip_name+'</span><input type="text" class="bt-input-text" id="sfile" value="' +fileName + '" placeholder="'+lan.files.unzip_name_title+'" style="width:330px" /></div>'
-					+'<div class="line"><span class="tname">'+lan.files.unzip_to+'</span><input type="text" class="bt-input-text" id="dfile" value="'+path + '" placeholder="'+lan.files.unzip_to+'" style="width:330px" /></div>'
-					+ umpass +'<div class="line"><span class="tname">'+lan.files.unzip_coding+'</span><select class="bt-input-text" name="coding">'
-						+'<option value="UTF-8">UTF-8</option>'
-						+'<option value="gb18030">GBK</option>'
-					+'</select>'
-					+'</div>'
-					+'<div class="bt-form-submit-btn">'
-					+'<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">'+lan.public.close+'</button>'
-					+'<button type="button" id="ReNameBtn" class="btn btn-success btn-sm btn-title" onclick="unZip(\'' + fileName + '\',\''+type+'\')">'+lan.files.file_menu_unzip+'</button>'
-					+'</div>'
-				+'</div>'
+			+'<div class="line unzipdiv">'
+			+'<span class="tname">'+lan.files.unzip_name+'</span><input type="text" class="bt-input-text" id="sfile" value="' +fileName + '" placeholder="'+lan.files.unzip_name_title+'" style="width:330px" /></div>'
+			+'<div class="line"><span class="tname">'+lan.files.unzip_to+'</span><input type="text" class="bt-input-text" id="dfile" value="'+path + '" placeholder="'+lan.files.unzip_to+'" style="width:330px" /></div>'
+			+ umpass +'<div class="line"><span class="tname">'+lan.files.unzip_coding+'</span><select class="bt-input-text" name="coding">'
+				+'<option value="UTF-8">UTF-8</option>'
+				+'<option value="gb18030">GBK</option>'
+			+'</select>'
+			+'</div>'
+			+'<div class="bt-form-submit-btn">'
+			+'<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">'+lan.public.close+'</button>'
+			+'<button type="button" id="ReNameBtn" class="btn btn-success btn-sm btn-title" onclick="unZip(\'' + fileName + '\',\''+type+'\')">'+lan.files.file_menu_unzip+'</button>'
+			+'</div>'
+		+'</div>'
 	});
 }
 
@@ -1243,13 +1327,13 @@ function getImage(fileName){
 	var imgUrl = '/files/download?filename='+fileName;
 	layer.open({
 		type:1,
+		offset: '150px',
 		closeBtn: 1,
-		title:false,
-		area: '500px',
+		title:"Picture Preview",
+		area: '400px',
 		shadeClose: true,
-		content: '<div class="showpicdiv"><img width="100%" src="'+imgUrl+'"></div>'
+		content: '<div class="showpicdiv"><img style="max-width:400px;" src="'+imgUrl+'"></div>'
 	});
-	$(".layui-layer").css("top", "30%");
 }
 
 function getFileBytes(fileName, fileSize){
@@ -1264,13 +1348,14 @@ function uploadFiles(){
 		title:lan.files.up_title,
 		area: ['500px','300px'],
 		shadeClose:false,
-		content:'<div class="fileUploadDiv"><input type="hidden" id="input-val" value="'+path+'" />\
+		content:'<div class="fileUploadDiv">\
+				<input type="hidden" id="input-val" value="'+path+'" />\
 				<input type="file" id="file_input"  multiple="true" autocomplete="off" />\
 				<button type="button"  id="opt" autocomplete="off">Add files</button>\
-				<button type="button" id="up" autocomplete="off" >Upload</button>\
+				<button type="button" id="up" autocomplete="off" >Start upload</button>\
 				<span id="totalProgress" style="position: absolute;top: 7px;right: 147px;"></span>\
 				<span style="float:right;margin-top: 9px;">\
-				<font>Encoding:</font>\
+				<font>File encoding:</font>\
 				<select id="fileCodeing" >\
 					<option value="byte">Binary</option>\
 					<option value="utf-8">UTF-8</option>\
@@ -1278,7 +1363,8 @@ function uploadFiles(){
 				</select>\
 				</span>\
 				<button type="button" id="filesClose" autocomplete="off" onClick="layer.closeAll()" >Close</button>\
-				<ul id="up_box"></ul></div>'
+				<ul id="up_box"></ul>\
+			</div>'
 	});
 	uploadStart();
 }
@@ -1311,32 +1397,32 @@ function setChmod(action,fileName){
 			content:'<div class="setchmod bt-form ptb15 pb70">\
 						<fieldset>\
 							<legend>Owner</legend>\
-							<p><input type="checkbox" id="owner_r" />read</p>\
-							<p><input type="checkbox" id="owner_w" />write</p>\
-							<p><input type="checkbox" id="owner_x" />execute</p>\
+							<p><input type="checkbox" id="owner_r" />Read</p>\
+							<p><input type="checkbox" id="owner_w" />Write</p>\
+							<p><input type="checkbox" id="owner_x" />Execute</p>\
 						</fieldset>\
 						<fieldset>\
 							<legend>Group</legend>\
-							<p><input type="checkbox" id="group_r" />read</p>\
-							<p><input type="checkbox" id="group_w" />write</p>\
-							<p><input type="checkbox" id="group_x" />execute</p>\
+							<p><input type="checkbox" id="group_r" />Read</p>\
+							<p><input type="checkbox" id="group_w" />Write</p>\
+							<p><input type="checkbox" id="group_x" />Execute</p>\
 						</fieldset>\
 						<fieldset>\
 							<legend>Public</legend>\
-							<p><input type="checkbox" id="public_r" />read</p>\
-							<p><input type="checkbox" id="public_w" />write</p>\
-							<p><input type="checkbox" id="public_x" />execute</p>\
+							<p><input type="checkbox" id="public_r" />Read</p>\
+							<p><input type="checkbox" id="public_w" />Write</p>\
+							<p><input type="checkbox" id="public_x" />Execute</p>\
 						</fieldset>\
-						<div class="setchmodnum"><input class="bt-input-text" type="text" id="access" maxlength="3" value="'+rdata.chmod+'">permission，\
-						<span>owner\
+						<div class="setchmodnum"><input class="bt-input-text" type="text" id="access" maxlength="3" value="'+rdata.chmod+'">Permissions，\
+						<span>Owner\
 						<select id="chown" class="bt-input-text">\
 							<option value="www" '+(rdata.chown=='www'?'selected="selected"':'')+'>www</option>\
 							<option value="mysql" '+(rdata.chown=='mysql'?'selected="selected"':'')+'>mysql</option>\
 							<option value="root" '+(rdata.chown=='root'?'selected="selected"':'')+'>root</option>\
 						</select></span></div>\
 						<div class="bt-form-submit-btn">\
-							<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Close</button>\
-					        <button type="button" class="btn btn-success btn-sm btn-title" onclick="'+toExec+'" >Submit</button>\
+							<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Cancel</button>\
+					        <button type="button" class="btn btn-success btn-sm btn-title" onclick="'+toExec+'" >Yes</button>\
 				        </div>\
 					</div>'
 		});
@@ -1406,12 +1492,12 @@ function onAccess(){
 }
 
 function rightMenuClick(type,path,name){
-	console.log(type,path,name);
+	// console.log(type,path,name);
 	var displayZip = isZip(type);
 	var options = {items:[
 		{text: "Copy", onclick: function() {copyFile(path)}},
 		{text: "Cut", 	onclick: function() {cutFile(path)}},
-		{text: "Double naming", onclick: function() {reName(0,name)}},
+		{text: "Rename", onclick: function() {reName(0,name)}},
 		{text: lan.files.file_menu_auth, onclick: function() {setChmod(0,path)}},
 	 	{text: lan.files.file_menu_zip, onclick: function() {zip(path)}},
 	]};
@@ -1488,35 +1574,36 @@ $("body").not(".def-log").click(function(){
 
 $("#DirPathPlace input").keyup(function(e){
 	if(e.keyCode == 13) {
-		getFiles($(this).val());
+		var fpath = $(this).val();
+		fpath = filterPath(fpath);
+		getFiles(fpath);
 	}
 });
 
 function pathPlaceBtn(path){
 	var html = '';
 	var title = '';
-	var	Dpath = path;
 	if(path == '/'){
-		html ='<li><a title="/">'+lan.files.path_root+'</a></li>';
-	}
-	else{
-		Dpath = path.split("/");
-		for(var i = 0; i<Dpath.length; i++ ){
-			title += Dpath[i]+'/';
-			Dpath[0] = lan.files.path_root;
-			html +='<li><a title="'+title+'">'+Dpath[i]+'</a></li>';
+		html = '<li><a title="/">'+lan.files.path_root+'</a></li>';
+	} else {
+		var dst_path = path.split("/");
+		for(var i = 0; i<dst_path.length; i++ ){
+			title += dst_path[i]+'/';
+			dst_path[0] = lan.files.path_root;
+			html += '<li><a title="'+title+'">'+dst_path[i]+'</a></li>';
 		}
 	}
+
 	html = '<div style="width:1200px;height:26px"><ul>'+html+'</ul></div>';
 	$("#PathPlaceBtn").html(html);
 	$("#PathPlaceBtn ul li a").click(function(e){
-		var Gopath = $(this).attr("title");
-		if(Gopath.length>1){
-			if(Gopath.substr(Gopath.length-1,Gopath.length) =='/'){
-				Gopath = Gopath.substr(0,Gopath.length-1);
+		var go_path = $(this).attr("title");
+		if(go_path.length>1){
+			if(go_path.substr(go_path.length-1,go_path.length) =='/'){
+				go_path = go_path.substr(0,go_path.length-1);
 			}
 		}
-		getFiles(Gopath);
+		getFiles(go_path);
 		e.stopPropagation();
 	});
 	pathLeft();
@@ -1527,10 +1614,10 @@ function pathLeft(){
 	var SpanPathWidth = $("#PathPlaceBtn").width() - 50;
 	var Ml = UlWidth - SpanPathWidth;
 	if(UlWidth > SpanPathWidth ){
-		$("#PathPlaceBtn ul").css("left",-Ml)
+		$("#PathPlaceBtn ul").css("left",-Ml);
 	}
 	else{
-		$("#PathPlaceBtn ul").css("left",0)
+		$("#PathPlaceBtn ul").css("left",0);
 	}
 }
 

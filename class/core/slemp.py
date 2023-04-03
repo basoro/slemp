@@ -1,4 +1,4 @@
-# coding: utf-8
+# coding:utf-8
 
 import os
 import sys
@@ -9,6 +9,7 @@ import hashlib
 import shlex
 import datetime
 import subprocess
+import glob
 import re
 import db
 from random import Random
@@ -44,6 +45,12 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True):
     return (t1, t2)
 
 
+def getTracebackInfo():
+    import traceback
+    errorMsg = traceback.format_exc()
+    return errorMsg
+
+
 def getRunDir():
     return os.getcwd()
 
@@ -55,18 +62,19 @@ def getRootDir():
 def getPluginDir():
     return getRunDir() + '/plugins'
 
+
 def getPanelDataDir():
     return getRunDir() + '/data'
+
+def getPanelTmp():
+    return getRunDir() + '/tmp'
 
 def getServerDir():
     return getRootDir() + '/server'
 
+
 def getLogsDir():
     return getRootDir() + '/wwwlogs'
-
-
-def getBackupDir():
-    return getRootDir() + '/backup'
 
 
 def getWwwDir():
@@ -81,9 +89,44 @@ def setWwwDir(wdir):
     return writeFile(file, wdir)
 
 
+def getBackupDir():
+    file = getRunDir() + '/data/backup.pl'
+    if os.path.exists(file):
+        return readFile(file).strip()
+    return getRootDir() + '/backup'
+
+
 def setBackupDir(bdir):
     file = getRunDir() + '/data/backup.pl'
     return writeFile(file, bdir)
+
+
+def getAcmeDir():
+    acme = '/root/.acme.sh'
+    if isAppleSystem():
+        cmd = "who | sed -n '2, 1p' |awk '{print $1}'"
+        user = execShell(cmd)[0].strip()
+        acme = '/Users/' + user + '/.acme.sh'
+    if not os.path.exists(acme):
+        acme = '/.acme.sh'
+    return acme
+
+
+def getAcmeDomainDir(domain):
+    acme_dir = getAcmeDir()
+    acme_domain = acme_dir + '/' + domain
+    acme_domain_ecc = acme_domain + '_ecc'
+    if os.path.exists(acme_domain_ecc):
+        acme_domain = acme_domain_ecc
+    return acme_domain
+
+
+def fileNameCheck(filename):
+    f_strs = [';', '&', '<', '>']
+    for fs in f_strs:
+        if filename.find(fs) != -1:
+            return False
+    return True
 
 
 def triggerTask():
@@ -106,8 +149,34 @@ def systemdCfgDir():
     return "/tmp"
 
 
+def getSslCrt():
+    if os.path.exists('/etc/ssl/certs/ca-certificates.crt'):
+        return '/etc/ssl/certs/ca-certificates.crt'
+    if os.path.exists('/etc/pki/tls/certs/ca-bundle.crt'):
+        return '/etc/pki/tls/certs/ca-bundle.crt'
+    return ''
+
+
 def getOs():
     return sys.platform
+
+
+def getOsName():
+    cmd = "cat /etc/*-release | grep PRETTY_NAME |awk -F = '{print $2}' | awk -F '\"' '{print $2}'| awk '{print $1}'"
+    data = execShell(cmd)
+    return data[0].strip().lower()
+
+
+def getOsID():
+    cmd = "cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F '\"' '{print $2}'"
+    data = execShell(cmd)
+    return data[0].strip()
+
+
+def getFileSuffix(file):
+    tmp = file.split('.')
+    ext = tmp[len(tmp) - 1]
+    return ext
 
 
 def isAppleSystem():
@@ -156,8 +225,26 @@ def isInstalledWeb():
     return False
 
 
+def isIpAddr(ip):
+    check_ip = re.compile(
+        '^(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|[1-9])\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)$')
+    if check_ip.match(ip):
+        return True
+    else:
+        return False
+
+
+def getWebStatus():
+    pid = getServerDir() + '/openresty/nginx/logs/nginx.pid'
+    if os.path.exists(pid):
+        return True
+    return False
+
+
+# ------------------------------ openresty start -----------------------------
 def restartWeb():
     return opWeb("reload")
+
 
 def opWeb(method):
     if not isInstalledWeb():
@@ -171,11 +258,69 @@ def opWeb(method):
 
     # initd
     initd = getServerDir() + '/openresty/init.d/openresty'
+
     if os.path.exists(initd):
         execShell(initd + ' ' + method)
         return True
 
     return False
+
+
+def opLuaMake(cmd_name):
+    path = getServerDir() + '/web_conf/nginx/lua/lua.conf'
+    root_dir = getServerDir() + '/web_conf/nginx/lua/' + cmd_name
+    dst_path = getServerDir() + '/web_conf/nginx/lua/' + cmd_name + '.lua'
+    def_path = getServerDir() + '/web_conf/nginx/lua/empty.lua'
+
+    if not os.path.exists(root_dir):
+        execShell('mkdir -p ' + root_dir)
+
+    files = []
+    for fl in os.listdir(root_dir):
+        suffix = getFileSuffix(fl)
+        if suffix != 'lua':
+            continue
+        flpath = os.path.join(root_dir, fl)
+        files.append(flpath)
+
+    if len(files) > 0:
+        def_path = dst_path
+        content = ''
+        for f in files:
+            t = readFile(f)
+            f_base = os.path.basename(f)
+            content += '-- ' + '*' * 20 + ' ' + f_base + ' start ' + '*' * 20 + "\n"
+            content += t
+            content += "\n" + '-- ' + '*' * 20 + ' ' + f_base + ' end ' + '*' * 20 + "\n"
+        writeFile(dst_path, content)
+    else:
+        if os.path.exists(dst_path):
+            os.remove(dst_path)
+
+    conf = readFile(path)
+    conf = re.sub(cmd_name + ' (.*);',
+                  cmd_name + " " + def_path + ";", conf)
+    writeFile(path, conf)
+
+
+def opLuaInitFile():
+    opLuaMake('init_by_lua_file')
+
+
+def opLuaInitWorkerFile():
+    opLuaMake('init_worker_by_lua_file')
+
+
+def opLuaInitAccessFile():
+    opLuaMake('access_by_lua_file')
+
+
+def opLuaMakeAll():
+    opLuaInitFile()
+    opLuaInitWorkerFile()
+    opLuaInitAccessFile()
+
+# ------------------------------ openresty end -----------------------------
 
 
 def restartSlemp():
@@ -188,7 +333,7 @@ def checkWebConfig():
     cmd = "ulimit -n 10240 && " + op_dir + \
         "/sbin/nginx -t -c " + op_dir + "/conf/nginx.conf"
     result = execShell(cmd)
-    searchStr = 'successful'
+    searchStr = 'test is successful'
     if result[1].find(searchStr) == -1:
         msg = getInfo('Configuration file error: {1}', (result[1],))
         writeLog("Software management", msg)
@@ -230,10 +375,10 @@ def getPageObject(args, result='1,2,3,4,5,8'):
     return (page.GetPage(info, result), page)
 
 
-def md5(str):
+def md5(content):
     try:
         m = hashlib.md5()
-        m.update(str.encode("utf-8"))
+        m.update(content.encode("utf-8"))
         return m.hexdigest()
     except Exception as ex:
         return False
@@ -265,10 +410,6 @@ def getRandomString(length):
 
 
 def getUniqueId():
-    """
-    Generate unique ID based on time
-    :return:
-    """
     current_time = datetime.datetime.now()
     str_time = current_time.strftime('%Y%m%d%H%M%S%f')[:-3]
     unique_id = "{0}".format(str_time)
@@ -285,6 +426,9 @@ def returnData(status, msg, data=None):
 
 
 def returnJson(status, msg, data=None):
+    # if data == None:
+    #     return {'status': status, 'msg': msg}
+    # return {'status': status, 'msg': msg, 'data': data}
     if data == None:
         return getJson({'status': status, 'msg': msg})
     return getJson({'status': status, 'msg': msg, 'data': data})
@@ -366,59 +510,226 @@ def getDate():
     return time.strftime('%Y-%m-%d %X', time.localtime())
 
 
-def writeLog(type, logMsg, args=()):
+def getDateFromNow(tf_format="%Y-%m-%d %H:%M:%S", time_zone="Asia/Shanghai"):
+    import time
+    os.environ['TZ'] = time_zone
+    time.tzset()
+    return time.strftime(tf_format, time.localtime())
+
+
+def getDataFromInt(val):
+    time_format = '%Y-%m-%d %H:%M:%S'
+    time_str = time.localtime(val)
+    return time.strftime(time_format, time_str)
+
+
+def writeLog(stype, msg, args=()):
+    uid = 1
+    try:
+        from flask import session
+        if 'uid' in session:
+            uid = session['uid']
+    except Exception as e:
+        pass
+        # writeFileLog(getTracebackInfo())
+    return writeDbLog(stype, msg, args, uid)
+
+def writeFileLog(msg, path=None, limit_size=50 * 1024 * 1024, save_limit=3):
+    log_file = getServerDir() + '/panel/logs/debug.log'
+    if path != None:
+        log_file = path
+
+    if os.path.exists(log_file):
+        size = os.path.getsize(log_file)
+        if size > limit_size:
+            log_file_rename = log_file + "_" + \
+                time.strftime("%Y-%m-%d_%H%M%S") + '.log'
+            os.rename(log_file, log_file_rename)
+            logs = sorted(glob.glob(log_file + "_*"))
+            count = len(logs)
+            save_limit = count - save_limit
+            for i in range(count):
+                if i > save_limit:
+                    break
+                os.remove(logs[i])
+
+    f = open(log_file, 'ab+')
+    msg += "\n"
+    if __name__ == '__main__':
+        print(msg)
+    f.write(msg.encode('utf-8'))
+    f.close()
+    return True
+
+def writeDbLog(stype, msg, args=(), uid=1):
     try:
         import time
         import db
         import json
         sql = db.Sql()
-        mDate = time.strftime('%Y-%m-%d %X', time.localtime())
-        data = (type, logMsg, mDate)
-        result = sql.table('logs').add('type,log,addtime', data)
+        mdate = time.strftime('%Y-%m-%d %X', time.localtime())
+        wmsg = getInfo(msg, args)
+        data = (stype, wmsg, uid, mdate)
+        result = sql.table('logs').add('type,log,uid,addtime', data)
+        return True
     except Exception as e:
-        pass
+        return False
 
 
-def writeFile(filename, str):
+def writeFile(filename, content, mode='w+'):
     try:
-        fp = open(filename, 'w+')
-        fp.write(str)
+        fp = open(filename, mode)
+        fp.write(content)
         fp.close()
         return True
     except Exception as e:
         return False
 
-def backFile(self, file, act=None):
-    """
-        @name Backup configuration files
-        @param file Files that need to be backed up
-        @param act If it exists, make a backup copy as the default configuration
-    """
+
+def backFile(file, act=None):
     file_type = "_bak"
     if act:
         file_type = "_def"
-    execShell("/usr/bin/cp -p {0} {1}".format(file, file + file_type))
+
+    # print("cp -p {0} {1}".format(file, file + file_type))
+    execShell("cp -p {0} {1}".format(file, file + file_type))
 
 
-def restoreFile(self, file, act=None):
-    """
-        @name restore configuration files
-        @param file files to restore
-        @param act If it exists, restore the default configuration
-    """
+def removeBackFile(file, act=None):
     file_type = "_bak"
     if act:
         file_type = "_def"
-    execShell("/usr/bin/cp -p {1} {0}".format(file, file + file_type))
+    execShell("rm -rf {0}".format(file + file_type))
+
+
+def restoreFile(file, act=None):
+    file_type = "_bak"
+    if act:
+        file_type = "_def"
+    execShell("cp -p {1} {0}".format(file, file + file_type))
+
+
+def enPunycode(domain):
+    if sys.version_info[0] == 2:
+        domain = domain.encode('utf8')
+    tmp = domain.split('.')
+    newdomain = ''
+    for dkey in tmp:
+        if dkey == '*':
+            continue
+        match = re.search(u"[\x80-\xff]+", dkey)
+        if not match:
+            match = re.search(u"[\u4e00-\u9fa5]+", dkey)
+        if not match:
+            newdomain += dkey + '.'
+        else:
+            if sys.version_info[0] == 2:
+                newdomain += 'xn--' + \
+                    dkey.decode('utf-8').encode('punycode') + '.'
+            else:
+                newdomain += 'xn--' + \
+                    dkey.encode('punycode').decode('utf-8') + '.'
+    if tmp[0] == '*':
+        newdomain = "*." + newdomain
+    return newdomain[0:-1]
+
+
+def dePunycode(domain):
+    tmp = domain.split('.')
+    newdomain = ''
+    for dkey in tmp:
+        if dkey.find('xn--') >= 0:
+            newdomain += dkey.replace('xn--',
+                                      '').encode('utf-8').decode('punycode') + '.'
+        else:
+            newdomain += dkey + '.'
+    return newdomain[0:-1]
+
+
+def enCrypt(key, strings):
+    try:
+        import base64
+        _key = key.encode('utf-8')
+        _key = base64.urlsafe_b64encode(_key)
+
+        if type(strings) != bytes:
+            strings = strings.encode('utf-8')
+        import cryptography
+        from cryptography.fernet import Fernet
+        f = Fernet(_key)
+        result = f.encrypt(strings)
+        return result.decode('utf-8')
+    except:
+        writeFileLog(getTracebackInfo())
+        return strings
+
+
+def deCrypt(key, strings):
+    try:
+        import base64
+        _key = key.encode('utf-8')
+        _key = base64.urlsafe_b64encode(_key)
+
+        if type(strings) != bytes:
+            strings = strings.encode('utf-8')
+        from cryptography.fernet import Fernet
+        f = Fernet(_key)
+        result = f.decrypt(strings).decode('utf-8')
+        return result
+    except:
+        writeFileLog(getTracebackInfo())
+        return strings
+
+
+def enDoubleCrypt(key, strings):
+    try:
+        import base64
+        _key = md5(key).encode('utf-8')
+        _key = base64.urlsafe_b64encode(_key)
+
+        if type(strings) != bytes:
+            strings = strings.encode('utf-8')
+        import cryptography
+        from cryptography.fernet import Fernet
+        f = Fernet(_key)
+        result = f.encrypt(strings)
+        return result.decode('utf-8')
+    except:
+        writeFileLog(getTracebackInfo())
+        return strings
+
+
+def deDoubleCrypt(key, strings):
+    try:
+        import base64
+        _key = md5(key).encode('utf-8')
+        _key = base64.urlsafe_b64encode(_key)
+
+        if type(strings) != bytes:
+            strings = strings.encode('utf-8')
+        from cryptography.fernet import Fernet
+        f = Fernet(_key)
+        result = f.decrypt(strings).decode('utf-8')
+        return result
+    except:
+        writeFileLog(getTracebackInfo())
+        return strings
+
+
+def buildSoftLink(src, dst, force=False):
+    if not os.path.exists(src):
+        return False
+
+    if os.path.exists(dst) and force:
+        os.remove(dst)
+
+    if not os.path.exists(dst):
+        execShell('ln -sf "' + src + '" "' + dst + '"')
+        return True
+    return False
 
 
 def HttpGet(url, timeout=10):
-    """
-    send GET request
-    @url The requested URL (required)
-    @timeout The default timeout is 60 seconds
-    return string
-    """
     if sys.version_info[0] == 2:
         try:
             import urllib2
@@ -455,6 +766,11 @@ def HttpGet2(url, timeout):
     import urllib.request
 
     try:
+        import ssl
+        try:
+            ssl._create_default_https_context = ssl._create_unverified_context
+        except:
+            pass
         req = urllib.request.urlopen(url, timeout=timeout)
         result = req.read().decode('utf-8')
         return result
@@ -468,13 +784,6 @@ def httpGet(url, timeout=10):
 
 
 def HttpPost(url, data, timeout=10):
-    """
-    send POST request
-    @url The requested URL (required)
-    @data POST parameter, can be a string or a dictionary (required)
-    @timeout The default timeout is 60 seconds
-    return string
-    """
     if sys.version_info[0] == 2:
         try:
             import urllib
@@ -561,6 +870,7 @@ def getLastLineBk(inputfile, lineNum):
         return result
     except Exception as e:
         return str(e)
+        # return getMsg('TASK_SLEEP')
 
 
 def getLastLine(path, num, p=1):
@@ -573,12 +883,14 @@ def getLastLine(path, num, p=1):
         count = start_line + num
         fp = open(path, 'rb')
         buf = ""
+
         fp.seek(0, 2)
         if fp.read(1) == "\n":
             fp.seek(0, 2)
         data = []
         b = True
         n = 0
+
         for i in range(count):
             while True:
                 newline_pos = str.rfind(str(buf), "\n")
@@ -646,12 +958,17 @@ def getLocalIpBack():
         return '127.0.0.1'
 
 
+def getClientIp():
+    from flask import request
+    return request.remote_addr.replace('::ffff:', '')
+
+
 def getLocalIp():
     filename = 'data/iplist.txt'
     try:
         ipaddress = readFile(filename)
         if not ipaddress or ipaddress == '127.0.0.1':
-            cmd = "curl -4 -sS --connect-timeout 5 -m 60 https://v6r.ipip.net/?format=text"
+            cmd = "curl --insecure -4 -sS --connect-timeout 5 -m 60 https://v6r.ipip.net/?format=text"
             ip = execShell(cmd)
             result = ip[0].strip()
             if result == '':
@@ -660,7 +977,7 @@ def getLocalIp():
             return result
         return ipaddress
     except Exception as e:
-        cmd = "curl -6 -sS --connect-timeout 5 -m 60 https://v6r.ipip.net/?format=text"
+        cmd = "curl --insecure -6 -sS --connect-timeout 5 -m 60 https://v6r.ipip.net/?format=text"
         ip = execShell(cmd)
         result = ip[0].strip()
         if result == '':
@@ -680,6 +997,13 @@ def inArray(arrays, searchStr):
     return False
 
 
+def formatDate(format="%Y-%m-%d %H:%M:%S", times=None):
+    if not times:
+        times = int(time.time())
+    time_local = time.localtime(times)
+    return time.strftime(format, time_local)
+
+
 def checkIp(ip):
     import re
     p = re.compile(
@@ -690,8 +1014,99 @@ def checkIp(ip):
         return False
 
 
+def getHost(port=False):
+    from flask import request
+    host_tmp = request.headers.get('host')
+    if not host_tmp:
+        if request.url_root:
+            tmp = re.findall(r"(https|http)://([\w:\.-]+)", request.url_root)
+            if tmp:
+                host_tmp = tmp[0][1]
+    if not host_tmp:
+        host_tmp = getLocalIp() + ':' + readFile('data/port.pl').strip()
+    try:
+        if host_tmp.find(':') == -1:
+            host_tmp += ':80'
+    except:
+        host_tmp = "127.0.0.1:8888"
+    h = host_tmp.split(':')
+    if port:
+        return h[-1]
+    return ':'.join(h[0:-1])
+
+
+def getClientIp():
+    from flask import request
+    return request.remote_addr.replace('::ffff:', '')
+
+
+def checkDomainPanel():
+    tmp = getHost()
+    domain = readFile('data/bind_domain.pl')
+    port = readFile('data/port.pl').strip()
+
+    npid = getServerDir() + "/openresty/nginx/logs/nginx.pid"
+    if not os.path.exists(npid):
+        return False
+
+    nconf = getServerDir() + "/web_conf/nginx/vhost/panel.conf"
+    if os.path.exists(nconf):
+        port = "80"
+
+    if domain:
+        client_ip = getClientIp()
+        if client_ip in ['127.0.0.1', 'localhost', '::1']:
+            return False
+        if tmp.strip().lower() != domain.strip().lower():
+            from flask import Flask, redirect, request, url_for
+            to = "http://" + domain + ":" + str(port)
+            return redirect(to, code=302)
+    return False
+
+
+def createLinuxUser(user, group):
+    execShell("groupadd {}".format(group))
+    execShell('useradd -s /sbin/nologin -g {} {}'.format(user, group))
+    return True
+
+
+def setOwn(filename, user, group=None):
+    if isAppleSystem():
+        return True
+
+    if not os.path.exists(filename):
+        return False
+    from pwd import getpwnam
+    try:
+        user_info = getpwnam(user)
+        user = user_info.pw_uid
+        if group:
+            user_info = getpwnam(group)
+        group = user_info.pw_gid
+    except:
+        if user == 'www':
+            createLinuxUser(user)
+        try:
+            user_info = getpwnam('www')
+        except:
+            createLinuxUser(user)
+            user_info = getpwnam('www')
+        user = user_info.pw_uid
+        group = user_info.pw_gid
+    os.chown(filename, user, group)
+    return True
+
+
+def setMode(filename, mode):
+    if not os.path.exists(filename):
+        return False
+    mode = int(str(mode), 8)
+    os.chmod(filename, mode)
+    return True
+
+
 def checkPort(port):
-    ports = ['21', '25', '7200', '888']
+    ports = ['21', '443', '888']
     if port in ports:
         return False
     intport = int(port)
@@ -727,7 +1142,7 @@ def getCpuType():
         rep = "Model\s+name:\s+(.+)"
         tmp = re.search(rep, cpuinfo, re.I)
         if tmp:
-            cpuType = tmp.groups()[0]    
+            cpuType = tmp.groups()[0]
     return cpuType
 
 
@@ -770,7 +1185,7 @@ def makeConf():
     file = getRunDir() + '/data/json/config.json'
     if not os.path.exists(file):
         c = {}
-        c['title'] = 'SLEMP | Simple Linux Engine-X MySQL PHP'
+        c['title'] = 'SLEMP Panel'
         c['home'] = 'http://github/basoro/slemp'
         c['recycle_bin'] = True
         c['template'] = 'default'
@@ -817,10 +1232,10 @@ def setHostPort(port):
 def auth_decode(data):
     token = GetToken()
     if not token:
-        return returnMsg(False, 'Bad Request')
+        return returnMsg(False, 'REQUEST_ERR')
 
     if token['access_key'] != data['btauth_key']:
-        return returnMsg(False, 'Bad Request')
+        return returnMsg(False, 'REQUEST_ERR')
 
     import binascii
     import hashlib
@@ -832,7 +1247,7 @@ def auth_decode(data):
     signature = binascii.hexlify(
         hmac.new(token['secret_key'], tdata, digestmod=hashlib.sha256).digest())
     if signature != data['signature']:
-        return returnMsg(False, 'Bad Request')
+        return returnMsg(False, 'REQUEST_ERR')
 
     return json.loads(urllib.unquote(tdata))
 
@@ -842,7 +1257,7 @@ def auth_encode(data):
     pdata = {}
 
     if not token:
-        return returnMsg(False, 'Bad Request')
+        return returnMsg(False, 'REQUEST_ERR')
 
     import binascii
     import hashlib
@@ -939,6 +1354,10 @@ def toSize(size):
     return str(round(size, 2)) + ' ' + b
 
 
+def getPathSuffix(path):
+    return os.path.splitext(path)[-1]
+
+
 def getMacAddress():
     import uuid
     mac = uuid.UUID(int=uuid.getnode()).hex[-12:]
@@ -984,12 +1403,97 @@ def get_string_arr(t):
     return t_arr
 
 
+def strfDate(sdate):
+    return time.strftime('%Y-%m-%d', time.strptime(sdate, '%Y%m%d%H%M%S'))
+
+
+def getCertName(certPath):
+    if not os.path.exists(certPath):
+        return None
+    try:
+        import OpenSSL
+        result = {}
+        x509 = OpenSSL.crypto.load_certificate(
+            OpenSSL.crypto.FILETYPE_PEM, readFile(certPath))
+        issuer = x509.get_issuer()
+        result['issuer'] = ''
+        if hasattr(issuer, 'CN'):
+            result['issuer'] = issuer.CN
+        if not result['issuer']:
+            is_key = [b'0', '0']
+            issue_comp = issuer.get_components()
+            if len(issue_comp) == 1:
+                is_key = [b'CN', 'CN']
+            for iss in issue_comp:
+                if iss[0] in is_key:
+                    result['issuer'] = iss[1].decode()
+                    break
+        if not result['issuer']:
+            if hasattr(issuer, 'O'):
+                result['issuer'] = issuer.O
+        result['notAfter'] = strfDate(
+            bytes.decode(x509.get_notAfter())[:-1])
+        result['notBefore'] = strfDate(
+            bytes.decode(x509.get_notBefore())[:-1])
+        result['dns'] = []
+        for i in range(x509.get_extension_count()):
+            s_name = x509.get_extension(i)
+            if s_name.get_short_name() in [b'subjectAltName', 'subjectAltName']:
+                s_dns = str(s_name).split(',')
+                for d in s_dns:
+                    result['dns'].append(d.split(':')[1])
+        subject = x509.get_subject().get_components()
+        if len(subject) == 1:
+            result['subject'] = subject[0][1].decode()
+        else:
+            if not result['dns']:
+                for sub in subject:
+                    if sub[0] == b'CN':
+                        result['subject'] = sub[1].decode()
+                        break
+                if 'subject' in result:
+                    result['dns'].append(result['subject'])
+            else:
+                result['subject'] = result['dns'][0]
+        result['endtime'] = int(int(time.mktime(time.strptime(
+            result['notAfter'], "%Y-%m-%d")) - time.time()) / 86400)
+        return result
+    except Exception as e:
+        writeFileLog(getTracebackInfo())
+        return None
+
+
+def createSSL():
+    if os.path.exists('ssl/input.pl'):
+        return True
+    import OpenSSL
+    key = OpenSSL.crypto.PKey()
+    key.generate_key(OpenSSL.crypto.TYPE_RSA, 2048)
+    cert = OpenSSL.crypto.X509()
+    cert.set_serial_number(0)
+    cert.get_subject().CN = getLocalIp()
+    cert.set_issuer(cert.get_subject())
+    cert.gmtime_adj_notBefore(0)
+    cert.gmtime_adj_notAfter(86400 * 3650)
+    cert.set_pubkey(key)
+    cert.sign(key, 'md5')
+    cert_ca = OpenSSL.crypto.dump_certificate(
+        OpenSSL.crypto.FILETYPE_PEM, cert)
+    private_key = OpenSSL.crypto.dump_privatekey(
+        OpenSSL.crypto.FILETYPE_PEM, key)
+    if len(cert_ca) > 100 and len(private_key) > 100:
+        writeFile('ssl/cert.pem', cert_ca, 'wb+')
+        writeFile('ssl/private.pem', private_key, 'wb+')
+        return True
+    return False
+
+
 def getSSHPort():
     try:
         file = '/etc/ssh/sshd_config'
         conf = readFile(file)
-        rep = "#*Port\s+([0-9]+)\s*\n"
-        port = re.search(rep, conf).groups(0)[0]
+        rep = "(#*)?Port\s+([0-9]+)\s*\n"
+        port = re.search(rep, conf).groups(0)[1]
         return int(port)
     except:
         return 22
@@ -1028,9 +1532,6 @@ def requestFcgiPHP(sock, uri, document_root='/tmp', method='GET', pdata=b''):
 
 
 def getMyORM():
-    '''
-    Get ORM for MySQL resources
-    '''
     sys.path.append(os.getcwd() + "/class/plugin")
     import orm
     o = orm.ORM()
@@ -1038,10 +1539,275 @@ def getMyORM():
 
 
 def getMyORMDb():
-    '''
-    Get ORM of MySQL resources pip install mysqlclient==2.0.3 | pip install mysql-python
-    '''
     sys.path.append(os.getcwd() + "/class/plugin")
     import ormDb
     o = ormDb.ORM()
     return o
+
+##################### notify  start #########################################
+
+
+def initNotifyConfig():
+    p = getNotifyPath()
+    if not os.path.exists(p):
+        writeFile(p, '{}')
+    return True
+
+
+def getNotifyPath():
+    path = 'data/notify.json'
+    return path
+
+
+def getNotifyData(is_parse=False):
+    initNotifyConfig()
+    notify_file = getNotifyPath()
+    notify_data = readFile(notify_file)
+
+    data = json.loads(notify_data)
+
+    if is_parse:
+        tag_list = ['tgbot']
+        for t in tag_list:
+            if t in data and 'cfg' in data[t]:
+                data[t]['data'] = json.loads(deDoubleCrypt(t, data[t]['cfg']))
+    return data
+
+
+def writeNotify(data):
+    p = getNotifyPath()
+    return writeFile(p, json.dumps(data))
+
+
+def tgbotNotifyChatID():
+    data = getNotifyData(True)
+    if 'tgbot' in data and 'enable' in data['tgbot']:
+        if data['tgbot']['enable']:
+            t = data['tgbot']['data']
+            return t['chat_id']
+    return ''
+
+
+def tgbotNotifyObject():
+    data = getNotifyData(True)
+    if 'tgbot' in data and 'enable' in data['tgbot']:
+        if data['tgbot']['enable']:
+            t = data['tgbot']['data']
+            import telebot
+            bot = telebot.TeleBot(app_token)
+            return True, bot
+    return False, None
+
+
+def tgbotNotifyMessage(app_token, chat_id, msg):
+    import telebot
+    bot = telebot.TeleBot(app_token)
+    try:
+        data = bot.send_message(chat_id, msg)
+        return True
+    except Exception as e:
+        writeFileLog(str(e))
+    return False
+
+
+def tgbotNotifyHttpPost(app_token, chat_id, msg):
+    try:
+        url = 'https://api.telegram.org/bot' + app_token + '/sendMessage'
+        post_data = {
+            'chat_id': chat_id,
+            'text': msg,
+        }
+        rdata = httpPost(url, post_data)
+        return True
+    except Exception as e:
+        writeFileLog(str(e))
+    return False
+
+
+def tgbotNotifyTest(app_token, chat_id):
+    msg = 'SLEMP-Notify Verification Test OK'
+    return tgbotNotifyHttpPost(app_token, chat_id, msg)
+
+
+def notifyMessageTry(msg, stype='common', trigger_time=300, is_write_log=True):
+
+    lock_file = getPanelTmp() + '/notify_lock.json'
+    if not os.path.exists(lock_file):
+        writeFile(lock_file, '{}')
+
+    lock_data = json.loads(readFile(lock_file))
+    if stype in lock_data:
+        diff_time = time.time() - lock_data[stype]['do_time']
+        if diff_time >= trigger_time:
+            lock_data[stype]['do_time'] = time.time()
+        else:
+            return False
+    else:
+        lock_data[stype] = {'do_time': time.time()}
+
+    writeFile(lock_file, json.dumps(lock_data))
+
+    if is_write_log:
+        writeLog("notification_management [" + stype + "]", msg)
+
+    data = getNotifyData(True)
+    # tag_list = ['tgbot', 'email']
+    # tagbot
+    do_notify = False
+    if 'tgbot' in data and 'enable' in data['tgbot']:
+        if data['tgbot']['enable']:
+            t = data['tgbot']['data']
+            i = sys.version_info
+
+            # telebot cannot be used in python less than 3.7
+            if i[0] < 3 or i[1] < 7:
+                do_notify = tgbotNotifyHttpPost(
+                    t['app_token'], t['chat_id'], msg)
+            else:
+                do_notify = tgbotNotifyMessage(
+                    t['app_token'], t['chat_id'], msg)
+    return do_notify
+
+
+def notifyMessage(msg, stype='common', trigger_time=300, is_write_log=True):
+    try:
+        return notifyMessageTry(msg, stype, trigger_time, is_write_log)
+    except Exception as e:
+        writeFileLog(getTracebackInfo())
+        return False
+
+
+##################### notify  end #########################################
+
+##################### ssh  start #########################################
+def getSshDir():
+    if isAppleSystem():
+        user = execShell("who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
+        return '/Users/' + user + '/.ssh'
+    return '/root/.ssh'
+
+
+def processExists(pname, exe=None, cmdline=None):
+    try:
+        import psutil
+        pids = psutil.pids()
+        for pid in pids:
+            try:
+                p = psutil.Process(pid)
+                if p.name() == pname:
+                    if not exe and not cmdline:
+                        return True
+                    else:
+                        if exe:
+                            if p.exe() == exe:
+                                return True
+                        if cmdline:
+                            if cmdline in p.cmdline():
+                                return True
+            except:
+                pass
+        return False
+    except:
+        return True
+
+
+def createRsa():
+    # ssh-keygen -t rsa -P "" -C "dentix.id@gmail.com"
+    ssh_dir = getSshDir()
+    # slemp.execShell("rm -f /root/.ssh/*")
+    if not os.path.exists(ssh_dir + '/authorized_keys'):
+        execShell('touch ' + ssh_dir + '/authorized_keys')
+
+    if not os.path.exists(ssh_dir + '/id_rsa.pub') and os.path.exists(ssh_dir + '/id_rsa'):
+        execShell('echo y | ssh-keygen -q -t rsa -P "" -f ' +
+                  ssh_dir + '/id_rsa')
+    else:
+        execShell('ssh-keygen -q -t rsa -P "" -f ' + ssh_dir + '/id_rsa')
+
+    execShell('cat ' + ssh_dir + '/id_rsa.pub >> ' +
+              ssh_dir + '/authorized_keys')
+    execShell('chmod 600 ' + ssh_dir + '/authorized_keys')
+
+
+def createSshInfo():
+    ssh_dir = getSshDir()
+    if not os.path.exists(ssh_dir + '/id_rsa') or not os.path.exists(ssh_dir + '/id_rsa.pub'):
+        createRsa()
+
+    data = execShell("cat " + ssh_dir + "/id_rsa.pub | awk '{print $3}'")
+    if data[0] != "":
+        cmd = "cat " + ssh_dir + "/authorized_keys | grep " + data[0]
+        ak_data = execShell(cmd)
+        if ak_data[0] == "":
+            cmd = 'cat ' + ssh_dir + '/id_rsa.pub >> ' + ssh_dir + '/authorized_keys'
+            execShell(cmd)
+            execShell('chmod 600 ' + ssh_dir + '/authorized_keys')
+
+
+def connectSsh():
+    import paramiko
+    ssh = paramiko.SSHClient()
+    createSshInfo()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    port = getSSHPort()
+    try:
+        ssh.connect('127.0.0.1', port, timeout=5)
+    except Exception as e:
+        ssh.connect('localhost', port, timeout=5)
+    except Exception as e:
+        ssh.connect(getHostAddr(), port, timeout=30)
+    except Exception as e:
+        return False
+
+    shell = ssh.invoke_shell(term='xterm', width=83, height=21)
+    shell.setblocking(0)
+    return shell
+
+
+def clearSsh():
+    ip = getHostAddr()
+    sh = '''
+#!/bin/bash
+PLIST=`who | grep localhost | awk '{print $2}'`
+for i in $PLIST
+do
+    ps -t /dev/$i |grep -v TTY | awk '{print $1}' | xargs kill -9
+done
+
+# getHostAddr
+PLIST=`who | grep "${ip}" | awk '{print $2}'`
+for i in $PLIST
+do
+    ps -t /dev/$i |grep -v TTY | awk '{print $1}' | xargs kill -9
+done
+'''
+    if not isAppleSystem():
+        info = execShell(sh)
+        print(info[0], info[1])
+##################### ssh  end   #########################################
+
+# ---------------------------------------------------------------------------------
+# Print related START
+# ---------------------------------------------------------------------------------
+
+
+def echoStart(tag):
+    print("=" * 90)
+    print("★ begin {} [{}]".format(tag, formatDate()))
+    print("=" * 90)
+
+
+def echoEnd(tag):
+    print("=" * 90)
+    print("☆ {} done [{}]".format(tag, formatDate()))
+    print("=" * 90)
+    print("\n")
+
+
+def echoInfo(msg):
+    print("|-{}".format(msg))
+
+# ---------------------------------------------------------------------------------
+# print related END
+# ---------------------------------------------------------------------------------

@@ -5,6 +5,11 @@
 		"ps":""
 	},
 	{
+		"title":"Installed",
+		"type":-1,
+		"ps":""
+	},
+	{
 		"title":"Operating environment",
 		"type":1,
 		"ps":""
@@ -20,7 +25,7 @@
 		"ps":""
 	},
 	{
-		"title":"System Tools",
+		"title":"System tool",
 		"type":4,
 		"ps":""
 	},

@@ -6,6 +6,7 @@ import os
 import time
 import threading
 import subprocess
+import re
 
 sys.path.append(os.getcwd() + "/class/core")
 import slemp
@@ -50,6 +51,13 @@ def getArgs():
             tmp[t[0]] = t[1]
 
     return tmp
+
+
+def checkArgs(data, ck=[]):
+    for i in range(len(ck)):
+        if not ck[i] in data:
+            return (False, slemp.returnJson(False, 'Parameters: (' + ck[i] + ') none!'))
+    return (True, slemp.returnJson(True, 'ok'))
 
 
 def clearTemp():
@@ -123,8 +131,32 @@ def confReplace():
     content = content.replace('{$OS_USER}', user)
     content = content.replace('{$OS_USER_GROUP}', user_group)
 
+    # ng_conf_md5 = ''
+    # ng_conf_md5_file = getServerDir() + '/nginx_conf.md5'
+    # if not os.path.exists(ng_conf_md5_file):
+    #     ng_conf_md5 = slemp.md5(content)
+    #     slemp.writeFile(ng_conf_md5_file, ng_conf_md5)
+    # else:
+    #     ng_conf_md5 = slemp.writeFile(ng_conf_md5_file).strip()
+
     nconf = getServerDir() + '/nginx/conf/nginx.conf'
     slemp.writeFile(nconf, content)
+
+    lua_conf_dir = slemp.getServerDir() + '/web_conf/nginx/lua'
+    if not os.path.exists(lua_conf_dir):
+        slemp.execShell('mkdir -p ' + lua_conf_dir)
+
+    lua_conf = lua_conf_dir + '/lua.conf'
+    lua_conf_tpl = getPluginDir() + '/conf/lua.conf'
+    lua_content = slemp.readFile(lua_conf_tpl)
+    lua_content = lua_content.replace('{$SERVER_PATH}', service_path)
+    slemp.writeFile(lua_conf, lua_content)
+
+    empty_lua = lua_conf_dir + '/empty.lua'
+    if not os.path.exists(empty_lua):
+        slemp.writeFile(empty_lua, '')
+
+    slemp.opLuaMakeAll()
 
     php_conf = slemp.getServerDir() + '/web_conf/php/conf'
     if not os.path.exists(php_conf):
@@ -225,11 +257,10 @@ def op_submit_init_restart(file):
 def restyOp_restart():
     file = initDreplace()
 
-    # When starting, first check the configuration file
     check = getServerDir() + "/bin/openresty -t"
     check_data = slemp.execShell(check)
     if not check_data[1].find('test is successful') > -1:
-        return check_data[1]
+        return 'ERROR: configuration error<br><a style="color:red;">' + check_data[1].replace("\n", '<br>') + '</a>'
 
     if not slemp.isAppleSystem():
         threading.Timer(2, op_submit_systemctl_restart, args=()).start()
@@ -286,10 +317,9 @@ def initdUinstall():
 
 
 def runInfo():
-    # 取Openresty负载状态
     try:
-        url = 'http://' + slemp.getHostAddr() + '/nginx_status'
-        result = slemp.httpGet(url)
+        url = 'http://127.0.0.1/nginx_status'
+        result = slemp.httpGet(url, timeout=1)
         tmp = result.split()
         data = {}
         data['active'] = tmp[2]
@@ -301,7 +331,8 @@ def runInfo():
         data['Waiting'] = tmp[15]
         return slemp.getJson(data)
     except Exception as e:
-        url = 'http://127.0.0.1/nginx_status'
+
+        url = 'http://' + slemp.getHostAddr() + '/nginx_status'
         result = slemp.httpGet(url)
         tmp = result.split()
         data = {}
@@ -319,6 +350,108 @@ def runInfo():
 
 def errorLogPath():
     return getServerDir() + '/nginx/logs/error.log'
+
+
+def getCfg():
+    cfg = getConf()
+    content = slemp.readFile(cfg)
+
+    unitrep = "[kmgKMG]"
+    cfg_args = [
+        {"name": "worker_processes", "ps": "Processing process, auto means automatic, number means the number of processes", 'type': 2},
+        {"name": "worker_connections", "ps": "Maximum number of concurrent connections", 'type': 2},
+        {"name": "keepalive_timeout", "ps": "Connection timeout", 'type': 2},
+        {"name": "gzip", "ps": "Whether to enable compressed transmission", 'type': 1},
+        {"name": "gzip_min_length", "ps": "Minimal zip file", 'type': 2},
+        {"name": "gzip_comp_level", "ps": "Compression ratio", 'type': 2},
+        {"name": "client_max_body_size", "ps": "Maximum uploaded files", 'type': 2},
+        {"name": "server_names_hash_bucket_size", "ps": "The hash table size of the server name", 'type': 2},
+        {"name": "client_header_buffer_size", "ps": "Client request header buffer size", 'type': 2},
+    ]
+
+    rdata = []
+    for i in cfg_args:
+        rep = "(%s)\s+(\w+)" % i["name"]
+        k = re.search(rep, content)
+        if not k:
+            return slemp.returnJson(False, "Failed to get key {}".format(k))
+        k = k.group(1)
+        v = re.search(rep, content)
+        if not v:
+            return slemp.returnJson(False, "Failed to get value {}".format(v))
+        v = v.group(2)
+
+        if re.search(unitrep, v):
+            u = str.upper(v[-1])
+            v = v[:-1]
+            if len(u) == 1:
+                psstr = u + "B，" + i["ps"]
+            else:
+                psstr = u + "，" + i["ps"]
+        else:
+            u = ""
+
+        kv = {"name": k, "value": v, "unit": u,
+              "ps": i["ps"], "type": i["type"]}
+        rdata.append(kv)
+
+    return slemp.returnJson(True, "ok", rdata)
+
+
+def setCfg():
+
+    args = getArgs()
+    data = checkArgs(args, [
+        'worker_processes', 'worker_connections', 'keepalive_timeout',
+        'gzip', 'gzip_min_length', 'gzip_comp_level', 'client_max_body_size',
+        'server_names_hash_bucket_size', 'client_header_buffer_size'
+    ])
+    if not data[0]:
+        return data[1]
+
+    cfg = getConf()
+    slemp.backFile(cfg)
+    content = slemp.readFile(cfg)
+
+    unitrep = "[kmgKMG]"
+    cfg_args = [
+        {"name": "worker_processes", "ps": "Processing process, auto means automatic, number means the number of processes", 'type': 2},
+        {"name": "worker_connections", "ps": "Maximum number of concurrent connections", 'type': 2},
+        {"name": "keepalive_timeout", "ps": "连接超时时间", 'type': 2},
+        {"name": "gzip", "ps": "Whether to enable compressed transmission", 'type': 1},
+        {"name": "gzip_min_length", "ps": "Minimal zip file", 'type': 2},
+        {"name": "gzip_comp_level", "ps": "Compression ratio", 'type': 2},
+        {"name": "client_max_body_size", "ps": "Maximum uploaded files", 'type': 2},
+        {"name": "server_names_hash_bucket_size", "ps": "The hash table size of the server name", 'type': 2},
+        {"name": "client_header_buffer_size", "ps": "Client request header buffer size", 'type': 2},
+    ]
+
+    # print(args)
+    for k, v in args.items():
+        # print(k, v)
+        rep = "%s\s+[^kKmMgG\;\n]+" % k
+        if k == "worker_processes" or k == "gzip":
+            if not re.search("auto|on|off|\d+", v):
+                return slemp.returnJson(False, 'Wrong parameter value')
+        else:
+            if not re.search("\d+", v):
+                return slemp.returnJson(False, 'The parameter value is wrong, please enter a numeric integer')
+
+        if re.search(rep, content):
+            newconf = "%s %s" % (k, v)
+            content = re.sub(rep, newconf, content)
+        elif re.search(rep, content):
+            newconf = "%s %s" % (k, v)
+            content = re.sub(rep, newconf, content)
+
+    slemp.writeFile(cfg, content)
+    isError = slemp.checkWebConfig()
+    if (isError != True):
+        slemp.restoreFile(cfg)
+        return slemp.returnJson(False, 'ERROR: configuration error<br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>')
+
+    slemp.restartWeb()
+    return slemp.returnJson(True, 'Successfully set')
 
 
 def installPreInspection():
@@ -353,5 +486,9 @@ if __name__ == "__main__":
         print(runInfo())
     elif func == 'error_log':
         print(errorLogPath())
+    elif func == 'get_cfg':
+        print(getCfg())
+    elif func == 'set_cfg':
+        print(setCfg())
     else:
         print('error')

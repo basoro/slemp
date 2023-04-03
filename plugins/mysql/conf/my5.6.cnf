@@ -32,8 +32,10 @@ read_rnd_buffer_size = 256K
 myisam_sort_buffer_size = 4M
 thread_cache_size = 4
 lower_case_table_names=0
-query_cache_size = 4M
 tmp_table_size = 8M
+
+query_cache_type = 1
+query_cache_size = 64M
 
 max_connections = 500
 max_connect_errors = 100
@@ -67,8 +69,10 @@ binlog-ignore-db = performance_schema
 
 #slave
 log-slave-updates = 1
-skip-slave-start = 1
+# Prevent replication from starting automatically with MySQL
+#skip-slave-start = 1
 #replicate-do-db
+slave_skip_errors=1062
 replicate-ignore-db = information_schema
 replicate-ignore-db = performance_schema
 replicate-ignore-db = mysql

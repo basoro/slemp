@@ -15,7 +15,7 @@ PHP_VER=70
 Install_php()
 {
 #------------------------ install start ------------------------------------#
-echo "install php-${version} ..." > $install_tmp
+echo "install php -${version} ..." > $install_tmp
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
@@ -26,7 +26,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	if [ ! -f $sourcePath/php/php-${version}.tar.xz ];then
 		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://museum.php.net/php7/php-${version}.tar.xz
 	fi
-
+	
 	cd $sourcePath/php && tar -Jxf $sourcePath/php/php-${version}.tar.xz
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
 fi
@@ -52,10 +52,6 @@ if [ -z "${cpuCore}" ]; then
 	cpuCore="1"
 fi
 
-if [ "$cpuCore" -gt "1" ];then
-	cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
-fi
-
 if [ -f /proc/cpuinfo ];then
 	cpuCore=`cat /proc/cpuinfo | grep "processor" | wc -l`
 fi
@@ -67,6 +63,12 @@ if [ "${cpuCore}" != "1" ] && [ "${MEM_INFO}" != "0" ];then
     fi
 else
     cpuCore="1"
+fi
+
+if [ "$cpuCore" -gt "2" ];then
+	cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
+else
+	cpuCore="1"
 fi
 # ----- cpu end ------
 
@@ -105,7 +107,7 @@ Uninstall_php()
 {
 	$serverPath/php/init.d/php70 stop
 	rm -rf $serverPath/php/70
-	echo "uninstall php-7.0.30 ..." > $install_tmp
+	echo "卸载php-7.0.30 ..." > $install_tmp
 }
 
 action=${1}

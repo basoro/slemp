@@ -14,7 +14,7 @@ setTimeout(function(){
 $(function(){
 	// start
 	$.post('/firewall/get_www_path',function(data){
-		var html ='<a href="javascript:openPath(\''+data['path']+'\');">Log directory</a>\
+		var html ='<a class="btlink" href="javascript:openPath(\''+data['path']+'\');">Log directory</a>\
 				<em id="logSize">0KB</em>\
 				<button class="btn btn-default btn-sm" onclick="closeLogs();">Empty</button>';
 		$('#firewall_weblog').html(html);
@@ -36,14 +36,14 @@ function closeLogs(){
 $("#firewalldType").change(function(){
 	var type = $(this).val();
 	var w = '120px';
-	var p = 'Port';
-	var t = 'Release';
-	var m = 'Caption: Support release port range, such as: 3000:3500';
+	var p = 'port';
+	var t = 'release';
+	var m = 'Description: Support the release port range, such as: 3000:3500';
 	if(type == 'address'){
 		w = '150px';
-		p = 'IP address to be blocked';
-		t = 'Block';
-		m = 'Caption: Supports masking of IP segments, such as: 192.168.0.0/24';
+		p = 'IP address';
+		t = 'block';
+		m = 'Description: Support block IP segments, such as: 192.168.0.0/24';
 	}
 	$("#AcceptPort").css("width",w);
 	$("#AcceptPort").attr('placeholder',p);
@@ -52,19 +52,59 @@ $("#firewalldType").change(function(){
 });
 
 
+function sshMgr(){
+
+	$.post('/firewall/get_ssh_info', '', function(rdata){
+		var ssh_status = rdata.status ? 'checked':'';
+		var pass_prohibit_status = rdata.pass_prohibit_status ? 'checked':'';
+		var con = '<div class="pd15">\
+                <div class="divtable">\
+                    <table class="table table-hover waftable">\
+                        <thead><tr><th>Name</th><th width="80">Status</th></tr></thead>\
+                        <tbody>\
+                            <tr>\
+                                <td>Start ssh</td>\
+                                <td>\
+                                    <div class="ssh-item" style="margin-left:0">\
+                                        <input class="btswitch btswitch-ios" id="sshswitch" type="checkbox" '+ssh_status+'>\
+                                        <label class="btswitch-btn" for="sshswitch" onclick=\'setMstscStatus()\'></label>\
+                                    </div>\
+                                </td>\
+                            </tr>\
+                            <tr>\
+                                <td>Forbid password login</td>\
+                                <td>\
+                                    <div class="ssh-item" style="margin-left:0">\
+                                        <input class="btswitch btswitch-ios" id="pass_status" type="checkbox" '+pass_prohibit_status+'>\
+                                        <label class="btswitch-btn" for="pass_status" onclick=\'setSshPassStatus()\'></label>\
+                                    </div>\
+                                </td>\
+                            </tr>\
+                        </tbody>\
+                    </table>\
+                </div>\
+            </div>';
+        layer.open({
+	        type: 1,
+	        title: "SSH management",
+	        area: ['300px', '230px'],
+	        closeBtn: 1,
+	        shadeClose: false,
+	        content: '<div id="ssh_list">'+con+'</div>',
+	        success:function(){
+	        },
+	    });
+
+	},'json');
+}
+
+
 function getSshInfo(){
 	$.post('/firewall/get_ssh_info', '', function(rdata){
-		// console.log(rdata);
-		var SSHchecked = ''
-		if(rdata.status){
-			SSHchecked = "<input class='btswitch btswitch-ios' id='sshswitch' type='checkbox' checked><label class='btswitch-btn' for='sshswitch' onclick='setMstscStatus()'></label>";
-		} else {
-			SSHchecked = "<input class='btswitch btswitch-ios' id='sshswitch' type='checkbox'><label class='btswitch-btn' for='sshswitch' onclick='setMstscStatus()'></label>";
-			$("#mstscSubmit").attr('disabled','disabled');
+		if(!rdata.status){
 			$("#mstscPort").attr('disabled','disabled');
 		}
 
-		$("#in_safe").html(SSHchecked);
 		$("#mstscPort").val(rdata.port);
 		var isPint = '';
 		if(rdata.ping){
@@ -83,11 +123,14 @@ function getSshInfo(){
 		}
 		$("#firewall_status").html(fStatus);
 
+		showAccept(1);
+		getLogs(1);
+
 	},'json');
 }
 
 function mstsc(port) {
-	layer.confirm('When changing the remote port, all logged in accounts will be logged out, do you really want to change the remote port?', {title: 'Remote port', btn:['Yes','No']}, function(index) {
+	layer.confirm('When changing the remote port, all logged in accounts will be deregistered, do you really want to change the remote port？', {title: 'Remote port'}, function(index) {
 		var data = "port=" + port;
 		var loadT = layer.load({
 			shade: true,
@@ -102,8 +145,8 @@ function mstsc(port) {
 }
 
 function ping(status){
-	var msg = status == 1 ? 'After banning PING, it will not affect the normal use of the server, but the server cannot be pinged. Do you really want to ban PING?' : 'Unblocking PING status may be discovered by hackers on your server, do you really want to unblock it?';
-	layer.confirm(msg,{title:'Whether to ban ping',closeBtn:2,btn:['Yes','No'],cancel:function(){
+	var msg = status == 1 ? 'Banning PING does not affect the normal use of the server, but the server cannot be pinged. Do you really want to ban PING?？' : 'Unban PING status may be discovered by hackers, do you really want to unban？';
+	layer.confirm(msg,{title:'Whether to ban ping',closeBtn:2,cancel:function(){
 		if(status == 1){
 			$("#noping").prop("checked",true);
 		} else {
@@ -117,7 +160,7 @@ function ping(status){
 				if(status == 1){
 					layer.msg(data['msg'], {icon: 1});
 				} else {
-					layer.msg('PING unbanned', {icon: 1});
+					layer.msg('PING lifted', {icon: 1});
 				}
 				setTimeout(function(){window.location.reload();},3000);
 			} else {
@@ -134,8 +177,8 @@ function ping(status){
 }
 
 function firewall(status){
-	var msg = status == 1 ? 'Disabling the firewall increases server insecurity, do you really want to disable the firewall?' : 'Turn on the firewall to increase server security!';
-	layer.confirm(msg,{title:'Whether to open the firewall!',closeBtn:2,btn:['Yes','No'],cancel:function(){
+	var msg = status == 1 ? 'Disabling the firewall increases server insecurity, do you really want to disable the firewall？' : 'Turn on the firewall to increase server security!';
+	layer.confirm(msg,{title:'Whether to open the firewall!',closeBtn:2,cancel:function(){
 		if(status == 1){
 			$("#firewall_status").prop("checked",true);
 		} else {
@@ -163,22 +206,18 @@ function firewall(status){
 
 function setMstscStatus(){
 	status = $("#sshswitch").prop("checked")==true?1:0;
-	var msg = status==1?'Disabling the SSH service will also log out all logged in users. ContinueAre you sure you enable SSH service？':'Are you sure you enable SSH service?';
-	layer.confirm(msg,{title:'Notif',closeBtn:2,btn:['Yes','No'],cancel:function(){
+	var msg = status==1?'When disabling the SSH service, all logged-in users will also be logged out. Do you want to continue？':'Are you sure to enable the SSH service？';
+	layer.confirm(msg,{title:'Warning',closeBtn:2,cancel:function(){
 		if(status == 0){
 			$("#sshswitch").prop("checked",false);
-		}
-		else{
+		} else {
 			$("#sshswitch").prop("checked",true);
 		}
 	}},function(index){
 		if(index > 0){
 			layer.msg('Processing, please wait...',{icon:16,time:20000});
 			$.post('/firewall/set_ssh_status','status='+status,function(rdata){
-				// console.log(rdata);
-				layer.closeAll();
 				layer.msg(rdata.msg,{icon:rdata.status?1:2});
-				setTimeout(function(){window.location.reload();},3000);
 			},'json');
 		}
 	},function(){
@@ -186,6 +225,31 @@ function setMstscStatus(){
 			$("#sshswitch").prop("checked",false);
 		} else {
 			$("#sshswitch").prop("checked",true);
+		}
+	});
+}
+
+function setSshPassStatus(){
+	status = $("#pass_status").prop("checked")==true?1:0;
+	var msg = status==1?'Enable password login, continue？':'Are you sure to disable password login?？';
+	layer.confirm(msg,{title:'Warning',closeBtn:2,cancel:function(){
+		if(status == 0){
+			$("#pass_status").prop("checked",false);
+		} else {
+			$("#pass_status").prop("checked",true);
+		}
+	}},function(index){
+		if(index > 0){
+			layer.msg('Processing, please wait...',{icon:16,time:20000});
+			$.post('/firewall/set_ssh_pass_status','status='+status,function(rdata){
+				layer.msg(rdata.msg,{icon:rdata.status?1:2});
+			},'json');
+		}
+	},function(){
+		if(status == 0){
+			$("#pass_status").prop("checked",false);
+		} else {
+			$("#pass_status").prop("checked",true);
 		}
 	});
 }
@@ -203,7 +267,7 @@ function showAccept(page,search) {
 					status = 'Unused';
 					break;
 				case 1:
-					status = 'No access to the external network';
+					status = 'No external network';
 					break;
 				default:
 					status = 'Normal';
@@ -215,7 +279,7 @@ function showAccept(page,search) {
 						<td>" + status + "</td>\
 						<td>" + data.data[i].addtime + "</td>\
 						<td>" + data.data[i].ps + "</td>\
-						<td class='text-right'><a href='javascript:;' class='btlink' onclick=\"delAcceptPort(" + data.data[i].id + ",'" + data.data[i].port + "')\">Del</a></td>\
+						<td class='text-right'><a href='javascript:;' class='btlink' onclick=\"delAcceptPort(" + data.data[i].id + ",'" + data.data[i].port + "')\">Delete</a></td>\
 					</tr>";
 		}
 		$("#firewallBody").html(body);
@@ -241,7 +305,7 @@ function addAcceptPort(){
 
 
 	if(ps.length < 1){
-		layer.msg('Descriptions cannot be empty!',{icon:2});
+		layer.msg('Description Cannot be empty!',{icon:2});
 		$("#Ps").focus();
 		return;
 	}
@@ -268,7 +332,7 @@ function delAcceptPort(id, port) {
 		action = "del_accept_port";
 	}
 
-	layer.confirm(lan.get('confirm_del',[port]), {title: 'Delete firewall rules',closeBtn:2,btn:['Yes','No']}, function(index) {
+	layer.confirm(lan.get('confirm_del',[port]), {title: 'Delete firewall rules',closeBtn:2}, function(index) {
 		var loadT = layer.msg('Deleting, please wait...',{icon:16,time:0,shade: [0.3, '#000']})
 		$.post("/firewall/"+action, "id=" + id + "&port=" + port, function(ret) {
 			layer.close(loadT);
@@ -298,7 +362,7 @@ function getLogs(page,search) {
 }
 
 function delLogs(){
-	layer.confirm('About to clear the panel log, continue?',{title:'Clear log',closeBtn:2,btn:['Yes','No']},function(){
+	layer.confirm('The panel log is about to be cleared, continue？',{title:'Clear log',closeBtn:2},function(){
 		var loadT = layer.msg('Cleaning up, please wait...',{icon:16});
 		$.post('/firewall/del_panel_logs','',function(rdata){
 			layer.close(loadT);

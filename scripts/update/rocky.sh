@@ -5,7 +5,7 @@ LANG=en_US.UTF-8
 
 
 if [ -f /etc/motd ];then
-    echo "welcome to SLEMP panel" > /etc/motd
+    echo "Welcome to SLEMP Panel" > /etc/motd
 fi
 
 sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config
@@ -18,9 +18,8 @@ cd /home/slemp/server/panel/scripts && bash lib.sh
 chmod 755 /home/slemp/server/panel/data
 
 
-
-if [ -f /etc/init.d/slemp ]; then
-    sh /etc/init.d/slemp stop && rm -rf  /home/slemp/server/panel/scripts/init.d/slemp && rm -rf  /etc/init.d/slemp
+if [ -f /etc/rc.d/init.d/slemp ];then
+    bash /etc/rc.d/init.d/slemp stop && rm -rf /home/slemp/server/panel/scripts/init.d/slemp && rm -rf /etc/rc.d/init.d/slemp
 fi
 
 echo -e "stop slemp"
@@ -58,5 +57,3 @@ do
     fi
 done
 echo -e "start slemp success"
-
-/etc/init.d/slemp default

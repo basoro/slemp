@@ -2,13 +2,13 @@
 	<div class="bt-w-main">
 		<div class="bt-w-menu">
 			<p class="bgw" onclick="pluginService('phpmyadmin');">Service</p>
-			<p onclick="pluginConfig('phpmyadmin');">File Config</p>
+			<p onclick="pluginConfig('phpmyadmin');">Acces Config</p>
 			<p onclick="homePage()">Homepage</p>
 			<p onclick="phpVer(56)">PHP Version</p>
 			<p onclick="safeConf();">Security Settings</p>
-			<p onclick="pluginLogs('phpmyadmin','','access_log');">Access log</p>
-			<p onclick="pluginLogs('phpmyadmin','','error_log');">Error log</p>
-			<p onclick="pluginConfig('phpmyadmin','','config_inc');" title="config.inc.php">Configure</p>
+			<p onclick="pluginLogs('phpmyadmin','','access_log');">Accee Log</p>
+			<p onclick="pluginLogs('phpmyadmin','','error_log');">Error Log</p>
+			<p onclick="pluginConfig('phpmyadmin','','config_inc');" title="config.inc.php">Config.Inc</p>
 		</div>
 		<div class="bt-w-con pd15">
 			<div class="soft-man-con"></div>
@@ -17,6 +17,8 @@
 
 </div>
 <script type="text/javascript">
-$.getScript( "/plugins/file?name=phpmyadmin&f=js/phpmyadmin.js");
-pluginService('phpmyadmin');
+resetPluginWinHeight(500);
+$.getScript( "/plugins/file?name=phpmyadmin&f=js/phpmyadmin.js", function(){
+	pluginService('phpmyadmin');
+});
 </script>

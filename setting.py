@@ -4,8 +4,9 @@ import time
 import sys
 import random
 import os
-chdir = os.getcwd()
-sys.path.append(chdir + '/class/core')
+
+pwd = os.getcwd()
+sys.path.append(pwd + '/class/core')
 
 import slemp
 
@@ -37,8 +38,12 @@ if os.path.exists('data/ipv6.pl'):
 else:
     bind.append('0.0.0.0:%s' % slemp_port)
 
+if not os.path.exists('data/admin_path.pl'):
+    admin_path = slemp.getRandomString(8)
+    slemp.writeFile('data/admin_path.pl', '/' + admin_path.lower())
+
 if workers > 2:
-    workers = 2
+    workers = 1
 
 threads = workers * 1
 backlog = 512
@@ -54,6 +59,3 @@ loglevel = 'info'
 errorlog = log_dir + '/error.log'
 accesslog = log_dir + '/access.log'
 pidfile = log_dir + '/slemp.pid'
-if os.path.exists(os.getcwd() + '/data/ssl.pl'):
-    certfile = 'ssl/certificate.pem'
-    keyfile = 'ssl/privateKey.pem'

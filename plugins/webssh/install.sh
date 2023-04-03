@@ -11,20 +11,21 @@ serverPath=$(dirname "$rootPath")
 
 install_tmp=${rootPath}/tmp/slemp_install.pl
 
+VERSION=$2
 
 Install_webssh()
 {
-	echo 'installing script file...' > $install_tmp
+	echo '正在安装脚本文件...' > $install_tmp
 	mkdir -p $serverPath/webssh
-	echo '1.0' > $serverPath/webssh/version.pl
-	echo 'The installation is complete' > $install_tmp
+	echo "${VERSION}" > $serverPath/webssh/version.pl
+	echo '安装完成' > $install_tmp
 
 }
 
 Uninstall_webssh()
 {
 	rm -rf $serverPath/webssh
-	echo "Uninstall complete" > $install_tmp
+	echo "卸载完成" > $install_tmp
 }
 
 action=$1

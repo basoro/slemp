@@ -3,138 +3,142 @@
 {% block content %}
 
 <div class="main-content">
-		<div class="container-fluid" style="padding-bottom:54px">
-			<div class="pos-box bgw mtb15">
-				<div class="position f14 c9 pull-left">
-					<a class="plr10 c4" href="/">Beranda</a>/<span class="plr10 c4">Penjadwalan</span>
-				</div>
+	<div class="container-fluid" style="padding-bottom:54px">
+		<div class="pos-box bgw mtb15">
+			<div class="position f14 c9 pull-left">
+				<a class="plr10 c4" href="/">Beranda</a>/<span class="plr10 c4">Penjadwalan</span>
 			</div>
-			<div class="setbox bgw mtb15">
-				<div class="title c6 plr15">
-					<h3 class="f16">Penjadwalan Otomatis</h3>
+		</div>
+		<div class="setbox bgw mtb15">
+			<div class="title c6 plr15">
+				<h3 class="f16">Add scheduled tasks</h3>
+			</div>
+			<div class="setting-con ptb20">
+				<div class="clearfix plan">
+					<span class="typename c4 pull-left f14 text-right mr20">Task type</span>
+					<div class="dropdown planjs pull-left mr20">
+						<button class="btn btn-default dropdown-toggle" type="button" id="excode" data-toggle="dropdown" style="width:auto">
+                            <b val="toShell">Shell script</b>
+                            <span class="caret"></span>
+                        </button>
+						<ul class="dropdown-menu" role="menu" aria-labelledby="excode">
+							<li><a role="menuitem" tabindex="-1" href="javascript:;" value="toShell">Shell script</a></li>
+							<li><a role="menuitem" tabindex="-1" href="javascript:;" value="site">Backup site</a></li>
+							<li><a role="menuitem" tabindex="-1" href="javascript:;" value="database">Dackup database</a></li>
+							{% for db in data['hook_database'] %}
+							<li><a role="menuitem" tabindex="-1" href="javascript:;" value="database_{{db['name']}}">Backup database [{{db['title']}}]</a></li>
+					        {% endfor %}
+
+					        <li><a role="menuitem" tabindex="-1" href="javascript:;" value="path">Backup directory</a></li>
+							<li><a role="menuitem" tabindex="-1" href="javascript:;" value="logs">Log cutting</a></li>
+							<li><a role="menuitem" tabindex="-1" href="javascript:;" value="rememory">Free memory</a></li>
+							<li><a role="menuitem" tabindex="-1" href="javascript:;" value="toUrl">Visit URL</a></li>
+						</ul>
+					</div>
+					<span class="planSign"><i>*</i>The task type includes the following parts: Shell script, backup website, backup database, backup directory, log cutting, release memory, access URL</span>
 				</div>
-				<div class="setting-con ptb20">
-					<div class="clearfix plan">
-						<span class="typename c4 pull-left f14 text-right mr20">Jenis</span>
-						<div class="dropdown planjs pull-left mr20">
-							<button class="btn btn-default dropdown-toggle" type="button" id="excode" data-toggle="dropdown" style="width:auto">
-                                <b val="toShell">Shell skrip</b>
-                                <span class="caret"></span>
-                            </button>
+				<div class="clearfix plan">
+					<span class="typename c4 pull-left f14 text-right mr20">Task name</span>
+					<div class="planname pull-left"><input type="text" name="name" class="bt-input-text"></div>
+				</div>
+				<div class="clearfix plan">
+					<span class="typename c4 pull-left f14 text-right mr20">Cycle</span>
+					<div class="dropdown plancycle pull-left mr20">
+						<button class="btn btn-default dropdown-toggle" type="button" id="cycle" data-toggle="dropdown" style="width:94px">
+                            <b val="week">Every week</b>
+                            <span class="caret"></span>
+                        </button>
+						<ul class="dropdown-menu" role="menu" aria-labelledby="cycle">
+							<li><a role="menuitem" tabindex="-1" href="javascript:;" value="day">Every day</a></li>
+							<li><a role="menuitem" tabindex="-1" href="javascript:;" value="day-n">N days</a></li>
+							<li><a role="menuitem" tabindex="-1" href="javascript:;" value="hour">Per hour</a></li>
+							<li><a role="menuitem" tabindex="-1" href="javascript:;" value="hour-n">N hours</a></li>
+							<li><a role="menuitem" tabindex="-1" href="javascript:;" value="minute-n">N minutes</a></li>
+							<li><a role="menuitem" tabindex="-1" href="javascript:;" value="week">Every week</a></li>
+							<li><a role="menuitem" tabindex="-1" href="javascript:;" value="month">Per month</a></li>
+						</ul>
+					</div>
+					<div id="ptime" class="pull-left">
+						<div class="dropdown planweek pull-left mr20">
+							<button class="btn btn-default dropdown-toggle" type="button" id="excode" data-toggle="dropdown">
+								<b val="1">Monday</b>
+								<span class="caret"></span>
+							</button>
 							<ul class="dropdown-menu" role="menu" aria-labelledby="excode">
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="toShell">Shell skrip</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="site">Situs Web</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="database">Basis Data</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="logs">Catatan (log)</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="rememory">Bebaskan RAM</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="toUrl">Akses URL</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="1">Monday</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="2">Tuesday</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="3">Wednesday</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="4">Thursday</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="5">Friday</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="6">Saturday</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="0">Sunday</a></li>
 							</ul>
 						</div>
-						<span class="planSign"><i>*</i>Penjadwalan otomatis mencakup hal-hal berikut: Shell skrip, pencadangan situs web, pencadangan basis data, pembersihan log, pembebasan RAM dan akses URL</span>
-					</div>
-					<div class="clearfix plan">
-						<span class="typename c4 pull-left f14 text-right mr20">Nama</span>
-						<div class="planname pull-left"><input type="text" name="name" class="bt-input-text"></div>
-					</div>
-					<div class="clearfix plan">
-						<span class="typename c4 pull-left f14 text-right mr20">Siklus</span>
-						<div class="dropdown plancycle pull-left mr20">
-							<button class="btn btn-default dropdown-toggle" type="button" id="cycle" data-toggle="dropdown" style="width:94px">
-                                <b val="week">Mingguan</b>
-                                <span class="caret"></span>
-                            </button>
-							<ul class="dropdown-menu" role="menu" aria-labelledby="cycle">
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="day">Harian</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="day-n">Hari Ke</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="hour">Tiap Jam</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="hour-n">Jam Ke</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="minute-n">Menit Ke</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="week">Mingguan</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="month">Bulanan</a></li>
-							</ul>
+						<div class="plan_hms pull-left mr20 bt-input-text">
+							<span><input type="number" name="hour" value="1" maxlength="2" max="23" min="0"></span>
+							<span class="name">Hour</span>
 						</div>
-						<div id="ptime" class="pull-left">
-							<div class="dropdown planweek pull-left mr20">
-								<button class="btn btn-default dropdown-toggle" type="button" id="excode" data-toggle="dropdown">
-									<b val="1">Senin</b>
-									<span class="caret"></span>
-								</button>
-								<ul class="dropdown-menu" role="menu" aria-labelledby="excode">
-									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="1">Senin</a></li>
-									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="2">Selasa</a></li>
-									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="3">Rabu</a></li>
-									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="4">Kamis</a></li>
-									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="5">Jumat</a></li>
-									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="6">Sabtu</a></li>
-									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="0">Minggu</a></li>
-								</ul>
-							</div>
-							<div class="plan_hms pull-left mr20 bt-input-text">
-								<span><input type="number" name="hour" value="1" maxlength="2" max="23" min="0"></span>
-								<span class="name">Jam</span>
-							</div>
-							<div class="plan_hms pull-left mr20 bt-input-text">
-								<span><input type="number" name="minute" value="30" maxlength="2" max="59" min="0"></span>
-								<span class="name">Menit</span>
-							</div>
+						<div class="plan_hms pull-left mr20 bt-input-text">
+							<span><input type="number" name="minute" value="30" maxlength="2" max="59" min="0"></span>
+							<span class="name">Minute</span>
 						</div>
 					</div>
-					<div class="clearfix plan">
-						<span class="typename controls c4 pull-left f14 text-right mr20">Skrip</span>
-						<div id="implement" style="line-height:34px"><textarea class="txtsjs bt-input-text" name="sBody"></textarea></div>
-					</div>
-					<div class="clearfix plan">
-						<div class="bt-submit plan-submit" onclick="planAdd();">Simpan</div>
-					</div>
-					<ul class="help-info-text c7 ptb15 mlr20">
-						<li>Ketika penjadwalan ditambahkan, jalankan secara manual sekali untuk memeriksa apakah penjadwalan sudah sesuai</li>
-						<li>Kapasitas disk yang tidak mencukupi, kata sandi basis data yang salah, jaringan yang tidak stabil dan alasan lainnya dapat menyebabkan pencadangan data tidak lengkap</li>
-					</ul>
 				</div>
-				<form id="set-Config" action="/crontab/add" enctype="multipart/form-data" method="post" style="display: none;">
-					<input type="text" name="name" value="" />
-					<input type="text" name="type" value="" />
-					<input type="number" name="where1" value="" />
-					<input type="number" name="hour" value="" />
-					<input type="number" name="minute" value="" />
-					<input type="text" name="week" value="" />
-					<input type="text" name="sType" value="" />
-					<textarea name='sBody'></textarea>
-					<input id="sFile" type="file" name="sFile" value="" />
-					<input id="sName" type="text" name="sName" value="" />
-					<input id="backupTo" type="text" name="backupTo" value="localhost" />
-					<input id="urladdress" type="text" name="urladdress" value="" />
-					<input type="number" name="save" value="" />
-					<input type="submit" />
-				</form>
+				<div class="clearfix plan">
+					<span class="typename controls c4 pull-left f14 text-right mr20">Script content</span>
+					<div id="implement" style="line-height:34px"><textarea class="txtsjs bt-input-text" name="sBody"></textarea></div>
+				</div>
+				<div class="clearfix plan">
+					<div class="bt-submit plan-submit" onclick="planAdd();">Add task</div>
+				</div>
+				<ul class="help-info-text c7 ptb15 mlr20">
+					<li>After adding the backup task, you should manually run it once and check whether the backup package is complete</li>
+					<li>Insufficient disk capacity, wrong database password, unstable network, etc. may lead to incomplete data backup</li>
+				</ul>
 			</div>
-			<div class="setbox bgw mtb15">
-				<div class="title c6 plr15">
-					<h3 class="f16">Daftar penjadwalan</h3>
-					<span id="allDelete" style="float: right;display: none;">
-						<button onclick="allDeleteCron();" class="btn btn-default btn-sm">Hapus</button>
-					</span>
-				</div>
-				<div class="setting-con divtable pd15">
-					<table class="table table-hover">
-						<thead>
-							<tr>
-								<th width='30px'><input onclick="checkSelect();" type="checkbox" id="setBox"></th>
-								<th>Nama</th>
-								<th>Status</th>
-								<th>Siklus</th>
-								<th>Waktu Eksekusi</th>
-								<th>Kuantitas</th>
-								<th>Pencadangan</th>
-								<th>Waktu Ditambahkan</th>
-								<th width="190">Aksi</th>
-							</tr>
-						</thead>
-						<tbody id="cronbody"></tbody>
-					</table>
-					<div class="dataTables_paginate paging_bootstrap pagination">
-						<ul id="softPage" class="page"></ul>
-					</div>
+			<form id="set-Config" action="/crontab/add" enctype="multipart/form-data" method="post" style="display: none;">
+				<input type="text" name="name" value="" />
+				<input type="text" name="type" value="" />
+				<input type="number" name="where1" value="" />
+				<input type="number" name="hour" value="" />
+				<input type="number" name="minute" value="" />
+				<input type="text" name="week" value="" />
+				<input type="text" name="sType" value="" />
+				<textarea name='sBody'></textarea>
+				<input id="sFile" type="file" name="sFile" value="" />
+				<input type="text" name="sName" value="" />
+				<input id="backupTo" type="text" name="backupTo" value="localhost" />
+				<input id="urladdress" type="text" name="urladdress" value="" />
+				<input type="number" name="save" value="" />
+				<input type="submit" />
+			</form>
+		</div>
+		<div class="setbox bgw mtb15">
+			<div class="title c6 plr15">
+				<h3 class="f16">Task List</h3>
+				<span id="allDelete" style="float: right;display: none;">
+					<button onclick="allDeleteCron();" class="btn btn-default btn-sm">Delete selected</button>
+				</span>
+			</div>
+			<div class="setting-con divtable pd15">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th width='30px'><input onclick="checkSelect();" type="checkbox" id="setBox"></th>
+							<th>Name</th>
+							<th>Status</th>
+							<th>Cyle</th>
+							<th>Exe time</th>
+							<th>Save quantity</th>
+							<th>Backup to</th>
+							<th>Add time</th>
+							<th width="190">Action</th>
+						</tr>
+					</thead>
+					<tbody id="cronbody"></tbody>
+				</table>
+				<div class="dataTables_paginate paging_bootstrap pagination">
+					<ul id="softPage" class="page"></ul>
 				</div>
 			</div>
 		</div>
