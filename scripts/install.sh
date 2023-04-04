@@ -71,7 +71,7 @@ if [ $OSNAME != "macos" ];then
 	mkdir -p /home/slemp/backup/site
 
 	if [ ! -d /home/slemp/server/panel ];then
-		curl -sSLo /tmp/master.zip https://codeload.github.com/basoro/slemp/zip/master
+		curl --insecure -sSLo /tmp/master.zip https://codeload.github.com/basoro/slemp/zip/master
 
 		cd /tmp && unzip /tmp/master.zip
 		mv -f /tmp/slemp-master /home/slemp/server/panel
@@ -82,7 +82,7 @@ if [ $OSNAME != "macos" ];then
 	# install acme.sh
 	if [ ! -d /root/.acme.sh ];then
 	    if [ ! -z "$cn" ];then
-	        curl -sSL -o /tmp/acme.tar.gz https://ghproxy.com/github.com/acmesh-official/acme.sh/archive/master.tar.gz
+	        curl --insecure -sSL -o /tmp/acme.tar.gz https://ghproxy.com/github.com/acmesh-official/acme.sh/archive/master.tar.gz
 	        tar xvzf /tmp/acme.tar.gz -C /tmp
 	        cd /tmp/acme.sh-master
 	        bash acme.sh install
