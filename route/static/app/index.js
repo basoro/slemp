@@ -539,7 +539,7 @@ function updateMsg(){
 
         layer.open({
             type:1,
-            title:v_info + '<span class="badge badge-inverse">升级到['+rdata.data.version+']</span>',
+            title:v_info + '<span class="badge badge-inverse">Upgrade to ['+rdata.data.version+']</span>',
             area: '400px',
             shadeClose:false,
             closeBtn:2,
