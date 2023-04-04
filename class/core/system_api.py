@@ -696,16 +696,16 @@ class system_api:
                     slemp.execShell(
                         'wget --no-check-certificate -O ' + dist_slemp + ' ' + newUrl)
 
-                dist_to = toPath + "/panel-" + version
+                dist_to = toPath + "/slemp-" + version
                 if not os.path.exists(dist_to):
                     os.system('unzip -o ' + toPath +
                               '/slemp.zip' + ' -d ' + toPath)
 
-                cmd_cp = 'cp -rf ' + toPath + '/panel-' + \
+                cmd_cp = 'cp -rf ' + toPath + '/slemp-' + \
                     version + '/* ' + slemp.getServerDir() + '/panel'
                 slemp.execShell(cmd_cp)
 
-                slemp.execShell('rm -rf ' + toPath + '/panel-' + version)
+                slemp.execShell('rm -rf ' + toPath + '/slemp-' + version)
                 slemp.execShell('rm -rf ' + toPath + '/slemp.zip')
 
                 update_env = '''

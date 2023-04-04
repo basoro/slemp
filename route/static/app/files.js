@@ -356,7 +356,7 @@ function getFiles(Path) {
 		}
 
 		$("#filePage").html(rdata.PAGE);
-		$("#filePage div").append("<span class='Pcount-item'>每页<select style='margin-left: 3px;margin-right: 3px;border:#ddd 1px solid' class='showRow'>"+rowOption+"</select>条</span>");
+		$("#filePage div").append("<span class='Pcount-item'>per page<select style='margin-left: 3px;margin-right: 3px;border:#ddd 1px solid' class='showRow'>"+rowOption+"</select>item</span>");
 		$("#filePage .Pcount").css("left","16px");
 		if(rdata.DIR == null) rdata.DIR = [];
 		for (var i = 0; i < rdata.DIR.length; i++) {
