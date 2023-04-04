@@ -236,7 +236,7 @@ function getInfo() {
         } else {
             $(".ico-system").addClass("ico-linux");
         }
-        $("#core").html(info.cpuNum + ' 核心');
+        $("#core").html(info.cpuNum + ' Core');
         $("#state").html(info.cpuRealUsed);
         setcolor(memPre, "#state", 30, 70, 90);
         var memFree = info.memTotal - info.memRealUsed;
