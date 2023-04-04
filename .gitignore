@@ -149,7 +149,7 @@ plugins/openlitespeed
 plugins/tbot
 plugins/mtproxy
 plugins/zimg
-plugins/webssh
+#plugins/webssh
 data/api.json
 data/hook_menu.json
 data/letsencrypt.json

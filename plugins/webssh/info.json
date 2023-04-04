@@ -1,0 +1,36 @@
+{
+	"hook":[
+		{
+			"tag":"menu",
+			"menu": {
+				"title":"SSH",
+				"name":"webssh",
+				"path":"menu/index.html",
+				"css_path":"menu/index.css",
+				"js_path":"js/webssh.js"
+			}
+		},
+		{
+			"tag":"global_static",
+			"global_static": {
+				"title":"Terminal management",
+				"name":"webssh",
+				"css_path":"menu/ico.css"
+			}
+		}
+	],
+	"id":3,
+	"title":"SSH Terminal",
+	"tip":"lib",
+	"name":"webssh",
+	"type":"Expand",
+	"ps":"A full-featured SSH client, only used to connect to this server",
+	"versions":"2.0",
+	"shell":"install.sh",
+	"checks":"server/webssh",
+	"path": "server/webssh",
+	"author":"ssh",
+	"home":"",
+	"date":"2018-12-20",
+	"pid":"4"
+}

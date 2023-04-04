@@ -304,7 +304,7 @@ class ssh_terminal:
 
     def getSshInfo(self, file):
         rdata = slemp.readFile(file)
-        destr = slemp.enDoubleCrypt('slemp', rdata)
+        destr = slemp.deDoubleCrypt('slemp', rdata)
         return json.loads(destr)
 
     def setAttr(self, sid, info):
