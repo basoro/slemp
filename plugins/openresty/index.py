@@ -417,7 +417,7 @@ def setCfg():
     cfg_args = [
         {"name": "worker_processes", "ps": "Processing process, auto means automatic, number means the number of processes", 'type': 2},
         {"name": "worker_connections", "ps": "Maximum number of concurrent connections", 'type': 2},
-        {"name": "keepalive_timeout", "ps": "连接超时时间", 'type': 2},
+        {"name": "keepalive_timeout", "ps": "Connection timeout", 'type': 2},
         {"name": "gzip", "ps": "Whether to enable compressed transmission", 'type': 1},
         {"name": "gzip_min_length", "ps": "Minimal zip file", 'type': 2},
         {"name": "gzip_comp_level", "ps": "Compression ratio", 'type': 2},

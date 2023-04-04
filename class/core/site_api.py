@@ -1603,7 +1603,6 @@ class site_api:
             slemp.execShell("rm -rf {}/{}".format(self.redirectPath, _siteName))
             return slemp.returnJson(True, "", {"result": [], "count": 0})
 
-        # 处理301信息
         return slemp.returnJson(True, "ok", {"result": data, "count": len(data)})
 
     def getRedirectConfApi(self):

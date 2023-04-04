@@ -27,7 +27,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	if [ ! -f $sourcePath/php/php-${version}.tar.gz ];then
 		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.gz https://museum.php.net/php5/php-${version}.tar.gz
 	fi
-	
+
 	cd $sourcePath/php && tar -zxvf $sourcePath/php/php-${version}.tar.gz
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
 fi
@@ -100,7 +100,6 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 
 	make clean && make -j${cpuCore}
 
-	#debian11,没有生成php54 man
 	if [ ! -f sapi/cli/php.1 ];then
 		cp -rf sapi/cli/php.1.in sapi/cli/php.1
 	fi
@@ -127,7 +126,7 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 
 
 	make install && make clean
-fi 
+fi
 
 #------------------------ install end ------------------------------------#
 }
@@ -136,7 +135,7 @@ Uninstall_php()
 {
 	$serverPath/php/init.d/php54 stop
 	rm -rf $serverPath/php/54
-	echo "卸载php-5.4.45 ..." > $install_tmp
+	echo "uninstall php-5.4.45 ..." > $install_tmp
 }
 
 action=${1}

@@ -289,7 +289,7 @@ fi
         res = self.acmeRequest(url=self.__apis['newAccount'], payload=payload)
 
         if res.status not in [201, 200, 409]:
-            raise Exception("注册ACME帐户失败: {}".format(res.json()))
+            raise Exception("Failed to register ACME account: {}".format(res.json()))
         kid = res.headers["Location"]
         return kid
 

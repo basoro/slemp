@@ -1511,7 +1511,7 @@ def getSSHStatus():
             status = execShell("systemctl status sshd.service | grep 'dead'")
         else:
             status = execShell(
-                "/etc/init.d/sshd status | grep -e 'stopped' -e '已停'")
+                "/etc/init.d/sshd status | grep -e 'stopped' -e 'stopped'")
     if len(status[0]) > 3:
         status = False
     else:

@@ -188,7 +188,7 @@ class files_api:
         execstr = url + '|slemp|' + path + '/' + filename
         execstr = execstr.strip()
         slemp.M('tasks').add('name,type,status,addtime,execstr',
-                          ('下载文件[' + filename + ']', 'download', '-1', time.strftime('%Y-%m-%d %H:%M:%S'), execstr))
+                          ('Download file [' + filename + ']', 'download', '-1', time.strftime('%Y-%m-%d %H:%M:%S'), execstr))
 
         # self.setFileAccept(path + '/' + filename)
         slemp.triggerTask()

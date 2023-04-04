@@ -413,7 +413,7 @@ def submitPhpConf(version):
     slemp.writeFile(filename, phpini)
     # slemp.execShell(getServerDir() + '/init.d/php' + version + ' reload')
     reload(version)
-    return slemp.returnJson(True, '设置成功')
+    return slemp.returnJson(True, 'Successfully set')
 
 
 def getLimitConf(version):

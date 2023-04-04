@@ -1330,7 +1330,7 @@ function repTools(db_name, res){
             $(".gztr").html(tbody);
             $("#db_tools").html('');
             $("input[type='checkbox']").attr("checked", false);
-            $(".tools_size").html('大小：' + rdata.data_size);
+            $(".tools_size").html('Size：' + rdata.data_size);
             return;
         }
 
@@ -1343,7 +1343,7 @@ function repTools(db_name, res){
             content: '<div class="pd15">\
                             <div class="db_list">\
                                 <span><a>Name database：'+ db_name + '</a>\
-                                <a class="tools_size">大小：'+ rdata.data_size + '</a></span>\
+                                <a class="tools_size">Size：'+ rdata.data_size + '</a></span>\
                                 <span id="db_tools" style="float: right;"></span>\
                             </div >\
                             <div class="divtable">\

@@ -26,7 +26,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	if [ ! -f $sourcePath/php/php-${version}.tar.xz ];then
 		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://museum.php.net/php7/php-${version}.tar.xz
 	fi
-	
+
 	cd $sourcePath/php && tar -Jxf $sourcePath/php/php-${version}.tar.xz
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
 fi
@@ -107,7 +107,7 @@ Uninstall_php()
 {
 	$serverPath/php/init.d/php70 stop
 	rm -rf $serverPath/php/70
-	echo "卸载php-7.0.30 ..." > $install_tmp
+	echo "uninstall php-7.0.30 ..." > $install_tmp
 }
 
 action=${1}

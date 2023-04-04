@@ -40,7 +40,7 @@ Install_lib()
 		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
 		return
 	fi
-	
+
 	if [ ! -f "$extFile" ];then
 
 		if [ ! -d $sourcePath/php${version}/ext ];then
@@ -48,18 +48,17 @@ Install_lib()
 		fi
 
 		cd $sourcePath/php${version}/ext/${LIBNAME}
-		
+
 		$serverPath/php/$version/bin/phpize
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config
 
-		# PHP52需要,因为52关闭。所有注释掉
 		# FIND_C99=`cat Makefile|grep c99`
 		# if [ "$FIND_C99" == "" ];then
 		# 	sed -i $BAK 's/CFLAGS \=/CFLAGS \= -std=c99/g' Makefile
 		# fi
 
 		make clean && make && make install && make clean
-		
+
 	fi
 
 	if [ ! -f "$extFile" ];then
@@ -71,7 +70,7 @@ Install_lib()
     echo "" >> $serverPath/php/$version/etc/php.ini
 	echo "[${LIBNAME}]" >> $serverPath/php/$version/etc/php.ini
 	echo "extension=${LIBNAME}.so" >> $serverPath/php/$version/etc/php.ini
-	
+
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==========================================================='
 	echo 'successful!'
@@ -84,16 +83,16 @@ Uninstall_lib()
 		echo "php-$version is not installed, please choose another version!"
 		return
 	fi
-	
+
 	if [ ! -f "$extFile" ];then
 		echo "php-$version ${LIBNAME} is not installed, please choose another version"
 		return
 	fi
-	
+
 	echo $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
-		
+
 	rm -f $extFile
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='
