@@ -15,7 +15,7 @@ PHP_VER=55
 Install_php()
 {
 #------------------------ install start ------------------------------------#
-echo "install php-5.5.38 ..." > $install_tmp
+echo "Install php-5.5.38 ..." > $install_tmp
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
@@ -65,8 +65,10 @@ else
     cpuCore="1"
 fi
 
-if [ "$cpuCore" -gt "1" ];then
+if [ "$cpuCore" -gt "2" ];then
 	cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
+else
+	cpuCore="1"
 fi
 # ----- cpu end ------
 
@@ -105,7 +107,7 @@ Uninstall_php()
 {
 	$serverPath/php/init.d/php55 stop
 	rm -rf $serverPath/php/55
-	echo "uninstall php-5.5.38 ..." > $install_tmp
+	echo "Uninstall php-5.5.38 ..." > $install_tmp
 }
 
 action=${1}

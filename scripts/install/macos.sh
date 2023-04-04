@@ -36,8 +36,6 @@ if [ ! -d $DEV/server/lib ]; then
 	cd $DEV/server/panel/scripts && bash lib.sh
 fi
 
-pip3 install mysqlclient
-
 chmod 755 $DEV/server/panel/data
 if [ -f $DEV/server/panel/bin/activate ];then
     cd $DEV/server/panel && python3 -m venv $DEV/server/panel
@@ -46,8 +44,6 @@ if [ -f $DEV/server/panel/bin/activate ];then
 else
 	cd $DEV/server/panel && pip3 install -r $DEV/server/panel/requirements.txt
 fi
-
-pip3 install mysqlclient
 
 
 cd $DEV/server/panel && ./cli.sh start

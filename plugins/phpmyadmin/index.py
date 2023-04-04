@@ -48,7 +48,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, slemp.returnJson(False, 'parameter:(' + ck[i] + ')No!'))
+            return (False, slemp.returnJson(False, 'Parameter: (' + ck[i] + ') none!'))
     return (True, slemp.returnJson(True, 'ok'))
 
 
@@ -57,7 +57,7 @@ def getConf():
 
 
 def getConfInc():
-    return getServerDir() + '/phpmyadmin/config.inc.php'
+    return getServerDir() + "/" + getCfg()['path'] + '/config.inc.php'
 
 
 def getPort():
@@ -74,20 +74,25 @@ def getHomePage():
         ip = '127.0.0.1'
         if not slemp.isAppleSystem():
             ip = slemp.getLocalIp()
-        url = 'http://' + ip + ':' + port + '/phpmyadmin/index.php'
+        url = 'http://' + ip + ':' + port + \
+            '/' + getCfg()['path'] + '/index.php'
         return slemp.returnJson(True, 'OK', url)
     except Exception as e:
         return slemp.returnJson(False, 'Plugin not started!')
 
 
 def getPhpVer(expect=55):
-    import json
     v = site_api.site_api().getPhpVersion()
-    v = json.loads(v)
+    is_find = False
     for i in range(len(v)):
-        t = int(v[i]['version'])
-        if (t >= expect):
+        t = str(v[i]['version'])
+        if (t == expect):
+            is_find = True
             return str(t)
+    if not is_find:
+        if len(v) > 1:
+            return v[1]['version']
+        return v[0]['version']
     return str(expect)
 
 
@@ -117,13 +122,25 @@ def contentReplace(content):
     content = content.replace('{$BLOWFISH_SECRET}', blowfish_secret)
 
     cfg = getCfg()
-    if (cfg['choose'] == ""):
+
+    if cfg['choose'] == "mysql":
         content = content.replace('{$CHOOSE_DB}', 'mysql')
         content = content.replace('{$CHOOSE_DB_DIR}', 'mysql')
+    elif cfg['choose'] == "mysql-apt":
+        content = content.replace('{$CHOOSE_DB}', 'mysql')
+        content = content.replace('{$CHOOSE_DB_DIR}', 'mysql-apt')
+    elif cfg['choose'] == "mysql-yum":
+        content = content.replace('{$CHOOSE_DB}', 'mysql')
+        content = content.replace('{$CHOOSE_DB_DIR}', 'mysql-yum')
     else:
         content = content.replace('{$CHOOSE_DB}', 'MariaDB')
         content = content.replace('{$CHOOSE_DB_DIR}', 'mariadb')
 
+    content = content.replace('{$PMA_PATH}', cfg['path'])
+
+    port = cfg["port"]
+    rep = 'listen\s*(.*);'
+    content = re.sub(rep, "listen " + port + ';', content)
     return content
 
 
@@ -132,7 +149,8 @@ def initCfg():
     if not os.path.exists(cfg):
         data = {}
         data['port'] = '888'
-        data['choose'] = ''
+        data['choose'] = 'mysql'
+        data['path'] = ''
         data['username'] = 'admin'
         data['password'] = 'admin'
         slemp.writeFile(cfg, json.dumps(data))
@@ -161,7 +179,7 @@ def returnCfg():
 
 def status():
     conf = getConf()
-    conf_inc = getServerDir() + '/phpmyadmin/config.inc.php'
+    conf_inc = getServerDir() + "/" + getCfg()["path"] + '/config.inc.php'
     if os.path.exists(conf) and os.path.exists(conf_inc):
         return 'start'
     return 'stop'
@@ -170,9 +188,16 @@ def status():
 def start():
     initCfg()
 
+    pma_dir = getServerDir() + "/phpmyadmin"
+    if os.path.exists(pma_dir):
+        rand_str = slemp.getRandomString(6)
+        rand_str = rand_str.lower()
+        pma_dir_dst = pma_dir + "_" + rand_str
+        slemp.execShell("mv " + pma_dir + " " + pma_dir_dst)
+        setCfg('path', 'phpmyadmin_' + rand_str)
+
     file_tpl = getPluginDir() + '/conf/phpmyadmin.conf'
     file_run = getConf()
-
     if not os.path.exists(file_run):
         centent = slemp.readFile(file_tpl)
         centent = contentReplace(centent)
@@ -186,11 +211,12 @@ def start():
         setCfg('password', username)
         slemp.writeFile(pma_path, pass_cmd)
 
-    tmp = getServerDir() + '/phpmyadmin/tmp'
+    tmp = getServerDir() + "/" + getCfg()["path"] + '/tmp'
     if not os.path.exists(tmp):
         os.mkdir(tmp)
+        slemp.execShell("chown -R www:www " + tmp)
 
-    conf_run = getServerDir() + '/phpmyadmin/config.inc.php'
+    conf_run = getServerDir() + "/" + getCfg()["path"] + '/config.inc.php'
     if not os.path.exists(conf_run):
         conf_tpl = getPluginDir() + '/conf/config.inc.php'
         centent = slemp.readFile(conf_tpl)
@@ -222,6 +248,12 @@ def restart():
 
 
 def reload():
+    file_tpl = getPluginDir() + '/conf/phpmyadmin.conf'
+    file_run = getConf()
+    if os.path.exists(file_run):
+        centent = slemp.readFile(file_tpl)
+        centent = contentReplace(centent)
+        slemp.writeFile(file_run, centent)
     return start()
 
 
@@ -274,7 +306,7 @@ def setPmaPort():
 
     port = args['port']
     if port == '80':
-        return slemp.returnJson(False, 'Port 80 cannot be used!')
+        return slemp.returnJson(False, '80 can not be used!')
 
     file = getConf()
     if not os.path.exists(file):
@@ -283,6 +315,8 @@ def setPmaPort():
     rep = 'listen\s*(.*);'
     content = re.sub(rep, "listen " + port + ';', content)
     slemp.writeFile(file, content)
+
+    setCfg("port", port)
     slemp.restartWeb()
     return slemp.returnJson(True, 'Successfully modified!')
 
@@ -296,11 +330,13 @@ def setPmaChoose():
     choose = args['choose']
     setCfg('choose', choose)
 
-    conf_run = getServerDir() + '/phpmyadmin/config.inc.php'
+    pma_path = getCfg()['path']
+    conf_run = getServerDir() + "/" + pma_path + '/config.inc.php'
+
     conf_tpl = getPluginDir() + '/conf/config.inc.php'
-    centent = slemp.readFile(conf_tpl)
-    centent = contentReplace(centent)
-    slemp.writeFile(conf_run, centent)
+    content = slemp.readFile(conf_tpl)
+    content = contentReplace(content)
+    slemp.writeFile(conf_run, content)
 
     slemp.restartWeb()
     return slemp.returnJson(True, 'Successfully modified!')
@@ -341,6 +377,25 @@ def setPmaPassword():
     slemp.writeFile(pma_path, pass_cmd)
 
     slemp.restartWeb()
+    return slemp.returnJson(True, 'Successfully modified!')
+
+
+def setPmaPath():
+    args = getArgs()
+    data = checkArgs(args, ['path'])
+    if not data[0]:
+        return data[1]
+
+    path = args['path']
+
+    if len(path) < 5:
+        return slemp.returnJson(False, 'Cannot be less than 5 digits!')
+
+    old_path = getServerDir() + "/" + getCfg()['path']
+    new_path = getServerDir() + "/" + path
+
+    slemp.execShell("mv " + old_path + " " + new_path)
+    setCfg('path', path)
     return slemp.returnJson(True, 'Successfully modified!')
 
 
@@ -394,6 +449,8 @@ if __name__ == "__main__":
         print(setPmaUsername())
     elif func == 'set_pma_password':
         print(setPmaPassword())
+    elif func == 'set_pma_path':
+        print(setPmaPath())
     elif func == 'access_log':
         print(accessLog())
     elif func == 'error_log':

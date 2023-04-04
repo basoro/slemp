@@ -37,10 +37,10 @@ Install_Plugin()
 
 	echo 'Installing script file...' > $install_tmp
 
-	$serverPath/panel/bin/pip install -I pyOpenSSL
-	$serverPath/panel/bin/pip install -I google-api-python-client==2.39.0 google-auth-httplib2==0.1.0 google-auth-oauthlib==0.5.0
-	$serverPath/panel/bin/pip install -I httplib2==0.18.1
-	$serverPath/panel/bin/pip install -I cryptography==3.3.2
+	#$serverPath/panel/bin/pip3 install -I pyOpenSSL
+	$serverPath/panel/bin/pip3 install -I google-api-python-client==2.39.0 google-auth-httplib2==0.1.0 google-auth-oauthlib==0.5.0
+	$serverPath/panel/bin/pip3 install -I httplib2==0.18.1
+	#$serverPath/panel/bin/pip3 install -I cryptography==36.0.1
 
 	mkdir -p $serverPath/gdrive
 	cp $serverPath/panel/plugins/gdrive/credentials.json $serverPath/gdrive/credentials.json

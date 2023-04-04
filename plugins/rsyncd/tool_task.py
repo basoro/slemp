@@ -57,7 +57,7 @@ def createBgTask(data):
 
 def createBgTaskByName(name, args):
     cfg = getConfigTpl()
-    _name = "[勿删]同步插件定时任务[" + name + "]"
+    _name = "[Do not delete] Synchronization plug-in timing task [" + name + "]"
     res = slemp.M("crontab").field("id, name").where("name=?", (_name,)).find()
     if res:
         return True
@@ -66,7 +66,7 @@ def createBgTaskByName(name, args):
         res = slemp.M("crontab").field("id, name").where(
             "id=?", (cfg["task_id"],)).find()
         if res and res["id"] == cfg["task_id"]:
-            print("计划任务已经存在!")
+            print("Scheduled task already exists!")
             return True
     import crontab_api
     api = crontab_api.crontab_api()

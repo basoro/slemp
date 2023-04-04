@@ -14,6 +14,11 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
+if [ ${_os} != "Darwin" ] && [ ! -d /home/slemp/server/panel/logs ]; then
+	mkdir -p /home/slemp/server/panel/logs
+fi
+
+{
 
 if [ ${_os} == "Darwin" ]; then
 	OSNAME='macos'
@@ -49,9 +54,16 @@ else
 	OSNAME='unknow'
 fi
 
-wget -O /tmp/master.zip https://codeload.github.com/basoro/slemp/zip/master
+curl -sSLo /tmp/master.zip https://codeload.github.com/basoro/slemp/zip/master
+
 cd /tmp && unzip /tmp/master.zip
-/usr/bin/cp -rf  /tmp/slemp-master/* /home/slemp/server/panel
+
+CP_CMD=/usr/bin/cp
+if [ -f /bin/cp ];then
+		CP_CMD=/bin/cp
+fi
+$CP_CMD -rf /tmp/slemp-master/* /home/slemp/server/panel
+
 rm -rf /tmp/master.zip
 rm -rf /tmp/slemp-master
 
@@ -59,12 +71,21 @@ rm -rf /tmp/slemp-master
 echo "use system version: ${OSNAME}"
 cd /home/slemp/server/panel && bash scripts/update/${OSNAME}.sh
 
+bash /etc/rc.d/init.d/slemp restart
+bash /etc/rc.d/init.d/slemp default
+
+if [ -f /usr/bin/slemp ];then
+	rm -rf /usr/bin/slemp
+fi
+
 if [ ! -e /usr/bin/slemp ]; then
 	if [ ! -f /usr/bin/slemp ];then
-		ln -s /etc/init.d/slemp /usr/bin/slemp
+		ln -s /etc/rc.d/init.d/slemp /usr/bin/slemp
 	fi
 fi
 
 endTime=`date +%s`
 ((outTime=($endTime-$startTime)/60))
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
+
+} 1> >(tee /home/slemp/server/panel/logs/slemp-update.log) 2>&1

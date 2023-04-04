@@ -15,12 +15,16 @@ action=$1
 type=$2
 
 if [ "${2}" == "" ];then
-	echo 'Missing installation script...' > $install_tmp
+	echo 'Missing install script...' > $install_tmp
 	exit 0
 fi
 
 if [ ! -d $curPath/versions/$2 ];then
-	echo 'Missing install script 2...' > $install_tmp
+	echo 'Missing installation script 2...' > $install_tmp
+	exit 0
+fi
+
+if [ -d $serverPath/mysql ];then
 	exit 0
 fi
 

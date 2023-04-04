@@ -15,16 +15,11 @@ sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config
 
 yum install -y wget lsof
 yum install -y python3-devel
-yum install -y python-devel
 yum install -y crontabs
+yum install -y expect
 yum install -y curl curl-devel libcurl libcurl-devel
-#https need
 
-if [ ! -d /root/.acme.sh ];then
-	curl https://get.acme.sh | sh
-fi
-
-if [ -f /etc/init.d/iptables ];then
+if [ -f /usr/sbin/iptables ];then
 
 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
@@ -40,12 +35,11 @@ if [ -f /etc/init.d/iptables ];then
 		service iptables restart
 	fi
 
-	#Does not turn on during installation时不开启
 	service iptables stop
 fi
 
 
-if [ ! -f /etc/init.d/iptables ];then
+if [ ! -f /usr/sbin/iptables ];then
 	yum install firewalld -y
 	systemctl enable firewalld
 	systemctl start firewalld
@@ -64,49 +58,37 @@ if [ ! -f /etc/init.d/iptables ];then
 fi
 
 
-#Does not turn on during installation时不开启
 systemctl stop firewalld
 
 yum groupinstall -y "Development Tools"
 yum install -y epel-release
 
-yum install -y libevent libevent-devel unzip libmcrypt libmcrypt-devel
-yum install -y wget python-imaging libicu-devel zip bzip2-devel gcc libxml2 libxml2-dev libpng-devel libwebp libwebp-devel pcre pcre-devel
-yum install -y lsof net-tools
-yum install -y ncurses-devel mysql-devel cmake
+yum install -y libevent libevent-devel zip unzip libmcrypt libmcrypt-devel
+yum install -y wget libicu-devel readline-devel zip bzip2 bzip2-devel libxml2 libxml2-devel
+yum install -y libpng libpng-devel libwebp libwebp-devel pcre pcre-devel gd gd-devel zlib zlib-devel gettext gettext-devel
+yum install -y net-tools
+yum install -y ncurses ncurses-devel mysql-devel make cmake
+yum install -y sqlite-devel
+
+# python-imaging
 # yum install -y MySQL-python
 
-for yumPack in make cmake gcc gcc-c++ flex bison file libtool libtool-libs autoconf kernel-devel patch wget  libpng libpng-devel gd gd-devel libxml2 libxml2-devel zlib zlib-devel glib2 glib2-devel tar bzip2 bzip2-devel libevent libevent-devel ncurses ncurses-devel curl curl-devel libcurl libcurl-devel e2fsprogs e2fsprogs-devel libidn libidn-devel vim-minimal gettext gettext-devel ncurses-devel gmp-devel libcap diffutils ca-certificates net-tools libc-client-devel psmisc libXpm-devel git-core c-ares-devel libicu-devel libxslt libxslt-devel zip unzip glibc.i686 libstdc++.so.6 cairo-devel bison-devel ncurses-devel libaio-devel perl perl-devel perl-Data-Dumper lsof crontabs expat-devel readline-devel;
+
+yum install -y perl perl-devel perl-Data-Dumper
+
+for yumPack in  gcc gcc-c++ flex file libtool libtool-libs autoconf kernel-devel patch glib2 glib2-devel tar e2fsprogs e2fsprogs-devel libidn libidn-devel vim-minimal gmp-devel libcap diffutils ca-certificates libc-client-devel psmisc libXpm-devel c-ares-devel libxslt libxslt-devel glibc.i686 libstdc++.so.6 cairo-devel libaio-devel expat-devel;
 do dnf --enablerepo=powertools install -y $yumPack;done
 
 yum install -y libtirpc libtirpc-devel
-
-dnf install boost-locale
+dnf --enablerepo=powertools install -y boost-locale
 
 dnf --enablerepo=powertools install -y libmemcached libmemcached-devel
 dnf --enablerepo=powertools install -y rpcgen
 dnf --enablerepo=powertools install -y oniguruma oniguruma-devel
-dnf --enablerepo=powertools install -y re2c bison
+dnf --enablerepo=powertools install -y re2c bison bison-devel
 dnf install -y libjpeg-turbo libjpeg-turbo-devel
 
 cd /home/slemp/server/panel/scripts && bash lib.sh
 chmod 755 /home/slemp/server/panel/data
 
-
-cd /home/slemp/server/panel && ./cli.sh start
-isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
-n=0
-while [[ ! -f /etc/init.d/slemp ]];
-do
-    echo -e ".\c"
-    sleep 1
-    let n+=1
-    if [ $n -gt 20 ];then
-    	echo -e "start slemp fail"
-        exit 1
-    fi
-done
-
-cd /home/slemp/server/panel && /etc/init.d/slemp stop
-cd /home/slemp/server/panel && /etc/init.d/slemp start
-cd /home/slemp/server/panel && /etc/init.d/slemp default
+echo "rocky ok"

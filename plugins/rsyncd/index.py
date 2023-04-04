@@ -58,7 +58,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, slemp.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, slemp.returnJson(False, 'Parameter: (' + ck[i] + ') none!'))
     return (True, slemp.returnJson(True, 'ok'))
 
 
@@ -113,6 +113,21 @@ def getLsyncdLog():
     return tmp.groups()[0]
 
 
+def __release_port(port):
+    try:
+        import firewall_api
+        firewall_api.firewall_api().addAcceptPortArgs(port, 'RSYNC synchronization', 'port')
+        return port
+    except Exception as e:
+        return "Release failed {}".format(e)
+
+
+def openPort():
+    for i in ["873"]:
+        __release_port(i)
+    return True
+
+
 def initDReceive():
     # conf
     conf_path = appConf()
@@ -135,11 +150,13 @@ def initDReceive():
         slemp.writeFile(file_bin, content)
         slemp.execShell('chmod +x ' + file_bin)
 
+    lock_file = getServerDir() + "/installed_rsyncd.pl"
     # systemd
     systemDir = slemp.systemdCfgDir()
     systemService = systemDir + '/rsyncd.service'
     systemServiceTpl = getPluginDir() + '/init.d/rsyncd.service.tpl'
     if not os.path.exists(lock_file):
+
         rsync_bin = slemp.execShell('which rsync')[0].strip()
         if rsync_bin == '':
             print('rsync missing!')
@@ -151,6 +168,9 @@ def initDReceive():
         se = se.replace('{$RSYNC_BIN}', rsync_bin)
         slemp.writeFile(systemService, se)
         slemp.execShell('systemctl daemon-reload')
+
+        slemp.writeFile(lock_file, "ok")
+        openPort()
 
     rlog = getLog()
     if os.path.exists(rlog):
@@ -360,6 +380,11 @@ def addRec():
     args_path = args['path']
     args_ps = args['ps']
 
+    if not slemp.isAppleSystem():
+        os.system("mkdir -p " + args_path + " &")
+        os.system("chown -R  www:www " + args_path + " &")
+        os.system("chmod -R 755 " + args_path + " &")
+
     delRecBy(args_name)
 
     auth_path = appAuthPwd(args_name)
@@ -503,9 +528,13 @@ def cmdRecCmd():
 
 # ----------------------------- rsyncdSend start -------------------------
 
-
 def lsyncdReload():
-    slemp.execShell('systemctl reload lsyncd')
+    data = slemp.execShell(
+        "ps -ef|grep lsyncd |grep -v grep | grep -v python | awk '{print $2}'")
+    if data[0] == '':
+        slemp.execShell('systemctl start lsyncd')
+    else:
+        slemp.execShell('systemctl restart lsyncd')
 
 
 def makeLsyncdConf(data):
@@ -614,7 +643,7 @@ def lsyncdListFindName(slist, name):
 def lsyncdList():
     data = getDefaultConf()
     send = data['send']
-    return slemp.returnJson(True, "Set successfully!", send)
+    return slemp.returnJson(True, "Successfully set!", send)
 
 
 def lsyncdGet():
@@ -653,8 +682,6 @@ def lsyncdGet():
         m = m.encode("utf-8")
         m = base64.b64encode(m)
         info['secret_key'] = m.decode("utf-8")
-
-    slemp.execShell('systemctl start lsyncd')
     return slemp.returnJson(True, "OK", info)
 
 
@@ -683,16 +710,20 @@ def lsyncdAdd():
     import base64
 
     args = getArgs()
-    data = checkArgs(args, ['ip', 'conn_type', 'path',
-                            'secret_key', 'delay', 'period'])
+    data = checkArgs(args, ['ip', 'conn_type', 'path', 'delay', 'period'])
     if not data[0]:
         return data[1]
 
     ip = args['ip']
     path = args['path']
 
+    if not slemp.isAppleSystem():
+        os.system("mkdir -p " + path + " &")
+        os.system("chown -R  www:www " + path + " &")
+        os.system("chmod -R 755 " + path + " &")
+
     conn_type = args['conn_type']
-    secret_key = args['secret_key']
+
     delete = args['delete']
     realtime = args['realtime']
     delay = args['delay']
@@ -718,6 +749,12 @@ def lsyncdAdd():
     }
 
     if conn_type == "key":
+
+        secret_key_check = checkArgs(args, ['secret_key'])
+        if not secret_key_check[0]:
+            return secret_key_check[1]
+
+        secret_key = args['secret_key']
         try:
             m = base64.b64decode(secret_key)
             m = json.loads(m)
@@ -727,12 +764,13 @@ def lsyncdAdd():
         except Exception as e:
             return slemp.returnJson(False, "Receive key format error!")
     else:
-        data = checkArgs(args, ['uname'])
+        data = checkArgs(args, ['sname', 'password'])
         if not data[0]:
             return data[1]
 
-        info['name'] = args['uname']
-        info['password'] = args['uname']
+        info['name'] = args['sname']
+        info['password'] = args['password']
+        info['port'] = args['port']
 
     rsync = {
         'bwlimit': bwlimit,
@@ -768,7 +806,7 @@ def lsyncdAdd():
 
     setDefaultConf(data)
     makeLsyncdConf(data)
-    return slemp.returnJson(True, "Set successfully!")
+    return slemp.returnJson(True, "Successfully set!")
 
 
 def lsyncdRun():

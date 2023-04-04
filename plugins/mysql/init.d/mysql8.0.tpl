@@ -25,7 +25,7 @@
 # Description: MySQL is a very fast and reliable SQL database engine.
 ### END INIT INFO
 
-# If you install MySQL on some other places than /home/slemp/server/mysql, then you
+# If you install MySQL on some other places than /Users/ataaka/Desktop/SLEMP/server/mysql, then you
 # have to do one of the following things for this script to work:
 #
 # - Run this script from within the MySQL installation directory

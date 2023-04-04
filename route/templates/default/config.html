@@ -1,98 +1,165 @@
 {% extends "layout.html" %}
 {% block content %}
 <div class="main-content">
-		<div class="container-fluid" style="padding-bottom:54px">
-			<div class="pos-box bgw mtb15">
-				<div class="position f14 c9 pull-left">
-					<a class="plr10 c4" href="/">Beranda</a>/<span class="plr10 c4">Pengaturan</span>
+	<div class="container-fluid" style="padding-bottom:54px">
+		<div class="pos-box bgw mtb15">
+			<div class="position f14 c9 pull-left"><a class="plr10 c4" href="/">Beranda</a>/<span class="plr10 c4">Pengaturan</span></div>
+		</div>
+		<div class="clearfix bgw mtb15 pd15">
+			<div class="safe-port pull-left">
+				<div class="ss-text pull-left mr50">
+					<em>Close panel</em>
+					<div class="ssh-item">
+                        <input class="btswitch btswitch-ios" id="closePl" type="checkbox">
+                        <label class="btswitch-btn" for="closePl" onclick="closePanel()"></label>
+                    </div>
 				</div>
+				<div class="ss-text pull-left mr50">
+					<em>Development mode</em>
+					<div class="ssh-item">
+                        <input class="btswitch btswitch-ios" id="debugMode" type="checkbox" {{data['debug']}}>
+                        <label class="btswitch-btn" for="debugMode" onclick="debugMode()"></label>
+                    </div>
+				</div>
+
+				<div class="ss-text pull-left mr50">
+                    <em title="Enabled to allow access to the panel using ipv6">Listen on IPv6</em>
+                    <div class='ssh-item'>
+                        <input class='btswitch btswitch-ios' id='panelIPv6' type='checkbox' {{data['ipv6']}}>
+                        <label class='btswitch-btn' for='panelIPv6' onclick="setIPv6()"></label>
+                    </div>
+                </div>
 			</div>
-			<div class="clearfix bgw mtb15 pd15">
-				<div class="safe-port pull-left">
-
-					<div class="ss-text pull-left mr50">
-						<em>Tutup panel</em>
-						<div class="ssh-item">
-              <input class="btswitch btswitch-ios" id="closePl" type="checkbox">
-              <label class="btswitch-btn" for="closePl" onclick="closePanel()"></label>
-	          </div>
-					</div>
-
-					<div class="ss-text pull-left mr50">
-						<em>Development mode</em>
-						<div class="ssh-item">
-              <input class="btswitch btswitch-ios" id="debugMode" type="checkbox" {{data['debug']}}>
-              <label class="btswitch-btn" for="debugMode" onclick="debugMode()"></label>
-	          </div>
-					</div>
-
-					<div class="ss-text pull-left mr50">
-            <em title="Saat diaktifkan, izinkan akses ipv6 ke panel">Gunakan IPv6</em>
-            <div class='ssh-item'>
-                <input class='btswitch btswitch-ios' id='panelIPv6' type='checkbox' {{data['ipv6']}}>
-                <label class='btswitch-btn' for='panelIPv6' onclick="setIPv6()"></label>
-            </div>
-	        </div>
-				</div>
+		</div>
+		<div class="setbox bgw mtb15">
+			<div class="title c6 plr15"><h3 class="f16">Set up</h3></div>
+			<div class="info-title-tips" style="margin: 20px 30px 0px;">
+				<p><span class="glyphicon glyphicon-alert" style="color: #f39c12; margin-right: 10px;"></span>In order to improve security, modify the panel password!</p>
 			</div>
-			<div class="setbox bgw mtb15">
-				<div class="title c6 plr15">
-					<h3 class="f16">Pengaturan</h3>
-				</div>
-				<div class="info-title-tips" style="margin: 20px 30px 0px;">
-					<p>
-						<span class="glyphicon glyphicon-alert" style="color: #f39c12; margin-right: 10px;">
-						</span>Untuk meningkatkan keamanan, harap ubah alias, port default, pengguna panel, dan kata sandi!</p>
-				</div>
-				<div class="setting-con pd15">
-					<form id="set_config">
-						<p class="mtb15">
-							<span class="set-tit text-right">Nama Panel</span>
-							<input id="webname" name="webname" class="inputtxt bt-input-text" type="text" value="{{data['title']}}" ><span class="set-info c7">Nama panel</span>
-						</p>
-						<p class="mtb15">
-							<span class="set-tit text-right">Port Panel</span>
-							<input id="banport" name="port" class="inputtxt bt-input-text" type="numner" value="{{data['port']}}" maxlength="5"><span class="set-info c7">Rentang port 7200 - 65535</span>
-						</p>
+			<div class="setting-con pd15">
+				<form id="set_config">
+					<p class="mtb15">
+						<span class="set-tit text-right">Alias</span>
+						<input id="webname" name="webname" class="inputtxt bt-input-text" type="text" value="{{data['title']}}">
+						<button type="button" class="btn btn-success btn-sm ml5 btn_webname" disabled>Save</button>
+						<span class="set-info c7">Panel name</span>
+					</p>
 
-						<p class="mtb15">
-							<span class="set-tit text-right">Path Login</span>
-							<input id="admin_path" name="admin_path" class="inputtxt bt-input-text disable" type="text" value="{{data['admin_path']}}"><span class="modify btn btn-xs btn-success" onclick="modifyAuthPath();">Edit</span>
-							<span class="set-info c7">Anda hanya dapat masuk ke panel melalui portal keamanan yang ditentukan, seperti: /abc</span>
-						</p>
-						<p class="mtb15">
-							<span class="set-tit text-right" title="Direktori default">Direktori default</span>
-							<input name="sites_path" class="inputtxt bt-input-text" type="text" value="{{data['site_path']}}">
-							<span class="set-info c7">Situs yang baru dibuat akan disimpan ke direktori ini secara default!</span>
-						</p>
+					<p class="mtb15">
+						<span class="set-tit text-right" title="Server IP">Server IP</span>
+						<input name="host_ip" class="inputtxt bt-input-text" type="text" value="{{data['ip']}}">
+						<button type="button" class="btn btn-success btn-sm ml5 btn_host_ip" disabled>Save</button>
+						<span class="set-info c7">The default is the external network IP. If you are testing on a local virtual machine, please fill in the virtual machine internal network IP!</span>
+					</p>
 
-						<p class="mtb15">
-							<span class="set-tit text-right" title="Direktori cadangan">Direktori cadangan</span>
-							<input name="backup_path" class="inputtxt bt-input-text" type="text" value="{{data['backup_path']}}">
-							<span class="set-info c7">Direktori cadangan untuk situs web dan basis data!</span>
-						</p>
+					<p class="mtb15">
+						<span class="set-tit text-right">Panel port</span>
+						<input id="banport" name="port" class="inputtxt bt-input-text" type="numner" value="{{data['port']}}" maxlength="5">
+						<button type="button" class="btn btn-success btn-sm ml5 btn_port" disabled>Save</button>
+						<span class="set-info c7">Recommended port range 7200 - 65535</span>
+					</p>
 
-						<p class="mtb15">
-							<span class="set-tit text-right" title="IP server">IP server</span>
-							<input name="host_ip" class="inputtxt bt-input-text" type="text" value="{{data['ip']}}">
-							<span class="set-info c7">Standarnya adalah IP jaringan eksternal. Jika Anda menguji di mesin virtual lokal, silakan isi IP jaringan internal mesin virtual!</span>
-						</p>
+					<p class="mtb15">
+						<span class="set-tit text-right">Security entrance</span>
+						<input id="admin_path" name="admin_path" class="inputtxt bt-input-text disable" type="text" value="{{data['admin_path']}}">
+						<button type="button" class="btn btn-success btn-sm ml5" onclick="modifyAuthPath()">Save</button>
+						<span class="set-info c7">Panel management entry, after setting, you can only log in to the panel through the specified security entry, such as: /abc</span>
+					</p>
 
-						<p class="mtb15">
-							<span class="set-tit text-right" title="Waktu server">Waktu server</span>
-							<input id="systemdate" name="systemdate" class="inputtxt bt-input-text disable" type="text" value="{{data['systemdate']}}"><span class="modify btn btn-xs btn-success" onclick="syncDate()">Edit</span>
-						</p>
-						<p class="mtb15">
-							<span class="set-tit text-right" title="Pengguna panel">Pengguna</span>
-							<input name="username_" class="inputtxt bt-input-text disable" type="text" value="{{data['username']}}" disabled><span class="modify btn btn-xs btn-success" onclick="setUserName()">Edit</span>
-						</p>
-						<p class="mtb15">
-							<span class="set-tit text-right" title="Password panel">Password</span>
-							<input name="password_" class="inputtxt bt-input-text disable" type="text" value="******" disabled><span class="modify btn btn-xs btn-success" onclick="setPassword()">Edit</span>
-						</p>
-					</form>
-					<div class="bt-submit set-submit">Simpan</div>
-				</div>
+					<p class="mtb15">
+						<span class="set-tit text-right" title="Default website directory">Default website directory</span>
+						<input name="sites_path" class="inputtxt bt-input-text" type="text" value="{{data['site_path']}}">
+						<button type="button" class="btn btn-success btn-sm ml5 btn_sites_path" disabled>Save</button>
+						<span class="set-info c7">The newly created site will be saved to the subdirectory of this directory by default!</span>
+					</p>
+
+					<p class="mtb15">
+						<span class="set-tit text-right" title="Default backup directory">Default backup directory</span>
+						<input name="backup_path" class="inputtxt bt-input-text" type="text" value="{{data['backup_path']}}">
+						<button type="button" class="btn btn-success btn-sm ml5 btn_backup_path" disabled>Save</button>
+						<span class="set-info c7">Backup directory for websites and databases!</span>
+					</p>
+
+					<p class="mtb15">
+						<span class="set-tit text-right" title="Server time">Server time</span>
+						<input id="systemdate" name="systemdate" class="inputtxt bt-input-text disable" type="text" value="{{data['systemdate']}}">
+						<button type="button" class="btn btn-success btn-sm ml5" onclick="syncDate()">Save</button>
+						<span class="set-info c7">Synchronize current server time</span>
+					</p>
+					<p class="mtb15">
+						<span class="set-tit text-right" title="Panel user">Panel user</span>
+						<input name="username_" class="inputtxt bt-input-text disable" type="text" value="{{data['username']}}" disabled>
+						<button type="button" class="btn btn-success btn-sm ml5" onclick="setUserName()">Set</button>
+						<span class="set-info c7">Set panel account</span>
+					</p>
+					<p class="mtb15">
+						<span class="set-tit text-right" title="Panel password">Panel password</span>
+						<input name="password_" class="inputtxt bt-input-text disable" type="text" value="******" disabled>
+						<button type="button" class="btn btn-success btn-sm ml5" onclick="setPassword()">Set</button>
+						<span class="set-info c7">Set panel password</span>
+					</p>
+				</form>
+			</div>
+
+			<div class="title c6 plr15"><h3 class="f16">Safety</h3></div>
+
+			<div class="setting-con pd15">
+
+				<p class="mtb15">
+					<span class="set-tit text-right" title="Bind domain name" style="float: left;">Bind domain name</span>
+						<input name="bind_domain" class="inputtxt bt-input-text" type="text" value="{{data['bind_domain']}}">
+	                <button type="button" class="btn btn-success btn-sm ml5 btn_bind_domain" disabled>Save</button>
+					<span class="set-info c7">Bind an access domain name to the panel, <b style="color: red;">Note: Once the domain name is bound, the panel can only be accessed through the domain name</b></span>
+				</p>
+
+				<p class="mtb15">
+					<span class="set-tit text-right" title="Panel SSL" style="float: left;">Panel SSL</span>
+						<input id="cfg_ssl" name="bind_ssl" class="btswitch btswitch-ios" type="checkbox" {{data['ssl']}}>
+						<label class="btswitch-btn ml5" for="cfg_ssl" style="float: left;margin-top:4px;"></label>
+	                <button ype="button" class="btn btn-default btn-xs panel_api_btn" style="vertical-align: middle; margin-left: 10px" onclick="getPanelSSL();">Panel SSL configuration</button>
+					<span class="set-info c7">Set https protocol access for the panel to improve panel access <b style="color: red;">security</b></span>
+				</p>
+
+				<p class="mtb15">
+					<span class="set-tit text-right" title="BasicAuth authentication" style="float: left;">BasicAuth authentication</span>
+						<input class="btswitch btswitch-ios" id="cfg_basic_auth" type="checkbox" {{data['basic_auth']}}/>
+	                <label class="btswitch-btn ml5" for="cfg_basic_auth" style="float: left;margin-top:4px;" onclick="setBasicAuth()"></label>
+					<span class="set-info c7">Add a BasicAuth-based authentication service to the panel to effectively prevent the panel from being scanned</span>
+				</p>
+
+				<p class="mtb15">
+					<span class="set-tit text-right" title="API interface" style="float: left;">API interface</span>
+						<input class="btswitch btswitch-ios" id="cfg_panel_api" type="checkbox" {{data['api_token']}}/>
+	                <label class="btswitch-btn ml5" for="cfg_panel_api" style="float: left;margin-top:4px;" onclick="setPanelApi()"></label>
+	                <button ype="button" class="btn btn-default btn-xs panel_api_btn" style="vertical-align: middle; margin-left: 10px" onclick="showPanelApi();">API interface configuration</button>
+					<span class="set-info c7">Provide support for panel API interface access</span>
+				</p>
+
+				<p class="mtb15">
+					<span class="set-tit text-right" title="Unauthenticated Response Status">Unauthenticated Response Status</span>
+					<input name="status_code" class="inputtxt bt-input-text disable" type="text" value="{{data['status_code_msg']}}" disabled>
+					<button type="button" class="btn btn-success btn-sm ml5" data-code="{{data['status_code']}}" onclick="setStatusCode(this)">Set</button>
+					<span class="set-info c7">For response when not logged in and security entry not entered correctly, can be used to hide panel features</span>
+				</p>
+
+				<p class="mtb15">
+					<span class="set-tit text-right" title="Temporary Access Authorization">Temporary Access Authorization</span>
+					<button type="button" class="btn btn-success btn-sm ml5" onclick="setTempAccess()">Temporary access authorization management</button>
+					<span class="set-info c7">Temporarily provide panel access for non-admins</span>
+				</p>
+			</div>
+			<div class="title c6 plr15"><h3 class="f16">Notify</h3></div>
+
+			<div class="setting-con pd15">
+
+				<p class="mtb15">
+					<span class="set-tit text-right" title="TelegramBot" style="float: left;">TBot notification</span>
+						<input id="cfg_tgbot" name="cfg_tgbot" onclick="setNotifyApi('tgbot',this)" class="btswitch btswitch-ios" type="checkbox" {{data['notify_tgbot_enable']}}>
+						<label class="btswitch-btn ml5" for="cfg_tgbot" style="float: left;margin-top:4px;"></label>
+	                <button ype="button" class="btn btn-default btn-xs panel_api_btn" style="vertical-align: middle; margin-left: 10px" onclick="getTgbot();">Telegram bot configuration</button>
+					<span class="set-info c7">Telegram bot notification</span>
+				</p>
+
 			</div>
 		</div>
 	</div>

@@ -1,155 +1,149 @@
 {% extends "layout.html" %} {% block content %}
 <div class="main-content">
 
-    <div class="index-pos-box bgw">
-        <div class="position f12 c6 pull-left" style="background:none;padding-left:15px">
-            <span class="ico-system">Dasbor <span class="small">versi {{config.version}}</span></span>
-        </div>
-        <span class="pull-right f12 c6" style="line-height:52px; margin-right:15px">
-            <!--<span id="version" style="margin-right:10px">{{config.version}}</span>-->
-            <!--<span id="toUpdate"><a class="btlink" href="javascript:checkUpdate();">Perbarui</a></span> |-->
-            <!-- <span style="margin:0 10px"><a class="btlink" href="javascript:rePanel();">修复</a></span> -->
-            <span><a class="btlink btn btn-xs btn-danger" href="javascript:reBoot();">Restart</a></span>
-        </span>
-    </div>
-
     <div class="container-fluid" style="padding-bottom: 66px;">
 
         <div class="danger-tips">
             <div class="alert alert-warning" id="messageError" style="display: none;background-color: #ffe0e0;border-color: #ffb0b0;color: #ff2020; margin-bottom:0;margin-top: 12px;"></div>
         </div>
 
-        <div class="content" style="margin-top: 20px;">
-
-          <div class="row">
-
-            <div class="col-md-4 col-sm-12 col-xs-12">
-              <div class="info-box">
-              <span class="info-box-icon bg-aqua"><i class="glyphicon glyphicon-hdd"></i></span>
-              <div class="info-box-content">
-                <span class="info-box-text">Sistem Operasi</span>
-                <span class="info-box-number" id="info">Tunggu sebentar....</span>
-              </div>
-              </div>
+        <div class="conter-box system-info bgw clearfix mtb15">
+            <div class="title c6 f16 plr15">
+              Overviw
+              <span class="pull-right f12 c6" style="line-height:52px; margin-right:15px">
+                  <span id="version" style="margin-right:10px">{{config.version}}</span>
+                  <span id="toUpdate"><a class="btlink" href="javascript:checkUpdate();">Renew</a></span> |
+                  <!-- <span style="margin:0 10px"><a class="btlink" href="javascript:rePanel();">Repair</a></span> -->
+                  <span><a class="btlink" href="javascript:reBoot();">Reboot</a></span>
+              </span>
             </div>
+            <div class="system-info-con mtb20">
 
-            <div class="col-md-4 col-sm-12 col-xs-12">
-              <div class="info-box">
-                <span class="info-box-icon bg-red"><i class="glyphicon glyphicon-time"></i></span>
+              <div class="col-md-4 col-sm-12 col-xs-12">
+                <div class="info-box">
+                <span class="info-box-icon bg-aqua"><i class="glyphicon glyphicon-hdd"></i></span>
                 <div class="info-box-content">
-                  <span class="info-box-text">Uptime Server</span>
-                  <span class="info-box-number" id="running">Tunggu sebentar....</span>
+                  <span class="info-box-text">Sistem Operasi</span>
+                  <span class="info-box-number" id="info">Tunggu sebentar....</span>
+                </div>
                 </div>
               </div>
-            </div>
 
-            <div class="col-md-4 col-sm-12 col-xs-12">
-              <div class="info-box">
-                <span class="info-box-icon bg-green"><i class="glyphicon glyphicon-globe"></i></span>
-                <div class="info-box-content">
-                  <span class="info-box-text">Data Situs</span>
-                  <span class="info-box-number"><a class="btlink" href="/site">{{data['site_count']}}</a> Situs Web Terdaftar</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <div class="server bgw mtb15">
-              <div class="title c6 f16 plr15">
-                  <h3 class="c6 f16 pull-left">Status Server</h3>
-              </div>
-              <div class="server-circle">
-                  <ul class="row" id="systemInfoList">
-                      <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center" id="LoadList">
-                          <h3 class="c5 f15">Beban Server<a href="https://github.com/basoro/slemp/wiki" target="_blank" class="bt-ico-ask" style="cursor: pointer;">?</a></h3>
-                          <div class="circle" style="cursor: pointer;">
-                              <div class="pie_left">
-                                  <div class="left"></div>
-                              </div>
-                              <div class="pie_right">
-                                  <div class="right"></div>
-                              </div>
-                              <div class="mask"><span id="Load">0</span>%</div>
-                          </div>
-                          <h4 id="LoadState" class="c5 f15">Tunggu sebentar....</h4>
-                      </li>
-                      <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center" id="cpuChart">
-                          <h3 class="c5 f15">Penggunaan CPU</h3>
-                          <div class="circle">
-                              <div class="pie_left">
-                                  <div class="left"></div>
-                              </div>
-                              <div class="pie_right">
-                                  <div class="right"></div>
-                              </div>
-                              <div class="mask"><span id="state">0</span>%</div>
-                          </div>
-                          <h4 id="core" class="c5 f15">Tunggu sebentar....</h4>
-                      </li>
-                      <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center">
-                          <h3 class="c5 f15">Penggunaan RAM</h3>
-                          <div class="circle mem-release">
-                              <div class="pie_left">
-                                  <div class="left"></div>
-                              </div>
-                              <div class="pie_right">
-                                  <div class="right"></div>
-                              </div>
-                              <div class="mask"><span id="left">0</span>%</div>
-                              <div class="mem-re-min" style="display: none;"></div>
-                              <div class="mem-re-con" title=""></div>
-                          </div>
-                          <h4 id="memory" class="c5 f15">Tunggu sebentar....</h4>
-                      </li>
-                  </ul>
-              </div>
-          </div>
-
-          <div class="col-xs-12 col-sm-12 col-md-6 pull-left pd0">
-              <div class="pr8">
-                  <div class="bgw" style="height:506px">
-                      <div class="title c6 f16 plr15">Status Jaringan</div>
-                      <div class="bw-info">
-                          <div class="col-sm-6 col-md-3"><p class="c9"><span class="ico-up"></span>Unggah</p><a id="upSpeed">0</a></div>
-                          <div class="col-sm-6 col-md-3"><p class="c9"><span class="ico-down"></span>Unduh</p><a id="downSpeed">0</a></div>
-                          <div class="col-sm-6 col-md-3"><p class="c9">Tot. Unggah</p><a id="upAll">0</a></div>
-                          <div class="col-sm-6 col-md-3"><p class="c9">Tot. Unduh</p><a id="downAll">0</a></div>
-                      </div>
-                      <div id="NetImg" style="width:100%;height:345px;"></div>
+              <div class="col-md-4 col-sm-12 col-xs-12">
+                <div class="info-box">
+                  <span class="info-box-icon bg-red"><i class="glyphicon glyphicon-time"></i></span>
+                  <div class="info-box-content">
+                    <span class="info-box-text">Uptime Server</span>
+                    <span class="info-box-number" id="running">Tunggu sebentar....</span>
                   </div>
+                </div>
               </div>
-          </div>
 
-          <div class="col-xs-12 col-sm-12 col-md-6 pull-left pd0">
-              <div class="pl7">
-                  <div class="bgw">
-                      <div class="title c6 f16 plr15">Perangkat Lunak</div>
-                      <div class="divtable pd15 relative">
-                        <div class="" style="height:426px; overflow:auto">
-                        <table class="table table-hover table-striped" width="100%" cellspacing="0" cellpadding="0" border="0">
-                          <thead>
-                            <tr>
-                              <th width="165">Nama Aplikasi</th>
-                              <th class="visible-lg visible-md visible-sm">Deskripsi</th>
-                              <th width="50">Status</th>
-                              <th style="text-align: right;" width="120">Aksi</th>
-                            </tr>
-                          </thead>
-                          <tbody id="softListIndex"></tbody>
-                        </table>
+              <div class="col-md-4 col-sm-12 col-xs-12">
+                <div class="info-box">
+                  <span class="info-box-icon bg-green"><i class="glyphicon glyphicon-globe"></i></span>
+                  <div class="info-box-content">
+                    <span class="info-box-text">Data Situs</span>
+                    <span class="info-box-number"><a class="btlink" href="/site">{{data['site_count']}}</a> Situs Web Terdaftar</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+        </div>
+
+        <div class="server bgw mtb15">
+            <div class="title c6 f16 plr15">
+                <h3 class="c6 f16 pull-left">Status</h3>
+            </div>
+            <div class="server-circle">
+                <ul class="row" id="systemInfoList">
+                    <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center" id="LoadList">
+                        <h3 class="c5 f15">Load status<a href="https://github.com/basoro/slemp/wiki" target="_blank" class="bt-ico-ask" style="cursor: pointer;">?</a></h3>
+                        <div class="circle" style="cursor: pointer;">
+                            <div class="pie_left">
+                                <div class="left"></div>
+                            </div>
+                            <div class="pie_right">
+                                <div class="right"></div>
+                            </div>
+                            <div class="mask"><span id="Load">0</span>%</div>
                         </div>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
+                        <h4 id="LoadState" class="c5 f15">Wait...</h4>
+                    </li>
+                    <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center" id="cpuChart">
+                        <h3 class="c5 f15">CPU usage</h3>
+                        <div class="circle">
+                            <div class="pie_left">
+                                <div class="left"></div>
+                            </div>
+                            <div class="pie_right">
+                                <div class="right"></div>
+                            </div>
+                            <div class="mask"><span id="state">0</span>%</div>
+                        </div>
+                        <h4 id="core" class="c5 f15">Wait...</h4>
+                    </li>
+                    <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center">
+                        <h3 class="c5 f15">Memory usage</h3>
+                        <div class="circle mem-release">
+                            <div class="pie_left">
+                                <div class="left"></div>
+                            </div>
+                            <div class="pie_right">
+                                <div class="right"></div>
+                            </div>
+                            <div class="mask"><span id="left">0</span>%</div>
+                            <div class="mem-re-min" style="display: none;"></div>
+                            <div class="mem-re-con" title=""></div>
+                        </div>
+                        <h4 id="memory" class="c5 f15">Wait...</h4>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-xs-12 col-sm-12 col-md-6 pull-left pd0">
+            <div class="pr8">
+                <div class="bgw">
+                    <div class="title c6 f16 plr15">Software</div>
+                    <div class="setting-con" style="padding:0; height:442px; margin-right: -4px; overflow: hidden;">
+                        <div class="container-fluid soft-man">
+                            <input name="list1SortOrder" type="hidden" value="" />
+                            <div id="indexsoft" class="row"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xs-12 col-sm-12 col-md-6 pull-left pd0">
+            <div class="pl7">
+                <div class="bgw" style="height:491px">
+                    <div class="title c6 f16 plr15">Stat</div>
+                    <div class="bw-info">
+                        <div class="col-sm-6 col-md-3"><p class="c9"><span class="ico-up"></span>Upload</p><a id="upSpeed">0</a></div>
+                        <div class="col-sm-6 col-md-3"><p class="c9"><span class="ico-down"></span>Download</p><a id="downSpeed">0</a></div>
+                        <div class="col-sm-6 col-md-3"><p class="c9">Total upload</p><a id="upAll">0</a></div>
+                        <div class="col-sm-6 col-md-3"><p class="c9">Total download</p><a id="downAll">0</a></div>
+                    </div>
+                    <div id="netImg" style="width:100%;height:330px;"></div>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 </div>
 <script type="text/javascript" src="/static/app/site.js?v={{config.version}}"></script>
 <script type="text/javascript" src="/static/app/soft.js?v={{config.version}}"></script>
 <script type="text/javascript" src="/static/app/index.js?v={{config.version}}"></script>
 <script type="text/javascript">
+
+netImg();
+setImg();
+pluginInit();
+loadKeyDataCount();
+
 setTimeout(function() {
     getDiskInfo();
 }, 500)
@@ -161,134 +155,6 @@ setTimeout(function() {
 setTimeout(function() {
     getInfo();
 }, 1500);
-
-//Get the software list
-function getSListIndex(isdisplay) {
-    if (isdisplay !== true) {
-        var loadT = layer.msg('Mengambil daftar aplikasi...', { icon: 16, time: 0, shade: [0.3, '#000'] })
-    }
-    if (!isdisplay || isdisplay === true)
-        isdisplay = getCookie('p' + getCookie('soft_type'));
-    if (isdisplay == true || isdisplay == 'true') isdisplay = 1;
-
-    var search = $("#SearchValue").val();
-    if (search != '') {
-        search = '&search=' + search;
-    }
-    var type = '';
-    var istype = getCookie('soft_type');
-    if (istype == 'undefined' || istype == 'null' || !istype) {
-        istype = '0';
-    }
-
-    type = '&type=' + istype;
-    var page = '';
-    if (isdisplay) {
-        page = '&p=' + isdisplay;
-        setCookie('p' + getCookie('soft_type'), isdisplay);
-    }
-
-    var condition = (search + type + page).slice(1);
-    $.get('/plugins/list?' + condition, '', function(rdata) {
-        layer.close(loadT);
-        var tBody = '';
-        var sBody = '';
-        var pBody = '';
-
-        for (var i = 0; i < rdata.type.length; i++) {
-            var c = '';
-            if (istype == rdata.type[i].type) {
-                c = 'class="on"';
-            }
-            tBody += '<span typeid="' + rdata.type[i].type + '" ' + c + '>' + rdata.type[i].title + '</span>';
-        }
-
-        $(".softtype").html(tBody);
-        $("#softPage").html(rdata.list);
-        $("#softPage .Pcount").css({ "position": "absolute", "left": "0" })
-
-        $(".task").text(rdata.data[rdata.length - 1]);
-        for (var i = 0; i < rdata.data.length; i++) {
-            var plugin = rdata.data[i];
-            var len = plugin.versions.length;
-            var version_info = '';
-            var version = '';
-            var softPath = '';
-            var titleClick = '';
-            var state = '';
-            var indexshow = '';
-            var checked = '';
-
-            checked = plugin.display ? 'checked' : '';
-
-            if (typeof plugin.versions == "string"){
-                version_info += plugin.versions + '|';
-            } else {
-                for (var j = 0; j < len; j++) {
-                    version_info += plugin.versions[j] + '|';
-                }
-            }
-            if (version_info != '') {
-                version_info = version_info.substring(0, version_info.length - 1);
-            }
-
-
-            var handle = '<a class="btlink" onclick="addVersion(\'' + plugin.name + '\',\'' + version_info + '\',\'' + plugin.tip + '\',this,\'' + plugin.title + '\',' + plugin.install_pre_inspection + ')">Pasang</a>';
-
-            if (plugin.setup == true) {
-
-                var mupdate = '';
-                handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\''+ plugin.name +'\',\'' + plugin.setup_version + '\')">Atur</a> | <a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection +')">Lepas</a>';
-                titleClick = 'onclick="softMain(\'' + plugin.name + '\',\''+ plugin.name +'\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
-
-                softPath = '<span class="glyphicon glyphicon-folder-open" title="' + plugin.path + '" onclick="openPath(\'' + plugin.path + '\')"></span>';
-                if (plugin.coexist){
-                    indexshow = '<div class="index-item"><input class="btswitch btswitch-ios" id="index_' + plugin.name  + plugin.versions + '" type="checkbox" ' + checked + '><label class="btswitch-btn" for="index_' + plugin.name + plugin.versions + '" onclick="toIndexDisplay(\'' + plugin.name + '\',\'' + plugin.versions + '\',\'' + plugin.coexist +'\')"></label></div>';
-                } else {
-                    indexshow = '<div class="index-item"><input class="btswitch btswitch-ios" id="index_' + plugin.name + '" type="checkbox" ' + checked + '><label class="btswitch-btn" for="index_' + plugin.name + '" onclick="toIndexDisplay(\'' + plugin.name + '\',\'' + plugin.setup_version + '\')"></label></div>';
-                }
-
-                if (plugin.status == true) {
-                    state = '<span style="color:#20a53a" class="glyphicon glyphicon-play"></span>'
-                } else {
-                    state = '<span style="color:red" class="glyphicon glyphicon-pause"></span>'
-                }
-            }
-
-            if (plugin.task == '-2') {
-                handle = '<a style="color:green;" href="javascript:task();">Uninstalling...</a>';
-            } else if (plugin.task == '-1') {
-                handle = '<a style="color:green;" href="javascript:task();">Installing...</a>';
-            } else if (plugin.task == '0') {
-                handle = '<a style="color:#C0C0C0;" href="javascript:task();">Waiting...</a>';
-            }
-
-            var plugin_title = plugin.title;
-            if (plugin.setup && !plugin.coexist){
-                plugin_title = plugin.title + ' ' + plugin.setup_version;
-            }
-
-
-            sBody += '<tr>' +
-                '<td>' + plugin_title + '</td>' +
-                '<td class="visible-lg visible-md visible-sm">' + plugin.ps + '</td>' +
-                '<td>' + state + '</td>' +
-                '<td style="text-align: right;">' + handle + '</td>' +
-                '</tr>';
-        }
-
-        sBody += pBody;
-        $("#softListIndex").html(sBody);
-        $(".menu-sub span").click(function() {
-            setCookie('soft_type', $(this).attr('typeid'));
-            $(this).addClass("on").siblings().removeClass("on");
-            getSListIndex();
-        });
-
-        loadImage();
-    },'json');
-}
-getSListIndex();
 
 </script>
 {% endblock %}

@@ -1,4 +1,3 @@
-
 $(document).ready(function() {
 	$(".sub-menu a.sub-menu-a").click(function() {
 		$(this).next(".sub").slideToggle("slow").siblings(".sub:visible").slideUp("slow");
@@ -14,6 +13,19 @@ function toSize(a) {
 		}
 		a /= e
 	}
+}
+
+function toTrim(x) {
+    return x.replace(/^\s+|\s+$/gm,'');
+}
+
+function inArray(f, arr){
+	for (var i = 0; i < arr.length; i++) {
+		if (f == arr[i]) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function tableFixed(name) {
@@ -82,6 +94,19 @@ function isValidIP(ip) {
 
 function isContains(str, substr) {
     return str.indexOf(substr) >= 0;
+}
+
+
+function filterPath(path){
+	var path_arr = path.split('/');
+	var path_new = [];
+	for (var i = 0; i < path_arr.length; i++) {
+		if (path_arr[i]!=''){
+			path_new.push(path_arr[i]);
+		}
+	}
+	var rdata = "/"+path_new.join('/');
+	return rdata;
 }
 
 function msgTpl(msg, args){
@@ -189,6 +214,45 @@ function getFormatTime(tm, format) {
 	return format;
 }
 
+function changePathCallback(default_dir, callback) {
+
+	var c = layer.open({
+		type: 1,
+		area: "650px",
+		title: 'Select directory',
+		closeBtn: 1,
+		shift: 5,
+		shadeClose: false,
+		content: "<div class='changepath'><div class='path-top'><button type='button' class='btn btn-default btn-sm' onclick='backFile()'><span class='glyphicon glyphicon-share-alt'></span>Return</button>\
+		<div class='place' id='PathPlace'>Current path：<span></span></div></div><div class='path-con'><div class='path-con-left'><dl><dt id='changecomlist' onclick='backMyComputer()'>Computer</dt></dl></div>\
+		<div class='path-con-right'><ul class='default' id='computerDefautl'></ul><div class='file-list divtable'>\
+			<table class='table table-hover' style='border:0 none'>\
+				<thead><tr class='file-list-head'><th width='40%'>Filename</th><th width='20%'>Modified</th><th width='10%'>Permissions</th><th width='10%'>Owner</th><th width='10%'></th></tr></thead>\
+				<tbody id='tbody' class='list-list'></tbody></table></div></div></div></div><div class='getfile-btn' style='margin-top:0'>\
+				<button type='button' class='btn btn-default btn-sm pull-left' onclick='createFolder()'>New folder</button>\
+				<button type='button' class='btn btn-danger btn-sm mr5 btn-close'>Cancel</button>\
+				<button type='button' class='btn btn-success btn-sm btn-choose'>Select</button>\
+		</div>",
+		success:function(layero,layer_index){
+			$('.btn-close').click(function(){
+				layer.close(layer_index);
+			});
+
+			$('.btn-choose').click(function(){
+				var a = $("#PathPlace").find("span").text();
+				a = a.replace(new RegExp(/(\\)/g), "/");
+				a_len = a.length;
+				if (a[a_len-1] == '/'){
+					a = a.substr(0,a_len-1);
+				}
+				callback(a);
+				layer.close(layer_index);
+			});
+		}
+	});
+	getDiskList(default_dir);
+	activeDisk();
+}
 
 function changePath(d) {
 	setCookie('SetId', d);
@@ -196,22 +260,22 @@ function changePath(d) {
 	var c = layer.open({
 		type: 1,
 		area: "650px",
-		title: 'Pilih direktori',
+		title: 'Select directory',
 		closeBtn: 1,
 		shift: 5,
 		shadeClose: false,
-		content: "<div class='changepath'><div class='path-top'><button type='button' class='btn btn-default btn-sm' onclick='backFile()'><span class='glyphicon glyphicon-share-alt'></span>Kembali</button>\
-		<div class='place' id='PathPlace'>Path: <span></span></div></div><div class='path-con'><div class='path-con-left'><dl><dt id='changecomlist' onclick='backMyComputer()'>Komputer</dt></dl></div>\
+		content: "<div class='changepath'><div class='path-top'><button type='button' class='btn btn-default btn-sm' onclick='backFile()'><span class='glyphicon glyphicon-share-alt'></span>Return</button>\
+		<div class='place' id='PathPlace'>Current path：<span></span></div></div><div class='path-con'><div class='path-con-left'><dl><dt id='changecomlist' onclick='backMyComputer()'>Computer</dt></dl></div>\
 		<div class='path-con-right'><ul class='default' id='computerDefautl'></ul><div class='file-list divtable'>\
 			<table class='table table-hover' style='border:0 none'>\
-				<thead><tr class='file-list-head'><th width='40%'>Nama File</th><th width='20%'>Diubah</th><th width='10%'>Permission</th><th width='10%'>Pemilik</th><th width='10%'></th></tr></thead>\
+				<thead><tr class='file-list-head'><th width='40%'>Filename</th><th width='20%'>Modified</th><th width='10%'>Permissions</th><th width='10%'>Owner</th><th width='10%'></th></tr></thead>\
 				<tbody id='tbody' class='list-list'></tbody></table></div></div></div></div><div class='getfile-btn' style='margin-top:0'>\
-				<button type='button' class='btn btn-default btn-sm pull-left' onclick='createFolder()'>Folder Baru</button>\
-				<button type='button' class='btn btn-danger btn-sm mr5' onclick=\"layer.close(getCookie('ChangePath'))\">Tutup</button>\
-				<button type='button' class='btn btn-success btn-sm' onclick='getfilePath()'>Pilih</button>\
+				<button type='button' class='btn btn-default btn-sm pull-left' onclick='createFolder()'>New folder</button>\
+				<button type='button' class='btn btn-danger btn-sm mr5' onclick=\"layer.close(getCookie('changePath'))\">Cancel</button>\
+				<button type='button' class='btn btn-success btn-sm' onclick='getfilePath()'>Select</button>\
 		</div>"
 	});
-	setCookie("ChangePath", c);
+	setCookie("changePath", c);
 	var b = $("#" + d).val();
 	tmp = b.split(".");
 	if(tmp[tmp.length - 1] == "gz") {
@@ -281,8 +345,8 @@ function getDiskList(b) {
 function createFolder() {
 	var a = "<tr>\
 		<td colspan='2'><span class='glyphicon glyphicon-folder-open'></span><input id='newFolderName' class='newFolderName' type='text' value=''></td>\
-		<td colspan='3'><button id='nameOk' type='button' class='btn btn-success btn-sm'>Ok</button>\
-			&nbsp;&nbsp;<button id='nameNOk' type='button' class='btn btn-default btn-sm'>Batal</button></td>\
+		<td colspan='3'><button id='nameOk' type='button' class='btn btn-success btn-sm'>Yes</button>\
+			&nbsp;&nbsp;<button id='nameNOk' type='button' class='btn btn-default btn-sm'>Cancel</button></td>\
 		</tr>";
 	if($("#tbody tr").length == 0) {
 		$("#tbody").append(a)
@@ -392,7 +456,8 @@ function getfilePath() {
 	}
 
 	$("#" + getCookie("SetId")).val(a + getCookie("SetName"));
-	layer.close(getCookie("ChangePath"));
+	layer.close(getCookie("changePath"));
+	return a;
 }
 
 function setCookie(a, c) {
@@ -440,29 +505,24 @@ function openPath(a) {
 	window.location.href = "/files/"
 }
 
-function onlineEditFile(k, f) {
+function onlineEditFile(k, f, callback) {
 	if(k != 0) {
 		var l = $("#PathPlace input").val();
 		var h = encodeURIComponent($("#textBody").val());
 		var a = $("select[name=encoding]").val();
-		var loadT = layer.msg(lan.bt.save_file, {
-			icon: 16,
-			time: 0
-		});
-		$.post("/files/save_body", "data=" + h + "&path=" + encodeURIComponent(f) + "&encoding=" + a, function(m) {
+		var loadT = layer.msg('Saving, please wait...', {icon: 16,time: 0});
+		$.post("/files/save_body", "data=" + h + "&path=" + encodeURIComponent(f) + "&encoding=" + a, function(data) {
 			if(k == 1) {
 				layer.close(loadT);
 			}
-			layer.msg(m.msg, {
-				icon: m.status ? 1 : 2
-			});
+			layer.msg(data.msg, {icon: data.status ? 1 : 2});
+			if (data.status && typeof(callback) == 'function'){
+				callback(k, f);
+			}
 		},'json');
 		return
 	}
-	var e = layer.msg(lan.bt.read_file, {
-		icon: 16,
-		time: 0
-	});
+	var e = layer.msg('Reading file, please wait...', {icon: 16,time: 0});
 	var g = f.split(".");
 	var b = g[g.length - 1];
 	var d;
@@ -520,15 +580,12 @@ function onlineEditFile(k, f) {
 		default:
 			var j = {
 				name: "htmlmixed",
-				scriptTypes: [{
-					matches: /\/x-handlebars-template|\/x-mustache/i,
-					mode: null
-				}, {
-					matches: /(text|application)\/(x-)?vb(a|script)/i,
-					mode: "vbscript"
-				}]
+				scriptTypes: [
+					{matches: /\/x-handlebars-template|\/x-mustache/i,mode: null},
+					{matches: /(text|application)\/(x-)?vb(a|script)/i,mode: "vbscript"}
+				]
 			};
-			d = j
+			d = j;
 	}
 	$.post("/files/get_body", "path=" + encodeURIComponent(f), function(s) {
 		if(s.status === false){
@@ -541,43 +598,60 @@ function onlineEditFile(k, f) {
 		var m = "";
 		var o = "";
 		for(var p = 0; p < u.length; p++) {
-			m = s.encoding == u[p] ? "selected" : "";
-			n += '<option value="' + u[p] + '" ' + m + ">" + u[p] + "</option>"
+			m = s.data.encoding == u[p] ? "selected" : "";
+			n += '<option value="' + u[p] + '" ' + m + ">" + u[p] + "</option>";
 		}
+		var code_mirror = null;
 		var r = layer.open({
 			type: 1,
 			shift: 5,
 			closeBtn: 1,
 			area: ["90%", "90%"],
-			title: lan.bt.edit_title+"[" + f + "]",
-			content: '<form class="bt-form pd20 pb70"><div class="line"><p style="color:red;margin-bottom:10px">'+lan.bt.edit_ps+'			<select class="bt-input-text" name="encoding" style="width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;">' + n + '</select></p><textarea class="mCustomScrollbar bt-input-text" id="textBody" style="width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;" value="" />			</div>			<div class="bt-form-submit-btn" style="position:absolute; bottom:0; width:100%">			<button type="button" class="btn btn-danger btn-sm btn-editor-close">'+lan.public.close+'</button>			<button id="OnlineEditFileBtn" type="button" class="btn btn-success btn-sm">'+lan.public.save+'</button>			</div>			</form>'
-		});
-		$("#textBody").text(s.data.data);
-		var q = $(window).height() * 0.9;
-		$("#textBody").height(q - 160);
-		var t = CodeMirror.fromTextArea(document.getElementById("textBody"), {
-			extraKeys: {
-				"Ctrl-F": "findPersistent",
-				"Ctrl-H": "replaceAll",
-				"Ctrl-S": function() {
-					$("#textBody").text(t.getValue());
-					onlineEditFile(2, f)
-				}
+			btn:['Save','Cancel'],
+			title: "Online editing [" + f + "]",
+			content: '<form class="bt-form pd20">\
+				<div class="line">\
+					<p style="color:red;margin-bottom:10px">Tip: Ctrl+F to search keywords, Ctrl+G to find next, Ctrl+S to save, Ctrl+Shift+R to find and replace!\
+						<select class="bt-input-text" name="encoding" style="width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;">' + n + '</select>\
+					</p>\
+					<textarea class="mCustomScrollbar bt-input-text" id="textBody" style="width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;" value="" />\
+				</div>\
+				</form>',
+				success:function(){
+					$("#textBody").text(s.data.data);
+					var q = $(window).height() * 0.9;
+					$("#textBody").height(q - 160);
+					code_mirror = CodeMirror.fromTextArea(document.getElementById("textBody"), {
+						extraKeys: {
+							"Ctrl-F": "findPersistent",
+							"Ctrl-H": "replaceAll",
+							"Ctrl-S": function() {
+								$("#textBody").text(code_mirror.getValue());
+								onlineEditFile(2, f,callback);
+							},
+							"Cmd-S":function() {
+								$("#textBody").text(code_mirror.getValue());
+								onlineEditFile(2, f,callback);
+							},
+						},
+						mode: d,
+						lineNumbers: true,
+						matchBrackets: true,
+						matchtags: true,
+						autoMatchParens: true
+					});
+					code_mirror.focus();
+					code_mirror.setSize("auto", q - 150);
+
+					$(window).resize(function(){
+              var q = $(window).height() * 0.9;
+              code_mirror.setSize("auto", q - 150);
+	        });
 			},
-			mode: d,
-			lineNumbers: true,
-			matchBrackets: true,
-			matchtags: true,
-			autoMatchParens: true
-		});
-		t.focus();
-		t.setSize("auto", q - 150);
-		$("#OnlineEditFileBtn").click(function() {
-			$("#textBody").text(t.getValue());
-			onlineEditFile(1, f);
-		});
-		$(".btn-editor-close").click(function() {
-			layer.close(r);
+			yes:function(){
+				$("#textBody").text(code_mirror.getValue());
+				onlineEditFile(1, f,callback);
+			}
 		});
 	},'json');
 }
@@ -598,19 +672,22 @@ function divcenter() {
 	$(".layui-layer").css("top", e + "px")
 }
 
-function btcopy(password) {
-	$("#bt_copys").attr('data-clipboard-text',password);
-	$("#bt_copys").click();
+function copyText(value) {
+	var clipboard = new ClipboardJS('#slemp_copys');
+    clipboard.on('success', function (e) {
+        layer.msg('Copy successfully',{icon:1,time:2000});
+    });
+
+    clipboard.on('error', function (e) {
+        layer.msg('Copy failed, browser incompatible!',{icon:2,time:2000});
+    });
+    $("#slemp_copys").attr('data-clipboard-text',value);
+    $("#slemp_copys").click();
 }
 
-var clipboard = new ClipboardJS('#bt_copys');
-clipboard.on('success', function (e) {
-    layer.msg('Copy successfully!',{icon:1});
-});
-
-clipboard.on('error', function (e) {
-    layer.msg('Copy failed, browser is not compatible!',{icon:2});
-});
+function copyPass(value){
+	copyText(value);
+}
 
 function isChineseChar(b) {
 	var a = /[\u4E00-\u9FA5\uF900-\uFA2D]/;
@@ -646,11 +723,11 @@ function safeMessage(j, h, g, f) {
 	$("#toSubmit").click(function() {
 		var a = $("#vcodeResult").val().replace(/ /g, "");
 		if(a == undefined || a == "") {
-			layer.msg('Silakan masukkan hasil perhitungan dengan benar!');
+			layer.msg('Please enter the calculation result correctly!');
 			return
 		}
 		if(a != getCookie("vcodesum")) {
-			layer.msg('Silakan masukkan hasil perhitungan dengan benar!');
+			layer.msg('Please enter the calculation result correctly!');
 			return
 		}
 		layer.close(mess);
@@ -710,9 +787,9 @@ $(function() {
 	})
 });
 
-$("#dologin").click(function() {
-	layer.confirm('Yakin ingin logout dari panel??', {title:'Logout Panel',icon:3,closeBtn:2,btn: ['Logout','Cancel']}, function() {
-		window.location.href = "/login?dologin=True"
+$("#signout").click(function() {
+	layer.confirm('Do you really want to exit the panel?', {icon:3,closeBtn: 1}, function() {
+		window.location.href = "/login?signout=True"
 	});
 	return false
 });
@@ -741,7 +818,7 @@ function ActionTask() {
 }
 
 function removeTask(b) {
-	var a = layer.msg('Menghapus, harap tunggu...', {
+	var a = layer.msg('Deleting, please wait...', {
 		icon: 16,
 		time: 0,
 		shade: [0.3, "#000"]
@@ -769,16 +846,16 @@ function GetTaskList(a) {
 				case "-1":
 					f = true;
 					if(g.data[d].type != "download") {
-						b = "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state'>Menginstal <img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + g.data[d].id + ")\">Tutup</a></span><span class='opencmd'></span><pre class='cmd'></pre></li>"
+						b = "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state'>Installing <img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + g.data[d].id + ")\">Cancel</a></span><span class='opencmd'></span><pre class='cmd'></pre></li>"
 					} else {
-						b = "<li><div class='line-progress' style='width:0%'></div><span class='titlename'>" + g.data[d].name + "<a id='speed' style='margin-left:130px;'>0.0M/12.5M</a></span><span class='com-progress'>0%</span><span class='state'>Mengunduh <img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + g.data[d].id + ")\">"+lan.public.close+"</a></span></li>"
+						b = "<li><div class='line-progress' style='width:0%'></div><span class='titlename'>" + g.data[d].name + "<a id='speed' style='margin-left:130px;'>0.0M/12.5M</a></span><span class='com-progress'>0%</span><span class='state'> downloading <img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + g.data[d].id + ")\">"+lan.public.close+"</a></span></li>"
 					}
 					break;
 				case "0":
-					c += "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state'>Tunggu</span> | <a href=\"javascript:removeTask(" + g.data[d].id + ")\">Hapus</a></li>";
+					c += "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state'>wait</span> | <a href=\"javascript:removeTask(" + g.data[d].id + ")\">delete['']</a></li>";
 					break;
 				case "1":
-					e += "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state'>" + g.data[d].addtime + "  "+'selesai'+"  "+ 'dalam waktu' + (g.data[d].end - g.data[d].start)+"detik</span></li>"
+					e += "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state'>" + g.data[d].addtime + "  "+'completed'+"  "+ 'time consuming' + (g.data[d].end - g.data[d].start)+" second</span></li>"
 			}
 		}
 		$("#srunning").html(b + c);
@@ -820,6 +897,32 @@ function installTips() {
 		$(".layui-layer-tips").remove()
 	})
 }
+
+
+// function fly(a) {
+// 	var b = $("#task").offset();
+// 	$("." + a).click(function(d) {
+// 		var e = $(this);
+// 		var c = $('<span class="yuandian"></span>');
+// 		c.fly({
+// 			start: {
+// 				left: d.pageX,
+// 				top: d.pageY
+// 			},
+// 			end: {
+// 				left: b.left + 10,
+// 				top: b.top + 10,
+// 				width: 0,
+// 				height: 0
+// 			},
+// 			onEnd: function() {
+// 				layer.closeAll();
+// 				layer.msg(lan.bt.task_add, {icon: 1});
+// 				getTaskCount();
+// 			}
+// 		});
+// 	});
+// };
 
 function flySlow(a) {
 	var b = $("#task").offset();
@@ -929,7 +1032,7 @@ function getPanelList(){
 				<input name="code" id="bt_code" value="12345" type="text">\
 			</form><iframe name="btpfrom" src=""></iframe></div>';
 			$("body").append(loginForm);
-			layer.msg('Panel sedang dibuka...',{icon:16,shade: [0.3, '#000'],time:1000});
+			layer.msg('Opening panel...',{icon:16,shade: [0.3, '#000'],time:1000});
 			setTimeout(function(){
 				$("#toBtpanel").submit();
 			},500);
@@ -945,12 +1048,12 @@ function getPanelList(){
 getPanelList();
 
 function bindPanel(a,type,ip,btid,url,user,pw){
-	var titleName = 'Panel terhubung';
+	var titleName = 'Association panel';
 	if(type == "b"){
-		btn = "<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'b')\">Tambah</button>";
+		btn = "<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'b')\">Add to</button>";
 	} else {
-		titleName = 'Ubah ' + ip;
-		btn = "<button type='button' class='btn btn-default btn-sm' onclick=\"bindPaneldel('"+btid+"')\">Hapus</button><button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'c','"+ip+"','"+btid+"')\" style='margin-left:7px'>Edit</button>";
+		titleName = 'Modify association' + ip;
+		btn = "<button type='button' class='btn btn-default btn-sm' onclick=\"bindPaneldel('"+btid+"')\">Delete</button><button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'c','"+ip+"','"+btid+"')\" style='margin-left:7px'>Revise</button>";
 	}
 	if(url == undefined) url="http://";
 	if(user == undefined) user="";
@@ -960,7 +1063,7 @@ function bindPanel(a,type,ip,btid,url,user,pw){
 		var gurl = "/config/add_panel_info";
 		var btaddress = $("#btaddress").val();
 		if(!btaddress.match(/^(http|https)+:\/\/([\w-]+\.)+[\w-]+:\d+/)){
-			layer.msg('Format alamat panel salah, contoh: <p>http://192.168.0.1:7200</p>',{icon:5,time:5000});
+			layer.msg('Panel address format is incorrect, example：<p>http://192.168.0.1:8888</p>',{icon:5,time:5000});
 			return;
 		}
 		var btuser = encodeURIComponent($("#btuser").val());
@@ -994,31 +1097,38 @@ function bindPanel(a,type,ip,btid,url,user,pw){
 		shift: 5,
 		shadeClose: false,
 		content: "<div class='bt-form pd20 pb70'>\
-				<div class='line'><span class='tname'>Alamat panel</span>\
-				<div class='info-r'><input class='bt-input-text' type='text' name='btaddress' id='btaddress' value='"+url+"' placeholder='Alamat panel' style='width:100%'/></div>\
+				<div class='line'><span class='tname'>Panel address</span>\
+				<div class='info-r'><input class='bt-input-text' type='text' name='btaddress' id='btaddress' value='"+url+"' placeholder='Panel address' style='width:100%'/></div>\
 				</div>\
-				<div class='line'><span class='tname'>Pengguna</span>\
-				<div class='info-r'><input class='bt-input-text' type='text' name='btuser' id='btuser' value='"+user+"' placeholder='Pengguna' style='width:100%'/></div>\
+				<div class='line'><span class='tname'>Username</span>\
+				<div class='info-r'><input class='bt-input-text' type='text' name='btuser' id='btuser' value='"+user+"' placeholder='Username' style='width:100%'/></div>\
 				</div>\
 				<div class='line'><span class='tname'>Password</span>\
 				<div class='info-r'><input class='bt-input-text' type='password' name='btpassword' id='btpassword' value='"+pw+"' placeholder='Password' style='width:100%'/></div>\
 				</div>\
-				<div class='line'><span class='tname'>Nama Panel</span>\
-				<div class='info-r'><input class='bt-input-text' type='text' name='bttitle' id='bttitle' value='"+ip+"' placeholder='Nama Panel' style='width:100%'/></div>\
+				<div class='line'><span class='tname'>Description</span>\
+				<div class='info-r'><input class='bt-input-text' type='text' name='bttitle' id='bttitle' value='"+ip+"' placeholder='Description' style='width:100%'/></div>\
 				</div>\
-				<div class='bt-form-submit-btn'><button type='button' class='btn btn-danger btn-sm' onclick=\"layer.closeAll()\">Tutup</button> "+btn+"</div>\
-			</div>"
-	});
-	$("#btaddress").on("input",function(){
-		var str =$(this).val();
-		var isip = /([\w-]+\.){2,6}\w+/;
-		var iptext = str.match(isip);
-		if(iptext) $("#bttitle").val(iptext[0]);
-	}).blur(function(){
-		var str =$(this).val();
-		var isip = /([\w-]+\.){2,6}\w+/;
-		var iptext = str.match(isip);
-		if(iptext) $("#bttitle").val(iptext[0]);
+				<div class='line'><ul class='help-info-text c7'>\
+					<li>Bookmark other server panel data to realize one-click login panel function</li><li>Panel remarks cannot be repeated</li>\
+					<li><font style='color:red'>Note that turning on ad blocking will make it impossible to log in quickly.</font></li></ul>\
+				</div>\
+				<div class='bt-form-submit-btn'><button type='button' class='btn btn-danger btn-sm' onclick=\"layer.closeAll()\">Cancel</button> "+btn+"</div>\
+				</div>",
+
+			success:function(){
+				$("#btaddress").on("input",function(){
+					var str =$(this).val();
+					var isip = /([\w-]+\.){2,6}\w+/;
+					var iptext = str.match(isip);
+					if(iptext) $("#bttitle").val(iptext[0]);
+				}).blur(function(){
+					var str =$(this).val();
+					var isip = /([\w-]+\.){2,6}\w+/;
+					var iptext = str.match(isip);
+					if(iptext) $("#bttitle").val(iptext[0]);
+				});
+			}
 	});
 }
 
@@ -1060,7 +1170,7 @@ function getSpeed(sele){
 function messageBox() {
 	layer.open({
 		type: 1,
-		title: 'Kotak Pesan',
+		title: 'Message box',
 		area: "670px",
 		closeBtn: 1,
 		shadeClose: false,
@@ -1068,8 +1178,8 @@ function messageBox() {
 					<div class="bt-w-main">\
 						<div class="bt-w-menu">\
 							<p class="bgw" id="taskList" onclick="tasklist()">Task List(<span class="task_count">0</span>)</p>\
-							<p onclick="remind()">Message(<span class="msg_count">0</span>)</p>\
-							<p onclick="execLog()">Exec Log</p>\
+							<p onclick="remind()">Message list(<span class="msg_count">0</span>)</p>\
+							<p onclick="execLog()">Execution log</p>\
 						</div>\
 						<div class="bt-w-con pd15">\
 							<div class="taskcon"></div>\
@@ -1121,9 +1231,9 @@ function remind(a){
 		for(var d = 0; d < g.data.length; d++) {
 			if(g.data[d].status != '1'){
 				task_count++;
-				e += '<tr><td><input type="checkbox"></td><td><div class="titlename c3">'+g.data[d].name+'</span><span class="rs-status">【'+lan.bt.task_the+'】<span><span class="rs-time">time consuming ['+ getSFM(g.data[d].end - g.data[d].start) +']</span></div></td><td class="text-right c3">'+g.data[d].addtime+'</td></tr>'
+				e += '<tr><td><input type="checkbox"></td><td><div class="titlename c3">'+g.data[d].name+'</span><span class="rs-status">【'+lan.bt.task_the+'】<span><span class="rs-time">Time consuming ['+ getSFM(g.data[d].end - g.data[d].start) +']</span></div></td><td class="text-right c3">'+g.data[d].addtime+'</td></tr>'
 			} else{
-				e += '<tr><td><input type="checkbox"></td><td><div class="titlename c3">'+g.data[d].name+'</span><span class="rs-status">【'+lan.bt.task_ok+'】<span><span class="rs-time">time consuming ['+ getSFM(g.data[d].end - g.data[d].start) +']</span></div></td><td class="text-right c3">'+g.data[d].addtime+'</td></tr>';
+				e += '<tr><td><input type="checkbox"></td><td><div class="titlename c3">'+g.data[d].name+'</span><span class="rs-status">【'+lan.bt.task_ok+'】<span><span class="rs-time">Time consuming ['+ getSFM(g.data[d].end - g.data[d].start) +']</span></div></td><td class="text-right c3">'+g.data[d].addtime+'</td></tr>';
 			}
 		}
 		var con = '<div class="divtable"><table class="table table-hover">\
@@ -1191,15 +1301,15 @@ function getReloads() {
 							c += f[e] + "<br>"
 						}
 						if(h.task[g].name.indexOf("scanning") != -1) {
-							b = "<li><span class='titlename'>" + h.task[g].name + "</span><span class='state'>Scanning <img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">Tutup</a></span><span class='opencmd'></span><div class='cmd'>" + c + "</div></li>"
+							b = "<li><span class='titlename'>" + h.task[g].name + "</span><span class='state'>Scanning <img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">cancel</a></span><span class='opencmd'></span><div class='cmd'>" + c + "</div></li>"
 						} else {
-							b = "<li><span class='titlename'>" + h.task[g].name + "</span><span class='state'>Menginstal<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">Tutup</a></span><div class='cmd'>" + c + "</div></li>"
+							b = "<li><span class='titlename'>" + h.task[g].name + "</span><span class='state'>Installing <img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">cancel</a></span><div class='cmd'>" + c + "</div></li>"
 						}
 					} else {
 						b = "<li><div class='line-progress' style='width:" + h.msg.pre + "%'></div><span class='titlename'>" + h.task[g].name + "<a style='margin-left:130px;'>" + (toSize(h.msg.used) + "/" + toSize(h.msg.total)) + "</a></span><span class='com-progress'>" + h.msg.pre + "%</span><span class='state'>"+lan.bt.task_downloading+" <img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">"+lan.public.close+"</a></span></li>"
 					}
 				} else {
-					d += "<li><span class='titlename'>" + h.task[g].name + "</span><span class='state'>Tunggu | <a style='color:green' href=\"javascript:removeTask(" + h.task[g].id + ')">Hapus</a></span></li>'
+					d += "<li><span class='titlename'>" + h.task[g].name + "</span><span class='state'>wait | <a style='color:green' href=\"javascript:removeTask(" + h.task[g].id + ')">delete</a></span></li>'
 				}
 			}
 			$(".cmdlist").html(b + d);
@@ -1245,7 +1355,7 @@ function tasklist(a){
 				case "-1":
 					f = true;
 					if(g.data[d].type != "download") {
-						b = "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state pull-right c6'>Menginstal<img src='/static/img/ing.gif'> | <a class='btlink' href=\"javascript:removeTask(" + g.data[d].id + ")\">Tutup</a></span><span class='opencmd'></span><pre class='cmd'></pre></li>"
+						b = "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state pull-right c6'>Menginstal <img src='/static/img/ing.gif'> | <a class='btlink' href=\"javascript:removeTask(" + g.data[d].id + ")\">Tutup</a></span><span class='opencmd'></span><pre class='cmd'></pre></li>"
 					} else {
 						b = "<li><div class='line-progress' style='width:0%'></div><span class='titlename'>" + g.data[d].name + "<a id='speed' style='margin-left:130px;'>0.0M/12.5M</a></span><span class='com-progress'>0%</span><span class='state'>Mengunduh <img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + g.data[d].id + ")\">Tutup</a></span></li>"
 					}
@@ -1307,7 +1417,7 @@ function check_login(){
 }
 
 function to_login(){
-	layer.confirm('Status login telah kedaluwarsa, silakan login kembali!',{title:'Sesi berakhir',icon:2,closeBtn: 1,btn:['Yes','No'],shift: 5},function(){
+	layer.confirm('Your login status has expired, please log in again!',{title:'Session expired',icon:2,closeBtn: 1,shift: 5},function(){
 		location.reload();
 	});
 }
@@ -1316,7 +1426,6 @@ function table_fixed(name){
 	var tableName = document.querySelector('#'+name);
 	tableName.addEventListener('scroll',scroll_handle);
 }
-
 function scroll_handle(e){
 	var scrollTop = this.scrollTop;
 	$(this).find("thead").css({"transform":"translateY("+scrollTop+"px)","position":"relative","z-index":"1"});
@@ -1324,7 +1433,9 @@ function scroll_handle(e){
 
 
 $(function(){
-	setInterval(function(){check_login();},6000);
+///
+setInterval(function(){check_login();},6000);
+///
 });
 
 function asyncLoadImage(obj, url){
@@ -1354,6 +1465,7 @@ function asyncLoadImage(obj, url){
 
 function loadImage(){
 	$('img').each(function(i){
+		// console.log($(this).attr('data-src'));
 		if ($(this).attr('data-src') != ''){
 			asyncLoadImage(this, $(this).attr('data-src'));
 		}
@@ -1375,8 +1487,8 @@ function webShell() {
 
     socket.on('server_response', function (data) {
         term.write(data.data);
-        if (data.data == '\r\keluar\r\n' ||
-            data.data == 'keluar\r\n' ||
+        if (data.data == '\r\nSign out\r\n' ||
+            data.data == 'Sign out\r\n' ||
             data.data == '\r\nlogout\r\n' ||
             data.data == 'logout\r\n') {
             setTimeout(function () {
@@ -1387,11 +1499,16 @@ function webShell() {
         }
     });
 
+    $(window).unload(function(){
+  　     term.destroy();
+        clearInterval(interval);
+    });
+
     if (socket) {
-        socket.emit('connect_event', '');
+        socket.emit('webssh', '');
         interval = setInterval(function () {
-            socket.emit('connect_event', '');
-        }, 1000);
+            socket.emit('webssh', '');
+        }, 500);
     }
 
     term.on('data', function (data) {
@@ -1401,30 +1518,34 @@ function webShell() {
 
     var term_box = layer.open({
         type: 1,
-        title: "Terminal localhost",
-        area: ['685px','435px'],
+        title: "Local terminal",
+        area: ['685px','463px'],
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="term-box"><div id="term"></div></div>\
 					<div class="shell-text-input">\
-                    <textarea type="text" class="bt-input-text-shell" placeholder="Paste perintah disini.." value="" name="ssh_copy" />\
+                    <textarea type="text" class="bt-input-text-shell" placeholder="Please paste the command here.." value="" name="ssh_copy" />\
 					<div class="shell-btn-group">\
-                    <button class="shellbutton btn btn-success btn-sm pull-right shell_btn_1">Send</button>\
-					<button class="shellbutton btn btn-default btn-sm pull-right shell_btn_close">Tutup</button>\
+                    <button class="shellbutton btn btn-success btn-sm pull-right shell_btn_1">Send (Ctrl+Enter)</button>\
+					<button class="shellbutton btn btn-default btn-sm pull-right shell_btn_close">Cancel</button>\
 					</div>\
                 </div>',
+        success:function(){
+        	$(".shell_btn_close").click(function(){
+				layer.close(term_box);
+				term.destroy();
+		        clearInterval(interval);
+			});
+        },
         cancel: function () {
             term.destroy();
             clearInterval(interval);
         }
     });
-	$(".shell_btn_close").click(function(){
-		layer.close(term_box);
-		term.destroy();
-        clearInterval(interval);
-	})
+
 
     setTimeout(function () {
+
         $('.terminal').detach().appendTo('#term');
         $("#term").show();
         socket.emit('webssh', "\n");
@@ -1471,8 +1592,8 @@ function webShell() {
 
 
             var menudiv = '<ul class="contextmenu">\
-                        <li><a class="shell_copy_btn menu_ssh" data-clipboard-text="'+ selectText + '" ' + style_str + '>Menyalin ke clipboard</a></li>\
-                        <li><a  onclick="shell_paste_text()" '+ paste_str+'>Pilihan tempel</a></li>\
+                        <li><a class="shell_copy_btn menu_ssh" data-clipboard-text="'+ selectText + '" ' + style_str + '>Copy to clipboard</a></li>\
+                        <li><a  onclick="shell_paste_text()" '+ paste_str+'>Paste selected</a></li>\
                     </ul>';
             $("body").append(menudiv);
             $(".contextmenu").css({
@@ -1487,14 +1608,14 @@ function webShell() {
 
         clipboard = new ClipboardJS('.shell_copy_btn');
         clipboard.on('success', function (e) {
-            layer.msg('Salin berhasil!');
+            layer.msg('Copy successfully!');
             setCookie('shell_copy_body', e.text)
             remove_ssh_menu();
             term.focus();
         });
 
         clipboard.on('error', function (e) {
-            layer.msg('Penyalinan gagal, browser tidak kompatibel!');
+            layer.msg('Copy failed, browser incompatible!');
             setCookie('shell_copy_body', e.text)
             remove_ssh_menu();
             term.focus();
@@ -1509,16 +1630,14 @@ function webShell() {
             }
             socket.emit('webssh', ptext);
             term.focus();
-        })
+        });
         $("textarea[name='ssh_copy']").keydown(function (e) {
-
             if (e.ctrlKey && e.keyCode == 13) {
                 $(".shell_btn_1").click();
             } else if (e.altKey && e.keyCode == 13) {
                 $(".shell_btn_1").click();
             }
         });
-
     }, 100);
 }
 
@@ -1532,6 +1651,45 @@ function remove_ssh_menu() {
     $(".contextmenu").remove();
 }
 
+function showSpeed(filename) {
+    $.post('/files/get_last_body', { num: 10,path: filename}, function (rdata) {
+    	if ($("#speed_log_lst").length < 1){
+    		return;
+    	}
+		if (rdata.status) {
+			$("#speed_log_lst").html(rdata.data);
+			$("#speed_log_lst").scrollTop($("#speed_log_lst")[0].scrollHeight);
+		}
+		setTimeout(function () { showSpeed(filename); }, 1000);
+    },'json');
+}
+
+function showSpeedWindow(msg, speed_log_func_name, callback){
+	var speed_msg = "<pre style='margin-bottom: 0px;height:250px;text-align: left;background-color: #000;color: #fff;white-space: pre-wrap;' id='speed_log_lst'>[MSG]</pre>";
+	var showSpeedKey = layer.open({
+		title: false,
+		type: 1,
+		closeBtn: 2,
+		shade: 0.3,
+		area: "700px",
+		offset: "30%",
+		content: speed_msg.replace('[MSG]', msg),
+		success: function (layers, index) {
+			var url = speed_log_func_name.replace('.','/');
+			$.post('/'+url, {}, function(rdata){
+				if (rdata.status){
+					setTimeout(function () {
+						showSpeed(rdata.data);
+					}, 1000);
+				} else {
+					layer.msg("The specified file is missing!");
+				}
+			},'json');
+			if (callback) {callback(layers,index,showSpeedKey);}
+		}
+    });
+}
+
 function toArrayObject(str){
 	var data = {};
     kv = str.split('&');
@@ -1542,6 +1700,173 @@ function toArrayObject(str){
     return data;
 }
 
+function entitiesEncode(text) {
+    text = text.replace(/&/g, "&amp;");
+    text = text.replace(/</g, "&lt;");
+    text = text.replace(/>/g, "&gt;");
+    text = text.replace(/ /g, "&nbsp;");
+    text = text.replace(/"/g, "&quot;");
+    return text;
+}
+
+function entitiesDecode(text) {
+    text = text.replace(/&amp;/g, "&");
+    text = text.replace(/&lt;/g, "<");
+    text = text.replace(/&gt;/g, ">");
+    text = text.replace(/&nbsp;/g, " ");
+    text = text.replace(/&quot;/g, "'");
+    return text;
+}
+
+function base64_encode(str) {
+    var base64EncodeChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    var out, i, len;
+    var c1, c2, c3;
+
+    len = str.length;
+    i = 0;
+    out = "";
+    while(i < len) {
+        c1 = str.charCodeAt(i++) & 0xff;
+        if(i == len)
+        {
+            out += base64EncodeChars.charAt(c1 >> 2);
+            out += base64EncodeChars.charAt((c1 & 0x3) << 4);
+            out += "==";
+            break;
+        }
+        c2 = str.charCodeAt(i++);
+        if(i == len)
+        {
+            out += base64EncodeChars.charAt(c1 >> 2);
+            out += base64EncodeChars.charAt(((c1 & 0x3)<< 4) | ((c2 & 0xF0) >> 4));
+            out += base64EncodeChars.charAt((c2 & 0xF) << 2);
+            out += "=";
+            break;
+        }
+        c3 = str.charCodeAt(i++);
+        out += base64EncodeChars.charAt(c1 >> 2);
+        out += base64EncodeChars.charAt(((c1 & 0x3)<< 4) | ((c2 & 0xF0) >> 4));
+        out += base64EncodeChars.charAt(((c2 & 0xF) << 2) | ((c3 & 0xC0) >>6));
+        out += base64EncodeChars.charAt(c3 & 0x3F);
+    }
+    return out;
+}
+
+function base64_decode(str) {
+    var base64DecodeChars = new Array(
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
+        52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1,
+        -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
+        -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+        41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1);
+    var c1, c2, c3, c4;
+    var i, len, out;
+
+    len = str.length;
+    i = 0;
+    out = "";
+    while(i < len) {
+        /* c1 */
+        do {
+            c1 = base64DecodeChars[str.charCodeAt(i++) & 0xff];
+        } while(i < len && c1 == -1);
+        if(c1 == -1)
+            break;
+
+        /* c2 */
+        do {
+            c2 = base64DecodeChars[str.charCodeAt(i++) & 0xff];
+        } while(i < len && c2 == -1);
+        if(c2 == -1)
+            break;
+
+        out += String.fromCharCode((c1 << 2) | ((c2 & 0x30) >> 4));
+
+        /* c3 */
+        do {
+            c3 = str.charCodeAt(i++) & 0xff;
+            if(c3 == 61)
+                return out;
+            c3 = base64DecodeChars[c3];
+        } while(i < len && c3 == -1);
+        if(c3 == -1)
+            break;
+
+        out += String.fromCharCode(((c2 & 0XF) << 4) | ((c3 & 0x3C) >> 2));
+
+        /* c4 */
+        do {
+            c4 = str.charCodeAt(i++) & 0xff;
+            if(c4 == 61)
+                return out;
+            c4 = base64DecodeChars[c4];
+        } while(i < len && c4 == -1);
+        if(c4 == -1)
+            break;
+        out += String.fromCharCode(((c3 & 0x03) << 6) | c4);
+    }
+    return out;
+}
+
+function utf16to8(str) {
+    var out, i, len, c;
+
+    out = "";
+    len = str.length;
+    for(i = 0; i < len; i++) {
+        c = str.charCodeAt(i);
+        if ((c >= 0x0001) && (c <= 0x007F)) {
+            out += str.charAt(i);
+        } else if (c > 0x07FF) {
+            out += String.fromCharCode(0xE0 | ((c >> 12) & 0x0F));
+            out += String.fromCharCode(0x80 | ((c >> 6) & 0x3F));
+            out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+        } else {
+            out += String.fromCharCode(0xC0 | ((c >> 6) & 0x1F));
+            out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+        }
+    }
+    return out;
+}
+
+function utf8to16(str) {
+    var out, i, len, c;
+    var char2, char3;
+
+    out = "";
+    len = str.length;
+    i = 0;
+    while(i < len) {
+        c = str.charCodeAt(i++);
+        switch(c >> 4)
+        {
+            case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+            // 0xxxxxxx
+            out += str.charAt(i-1);
+            break;
+            case 12: case 13:
+            // 110x xxxx 10xx xxxx
+            char2 = str.charCodeAt(i++);
+            out += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F));
+            break;
+            case 14:
+                // 1110 xxxx 10xx xxxx 10xx xxxx
+                char2 = str.charCodeAt(i++);
+                char3 = str.charCodeAt(i++);
+                out += String.fromCharCode(((c & 0x0F) << 12) |
+                    ((char2 & 0x3F) << 6) |
+                    ((char3 & 0x3F) << 0));
+                break;
+        }
+    }
+
+    return out;
+}
+
 function pluginService(_name, version){
 	var data = {name:_name, func:'status'}
 	if ( typeof(version) != 'undefined' ){
@@ -1549,8 +1874,9 @@ function pluginService(_name, version){
 	} else {
 		version = '';
 	}
+	// console.log(version);
 
-	var loadT = layer.msg('Mengambil data...', { icon: 16, time: 0, shade: 0.3 });
+	var loadT = layer.msg('Retrieving...', { icon: 16, time: 0, shade: 0.3 });
 	$.post('/plugins/run', data, function(data) {
 		layer.close(loadT);
         if(!data.status){
@@ -1566,7 +1892,7 @@ function pluginService(_name, version){
 }
 
 function pluginSetService(_name ,status, version){
-	var serviceCon ='<p class="status">Status terkini: <span>'+(status ? 'start' : 'stop' )+
+	var serviceCon ='<p class="status">Current status：<span>'+(status ? 'start' : 'stop' )+
         '</span><span style="color: '+
         (status?'#20a53a;':'red;')+
         ' margin-left: 3px;" class="glyphicon ' + (status?'glyphicon glyphicon-play':'glyphicon-pause')+'"></span></p><div class="sfm-opt">\
@@ -1592,13 +1918,13 @@ function pluginOpService(a, b, v) {
         case "restart":d = 'restart';break;
         case "reload":d = 'reload';break;
     }
-    layer.confirm( msgTpl('Do you really want {1}{2}{3} services? ', [d,a,v]), {title:'Notification',icon:3,closeBtn: 1,btn:['Yes','No']}, function() {
-        var e = layer.msg(msgTpl('Serving on {1}{2}{3}, please wait...',[d,a,v]), {icon: 16,time: 0});
+    layer.confirm( msgTpl('Do you really want {1}{2}{3} service？', [d,a,v]), {icon:3,closeBtn: 1}, function() {
+        var e = layer.msg(msgTpl('Serving {1}{2}{3}, please wait...',[d,a,v]), {icon: 16,time: 0});
         $.post("/plugins/run", c, function(g) {
             layer.close(e);
 
 
-            var f = g.data == 'ok' ? msgTpl('{1}{2} serviced {3}',[a,v,d]) : msgTpl('{1}{2} service {3} failed!',[a,v,d]);
+            var f = g.data == 'ok' ? msgTpl('{1} {2} service has been {3}',[a,v,d]) : msgTpl('{1}{2} failed to serve {3}!',[a,v,d]);
             layer.msg(f, {icon: g.data == 'ok' ? 1 : 2});
 
             if( b != "reload" && g.data == 'ok' ) {
@@ -1619,7 +1945,7 @@ function pluginOpService(a, b, v) {
             },2000);
         },'json').error(function() {
             layer.close(e);
-            layer.msg('Operasi tidak normal!', {icon: 1});
+            layer.msg('操作异常!', {icon: 1});
         });
     })
 }
@@ -1634,28 +1960,29 @@ function pluginConfig(_name, version, func){
         func_name = func;
     }
 
-    var con = '<p style="color: #666; margin-bottom: 7px">Tip: Ctrl+F untuk mencari kata kunci, Ctrl+G untuk mencari berikutnya, Ctrl+S untuk menyimpan, Ctrl+Shift+R untuk mencari dan mengganti!</p>\
+    var con = '<p style="color: #666; margin-bottom: 7px">Tip: Ctrl+F to search keywords, Ctrl+G to find next, Ctrl+S to save, Ctrl+Shift+R to find and replace!</p>\
     			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>\
-                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">Simpan</button>\
+                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">Save</button>\
                 <ul class="help-info-text c7 ptb15">\
-                    <li>Berikut adalah file konfigurasi utama '+ _name + version +', jika Anda tidak memahami aturan konfigurasi, jangan mengubahnya sesuka hati.</li>\
+                    <li>Here is the main configuration file of '+ _name + version +', if you do not understand the configuration rules, please do not modify it at will.</li>\
                 </ul>';
 
-    var loadT = layer.msg('Mendapatkan path config...',{icon:16,time:0,shade: [0.3, '#000']});
+
+    var loadT = layer.msg('Getting configuration file path...',{icon:16,time:0,shade: [0.3, '#000']});
     $.post('/plugins/run', {name:_name, func:func_name,version:version},function (data) {
         layer.close(loadT);
 
-				try{
+        try{
         	var jdata = $.parseJSON(data.data);
         	if (!jdata['status']){
         		layer.msg(jdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
                 return;
         	}
-				}catch(err){/*console.log(err);*/}
+		}catch(err){/*console.log(err);*/}
 
-				$(".soft-man-con").html(con);
+		$(".soft-man-con").html(con);
 
-        var loadT2 = layer.msg('Mendapatkan isi file config...',{icon:16,time:0,shade: [0.3, '#000']});
+        var loadT2 = layer.msg('File content fetching...',{icon:16,time:0,shade: [0.3, '#000']});
         var fileName = data.data;
         $.post('/files/get_body', 'path=' + fileName, function(rdata) {
             layer.close(loadT2);
@@ -1709,12 +2036,12 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
     }
 
 
-    var con = '<p style="color: #666; margin-bottom: 7px">Tip: Ctrl+F untuk mencari kata kunci, Ctrl+G untuk mencari berikutnya, Ctrl+S untuk menyimpan, Ctrl+Shift+R untuk mencari dan mengganti!</p>\
-    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"><option value="0">Pilih</option></select>\
+    var con = '<p style="color: #666; margin-bottom: 7px">Tip: Ctrl+F to search keywords, Ctrl+G to find next, Ctrl+S to save, Ctrl+Shift+R to find and replace!</p>\
+    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"><option value="0">Please choose</option></select>\
     			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>\
-                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">Simpan</button>\
+                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">Save</button>\
                 <ul class="help-info-text c7 ptb15">\
-                    <li>Berikut adalah file konfigurasi utama '+ _name + version +', jika Anda tidak memahami aturan konfigurasi, jangan mengubahnya sesuka hati.</li>\
+                    <li>Here is the main configuration file of '+ _name + version +', if you do not understand the configuration rules, please do not modify it at will.</li>\
                 </ul>';
     $(".soft-man-con").html(con);
 
@@ -1734,7 +2061,7 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
     	$('#config_tpl').change(function(){
     		var selected = $(this).val();
     		if (selected != '0'){
-    			var loadT = layer.msg('Mendapatkan konfigurasi template...',{icon:16,time:0,shade: [0.3, '#000']});
+    			var loadT = layer.msg('Getting the configuration template...',{icon:16,time:0,shade: [0.3, '#000']});
 
     			var _args = JSON.stringify({file:selected});
     			$.post('/plugins/run', {name:_name, func:_read_config_tpl_func,version:version,args:_args}, function(data){
@@ -1773,11 +2100,11 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
 
     },'json');
 
-    var loadT = layer.msg('Mendapatkan path config...',{icon:16,time:0,shade: [0.3, '#000']});
+    var loadT = layer.msg('Getting configuration file path...',{icon:16,time:0,shade: [0.3, '#000']});
     $.post('/plugins/run', {name:_name, func:func_name,version:version}, function (data) {
         layer.close(loadT);
 
-        var loadT2 = layer.msg('Mendapatkan isi file config...',{icon:16,time:0,shade: [0.3, '#000']});
+        var loadT2 = layer.msg('File content fetching...',{icon:16,time:0,shade: [0.3, '#000']});
         fileName = data.data;
         $.post('/files/get_body', 'path=' + fileName, function(rdata) {
             layer.close(loadT2);
@@ -1813,19 +2140,18 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
 function pluginConfigSave(fileName) {
     var data = encodeURIComponent($("#textBody").val());
     var encoding = 'utf-8';
-    var loadT = layer.msg('Proses simpan...', {icon: 16,time: 0});
+    var loadT = layer.msg('Saving...', {icon: 16,time: 0});
     $.post('/files/save_body', 'data=' + data + '&path=' + fileName + '&encoding=' + encoding, function(rdata) {
         layer.close(loadT);
         layer.msg(rdata.msg, {icon: rdata.status ? 1 : 2});
     },'json');
 }
 
-
 function pluginInitD(_name,_version){
 	if (typeof _version == 'undefined'){
     	_version = '';
     }
-	var loadT = layer.msg('Proses mengambil data...', { icon: 16, time: 0, shade: 0.3 });
+	var loadT = layer.msg('Retrieving...', { icon: 16, time: 0, shade: 0.3 });
 	$.post('/plugins/run', {name:_name, func:'initd_status',version : _version}, function(data) {
 		layer.close(loadT);
         if( !data.status ){
@@ -1845,11 +2171,11 @@ function pluginInitD(_name,_version){
 }
 
 function pluginSetInitD(_name, _version, status){
-	var serviceCon ='<p class="status">Status terkini:<span>'+(status ? 'start' : 'stop' )+
+	var serviceCon ='<p class="status">Current status：<span>'+(status ? 'start' : 'stop' )+
         '</span><span style="color: '+
         (status?'#20a53a;':'red;')+
         ' margin-left: 3px;" class="glyphicon ' + (status?'glyphicon glyphicon-play':'glyphicon-pause')+'"></span></p><div class="sfm-opt">\
-            <button class="btn btn-default btn-sm" onclick="pluginOpInitD(\''+_name+'\',\''+_version+'\',\''+(status?'initd_uninstall':'initd_install')+'\')">'+(status?'uninstall':'install')+'</button>\
+            <button class="btn btn-default btn-sm" onclick="pluginOpInitD(\''+_name+'\',\''+_version+'\',\''+(status?'initd_uninstall':'initd_install')+'\')">'+(status?'stop':'start')+'</button>\
         </div>';
     $(".soft-man-con").html(serviceCon);
 }
@@ -1858,14 +2184,14 @@ function pluginOpInitD(a, _version, b) {
     var c = "name=" + a + "&func=" + b + "&version="+_version;
     var d = "";
     switch(b) {
-        case "initd_install":d = 'install';break;
-        case "initd_uninstall":d = 'uninstall';break;
+        case "initd_install":d = 'start';break;
+        case "initd_uninstall":d = 'stop';break;
     }
-    layer.confirm( msgTpl('Do you really want {1}{2}{3} services?', [d,a,_version]), {title:'Notification',icon:3,closeBtn: 1,btn:['Yes','No']}, function() {
-        var e = layer.msg(msgTpl('Serving on {1}{2}{3}, please wait...',[d,a,_version]), {icon: 16,time: 0});
+    layer.confirm( msgTpl('Do you really want {1}{2}{3} service？', [d,a,_version]), {icon:3,closeBtn: 1}, function() {
+        var e = layer.msg(msgTpl('Serving {1}{2}{3}, please wait...',[d,a,_version]), {icon: 16,time: 0});
         $.post("/plugins/run", c, function(g) {
             layer.close(e);
-            var f = g.data == 'ok' ? msgTpl('{1}{3} serviced {2}',[a,d,_version]) : msgTpl('{1}{3} service {2} failed!',[a,d,_version]);
+            var f = g.data == 'ok' ? msgTpl('{1} {3} service has been {2}',[a,d,_version]) : msgTpl('{1}{3} failed to serve {2}!',[a,d,_version]);
             layer.msg(f, {icon: g.data == 'ok' ? 1 : 2});
 
             if ( b == 'initd_install' && g.data == 'ok' ) {
@@ -1884,6 +2210,7 @@ function pluginOpInitD(a, _version, b) {
 }
 
 function pluginLogs(_name, version, func, line){
+		var _this = this;
     if ( typeof(version) == 'undefined' ){
         version = '';
     }
@@ -1899,20 +2226,20 @@ function pluginLogs(_name, version, func, line){
     }
 
 
-    var loadT = layer.msg('Mendapatkan path log...',{icon:16,time:0,shade: [0.3, '#000']});
+    var loadT = layer.msg('Obtaining the log path...',{icon:16,time:0,shade: [0.3, '#000']});
     $.post('/plugins/run', {name:_name, func:func_name, version:version},function (data) {
         layer.close(loadT);
 
-				try{
+        try{
         	var jdata = $.parseJSON(data.data);
         	if (!jdata['status']){
         		layer.msg(jdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
                 return;
         	}
-				}catch(err){/*console.log(err);*/}
+		}catch(err){/*console.log(err);*/}
 
 
-        var loadT2 = layer.msg('Mendapatkan isi file log...',{icon:16,time:0,shade: [0.3, '#000']});
+        var loadT2 = layer.msg('File content fetching...',{icon:16,time:0,shade: [0.3, '#000']});
         var fileName = data.data;
         $.post('/files/get_last_body', 'path=' + fileName+'&line='+file_line, function(rdata) {
             layer.close(loadT2);
@@ -1922,11 +2249,10 @@ function pluginLogs(_name, version, func, line){
             }
 
             if(rdata.data == '') {
-            	rdata.data = 'Saat ini tidak ada log!';
+            	rdata.data = 'Currently no logs!';
             }
-            var ebody = '<div class="soft-man-con">\
-            	<textarea readonly="" style="margin: 0px;width: 100%;height: 520px;background-color: #333;color:#fff; padding:0 5px" id="info_log">'+rdata.data+'</textarea>\
-            	</div>';
+						var h =  parseInt($('.bt-w-menu').css('height')) - 40;
+            var ebody = '<textarea readonly="" style="margin: 0px;height: '+h+'px;width: 100%;background-color: #333;color:#fff; padding:0 5px" id="info_log">'+rdata.data+'</textarea>';
             $(".soft-man-con").html(ebody);
             var ob = document.getElementById('info_log');
             ob.scrollTop = ob.scrollHeight;
@@ -1952,39 +2278,45 @@ function pluginRollingLogs(_name, version, func, _args, line){
 
     var reqTimer = null;
 
+    function requestLogs(fileName){
+    	$.post('/files/get_last_body', 'path=' + fileName+'&line='+file_line, function(rdata) {
+            if (!rdata.status){
+                return;
+            }
+
+            if(rdata.data == '') {
+            	rdata.data = 'Currently no logs!';
+            }
+            var ebody = '<textarea readonly="readonly" style="margin: 0px;width: 100%;height: 360px;background-color: #333;color:#fff; padding:0 5px" id="roll_info_log">'+rdata.data+'</textarea>';
+            $("#plugins_rolling_logs").html(ebody);
+            var ob = document.getElementById('roll_info_log');
+            ob.scrollTop = ob.scrollHeight;
+        },'json');
+    }
+
+
     layer.open({
         type: 1,
         title: _name + ' log',
         area: '640px',
         end: function(){
-        	// console.log('end!!!');
         	if (reqTimer){
         		clearInterval(reqTimer);
         	}
         },
         content:'<div class="change-default pd20" id="plugins_rolling_logs">\
         	<textarea readonly="readonly" style="margin: 0px;width: 100%;height: 360px;background-color: #333;color:#fff; padding:0 5px" id="roll_info_log"></textarea>\
-        	</div>'
+        </div>',
+        success:function(){
+        	$.post('/plugins/run', {name:_name, func:func_name, version:version, args:_args},function (data) {
+		    	var fileName = data.data;
+		    	requestLogs(fileName);
+		    	reqTimer = setInterval(function(){
+		    		requestLogs(fileName);
+		    	},1000);
+		    },'json');
+        }
     });
-
-    $.post('/plugins/run', {name:_name, func:func_name, version:version,args:_args},function (data) {
-    	var fileName = data.data;
-    	reqTimer = setInterval(function(){
-    		$.post('/files/get_last_body', 'path=' + fileName+'&line='+file_line, function(rdata) {
-	            if (!rdata.status){
-	                return;
-	            }
-
-	            if(rdata.data == '') {
-	            	rdata.data = 'Saat ini tidak ada log!';
-	            }
-	            var ebody = '<textarea readonly="" style="margin: 0px;width: 100%;height: 360px;background-color: #333;color:#fff; padding:0 5px" id="roll_info_log">'+rdata.data+'</textarea>';
-	            $("#plugins_rolling_logs").html(ebody);
-	            var ob = document.getElementById('roll_info_log');
-	            ob.scrollTop = ob.scrollHeight;
-	        },'json');
-    	},1000);
-    },'json');
 }
 
 
@@ -2021,7 +2353,7 @@ function pluginStandAloneLogs(_name, version, func, _args, line){
             }
 
             if(rdata.data == '') {
-            	rdata.data = 'Saat ini tidak ada log!';
+            	rdata.data = 'Currently no logs!';
             }
             var ebody = '<textarea readonly="" style="margin: 0px;width: 100%;height: 360px;background-color: #333;color:#fff; padding:0 5px">'+rdata.data+'</textarea>';
             $("#plugins_stand_alone_logs").html(ebody);
@@ -2030,6 +2362,7 @@ function pluginStandAloneLogs(_name, version, func, _args, line){
         },'json');
     },'json');
 }
+
 
 $(function() {
 	autoHeight();

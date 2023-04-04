@@ -17,7 +17,7 @@ PHP_VER=53
 Install_php()
 {
 #------------------------ install start ------------------------------------#
-echo "install php-5.3.29 ..." > $install_tmp
+echo "Install php-5.3.29 ..." > $install_tmp
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
@@ -74,8 +74,10 @@ else
     cpuCore="1"
 fi
 
-if [ "$cpuCore" -gt "1" ];then
+if [ "$cpuCore" -gt "2" ];then
 	cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
+else
+	cpuCore="1"
 fi
 # ----- cpu end ------
 

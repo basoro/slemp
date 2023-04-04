@@ -1,12 +1,14 @@
 # coding: utf-8
 
-
 import sqlite3
 import os
 import sys
 
 
 class Sql():
+    #------------------------------
+    # Database operation class For sqlite3
+    #------------------------------
     __DB_FILE = None
     __DB_CONN = None
     __DB_TABLE = ""
@@ -20,7 +22,7 @@ class Sql():
     def __init__(self):
         self.__DB_FILE = 'data/default.db'
 
-    def __GetConn(self):
+    def __getConn(self):
         try:
             if self.__DB_CONN == None:
                 self.__DB_CONN = sqlite3.connect(self.__DB_FILE)
@@ -57,6 +59,8 @@ class Sql():
     def andWhere(self, where, param):
         if where:
             self.__OPT_WHERE = self.__OPT_WHERE + " and " + where
+            # print(param)
+            # print(self.__OPT_PARAM)
             self.__OPT_PARAM = self.__OPT_PARAM + param
         return self
 
@@ -87,10 +91,12 @@ class Sql():
         return self
 
     def select(self):
-        self.__GetConn()
+        self.__getConn()
         try:
             sql = "SELECT " + self.__OPT_FIELD + " FROM " + self.__DB_TABLE + \
                 self.__OPT_WHERE + self.__OPT_GROUP + self.__OPT_ORDER + self.__OPT_LIMIT
+            # print(sql)
+            # print(self.__OPT_PARAM)
             result = self.__DB_CONN.execute(sql, self.__OPT_PARAM)
             data = result.fetchall()
             if self.__OPT_FIELD != "*":
@@ -116,10 +122,11 @@ class Sql():
             return "error: " + str(ex)
 
     def inquiry(self, input_field=''):
-        self.__GetConn()
+        self.__getConn()
         try:
             sql = "SELECT " + self.__OPT_FIELD + " FROM " + self.__DB_TABLE + \
                 self.__OPT_WHERE + self.__OPT_GROUP + self.__OPT_ORDER + self.__OPT_LIMIT
+            # print(sql, self.__OPT_PARAM)
             result = self.__DB_CONN.execute(sql, self.__OPT_PARAM)
             data = result.fetchall()
             if self.__OPT_FIELD != "*":
@@ -150,6 +157,7 @@ class Sql():
 
     def getField(self, keyName):
         result = self.field(keyName).select()
+        # print(result)
         if len(result) == 1:
             return result[0][keyName]
         return result
@@ -172,7 +180,7 @@ class Sql():
             return 0
 
     def add(self, keys, param):
-        self.__GetConn()
+        self.__getConn()
         try:
             values = ""
             for key in keys.split(','):
@@ -187,6 +195,26 @@ class Sql():
             return last_id
         except Exception as ex:
             return "error: " + str(ex)
+
+    def insert(self, pdata):
+        if not pdata:
+            return False
+        keys, param = self.__format_pdata(pdata)
+        return self.add(keys, param)
+
+    def update(self, pdata):
+        if not pdata:
+            return False
+        keys, param = self.__format_pdata(pdata)
+        return self.save(keys, param)
+
+    def __format_pdata(self, pdata):
+        keys = pdata.keys()
+        keys_str = ','.join(keys)
+        param = []
+        for k in keys:
+            param.append(pdata[k])
+        return keys_str, tuple(param)
 
     def checkInput(self, data):
         if not data:
@@ -207,7 +235,7 @@ class Sql():
         return data
 
     def addAll(self, keys, param):
-        self.__GetConn()
+        self.__getConn()
         try:
             values = ""
             for key in keys.split(','):
@@ -225,13 +253,16 @@ class Sql():
         self.__DB_CONN.commit()
 
     def save(self, keys, param):
-        self.__GetConn()
+        self.__getConn()
         try:
             opt = ""
             for key in keys.split(','):
                 opt += key + "=?,"
             opt = opt[0:len(opt) - 1]
             sql = "UPDATE " + self.__DB_TABLE + " SET " + opt + self.__OPT_WHERE
+
+            # import slemp
+            # slemp.writeFile('/tmp/test.pl', sql)
 
             tmp = list(param)
             for arg in self.__OPT_PARAM:
@@ -245,7 +276,7 @@ class Sql():
             return "error: " + str(ex)
 
     def delete(self, id=None):
-        self.__GetConn()
+        self.__getConn()
         try:
             if id:
                 self.__OPT_WHERE = " WHERE id=?"
@@ -259,7 +290,7 @@ class Sql():
             return "error: " + str(ex)
 
     def originExecute(self, sql, param=()):
-        self.__GetConn()
+        self.__getConn()
         try:
             result = self.__DB_CONN.execute(sql, param)
             self.__DB_CONN.commit()
@@ -268,7 +299,8 @@ class Sql():
             return "error: " + str(ex)
 
     def execute(self, sql, param=()):
-        self.__GetConn()
+        self.__getConn()
+        # print sql, param
         try:
             result = self.__DB_CONN.execute(sql, param)
             self.__DB_CONN.commit()
@@ -276,16 +308,17 @@ class Sql():
         except Exception as ex:
             return "error: " + str(ex)
 
-    def query(self, sql, param):
-        self.__GetConn()
+    def query(self, sql, param=()):
+        self.__getConn()
         try:
             result = self.__DB_CONN.execute(sql, param)
+            # data = map(list, result)
             return result
         except Exception as ex:
             return "error: " + str(ex)
 
     def create(self, name):
-        self.__GetConn()
+        self.__getConn()
         import slemp
         script = slemp.readFile('data/' + name + '.sql')
         result = self.__DB_CONN.executescript(script)
@@ -293,7 +326,7 @@ class Sql():
         return result.rowcount
 
     def fofile(self, filename):
-        self.__GetConn()
+        self.__getConn()
         import slemp
         script = slemp.readFile(filename)
         result = self.__DB_CONN.executescript(script)

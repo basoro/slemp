@@ -19,17 +19,14 @@ LIBV=4.8.10
 
 if [ "$version" -lt "70" ];then
 	LIBV=1.10.1
-elif [ "$version" == "71" ];then
-	LIBV=4.5.2
 elif [ "$version" == "70" ];then
 	LIBV=4.3.0
+elif [ "$version" == "71" ];then
+	LIBV=4.5.2
+elif [ "$version" -gt "74" ];then
+	LIBV=5.0.1
 else
-	echo '72+'
-fi
-
-if [ "$version" -eq "82" ];then
-	echo "not need"
-	exit 1
+	echo 'other?'
 fi
 
 LIB_PATH_NAME=lib/php
@@ -51,7 +48,7 @@ Install_lib()
 {
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} is installed, please select another version!"
+		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
 		return
 	fi
 	
@@ -102,12 +99,12 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php-$version is not installed, please select another version!"
+		echo "php-$version is not installed, please choose another version!"
 		return
 	fi
 	
 	if [ ! -f "$extFile" ];then
-		echo "php-$version ${LIBNAME} is not installed, please select another version!"
+		echo "php-$version ${LIBNAME} is not installed, please choose another version"
 		return
 	fi
 	

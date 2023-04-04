@@ -1,18 +1,9 @@
-function str2Obj(str){
-    var data = {};
-    kv = str.split('&');
-    for(i in kv){
-        v = kv[i].split('=');
-        data[v[0]] = v[1];
-    }
-    return data;
-}
 
 function myPost(method,args,callback, title){
 
     var _args = null;
     if (typeof(args) == 'string'){
-        _args = JSON.stringify(str2Obj(args));
+        _args = JSON.stringify(toArrayObject(args));
     } else {
         _args = JSON.stringify(args);
     }
@@ -40,7 +31,7 @@ function myPostN(method,args,callback, title){
 
     var _args = null;
     if (typeof(args) == 'string'){
-        _args = JSON.stringify(str2Obj(args));
+        _args = JSON.stringify(toArrayObject(args));
     } else {
         _args = JSON.stringify(args);
     }
@@ -59,7 +50,7 @@ function myPostN(method,args,callback, title){
 function myAsyncPost(method,args){
     var _args = null;
     if (typeof(args) == 'string'){
-        _args = JSON.stringify(str2Obj(args));
+        _args = JSON.stringify(toArrayObject(args));
     } else {
         _args = JSON.stringify(args);
     }
@@ -69,8 +60,7 @@ function myAsyncPost(method,args){
 }
 
 function vaildPhpmyadmin(url,username,password){
-
-    console.log("Authorization: Basic " + btoa(username + ":" + password));
+    // console.log("Authorization: Basic " + btoa(username + ":" + password));
     $.ajax({
         type: "GET",
         url: url,
@@ -97,30 +87,31 @@ function runInfo(){
             return;
         }
 
+        // Com_select , Qcache_inserts
         var cache_size = ((parseInt(rdata.Qcache_hits) / (parseInt(rdata.Qcache_hits) + parseInt(rdata.Qcache_inserts))) * 100).toFixed(2) + '%';
         if (cache_size == 'NaN%') cache_size = 'OFF';
         var Con = '<div class="divtable"><table class="table table-hover table-bordered" style="margin-bottom:10px;background-color:#fafafa">\
                     <tbody>\
                         <tr><th>Start Time</th><td>' + getLocalTime(rdata.Run) + '</td><th>Queries per second</th><td>' + parseInt(rdata.Questions / rdata.Uptime) + '</td></tr>\
-                        <tr><th>Total number of connections</th><td>' + rdata.Connections + '</td><th>Transactions per second</th><td>' + parseInt((parseInt(rdata.Com_commit) + parseInt(rdata.Com_rollback)) / rdata.Uptime) + '</td></tr>\
+                        <tr><th>Total connections</th><td>' + rdata.Connections + '</td><th>Transactions per second</th><td>' + parseInt((parseInt(rdata.Com_commit) + parseInt(rdata.Com_rollback)) / rdata.Uptime) + '</td></tr>\
                         <tr><th>Send</th><td>' + toSize(rdata.Bytes_sent) + '</td><th>File</th><td>' + rdata.File + '</td></tr>\
-                        <tr><th>Accept</th><td>' + toSize(rdata.Bytes_received) + '</td><th>Position</th><td>' + rdata.Position + '</td></tr>\
+                        <tr><th>Receive</th><td>' + toSize(rdata.Bytes_received) + '</td><th>Position</th><td>' + rdata.Position + '</td></tr>\
                     </tbody>\
                     </table>\
                     <table class="table table-hover table-bordered">\
                     <thead style="display:none;"><th></th><th></th><th></th><th></th></thead>\
                     <tbody>\
-                        <tr><th>Active connections</th><td>' + rdata.Threads_running + '/' + rdata.Max_used_connections + '</td><td colspan="2">If the value is too large, increase max_connections</td></tr>\
+                        <tr><th>Active/Peak Connections</th><td>' + rdata.Threads_running + '/' + rdata.Max_used_connections + '</td><td colspan="2">If the value is too large, increase max_connections</td></tr>\
                         <tr><th>Thread cache hit rate</th><td>' + ((1 - rdata.Threads_created / rdata.Connections) * 100).toFixed(2) + '%</td><td colspan="2">If it is too low, increase thread_cache_size</td></tr>\
                         <tr><th>Index hit rate</th><td>' + ((1 - rdata.Key_reads / rdata.Key_read_requests) * 100).toFixed(2) + '%</td><td colspan="2">If it is too low, increase key_buffer_size</td></tr>\
                         <tr><th>Innodb index hit rate</th><td>' + ((1 - rdata.Innodb_buffer_pool_reads / rdata.Innodb_buffer_pool_read_requests) * 100).toFixed(2) + '%</td><td colspan="2">If it is too low, increase innodb_buffer_pool_size</td></tr>\
                         <tr><th>Query cache hit rate</th><td>' + cache_size + '</td><td colspan="2">' + lan.soft.mysql_status_ps5 + '</td></tr>\
-                        <tr><th>Create temporary table to disk</th><td>' + ((rdata.Created_tmp_disk_tables / rdata.Created_tmp_tables) * 100).toFixed(2) + '%</td><td colspan="2">If it is too large, try increasing tmp_table_size</td></tr>\
-                        <tr><th>Open table</th><td>' + rdata.Open_tables + '</td><td colspan="2">If it is too large, increase table_cache_size</td></tr>\
-                        <tr><th>Amount of no index used</th><td>' + rdata.Select_full_join + '</td><td colspan="2">If it is not 0, please check whether the index of the data table is reasonable</td></tr>\
-                        <tr><th>JOIN amount without index</th><td>' + rdata.Select_range_check + '</td><td colspan="2">If it is not 0, please check whether the index of the data table is reasonable</td></tr>\
-                        <tr><th>The number of merges after sorting</th><td>' + rdata.Sort_merge_passes + '</td><td colspan="2">If the value is too large, increase sort_buffer_size</td></tr>\
-                        <tr><th>Lock table times</th><td>' + rdata.Table_locks_waited + '</td><td colspan="2">If the value is too large, consider increasing your database performance</td></tr>\
+                        <tr><th>Create temporary table to disk</th><td>' + ((rdata.Created_tmp_disk_tables / rdata.Created_tmp_tables) * 100).toFixed(2) + '%</td><td colspan="2">If too large, try to increase tmp_table_size</td></tr>\
+                        <tr><th>Opened table</th><td>' + rdata.Open_tables + '</td><td colspan="2">If too large, increase table_cache_size</td></tr>\
+                        <tr><th>Amount of unused index</th><td>' + rdata.Select_full_join + '</td><td colspan="2">If it is not 0, please check whether the index of the data table is reasonable</td></tr>\
+                        <tr><th>Amount of JOINs without indexes</th><td>' + rdata.Select_range_check + '</td><td colspan="2">If it is not 0, please check whether the index of the data table is reasonable</td></tr>\
+                        <tr><th>Number of merges after sorting</th><td>' + rdata.Sort_merge_passes + '</td><td colspan="2">If the value is too large, increase sort_buffer_size</td></tr>\
+                        <tr><th>Number of table locks</th><td>' + rdata.Table_locks_waited + '</td><td colspan="2">If the value is too large, please consider increasing your database performance</td></tr>\
                     <tbody>\
             </table></div>';
         $(".soft-man-con").html(Con);
@@ -153,7 +144,7 @@ function myPort(){
         var con = '<div class="line ">\
             <div class="info-r  ml0">\
             <input name="port" class="bt-input-text mr5 port" type="text" style="width:100px" value="'+data.data+'">\
-            <button id="btn_change_port" name="btn_change_port" class="btn btn-success btn-sm mr5 ml5 btn_change_port">Edit</button>\
+            <button id="btn_change_port" name="btn_change_port" class="btn btn-success btn-sm mr5 ml5 btn_change_port">Modify</button>\
             </div></div>';
         $(".soft-man-con").html(con);
 
@@ -197,6 +188,10 @@ function changeMySQLDataPath(act) {
 function myPerfOpt() {
     myPost('db_status','',function(data){
         var rdata = $.parseJSON(data.data);
+        if ( typeof(rdata.status) != 'undefined' && !rdata.status){
+            layer.msg(rdata.msg, {icon:2});
+            return;
+        }
         // console.log(rdata);
         var key_buffer_size = toSizeM(rdata.mem.key_buffer_size);
         var query_cache_size = toSizeM(rdata.mem.query_cache_size);
@@ -218,9 +213,9 @@ function myPerfOpt() {
 
 
         var memCon = '<div class="conf_p" style="margin-bottom:0">\
-                        <div style="border-bottom:#ccc 1px solid;padding-bottom:10px;margin-bottom:10px"><span><b>Maximum used memory: </b></span>\
+                        <div style="border-bottom:#ccc 1px solid;padding-bottom:10px;margin-bottom:10px"><span><b>Memory used: </b></span>\
                         <select class="bt-input-text" name="mysql_set" style="margin-left:-4px">\
-                            <option value="0">Please choose</option>\
+                            <option value="0">Choose</option>\
                             <option value="1">1-2GB</option>\
                             <option value="2">2-4GB</option>\
                             <option value="3">4-8GB</option>\
@@ -244,7 +239,7 @@ function myPerfOpt() {
                         <p><span>thread_cache_size</span><input style="width: 70px;" class="bt-input-text mr5" name="thread_cache_size" value="' + rdata.mem.thread_cache_size + '" type="number" ><font> ' + lan.soft.mysql_set_thread_cache_size + '</font></p>\
                         <p><span>table_open_cache</span><input style="width: 70px;" class="bt-input-text mr5" name="table_open_cache" value="' + rdata.mem.table_open_cache + '" type="number" > <font>' + lan.soft.mysql_set_table_open_cache + '</font></p>\
                         <p><span>max_connections</span><input style="width: 70px;" class="bt-input-text mr5" name="max_connections" value="' + rdata.mem.max_connections + '" type="number" ><font> ' + lan.soft.mysql_set_max_connections + '</font></p>\
-                        <div style="margin-top:10px; padding-right:15px" class="text-right"><button class="btn btn-success btn-sm mr5" onclick="reBootMySqld()">Restart database</button><button class="btn btn-success btn-sm" onclick="setMySQLConf()">Save</button></div>\
+                        <div style="margin-top:10px; padding-right:15px" class="text-right"><button class="btn btn-success btn-sm mr5" onclick="reBootMySqld()">Restart MySQL</button><button class="btn btn-success btn-sm" onclick="setMySQLConf()">Save</button></div>\
                     </div>'
 
         $(".soft-man-con").html(memCon);
@@ -270,7 +265,7 @@ function setMySQLConf() {
         var setSize = parseInt($("input[name='memSize']").val());
 
         if(memSize < setSize){
-            var errMsg = "Error, memory allocation is too high!<p style='color:red;'>Physical memory: {1}MB<br>Maximum memory usage: {2}MB<br>Possible consequences: lead to database instability, even Could not start MySQLd service!";
+            var errMsg = "Error, memory allocation is too high!<p style='color:red;'>Physical memory: {1}MB<br>Maximum used memory: {2}MB<br>Possible consequences: cause database instability, even Unable to start MySQLd service!";
             var msg = errMsg.replace('{1}',memSize).replace('{2}',setSize);
             layer.msg(msg,{icon:2,time:5000});
             return;
@@ -470,14 +465,14 @@ function setRootPwd(type, pwd){
         title: 'Change database password',
         closeBtn: 1,
         shift: 5,
-        btn:["Yes","No"],
+        btn:["Submit","Cancel"],
         shadeClose: true,
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
-                    <span class='tname'>Root password</span>\
-                     <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+pwd+"' />\
-                         <span title='Random code' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span>\
-                     </div>\
+                        <span class='tname'>Root password</span>\
+                        <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+pwd+"' />\
+                            <span title='Random code' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span>\
+                        </div>\
                     </div>\
                   </form>",
         yes:function(){
@@ -498,19 +493,6 @@ function showHidePass(obj){
         $(obj).removeClass(b).addClass(a);
         $(obj).prev().text('***');
     }
-}
-
-function copyPass(password){
-    var clipboard = new ClipboardJS('#bt_copys');
-    clipboard.on('success', function (e) {
-        layer.msg('Copy successfully',{icon:1,time:2000});
-    });
-
-    clipboard.on('error', function (e) {
-        layer.msg('Copy failed, browser is not compatible!',{icon:2,time:2000});
-    });
-    $("#bt_copys").attr('data-clipboard-text',password);
-    $("#bt_copys").click();
 }
 
 function checkSelect(){
@@ -555,14 +537,14 @@ function setDbAccess(username){
             title: 'Set database permissions',
             closeBtn: 1,
             shift: 5,
-            btn:["Yes","No"],
+            btn:["Submit","Cancel"],
             shadeClose: true,
             content: "<form class='bt-form pd20' id='set_db_access'>\
                         <div class='line'>\
                             <span class='tname'>Access permission</span>\
                             <div class='info-r '>\
                                 <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
-                                <option value='127.0.0.1'>Localhost</option>\
+                                <option value='127.0.0.1'>Local server</option>\
                                 <option value=\"%\">Everyone</option>\
                                 <option value='ip'>Specified IP</option>\
                                 </select>\
@@ -576,16 +558,16 @@ function setDbAccess(username){
                     $('select[name="dataAccess"]').find('option[value="%"]').attr("selected",true);
                 } else if ( rdata.msg == 'ip' ){
                     $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
-                    $('select[name="dataAccess"]').after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Separate multiple IPs with commas (,)' style='width: 230px; display: inline-block;'>");
+                    $('select[name="dataAccess"]').after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
                 } else {
                     $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
-                    $('select[name="dataAccess"]').after("<input value='"+rdata.msg+"' id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Separate multiple IPs with commas (,)' style='width: 230px; display: inline-block;'>");
+                    $('select[name="dataAccess"]').after("<input value='"+rdata.msg+"' id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
                 }
 
                  $('select[name="dataAccess"]').change(function(){
                     var v = $(this).val();
                     if (v == 'ip'){
-                        $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Separate multiple IPs with commas (,)' style='width: 230px; display: inline-block;'>");
+                        $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
                     } else {
                         $('#dataAccess_subid').remove();
                     }
@@ -594,7 +576,7 @@ function setDbAccess(username){
             yes:function(index){
                 var data = $("#set_db_access").serialize();
                 data = decodeURIComponent(data);
-                var dataObj = str2Obj(data);
+                var dataObj = toArrayObject(data);
                 if(!dataObj['access']){
                     dataObj['access'] = dataObj['dataAccess'];
                     if ( dataObj['dataAccess'] == 'ip'){
@@ -619,16 +601,24 @@ function setDbAccess(username){
     });
 }
 
-function setDbPass(id, username, password){
+function fixDbAccess(username){
+    myPost('fix_db_access', '', function(rdata){
+        var rdata = $.parseJSON(rdata.data);
+        showMsg(rdata.msg,function(){
+            dbList();
+        },{icon: rdata.status ? 1 : 2});
+    });
+}
 
-    var index = layer.open({
+function setDbPass(id, username, password){
+    layer.open({
         type: 1,
         area: '500px',
         title: 'Change database password',
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["Yes","No"],
+        btn:["Submit","Cancel"],
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
                         <span class='tname'>Username</span>\
@@ -660,39 +650,21 @@ function setDbPass(id, username, password){
 }
 
 function addDatabase(type){
-    if (type==1){
-        var data = $("#add_db").serialize();
-        data = decodeURIComponent(data);
-        var dataObj = str2Obj(data);
-        if(!dataObj['address']){
-            dataObj['address'] = dataObj['dataAccess'];
-        }
-        myPost('add_db', dataObj, function(data){
-            var rdata = $.parseJSON(data.data);
-            showMsg(rdata.msg,function(){
-                if (rdata.status){
-                    dbList();
-                }
-                $('.layui-layer-close1').click();
-            },{icon: rdata.status ? 1 : 2},600);
-        });
-        return;
-    }
-    var index = layer.open({
+    layer.open({
         type: 1,
-        skin: 'demo-class',
         area: '500px',
         title: 'Add database',
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        content: "<form class='bt-form pd20 pb70' id='add_db'>\
+        btn:["Submit","Cancel"],
+        content: "<form class='bt-form pd20' id='add_db'>\
                     <div class='line'>\
                         <span class='tname'>Database name</span>\
                         <div class='info-r'><input name='name' class='bt-input-text mr5' placeholder='New database name' type='text' style='width:65%' value=''>\
                         <select class='bt-input-text mr5 codeing_a5nGsm' name='codeing' style='width:27%'>\
-                            <option value='utf8'>utf-8</option>\
                             <option value='utf8mb4'>utf8mb4</option>\
+                            <option value='utf8'>utf-8</option>\
                             <option value='gbk'>gbk</option>\
                             <option value='big5'>big5</option>\
                         </select>\
@@ -709,45 +681,55 @@ function addDatabase(type){
                             <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
                             <option value='127.0.0.1'>Localhost</option>\
                             <option value=\"%\">Everyone</option>\
-                            <option value='ip'>Specified IP</option>\
+                            <option value='ip'>Spesific IP</option>\
                             </select>\
                         </div>\
                     </div>\
                     <input type='hidden' name='ps' value='' />\
-                    <div class='bt-form-submit-btn'>\
-                        <button id='my_mod_close' type='button' class='btn btn-danger btn-sm btn-title'>Close</button>\
-                        <button type='button' class='btn btn-success btn-sm btn-title' onclick=\"addDatabase(1)\" >Save</button>\
-                    </div>\
                   </form>",
-    });
+        success:function(){
+            $("input[name='name']").keyup(function(){
+                var v = $(this).val();
+                $("input[name='db_user']").val(v);
+                $("input[name='ps']").val(v);
+            });
 
-    $("input[name='name']").keyup(function(){
-        var v = $(this).val();
-        $("input[name='db_user']").val(v);
-        $("input[name='ps']").val(v);
-    });
-
-    $('#my_mod_close').click(function(){
-        $('.layui-layer-close1').click();
-    });
-    $('select[name="dataAccess"]').change(function(){
-        var v = $(this).val();
-        if (v == 'ip'){
-            $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Separate multiple IPs with commas (,)' style='width: 230px; display: inline-block;'>");
-        } else {
-            $('#dataAccess_subid').remove();
+            $('select[name="dataAccess"]').change(function(){
+                var v = $(this).val();
+                if (v == 'ip'){
+                    $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
+                } else {
+                    $('#dataAccess_subid').remove();
+                }
+            });
+        },
+        yes:function(index) {
+            var data = $("#add_db").serialize();
+            data = decodeURIComponent(data);
+            var dataObj = toArrayObject(data);
+            if(!dataObj['address']){
+                dataObj['address'] = dataObj['dataAccess'];
+            }
+            myPost('add_db', dataObj, function(data){
+                var rdata = $.parseJSON(data.data);
+                showMsg(rdata.msg,function(){
+                    if (rdata.status){
+                        layer.close(index);
+                        dbList();
+                    }
+                },{icon: rdata.status ? 1 : 2}, 2000);
+            });
         }
     });
 }
 
 function delDb(id, name){
-    safeMessage('Delete ['+name+']', 'do you really want to delete ['+name+']?',function(){
+    safeMessage('Delete ['+name+']', 'Do you really want to delete ['+name+']？',function(){
         var data='id='+id+'&name='+name
         myPost('del_db', data, function(data){
             var rdata = $.parseJSON(data.data);
             showMsg(rdata.msg,function(){
                 dbList();
-                $('.layui-layer-close1').click();
             },{icon: rdata.status ? 1 : 2}, 600);
         });
     });
@@ -763,7 +745,7 @@ function delDbBatch(){
         }
     });
 
-    safeMessage('Delete databases in batches','<a style="color:red;">You have selected [2] databases, which cannot be recovered after deletion. Do you really want to delete them?</a>',function(){
+    safeMessage('Delete databases in batches','<a style="color:red;">You have selected [2] databases in total, and they cannot be restored after deletion. Do you really want to delete them??</a>',function(){
         var i = 0;
         $(arr).each(function(){
             var data  = myAsyncPost('del_db', this);
@@ -774,7 +756,7 @@ function delDbBatch(){
             i++;
         });
 
-        var msg = 'Deleted ['+i+'] databases successfully!';
+        var msg = 'Successfully deleted ['+i+'] databases!';
         showMsg(msg,function(){
             dbList();
         },{icon: 1}, 600);
@@ -784,7 +766,7 @@ function delDbBatch(){
 
 function setDbPs(id, name, obj) {
     var _span = $(obj);
-    var _input = $("<input class='baktext' value=\""+_span.text()+"\" type='text' placeholder='Caption' />");
+    var _input = $("<input class='baktext' value=\""+_span.text()+"\" type='text' placeholder='Description' />");
     _span.hide().after(_input);
     _input.focus();
     _input.blur(function(){
@@ -816,14 +798,14 @@ function openPhpmyadmin(name,username,password){
 
     data = syncPost('/plugins/run',{'name':'phpmyadmin','func':'status'});
     if (data.data != 'start'){
-        layer.msg('phpMyAdmin does not start',{icon:2,shade: [0.3, '#000']});
+        layer.msg('phpMyAdmin not started',{icon:2,shade: [0.3, '#000']});
         return;
     }
 
     data = syncPost('/plugins/run',{'name':'phpmyadmin','func':'get_cfg'});
     var rdata = $.parseJSON(data.data);
-    if (rdata.choose == 'mariadb'){
-        layer.msg('The current mode is [mariadb], if you want to use it, please switch the mode.',{icon:2,shade: [0.3, '#000']});
+    if (rdata.choose != 'mysql'){
+        layer.msg('Currently it is ['+rdata.choose+'] mode, if you want to use it, please modify the phpMyAdmin access switch.',{icon:2,shade: [0.3, '#000']});
         return;
     }
 
@@ -839,7 +821,6 @@ function openPhpmyadmin(name,username,password){
     home_page = home_page.replace("http://","http://"+phpmyadmin_cfg['username']+":"+phpmyadmin_cfg['password']+"@")
 
     $("#toPHPMyAdmin").attr('action',home_page);
-
     if($("#toPHPMyAdmin").attr('action').indexOf('phpmyadmin') == -1){
         layer.msg('Please install phpMyAdmin first',{icon:2,shade: [0.3, '#000']});
         setTimeout(function(){ window.location.href = '/soft'; },3000);
@@ -869,12 +850,14 @@ function openPhpmyadmin(name,username,password){
     }
 }
 
-function delBackup(filename,name){
-    myPost('delete_db_backup',{filename:filename},function(){
+function delBackup(filename, name, path){
+    if(typeof(path) == "undefined"){
+        path = "";
+    }
+    myPost('delete_db_backup',{filename:filename,path:path},function(){
         layer.msg('Execution succeed!');
         setTimeout(function(){
-            $('.layui-layer-close2').click();
-            setBackup(name);
+            setBackupReq(name);
         },2000);
     });
 }
@@ -890,9 +873,181 @@ function importBackup(file,name){
     });
 }
 
-function setBackup(db_name,obj){
-     myPost('get_db_backup_list', {name:db_name}, function(data){
 
+function importDbExternal(file,name){
+    myPost('import_db_external',{file:file,name:name}, function(data){
+        layer.msg('Execution succeed!');
+    });
+}
+
+function setLocalImport(db_name){
+
+    function uploadDbFiles(upload_dir){
+        var up_db = layer.open({
+            type:1,
+            closeBtn: 1,
+            title:"Upload import file ["+upload_dir+']',
+            area: ['500px','300px'],
+            shadeClose:false,
+            content:'<div class="fileUploadDiv">\
+                    <input type="hidden" id="input-val" value="'+upload_dir+'" />\
+                    <input type="file" id="file_input"  multiple="true" autocomplete="off" />\
+                    <button type="button"  id="opt" autocomplete="off">Add files</button>\
+                    <button type="button" id="up" autocomplete="off" >Start upload</button>\
+                    <span id="totalProgress" style="position: absolute;top: 7px;right: 147px;"></span>\
+                    <span style="float:right;margin-top: 9px;">\
+                    <font>File encoding:</font>\
+                    <select id="fileCodeing" >\
+                        <option value="byte">Binary</option>\
+                        <option value="utf-8">UTF-8</option>\
+                        <option value="gb18030">GB2312</option>\
+                    </select>\
+                    </span>\
+                    <button type="button" id="filesClose" autocomplete="off">Close</button>\
+                    <ul id="up_box"></ul>\
+                </div>',
+            success:function(){
+                $('#filesClose').click(function(){
+                    layer.close(up_db);
+                });
+            }
+
+        });
+        uploadStart(function(){
+            getList();
+            layer.close(up_db);
+        });
+    }
+
+    function getList(){
+        myPost('get_db_backup_import_list',{}, function(data){
+            var rdata = $.parseJSON(data.data);
+
+            var file_list = rdata.data.list;
+            var upload_dir = rdata.data.upload_dir;
+
+            var tbody = '';
+            for (var i = 0; i < file_list.length; i++) {
+                tbody += '<tr>\
+                        <td><span> ' + file_list[i]['name'] + '</span></td>\
+                        <td><span> ' + file_list[i]['size'] + '</span></td>\
+                        <td><span> ' + file_list[i]['time'] + '</span></td>\
+                        <td style="text-align: right;">\
+                            <a class="btlink" onclick="importDbExternal(\'' + file_list[i]['name'] + '\',\'' +db_name+ '\')">Import</a> | \
+                            <a class="btlink del" index="'+i+'">Delete</a>\
+                        </td>\
+                    </tr>';
+            }
+
+            $('#import_db_file_list').html(tbody);
+            $('input[name="upload_dir"]').val(upload_dir);
+
+            $("#import_db_file_list .del").on('click',function(){
+                var index = $(this).attr('index');
+                var filename = file_list[index]["name"];
+                myPost('delete_db_backup',{filename:filename,path:upload_dir},function(){
+                    showMsg('Execution succeed!', function(){
+                        getList();
+                    },{icon:1},2000);
+                });
+            });
+        });
+    }
+
+    var layerIndex = layer.open({
+        type: 1,
+        title: "Import data from file",
+        area: ['600px', '380px'],
+        closeBtn: 1,
+        shadeClose: false,
+        content: '<div class="pd15">\
+                    <div class="db_list">\
+                        <button id="btn_file_upload" class="btn btn-success btn-sm" type="button">Upload from local</button>\
+                    </div >\
+                    <div class="divtable">\
+                    <input type="hidden" name="upload_dir" value=""> \
+                    <div id="database_fix"  style="height:150px;overflow:auto;border:#ddd 1px solid">\
+                    <table class="table table-hover "style="border:none">\
+                        <thead>\
+                            <tr>\
+                                <th>Filename</th>\
+                                <th>Size</th>\
+                                <th>Backup Time</th>\
+                                <th style="text-align: right;">Action</th>\
+                            </tr>\
+                        </thead>\
+                        <tbody  id="import_db_file_list" class="gztr"></tbody>\
+                    </table>\
+                    </div>\
+                    <ul class="help-info-text c7">\
+                        <li>Only sql, zip, sql.gz, (tar.gz|gz|tgz) are supported</li>\
+                        <li>Zip, tar.gz compressed package structure: test.zip or test.tar.gz compressed package must contain test.sql</li>\
+                        <li>If the file is too large, you can also use the SFTP tool to upload the database file to /home/slemp/backup/import</li>\
+                    </ul>\
+                </div>\
+        </div>',
+        success:function(index){
+            $('#btn_file_upload').click(function(){
+                var upload_dir = $('input[name="upload_dir"]').val();
+                uploadDbFiles(upload_dir);
+            });
+
+            getList();
+        },
+    });
+
+
+}
+
+function setBackup(db_name){
+    var layerIndex = layer.open({
+        type: 1,
+        title: "Database Backup Details",
+        area: ['600px', '280px'],
+        closeBtn: 1,
+        shadeClose: false,
+        content: '<div class="pd15">\
+                    <div class="db_list">\
+                        <button id="btn_backup" class="btn btn-success btn-sm" type="button">Backup</button>\
+                        <button id="btn_local_import" class="btn btn-success btn-sm" type="button">External import</button>\
+                    </div >\
+                    <div class="divtable">\
+                    <div  id="database_fix"  style="height:150px;overflow:auto;border:#ddd 1px solid">\
+                    <table id="database_table" class="table table-hover "style="border:none">\
+                        <thead>\
+                            <tr>\
+                                <th>Filename</th>\
+                                <th>Size</th>\
+                                <th>Backup Time</th>\
+                                <th style="text-align: right;">Action</th>\
+                            </tr>\
+                        </thead>\
+                        <tbody class="list"></tbody>\
+                    </table>\
+                    </div>\
+                </div>\
+        </div>',
+        success:function(index){
+            $('#btn_backup').click(function(){
+                myPost('set_db_backup',{name:db_name}, function(data){
+                    showMsg('Execution succeed!', function(){
+                        setBackupReq(db_name);
+                    }, {icon:1}, 2000);
+                });
+            });
+
+            $('#btn_local_import').click(function(){
+                setLocalImport(db_name);
+            });
+
+            setBackupReq(db_name);
+        },
+    });
+}
+
+
+function setBackupReq(db_name, obj){
+     myPost('get_db_backup_list', {name:db_name}, function(data){
         var rdata = $.parseJSON(data.data);
         var tbody = '';
         for (var i = 0; i < rdata.data.length; i++) {
@@ -907,48 +1062,9 @@ function setBackup(db_name,obj){
                     </td>\
                 </tr> ';
         }
-
-        var s = layer.open({
-            type: 1,
-            title: "Database Backup Details",
-            area: ['600px', '280px'],
-            closeBtn: 2,
-            shadeClose: false,
-            content: '<div class="pd15">\
-                        <div class="db_list">\
-                            <button id="btn_backup" class="btn btn-success btn-sm" type="button">Backup</button>\
-                        </div >\
-                        <div class="divtable">\
-                        <div  id="database_fix"  style="height:150px;overflow:auto;border:#ddd 1px solid">\
-                        <table class="table table-hover "style="border:none">\
-                            <thead>\
-                                <tr>\
-                                    <th>File name</th>\
-                                    <th>File size</th>\
-                                    <th>Backup time</th>\
-                                    <th style="text-align: right;">Action</th>\
-                                </tr>\
-                            </thead>\
-                            <tbody class="gztr">' + tbody + '</tbody>\
-                        </table>\
-                        </div>\
-                    </div>\
-            </div>'
-        });
-
-        $('#btn_backup').click(function(){
-            myPost('set_db_backup',{name:db_name}, function(data){
-                layer.msg('Execution succeed!');
-
-                setTimeout(function(){
-                    layer.close(s);
-                    setBackup(db_name,obj);
-                },2000);
-            });
-        });
+        $('#database_table tbody').html(tbody);
     });
 }
-
 
 function dbList(page, search){
     var _data = {};
@@ -979,20 +1095,20 @@ function dbList(page, search){
             list += '<td><span class="c9 input-edit" onclick="setDbPs(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',this)" style="display: inline-block;">'+rdata.data[i]['ps']+'</span></td>';
             list += '<td style="text-align:right">';
 
-            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="Database backup">'+(rdata.data[i]['is_backup']?'backup':'no backup') +'</a> | ';
+            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="Database backup">'+(rdata.data[i]['is_backup']?'Backup':'Not Backup') +'</a> | ';
 
             var rw = '';
             var rw_change = 'all';
             if (typeof(rdata.data[i]['rw'])!='undefined'){
-                var rw_val = 'read and write';
+                var rw_val = 'Read and Write';
                 if (rdata.data[i]['rw'] == 'all'){
-                    rw_val = "all";
+                    rw_val = "All";
                     rw_change = 'rw';
                 } else if (rdata.data[i]['rw'] == 'rw'){
-                    rw_val = "read and write";
+                    rw_val = "Read and Write";
                     rw_change = 'r';
                 } else if (rdata.data[i]['rw'] == 'r'){
-                    rw_val = "read only";
+                    rw_val = "Read only";
                     rw_change = 'all';
                 }
                 rw = '<a href="javascript:;" class="btlink" onclick="setDbRw(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',\''+rw_change+'\')" title="Set read and write">'+rw_val+'</a> | ';
@@ -1001,9 +1117,9 @@ function dbList(page, search){
 
             list += '<a href="javascript:;" class="btlink" onclick="openPhpmyadmin(\''+rdata.data[i]['name']+'\',\''+rdata.data[i]['username']+'\',\''+rdata.data[i]['password']+'\')" title="Database management">Manage</a> | ' +
                         '<a href="javascript:;" class="btlink" onclick="repTools(\''+rdata.data[i]['name']+'\')" title="MySQL optimization repair tool">Tool</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['username']+'\')" title="Set database permissions">Permission</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['username']+'\')" title="Set database permissions">Permissions</a> | ' +
                         rw +
-                        '<a href="javascript:;" class="btlink" onclick="setDbPass('+rdata.data[i]['id']+',\''+ rdata.data[i]['username'] +'\',\'' + rdata.data[i]['password'] + '\')">Change Password</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="setDbPass('+rdata.data[i]['id']+',\''+ rdata.data[i]['username'] +'\',\'' + rdata.data[i]['password'] + '\')">Password</a> | ' +
                         '<a href="javascript:;" class="btlink" onclick="delDb(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="Delete database">Delete</a>' +
                     '</td>';
             list += '</tr>';
@@ -1013,18 +1129,20 @@ function dbList(page, search){
             <button onclick="addDatabase()" title="Add database" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">Add database</button>\
             <button onclick="setRootPwd(0,\''+rdata.info['root_pwd']+'\')" title="Set MySQL administrator password" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">Root password</button>\
             <button onclick="openPhpmyadmin(\'\',\'root\',\''+rdata.info['root_pwd']+'\')" title="Open phpMyadmin" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">phpMyAdmin</button>\
-            <button onclick="setDbAccess(\'root\')" title="ROOT permission" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">ROOT permission</button>\
+            <button onclick="setDbAccess(\'root\')" title="ROOT permission" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">Root permission</button>\
+            <button onclick="fixDbAccess(\'root\')" title="Repair" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">Repair</button>\
             <span style="float:right">              \
-                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="Delete selected item" class="btn btn-default btn-sm">Delete selected</button>\
+                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="Delete selected" class="btn btn-default btn-sm">Delete selected</button>\
             </span>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                     <thead><tr><th width="30"><input class="check" onclick="checkSelect();" type="checkbox"></th>\
-                    <th>Database Name</th>\
+                    <th>Database</th>\
                     <th>Username</th>\
                     <th>Password</th>\
-                    <th>Caption</th>\
+                    '+
+                    '<th>Description</th>\
                     <th style="text-align:right;">Action</th></tr></thead>\
                     <tbody>\
                     '+ list +'\
@@ -1032,9 +1150,9 @@ function dbList(page, search){
                 </div>\
                 <div id="databasePage" class="dataTables_paginate paging_bootstrap page"></div>\
                 <div class="table_toolbar" style="left:0px;">\
-                    <span class="sync btn btn-default btn-sm" style="margin-right:5px" onclick="syncToDatabase(1)" title="Synchronize the selected database information to the server">Sync checked</span>\
+                    <span class="sync btn btn-default btn-sm" style="margin-right:5px" onclick="syncToDatabase(1)" title="Synchronize the selected database information to the server">Sync selected</span>\
                     <span class="sync btn btn-default btn-sm" style="margin-right:5px" onclick="syncToDatabase(0)" title="Synchronize all database information to the server">Sync all</span>\
-                    <span class="sync btn btn-default btn-sm" onclick="syncGetDatabase()" title="Get database list from server">Get from server</span>\
+                    <span class="sync btn btn-default btn-sm" onclick="syncGetDatabase()" title="Get a list of databases from the server">Get from server</span>\
                 </div>\
             </div>\
         </div>';
@@ -1065,14 +1183,14 @@ function myLogs(){
             line_status = '<button class="btn btn-success btn-xs btn-bin va0">Close</button>\
                         <button class="btn btn-success btn-xs clean-btn-bin va0">Clean up BINLOG logs</button>';
         } else {
-            line_status = '<button class="btn btn-success btn-xs btn-bin va0">Start</button>';
+            line_status = '<button class="btn btn-success btn-xs btn-bin va0">Turn on</button>';
         }
 
         var limitCon = '<p class="conf_p">\
                         <span class="f14 c6 mr20">Binary log </span><span class="f14 c6 mr20">' + toSize(rdata.msg) + '</span>\
                         '+line_status+'\
-                        <p class="f14 c6 mtb10" style="border-top:#ddd 1px solid; padding:10px 0">Error log<button class="btn btn-default btn-clear btn-xs" style="float:right;" >Clean up logs</button></p>\
-                        <textarea readonly style="margin: 0px;width: 100%;height: 440px;background-color: #333;color:#fff; padding:0 5px" id="error_log"></textarea>\
+                        <p class="f14 c6 mtb10" style="border-top:#ddd 1px solid; padding:10px 0">Error log <button class="btn btn-default btn-clear btn-xs" style="float:right;" >Clear</button></p>\
+                        <textarea readonly style="margin: 0px;width: 100%;height: 438px;background-color: #333;color:#fff; padding:0 5px" id="error_log"></textarea>\
                     </p>';
         $(".soft-man-con").html(limitCon);
 
@@ -1141,7 +1259,7 @@ function repDatabase(db_name, tables) {
         var rdata = $.parseJSON(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         repTools(db_name, true);
-    },'Repair instructions have been sent, please wait...');
+    },'Repair command has been sent, please wait...');
 }
 
 
@@ -1161,7 +1279,7 @@ function toDatabaseType(db_name, tables, type){
         var rdata = $.parseJSON(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         repTools(db_name, true);
-    }, 'An engine conversion command has been sent, please wait...');
+    }, 'Engine conversion command has been sent, please wait...');
 }
 
 
@@ -1203,7 +1321,7 @@ function repTools(db_name, res){
                     <td style="text-align: right;">\
                         <a class="btlink" onclick="repDatabase(\''+ db_name + '\',\'' + rdata.tables[i].table_name + '\')">Repair</a> |\
                         <a class="btlink" onclick="optDatabase(\''+ db_name + '\',\'' + rdata.tables[i].table_name + '\')">Optimization</a> |\
-                        <a class="btlink" onclick="toDatabaseType(\''+ db_name + '\',\'' + rdata.tables[i].table_name + '\',\'' + types[rdata.tables[i].type] + '\')">Convert to' + types[rdata.tables[i].type] + '</a>\
+                        <a class="btlink" onclick="toDatabaseType(\''+ db_name + '\',\'' + rdata.tables[i].table_name + '\',\'' + types[rdata.tables[i].type] + '\')">Turn into ' + types[rdata.tables[i].type] + '</a>\
                     </td>\
                 </tr> '
         }
@@ -1218,13 +1336,13 @@ function repTools(db_name, res){
 
         layer.open({
             type: 1,
-            title: "MySQL Toolbox [" + db_name + "]",
+            title: "MySQL toolbox [" + db_name + "]",
             area: ['780px', '580px'],
-            closeBtn: 2,
+            closeBtn: 1,
             shadeClose: false,
             content: '<div class="pd15">\
                             <div class="db_list">\
-                                <span><a>Nama database：'+ db_name + '</a>\
+                                <span><a>Name database：'+ db_name + '</a>\
                                 <a class="tools_size">Size：'+ rdata.data_size + '</a></span>\
                                 <span id="db_tools" style="float: right;"></span>\
                             </div >\
@@ -1234,7 +1352,7 @@ function repTools(db_name, res){
                                 <thead>\
                                     <tr>\
                                         <th><input class="check" onclick="selectedTools(this,\''+ db_name + '\');" type="checkbox"></th>\
-                                        <th>Database name</th>\
+                                        <th>Table Name</th>\
                                         <th>Engine</th>\
                                         <th>Character set</th>\
                                         <th>Number of lines</th>\
@@ -1247,7 +1365,7 @@ function repTools(db_name, res){
                             </div>\
                         </div>\
                         <ul class="help-info-text c7">\
-                            <li>[Repair] Try to use the REPAIR command to repair the damaged table, only a simple repair can be done. If the repair is unsuccessful, please consider using the myisamchk tool</li>\
+                            <li>[Repair] Try to use the REPAIR command to repair the damaged table, only a simple repair can be done, if the repair is unsuccessful, please consider using the myisamchk tool</li>\
                             <li>[Optimization] Execute the OPTIMIZE command to reclaim the unreleased disk space. It is recommended to execute it once a month</li>\
                             <li>[Convert to InnoDB/MyISAM] Convert the data table engine, it is recommended to convert all tables to InnoDB</li>\
                         </ul></div>'
@@ -1287,7 +1405,7 @@ function addMasterRepSlaveUser(){
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["Yes","No"],
+        btn:["Submit","Cancel"],
         content: "<form class='bt-form pd20' id='add_master'>\
             <div class='line'><span class='tname'>Username</span><div class='info-r'><input name='username' class='bt-input-text mr5' placeholder='Username' type='text' style='width:330px;' value='"+(randomStrPwd(6))+"'></div></div>\
             <div class='line'>\
@@ -1306,7 +1424,7 @@ function addMasterRepSlaveUser(){
             $('select[name="dataAccess"]').change(function(){
                 var v = $(this).val();
                 if (v == 'ip'){
-                    $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by comma (,)' style='width: 230px; display: inline-block;'>");
+                    $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
                 } else {
                     $('#dataAccess_subid').remove();
                 }
@@ -1315,7 +1433,7 @@ function addMasterRepSlaveUser(){
         yes:function(index){
             var data = $("#add_master").serialize();
             data = decodeURIComponent(data);
-            var dataObj = str2Obj(data);
+            var dataObj = toArrayObject(data);
             if(!dataObj['address']){
                 dataObj['address'] = dataObj['dataAccess'];
             }
@@ -1332,6 +1450,8 @@ function addMasterRepSlaveUser(){
         }
     });
 }
+
+
 
 function updateMasterRepSlaveUser(username){
 
@@ -1358,7 +1478,7 @@ function updateMasterRepSlaveUser(username){
     $('#submit_update_master').click(function(){
         var data = $("#update_master").serialize();
         data = decodeURIComponent(data);
-        var dataObj = str2Obj(data);
+        var dataObj = toArrayObject(data);
         myPost('update_master_rep_slave_user', data, function(data){
             var rdata = $.parseJSON(data.data);
             showMsg(rdata.msg,function(){
@@ -1384,7 +1504,7 @@ function getMasterRepSlaveUserCmd(username, db=''){
 
         var loadOpen = layer.open({
             type: 1,
-            title: 'Sync command',
+            title: 'Synchronous command',
             area: '500px',
             content:"<form class='bt-form pd20 pb70' id='add_master'>\
             <div class='line'>"+cmd+"</div>\
@@ -1405,13 +1525,9 @@ function getMasterRepSlaveUserCmd(username, db=''){
 function delMasterRepSlaveUser(username){
     myPost('del_master_rep_slave_user', {username:username}, function(data){
         var rdata = $.parseJSON(data.data);
-        layer.msg(rdata.msg);
-
-        $('.layui-layer-close1').click();
-
-        setTimeout(function(){
+        showMsg(rdata.msg, function(){
             getMasterRepSlaveList();
-        },1000);
+        },{icon: rdata.status ? 1 : 2},1000)
     });
 }
 
@@ -1430,7 +1546,7 @@ function setDbMasterAccess(username){
             title: 'Set database permissions',
             closeBtn: 1,
             shift: 5,
-            btn:["Yes","No"],
+            btn:["Submit","Cancel"],
             shadeClose: true,
             content: "<form class='bt-form pd20' id='set_db_access'>\
                         <div class='line'>\
@@ -1439,7 +1555,7 @@ function setDbMasterAccess(username){
                                 <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
                                 <option value='127.0.0.1'>Localhost</option>\
                                 <option value=\"%\">Everyone</option>\
-                                <option value='ip'>Specified IP</option>\
+                                <option value='ip'>Specific IP</option>\
                                 </select>\
                             </div>\
                         </div>\
@@ -1451,16 +1567,16 @@ function setDbMasterAccess(username){
                     $('select[name="dataAccess"]').find('option[value="%"]').attr("selected",true);
                 } else if ( rdata.msg == 'ip' ){
                     $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
-                    $('select[name="dataAccess"]').after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by comma (,)' style='width: 230px; display: inline-block;'>");
+                    $('select[name="dataAccess"]').after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
                 } else {
                     $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
-                    $('select[name="dataAccess"]').after("<input value='"+rdata.msg+"' id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by comma (,)' style='width: 230px; display: inline-block;'>");
+                    $('select[name="dataAccess"]').after("<input value='"+rdata.msg+"' id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
                 }
 
                  $('select[name="dataAccess"]').change(function(){
                     var v = $(this).val();
                     if (v == 'ip'){
-                        $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by comma (,)' style='width: 230px; display: inline-block;'>");
+                        $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
                     } else {
                         $('#dataAccess_subid').remove();
                     }
@@ -1469,7 +1585,7 @@ function setDbMasterAccess(username){
             yes:function(index){
                 var data = $("#set_db_access").serialize();
                 data = decodeURIComponent(data);
-                var dataObj = str2Obj(data);
+                var dataObj = toArrayObject(data);
                 if(!dataObj['access']){
                     dataObj['access'] = dataObj['dataAccess'];
                     if ( dataObj['dataAccess'] == 'ip'){
@@ -1518,10 +1634,10 @@ function getMasterRepSlaveList(){
             list += '<tr><td>'+name+'</td>\
                 <td>'+user_list[i]['password']+'</td>\
                 <td>\
-                    <a class="btlink" onclick="updateMasterRepSlaveUser(\''+name+'\');">Edit</a> | \
+                    <a class="btlink" onclick="updateMasterRepSlaveUser(\''+name+'\');">Update</a> | \
                     <a class="btlink" onclick="delMasterRepSlaveUser(\''+name+'\');">Delete</a> | \
-                    <a class="btlink" onclick="setDbMasterAccess(\''+name+'\');">Permission</a> | \
-                    <a class="btlink" onclick="getMasterRepSlaveUserCmd(\''+name+'\');">Sync command from library</a>\
+                    <a class="btlink" onclick="setDbMasterAccess(\''+name+'\');">Permissions</a> | \
+                    <a class="btlink" onclick="getMasterRepSlaveUserCmd(\''+name+'\');">Synchronize commands</a>\
                 </td>\
             </tr>';
         }
@@ -1537,7 +1653,7 @@ function getMasterRepSlaveListPage(){
 
     var loadOpen = layer.open({
         type: 1,
-        title: 'Sync Account List',
+        title: 'Sync account list',
         area: '500px',
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10' id='get_master_rep_slave_list_page'>\
@@ -1571,7 +1687,7 @@ function getFullSyncStatus(db){
     var btn = '<div class="table_toolbar" style="left:0px;"><span data-status="init" class="sync btn btn-default btn-sm" id="begin_full_sync" title="">Start</span></div>';
     var loadOpen = layer.open({
         type: 1,
-        title: 'Full sync ['+db+']',
+        title: 'Full synchronization ['+db+']',
         area: '500px',
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
@@ -1612,7 +1728,7 @@ function getFullSyncStatus(db){
             }, 1000);
             $(this).attr('data-status','starting');
         } else {
-            layer.msg("Syncing..");
+            layer.msg("Synchronizing..");
         }
     });
 }
@@ -1638,15 +1754,15 @@ function addSlaveSSH(ip=''){
         var index = layer.open({
             type: 1,
             area: ['500px','480px'],
-            title: 'Add SSH',
+            title: 'Add ssh',
             closeBtn: 1,
             shift: 5,
             shadeClose: true,
-            btn:["Yes","No"],
+            btn:["Confirm","Cancel"],
             content: "<form class='bt-form pd20'>\
                 <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ip+"'></div></div>\
                 <div class='line'><span class='tname'>Port</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
-                <div class='line'><span class='tname'>Sync Account [DB]</span><div class='info-r'><input name='db_user'  placeholder='If it is empty, take the first one!' class='bt-input-text mr5' type='text' style='width:330px;' value='"+db_user+"'></div></div>\
+                <div class='line'><span class='tname'>Sync account [DB]</span><div class='info-r'><input name='db_user'  placeholder='If it is empty, take the first one!' class='bt-input-text mr5' type='text' style='width:330px;' value='"+db_user+"'></div></div>\
                 <div class='line'>\
                 <span class='tname'>ID_RSA</span>\
                 <div class='info-r'><textarea class='bt-input-text mr5' row='20' cols='50' name='id_rsa' style='width:330px;height:200px;'></textarea></div>\
@@ -1681,8 +1797,23 @@ function addSlaveSSH(ip=''){
 function delSlaveSSH(ip){
     myPost('del_slave_ssh', {ip:ip}, function(rdata){
         var rdata = $.parseJSON(rdata.data);
-        layer.msg(rdata.msg, {icon: rdata.status ? 1 : 2});
-        getSlaveSSHPage();
+        showMsg(rdata.msg,function(){
+            if (rdata.status){
+                getSlaveSSHPage();
+            }
+        },{icon: rdata.status ? 1 : 2}, 600);
+    });
+}
+
+
+function delSlaveSyncUser(ip){
+    myPost('del_slave_sync_user', {ip:ip}, function(rdata){
+        var rdata = $.parseJSON(rdata.data);
+        showMsg(rdata.msg,function(){
+            if (rdata.status){
+                getSlaveSyncUserPage();
+            }
+        },{icon: rdata.status ? 1 : 2}, 600);
     });
 }
 
@@ -1720,7 +1851,7 @@ function getSlaveSSHPage(page=1){
                 <td>'+db_user+'</td>\
                 <td>'+id_rsa+'</td>\
                 <td>\
-                    <a class="btlink" onclick="addSlaveSSH(\''+ip+'\');">Edit</a> | \
+                    <a class="btlink" onclick="addSlaveSSH(\''+ip+'\');">Modify</a> | \
                     <a class="btlink" onclick="delSlaveSSH(\''+ip+'\');">Delete</a>\
                 </td>\
             </tr>';
@@ -1732,10 +1863,241 @@ function getSlaveSSHPage(page=1){
 }
 
 
+
+function addSlaveSyncUser(ip=''){
+
+    myPost('get_slave_sync_user_by_ip', {ip:ip}, function(rdata){
+
+        var rdata = $.parseJSON(rdata.data);
+
+        var ip = '127.0.0.1';
+        var port = "22";
+        var cmd = '';
+        var user = 'input_sync_user';
+        var pass = 'input_sync_pwd';
+        var mode = '0';
+
+        if (rdata.data.length>0){
+            ip = rdata.data[0]['ip'];
+            port = rdata.data[0]['port'];
+            cmd = rdata.data[0]['cmd'];
+            user = rdata.data[0]['user'];
+            pass = rdata.data[0]['pass'];
+            mode = rdata.data[0]['mode'];
+        }
+
+        var index = layer.open({
+            type: 1,
+            area: ['500px','470px'],
+            title: 'Sync account',
+            closeBtn: 1,
+            shift: 5,
+            shadeClose: true,
+            btn:["Submit","Cancel"],
+            content: "<form class='bt-form pd20'>\
+                <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ip+"'></div></div>\
+                <div class='line'><span class='tname'>Port</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
+                <div class='line'><span class='tname'>Sync account</span><div class='info-r'><input name='user' class='bt-input-text mr5' type='text' style='width:330px;' value='"+user+"'></div></div>\
+                <div class='line'><span class='tname'>Sync password</span><div class='info-r'><input name='pass' class='bt-input-text mr5' type='text' style='width:330px;' value='"+pass+"'></div></div>\
+                <div class='line'>\
+                <span class='tname'>CMD [preferably filled in]</span>\
+                <div class='info-r'><textarea class='bt-input-text mr5' row='20' cols='30' name='cmd' style='width:330px;height:150px;'></textarea></div>\
+                </div>\
+                <input type='hidden' name='mode' value='"+mode+"' />\
+              </form>",
+            success:function(){
+                $('textarea[name="cmd"]').html(cmd);
+
+                $('textarea[name="cmd"]').change(function(){
+                    var val = $(this).val();
+                    var vlist = val.split(',');
+                    var a = {};
+                    for (var i in vlist) {
+                        var tmp = toTrim(vlist[i]);
+                        var tmp_a = tmp.split(" ");
+                        var real_tmp = tmp_a[tmp_a.length-1];
+                        var kv = real_tmp.split("=");
+                        a[kv[0]] = kv[1].replace("'",'').replace("'",'');
+                    }
+
+                    $('input[name="ip"]').val(a['MASTER_HOST']);
+                    $('input[name="port"]').val(a['MASTER_PORT']);
+                    $('input[name="user"]').val(a['MASTER_USER']);
+                    $('input[name="pass"]').val(a['MASTER_PASSWORD']);
+
+                    console.log(a['MASTER_AUTO_POSITION'],typeof(a['MASTER_AUTO_POSITION']));
+                    if (typeof(a['MASTER_AUTO_POSITION']) != 'undefined' ){
+                        $('input[name="mode"]').val('1');
+                    }
+                });
+            },
+            yes:function(index){
+                var ip = $('input[name="ip"]').val();
+                var port = $('input[name="port"]').val();
+                var user = $('input[name="user"]').val();
+                var pass = $('input[name="pass"]').val();
+                var cmd = $('textarea[name="cmd"]').val();
+                var mode = $('input[name="mode"]').val();
+
+                var data = {ip:ip,port:port,cmd:cmd,user:user,pass:pass,mode:mode};
+                myPost('add_slave_sync_user', data, function(ret_data){
+                    layer.close(index);
+                    var rdata = $.parseJSON(ret_data.data);
+                    showMsg(rdata.msg,function(){
+                        if (rdata.status){
+                            getSlaveSyncUserPage();
+                        }
+                    },{icon: rdata.status ? 1 : 2},600);
+                });
+            }
+        });
+    });
+}
+
+function getSlaveSyncUserPage(page=1){
+    var _data = {};
+    _data['page'] = page;
+    _data['page_size'] = 5;
+    _data['tojs'] ='getSlaveSyncUserPage';
+    myPost('get_slave_sync_user_list', _data, function(data){
+        var layerId = null;
+        var rdata = [];
+        try {
+            rdata = $.parseJSON(data.data);
+        } catch(e) {
+            console.log(e);
+        }
+
+        var list = '';
+        var user_list = rdata['data'];
+        for (i in user_list) {
+            var ip = user_list[i]['ip'];
+            var port = user_list[i]['port'];
+            var user = user_list[i]['user'];
+            var apass = user_list[i]['pass'];
+
+            var cmd = 'Not set';
+            if (user_list[i]['cmd']!=''){
+                cmd = 'Has been set';
+            }
+
+            list += '<tr><td>'+ip+'</td>\
+                <td>'+port+'</td>\
+                <td>'+user+'</td>\
+                <td>'+apass+'</td>\
+                <td>'+cmd+'</td>\
+                <td>\
+                    <a class="btlink" onclick="addSlaveSyncUser(\''+ip+'\');">Modify</a> | \
+                    <a class="btlink" onclick="delSlaveSyncUser(\''+ip+'\');">Delete</a>\
+                </td>\
+            </tr>';
+        }
+
+        $('.get-slave-ssh-list tbody').html(list);
+        $('.dataTables_paginate_4').html(rdata['page']);
+    });
+}
+
+function getSlaveCfg(){
+
+    myPost('get_slave_sync_mode', '', function(data){
+        var rdata = $.parseJSON(data.data);
+        var mode_none = 'success';
+        var mode_ssh = 'danger';
+        var mode_sync_user = 'danger';
+        if(rdata.status){
+            var mode_none = 'danger';
+            if (rdata.data == 'ssh'){
+                var mode_ssh = 'success';
+                var mode_sync_user = 'danger';
+            } else {
+                var mode_ssh = 'danger';
+                var mode_sync_user = 'success';
+            }
+        }
+
+        layerId = layer.open({
+            type: 1,
+            title: 'Sync configuration',
+            area: ['400px','180px'],
+            content:"<div class='bt-form pd20 c6'>\
+                    <p class='conf_p'>\
+                        <span class='f14 c6 mr20'>Current synchronization mode from the library</span>\
+                        <b class='f14 c6 mr20'></b>\
+                        <button class='btn btn-"+mode_none+" btn-xs slave-db-mode btn-none'>None</button>\
+                        <button class='btn btn-"+mode_ssh+" btn-xs slave-db-mode btn-ssh'>SSH</button>\
+                        <button class='btn btn-"+mode_sync_user+" btn-xs slave-db-mode btn-sync-user'>Sync account</button>\
+                    </p>\
+                    <hr />\
+                    <p class='conf_p'>\
+                        <span class='f14 c6 mr20'>Configuration settings</span>\
+                        <b class='f14 c6 mr20'></b>\
+                        <button class='btn btn-success btn-xs btn-slave-ssh'>SSH</button>\
+                        <button class='btn btn-success btn-xs btn-slave-user'>Sync account</button>\
+                    </p>\
+                </div>",
+            success:function(){
+                $('.btn-slave-ssh').click(function(){
+                    getSlaveSSHList();
+                });
+
+                $('.btn-slave-user').click(function(){
+                    getSlaveUserList();
+                });
+
+                $('.slave-db-mode').click(function(){
+                    var _this = this;
+                    var mode = 'none';
+                    if ($(this).hasClass('btn-ssh')){
+                        mode = 'ssh';
+                    }
+                    if ($(this).hasClass('btn-sync-user')){
+                        mode = 'sync-user';
+                    }
+
+                    myPost('set_slave_sync_mode', {mode:mode}, function(data){
+                        var rdata = $.parseJSON(data.data);
+                        showMsg(rdata.msg,function(){
+                            $('.slave-db-mode').remove('btn-success').addClass('btn-danger');
+                            $(_this).removeClass('btn-danger').addClass('btn-success');
+                        },{icon:rdata.status?1:2},2000);
+                    });
+
+                });
+            }
+        });
+    });
+}
+
+
+function getSlaveUserList(){
+
+    var page = '<div class="dataTables_paginate_4 dataTables_paginate paging_bootstrap page" style="margin-top:0px;"></div>';
+    page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addSlaveSyncUser()" title="">Add sync account</span></div>';
+
+    layerId = layer.open({
+        type: 1,
+        title: 'Sync account list',
+        area: '500px',
+        content:"<div class='bt-form pd20 c6'>\
+                 <div class='divtable mtb10'>\
+                    <div><table class='table table-hover get-slave-ssh-list'>\
+                        <thead><tr><th>IP</th><th>PORT</th><th>Sync Account</th><th>Sync Password</th><th>CMD</th><th>Action</th></tr></thead>\
+                        <tbody></tbody>\
+                    </table></div>\
+                    "+page +"\
+                </div>\
+            </div>",
+        success:function(){
+            getSlaveSyncUserPage(1);
+        }
+    });
+}
+
 function getSlaveSSHList(page=1){
 
     var page = '<div class="dataTables_paginate_4 dataTables_paginate paging_bootstrap page" style="margin-top:0px;"></div>';
-    page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addSlaveSSH()" title="">Add SSH</span></div>';
+    page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addSlaveSSH()" title="">Add ssh</span></div>';
 
     layerId = layer.open({
         type: 1,
@@ -1762,7 +2124,7 @@ function handlerRun(){
         var cmd = rdata['data'];
         var loadOpen = layer.open({
             type: 1,
-            title: 'Do it manually',
+            title: 'Manual execution',
             area: '500px',
             content:"<form class='bt-form pd20 pb70' id='add_master'>\
             <div class='line'>"+cmd+"</div>\
@@ -1808,8 +2170,8 @@ function masterOrSlaveConf(version=''){
                 list += '<td>' + rdata.data[i]['name'] +'</td>';
                 list += '<td>' + (rdata.data[i]['master']?'Yes':'No') +'</td>';
                 list += '<td style="text-align:right">' +
-                    '<a href="javascript:;" class="btlink" onclick="setDbMaster(\''+rdata.data[i]['name']+'\')" title="Join or leave">'+(rdata.data[i]['master']?'Quit':'Join')+'</a> | ' +
-                    '<a href="javascript:;" class="btlink" onclick="getMasterRepSlaveUserCmd(\'\',\''+rdata.data[i]['name']+'\')" title="sync command">Sync command</a>' +
+                    '<a href="javascript:;" class="btlink" onclick="setDbMaster(\''+rdata.data[i]['name']+'\')" title="Join or exit">'+(rdata.data[i]['master']?'Exit':'Join')+'</a> | ' +
+                    '<a href="javascript:;" class="btlink" onclick="getMasterRepSlaveUserCmd(\'\',\''+rdata.data[i]['name']+'\')" title="Synchronous command">Sync command</a>' +
                 '</td>';
                 list += '</tr>';
             }
@@ -1818,7 +2180,7 @@ function masterOrSlaveConf(version=''){
                     <div class="tablescroll">\
                         <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                         <thead><tr>\
-                        <th>Database Name</th>\
+                        <th>Database name</th>\
                         <th>Synchronize</th>\
                         <th style="text-align:right;">Action</th></tr></thead>\
                         <tbody>\
@@ -1827,7 +2189,7 @@ function masterOrSlaveConf(version=''){
                     </div>\
                     <div id="databasePage" class="dataTables_paginate paging_bootstrap page"></div>\
                     <div class="table_toolbar" style="left:0px;">\
-                        <span class="sync btn btn-default btn-sm" onclick="getMasterRepSlaveListPage()" title="">Sync Account List</span>\
+                        <span class="sync btn btn-default btn-sm" onclick="getMasterRepSlaveListPage()" title="">Sync account list</span>\
                     </div>\
                 </div>';
 
@@ -1851,9 +2213,9 @@ function masterOrSlaveConf(version=''){
             for(i in rdata.data){
 
                 var v = rdata.data[i];
-                var status = "abnormal";
+                var status = "<a class='btlink db_error'>Abnormal</>";
                 if (v['Slave_SQL_Running'] == 'Yes' && v['Slave_IO_Running'] == 'Yes'){
-                    status = "normal";
+                    status = "Normal";
                 }
 
                 list += '<tr>';
@@ -1874,7 +2236,7 @@ function masterOrSlaveConf(version=''){
                     <div class="tablescroll">\
                         <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                         <thead><tr>\
-                        <th>Main [service]</th>\
+                        <th>Master [service]</th>\
                         <th>Port</th>\
                         <th>User</th>\
                         <th>Log</th>\
@@ -1888,11 +2250,27 @@ function masterOrSlaveConf(version=''){
                     </div>\
                 </div>';
 
-            // <div id="databasePage_slave" class="dataTables_paginate paging_bootstrap page"></div>\
-            // <div class="table_toolbar">\
-            //     <span class="sync btn btn-default btn-sm" onclick="getMasterRepSlaveList()" title="">Add to</span>\
-            // </div>
             $(".table_slave_status_list").html(con);
+
+            $('.db_error').click(function(){
+                layer.open({
+                    type: 1,
+                    title: 'Synchronization exception information',
+                    area: '500px',
+                    content:"<form class='bt-form pd20 pb70'>\
+                    <div class='line'>"+v['Error']+"</div>\
+                    <div class='bt-form-submit-btn'>\
+                        <button type='button' class='btn btn-success btn-sm btn-title class-copy-db-err'>Copy</button>\
+                    </div>\
+                  </form>",
+                    success:function(){
+                        copyText(v['Error']);
+                        $('.class-copy-db-err').click(function(){
+                            copyText(v['Error']);
+                        });
+                    }
+                });
+            });
         });
     }
 
@@ -1911,7 +2289,7 @@ function masterOrSlaveConf(version=''){
                 list += '<tr>';
                 list += '<td>' + rdata.data[i]['name'] +'</td>';
                 list += '<td style="text-align:right">' +
-                    '<a href="javascript:;" class="btlink" onclick="setDbSlave(\''+rdata.data[i]['name']+'\')"  title="Join|Exit">'+(rdata.data[i]['slave']?'Quit':'Join')+'</a> | ' +
+                    '<a href="javascript:;" class="btlink" onclick="setDbSlave(\''+rdata.data[i]['name']+'\')"  title="Join or exit">'+(rdata.data[i]['slave']?'Exit':'Join')+'</a> | ' +
                     '<a href="javascript:;" class="btlink" onclick="getFullSyncStatus(\''+rdata.data[i]['name']+'\')" title="Synchronize">Synchronize</a>' +
                 '</td>';
                 list += '</tr>';
@@ -1921,7 +2299,7 @@ function masterOrSlaveConf(version=''){
                     <div class="tablescroll">\
                         <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                         <thead><tr>\
-                        <th>Local library name</th>\
+                        <th>Local DB name</th>\
                         <th style="text-align:right;">Action</th></tr></thead>\
                         <tbody>\
                         '+ list +'\
@@ -1929,7 +2307,7 @@ function masterOrSlaveConf(version=''){
                     </div>\
                     <div id="databasePage" class="dataTables_paginate paging_bootstrap page"></div>\
                     <div class="table_toolbar" style="left:0px;">\
-                        <span class="sync btn btn-default btn-sm" onclick="handlerRun()" title="After the login-free setting, you need to execute it manually!">Manual command</span>\
+                        <span class="sync btn btn-default btn-sm" onclick="handlerRun()" title="After the login-free setting, you need to manually execute it!">Manual command</span>\
                         <span class="sync btn btn-default btn-sm" onclick="getFullSyncStatus(\'ALL\')" title="Full sync">Full sync</span>\
                     </div>\
                 </div>';
@@ -1940,22 +2318,26 @@ function masterOrSlaveConf(version=''){
     }
 
 
-
     function getMasterStatus(){
-        myPost('get_master_status', '', function(data){
-            var rdata = $.parseJSON(data.data);
+        myPost('get_master_status', '', function(rdata){
+            var rdata = $.parseJSON(rdata.data);
             // console.log('mode:',rdata.data);
+            if ( typeof(rdata.status) != 'undefined' && !rdata.status && rdata.data == 'pwd'){
+                layer.msg(rdata.msg, {icon:2});
+                return;
+            }
+
             var rdata = rdata.data;
             var limitCon = '\
                 <p class="conf_p">\
-                    <span class="f14 c6 mr20">Master-Slave Synchronous Mode</span><span class="f14 c6 mr20"></span>\
+                    <span class="f14 c6 mr20">Master-slave mode</span><span class="f14 c6 mr20"></span>\
                     <button class="btn '+(!(rdata.mode == "classic") ? 'btn-danger' : 'btn-success')+' btn-xs db-mode btn-classic">Classic</button>\
                     <button class="btn '+(!(rdata.mode == "gtid") ? 'btn-danger' : 'btn-success')+' btn-xs db-mode btn-gtid">GTID</button>\
                 </p>\
                 <hr/>\
                 <p class="conf_p">\
-                    <span class="f14 c6 mr20">Master configuration</span><span class="f14 c6 mr20"></span>\
-                    <button class="btn '+(!rdata.status ? 'btn-danger' : 'btn-success')+' btn-xs btn-master">'+(!rdata.status ? 'Unactivated' : 'Activated') +'</button>\
+                    <span class="f14 c6 mr20">Master Config</span><span class="f14 c6 mr20"></span>\
+                    <button class="btn '+(!rdata.status ? 'btn-danger' : 'btn-success')+' btn-xs btn-master">'+(!rdata.status ? 'No Started' : 'Started') +'</button>\
                 </p>\
                 <hr/>\
                 <!-- master list -->\
@@ -1963,9 +2345,9 @@ function masterOrSlaveConf(version=''){
                 <hr/>\
                 <!-- class="conf_p" -->\
                 <p class="conf_p">\
-                    <span class="f14 c6 mr20">Slave Configuration</span><span class="f14 c6 mr20"></span>\
-                    <button class="btn '+(!rdata.slave_status ? 'btn-danger' : 'btn-success')+' btn-xs btn-slave">'+(!rdata.slave_status ? 'Unactivated' : 'Activated') +'</button>\
-                    <button class="btn btn-success btn-xs" onclick="getSlaveSSHList()" >SSH configuration</button>\
+                    <span class="f14 c6 mr20">Slave Config</span><span class="f14 c6 mr20"></span>\
+                    <button class="btn '+(!rdata.slave_status ? 'btn-danger' : 'btn-success')+' btn-xs btn-slave">'+(!rdata.slave_status ? 'Not started' : 'Started') +'</button>\
+                    <button class="btn btn-success btn-xs" onclick="getSlaveCfg()" >Sync configuration</button>\
                     <button class="btn btn-success btn-xs" onclick="initSlaveStatus()" >Initialization</button>\
                 </p>\
                 <hr/>\
@@ -1976,7 +2358,6 @@ function masterOrSlaveConf(version=''){
                 ';
             $(".soft-man-con").html(limitCon);
 
-            //Set master server configuration
             $(".btn-master").click(function () {
                 myPost('set_master_status', 'close=change', function(data){
                     var rdata = $.parseJSON(data.data);
@@ -2010,10 +2391,10 @@ function masterOrSlaveConf(version=''){
 
                 layer.open({
                     type:1,
-                    title:"MySQL master-slave mode switch",
+                    title:"MySQL master-slave mode switching",
                     shadeClose:false,
                     btnAlign: 'c',
-                    btn: ['Switch and restart', 'Switch without restart'],
+                    btn: ['Switch and reboot', 'Switch without reboot'],
                     yes: function(index, layero){
                         this.change(index,mode,"yes");
 
@@ -2039,10 +2420,10 @@ function masterOrSlaveConf(version=''){
                 getMasterDbList();
             }
 
-            if (rdata.slave_status){
+            // if (rdata.slave_status){
                 getAsyncMasterDbList();
                 getAsyncDataList()
-            }
+            // }
         });
     }
     getMasterStatus();

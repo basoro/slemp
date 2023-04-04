@@ -2,17 +2,22 @@ function resetPluginWinWidth(width){
     $("div[id^='layui-layer'][class*='layui-layer-page']").width(width);
 }
 
+function resetPluginWinHeight(height){
+    $("div[id^='layui-layer'][class*='layui-layer-page']").height(height);
+    $(".bt-form .bt-w-main").height(height-42);
+}
+
 function softMain(name, title, version) {
 
     var _title = title.replace('-'+version,'')
 
-    var loadT = layer.msg("Memproses ... tunggu sebentar...", { icon: 16, time: 0, shade: [0.3, '#000'] });
+    var loadT = layer.msg("Processing, please wait...", { icon: 16, time: 0, shade: [0.3, '#000'] });
     $.get('/plugins/setting?name='+name, function(rdata) {
         layer.close(loadT);
         layer.open({
             type: 1,
             area: '640px',
-            title: 'Manage ' + _title + '-' + version,
+            title: _title + '[' + version + "] management",
             closeBtn: 1,
             shift: 0,
             content: rdata
@@ -21,13 +26,14 @@ function softMain(name, title, version) {
             $(this).addClass("bgw").siblings().removeClass("bgw");
         });
 
+        //version to
         $(".plugin_version").attr('version',version).hide();
     });
 }
 
 function getSList(isdisplay) {
     if (isdisplay !== true) {
-        var loadT = layer.msg('Mengambil daftar aplikasi...', { icon: 16, time: 0, shade: [0.3, '#000'] })
+        var loadT = layer.msg('Fetching list...', { icon: 16, time: 0, shade: [0.3, '#000'] })
     }
     if (!isdisplay || isdisplay === true)
         isdisplay = getCookie('p' + getCookie('soft_type'));
@@ -99,11 +105,10 @@ function getSList(isdisplay) {
 
             if (plugin.setup == true) {
 
-                var mupdate = '';
-                //(plugin.versions[n] == plugin.updates[n]) '' : '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + plugin.versions[n].version + '\',\'' + plugin.updates[n] + '\')">Update</a> | ';
+                var mupdate = '';//(plugin.versions[n] == plugin.updates[n]) '' : '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + plugin.versions[n].version + '\',\'' + plugin.updates[n] + '\')">Renew</a> | ';
                 // if (plugin.versions[n] == '') mupdate = '';
-                handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\''+ plugin.name +'\',\'' + plugin.setup_version + '\')">Setting</a> | <a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection +')">Uninstall</a>';
-                titleClick = 'onclick="softMain(\'' + plugin.name + '\',\''+ plugin.name +'\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
+                handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')">Setup</a> | <a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.title +'\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection +')">Uninstall</a>';
+                titleClick = 'onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
 
                 softPath = '<span class="glyphicon glyphicon-folder-open" title="' + plugin.path + '" onclick="openPath(\'' + plugin.path + '\')"></span>';
                 if (plugin.coexist){
@@ -132,11 +137,14 @@ function getSList(isdisplay) {
                 plugin_title = plugin.title + ' ' + plugin.setup_version;
             }
 
+            icon_link = "/plugins/file?name="+plugin.name+"&f=ico.png";
+            if (plugin.icon != ''){
+                icon_link = "/plugins/file?name="+plugin.name+"&f="+plugin.icon;
+            }
 
             sBody += '<tr>' +
-                '<td><span ' + titleClick +
-                '><img data-src="/plugins/file?name='+plugin.name+
-                '&f=ico.png" src="/static/img/loading.gif">' + plugin_title + '</span></td>' +
+                '<td><span ' + titleClick + '>'+
+                '<img data-src="'+icon_link+'" src="/static/img/loading.gif">' + plugin_title + '</span></td>' +
                 '<td>' + plugin.ps + '</td>' +
                 '<td>' + softPath + '</td>' +
                 '<td>' + state + '</td>' +
@@ -146,6 +154,8 @@ function getSList(isdisplay) {
         }
 
         sBody += pBody;
+
+
         $("#softList").html(sBody);
         $(".menu-sub span").click(function() {
             setCookie('soft_type', $(this).attr('typeid'));
@@ -158,7 +168,7 @@ function getSList(isdisplay) {
 }
 
 function installPreInspection(name, ver, callback){
-    var loading = layer.msg('Waiting to check the installation environment...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    var loading = layer.msg('Checking the installation environment...', { icon: 16, time: 0, shade: [0.3, '#000'] });
      $.post("/plugins/run", {'name':name,'version':ver,'func':'install_pre_inspection'}, function(rdata) {
         layer.close(loading);
         if (rdata.status){
@@ -193,12 +203,12 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
         }
         option = "<select id='selectVersion' class='bt-input-text' style='margin-left:30px'>" + selectVersion + "</select>";
     } else {
-        option = '<span id="selectVersion" val="' + name + ' ' + ver + '">[' + titlename + '] ' + ver + '</span>';
+        option = '<span id="selectVersion" val="' + name + ' ' + ver + '">【' + titlename + '】 ' + ver + '</span>';
     }
 
     layer.open({
         type: 1,
-        title: "["+ titlename + "] Software Installation",
+        title: "["+titlename + "] Software Installation",
         area: '350px',
         closeBtn: 1,
         shadeClose: true,
@@ -213,7 +223,6 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
             installTips();
         },
         yes:function(index,layero){
-            // console.log(index,layero)
             var info = $("#selectVersion").val().toLowerCase();
             if (info == ''){
                 info = $("#selectVersion").attr('val').toLowerCase();
@@ -221,6 +230,7 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
             var info_split = info.split(' ');
             var name = info_split[0];
             var version = info_split[1];
+
             var type = $('.fangshi').prop("checked") ? '1' : '0';
             var request_args = "name=" + name + "&version=" + version + "&type=" + type;
 
@@ -231,32 +241,35 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
                 });
                 return;
             }
+
             runInstall(request_args);
             flySlow('layui-layer-btn0');
-
         }
     });
 }
 
-function uninstallPreInspection(name, ver, callback){
+function uninstallPreInspection(name, title, ver, callback){
     var loading = layer.msg('Checking uninstall environment...', { icon: 16, time: 0, shade: [0.3, '#000'] });
      $.post("/plugins/run", {'name':name,'version':ver,'func':'uninstall_pre_inspection'}, function(rdata) {
         layer.close(loading);
         if (rdata.status){
             if (rdata.data == 'ok'){
-                callback();
+                if (typeof(callback) == 'function'){
+                    callback();
+                }
             } else {
-                layer.msg(rdata.data, { icon: 2 });
+                layer.msg(rdata.data, { icon: 2 , time: 6666});
             }
         } else {
-            layer.msg(rdata.data, { icon: rdata.status ? 1 : 2 });
+            layer.msg(rdata.data, { icon: rdata.status ? 1 : 2, time: 6666 });
         }
     },'json');
 }
 
+
 function runUninstallVersion(name, title, version){
     var title = title.replace("-"+version,"");
-    layer.confirm(msgTpl('Do you really want to uninstall [{1}-{2}]?', [title, version]), { title:'Notification', icon: 3, closeBtn: 1, btn: ['Yes','No'] }, function() {
+    layer.confirm(msgTpl('Do you really want to uninstall [{1}-{2}]?', [title, version]), { icon: 3, closeBtn: 1 }, function() {
         var data = 'name=' + name + '&version=' + version;
         var loadT = layer.msg('Processing, please wait...', { icon: 16, time: 0, shade: [0.3, '#000'] });
         $.post('/plugins/uninstall', data, function(rdata) {
@@ -267,14 +280,15 @@ function runUninstallVersion(name, title, version){
     });
 }
 
-function uninstallVersion(name, title, version,uninstall_pre_inspection) {
+
+function uninstallVersion(name, title, version, uninstall_pre_inspection) {
     if (uninstall_pre_inspection) {
         uninstallPreInspection(name,title,version,function(){
             runUninstallVersion(name,title,version);
         });
-        return;
+    } else {
+        runUninstallVersion(name,title,version);
     }
-    runUninstallVersion(name,title,version);
 }
 
 function toIndexDisplay(name, version, coexist) {
@@ -296,9 +310,18 @@ function toIndexDisplay(name, version, coexist) {
 }
 
 function indexListHtml(callback){
-    var loadT = layer.msg('Mengambil daftar aplikasi...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+
+
+    // init
+    $("#indexsoft").html('');
+    var index_soft = '';
+    for (var i = 0; i < 12; i++) {
+        index_soft += '<div class="col-sm-3 col-md-3 col-lg-3 no-bg"></div>';
+    }
+    $("#indexsoft").html(index_soft);
+
     $.get('/plugins/index_list', function(rdata) {
-        layer.close(loadT);
+        // layer.close(loadT);
         $("#indexsoft").html('');
         var con = '';
         for (var i = 0; i < rdata.length; i++) {
@@ -333,10 +356,12 @@ function indexListHtml(callback){
             con += '<div class="col-sm-3 col-md-3 col-lg-3" data-id="' + data_id + '">\
                 <span class="spanmove"></span>\
                 <div onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')">\
-                <div class="image"><img bk-src="/static/img/loading.gif" src="/plugins/file?name=' + plugin.name + '&f=ico.png" style="max-width:48px;"></div>\                <div class="sname">' +  name + state + '</div>\
+                <div class="image"><img bk-src="/static/img/loading.gif" src="/plugins/file?name=' + plugin.name + '&f=ico.png" style="max-width:48px;"></div>\
+                <div class="sname">' +  name + state + '</div>\
                 </div>\
             </div>';
 
+            // loadImage();
         }
 
         $("#indexsoft").html(con);
@@ -346,7 +371,6 @@ function indexListHtml(callback){
         var softboxn = softboxlen;
         if (softboxlen <= softboxsum) {
             for (var i = 0; i < softboxsum - softboxlen; i++) {
-                // softboxn += 1000;
                 softboxcon += '<div class="col-sm-3 col-md-3 col-lg-3 no-bg" data-id=""></div>';
             }
             $("#indexsoft").append(softboxcon);
@@ -430,17 +454,17 @@ function importPlugin(file){
                     <div class="plugin_user_info">\
                         <p><b>Name：</b>'+ data.title + '</p>\
                         <p><b>Version：</b>' + data.versions +'</p>\
-                        <p><b>Describe：</b>' + data.ps + '</p>\
+                        <p><b>Description：</b>' + data.ps + '</p>\
                         <p><b>Size：</b>' + toSize(data.size) + '</p>\
                         <p><b>Author：</b>' + data.author + '</p>\
                         <p><b>Source：</b><a class="btlink" href="'+data.home+'" target="_blank">' + data.home + '</a></p>\
                     </div>\
                     <ul class="help-info-text c7">\
-                        <li style="color:red;">This is a plug-in developed by a third party and its reliability cannot be verified!</li>\
+                        <li style="color:red;">This is a plug-in developed by a third party, its reliability cannot be verified!</li>\
                         <li>The installation process may take a few minutes, please be patient!</li>\
                         <li>If this plugin already exists, it will be replaced!</li>\
                     </ul>\
-                    <div class="bt-form-submit-btn"><button type="button" class="btn btn-sm btn-danger mr5" onclick="layer.closeAll()">Cancel</button><button type="button" class="btn btn-sm btn-success" onclick="importPluginInstall(\''+ data.name + '\',\'' + data.tmp_path +'\')">Ok to Install</button></div>\
+                    <div class="bt-form-submit-btn"><button type="button" class="btn btn-sm btn-danger mr5" onclick="layer.closeAll()">Cancel</button><button type="button" class="btn btn-sm btn-success" onclick="importPluginInstall(\''+ data.name + '\',\'' + data.tmp_path +'\')">Install</button></div>\
                 </div>'
             });
 
