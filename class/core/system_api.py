@@ -730,7 +730,7 @@ cd /home/slemp/server/panel && pip3 install -r /home/slemp/server/panel/requirem
             return slemp.returnJson(False, 'Already the latest, no need to update!')
         except Exception as ex:
             # print('updateServer', ex)
-            return slemp.returnJson(False, "Connection failure!" + str(ex))
+            return slemp.returnJson(False, "Connection failure! " + str(ex))
 
     def repPanel(self, get):
         vp = ''

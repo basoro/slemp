@@ -514,7 +514,7 @@ function checkUpdate() {
         }
 
         if (rdata.status === false) {
-            layer.confirm(rdata.msg, { title: lan.index.update_check, icon: 1, closeBtn: 1, btn: [lan.public.know, lan.public.close] });
+            layer.confirm(rdata.msg, { title: lan.index.update_check, icon: 1, closeBtn: 1, btn: [lan.public.ok, lan.public.close] });
             return;
         }
         layer.msg(rdata.msg, { icon: 1 });
