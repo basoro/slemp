@@ -1,0 +1,61 @@
+<div class="bt-form">
+	<div class='plugin_version'></div>
+	<div class="bt-w-main">
+		<div class="bt-w-menu">
+			<script type="text/javascript">console.log($('.plugin_version').attr('version'));</script>
+			<p class="bgw" onclick="pluginService('mariadb', $('.plugin_version').attr('version'));">Service</p>
+			<p onclick="pluginInitD('mariadb', $('.plugin_version').attr('version'));">Services Init</p>
+			<p onclick="pluginConfig('mariadb', $('.plugin_version').attr('version'));">Configuration file</p>
+			<p onclick="myDbPos();">Storage location</p>
+			<p onclick="myPort();">Port</p>
+			<p onclick="runInfo();">Current status</p>
+			<p onclick="myPerfOpt();">Optimization</p>
+			<p onclick="myLogs();">Logs</p>
+			<p onclick="pluginLogs('mariadb',$('.plugin_version').attr('version'),'show_log');">Slow log</p>
+			<p onclick="dbList()">Database List</p>
+			<p onclick="masterOrSlaveConf($('.plugin_version').attr('version'))">Master - Slave</p>
+		</div>
+		<div class="bt-w-con pd15">
+			<div class="soft-man-con"></div>
+		</div>
+	</div>
+
+</div>
+
+
+<style type="text/css">
+.db_list{
+	padding: 0px 0 10px 0;
+    font-size: 13px;
+    line-height: 35px;
+    height: 45px;
+}
+.db_list a{
+	margin-right: 15px;
+	color: #555;
+    font-weight: 600;
+}
+.db_list span:nth-child(1){
+	display: block;
+    float: left;
+    padding-left: 15px;
+    background: #ececec;
+    border-radius: 3px;
+}
+
+#db_tools button {
+    margin-right: 10px;
+}
+#db_tools button:last-child{
+	margin-right: 0;
+}
+</style>
+<script type="text/javascript">
+resetPluginWinWidth(800);
+
+var loading = layer.msg("Resource loading...", { icon: 16, time: 0, shade: 0.3 });
+$.getScript( "/plugins/file?name=mariadb&f=js/mariadb.js", function(){
+	layer.close(loading);
+	pluginService('mariadb',$('.plugin_version').attr('version'));
+});
+</script>
