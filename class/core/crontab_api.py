@@ -514,9 +514,9 @@ fi''' % (slemp.getRunDir(),)
 
                 wheres['path'] = head + "python3 " + cfile + \
                     " path " + param['sname'] + " " + str(param['save'])
-                wheres['site'] = head + "python3 " + cfile + \
+                wheres['site'] = head + "cd " + slemp.getRunDir() + " && " + slemp.getRunDir() + "/bin/python3 " + cfile + \
                     " site " + param['sname'] + " " + str(param['save'])
-                wheres['database'] = head + "python3 " + cfile + " " + \
+                wheres['database'] = head + "cd " + slemp.getRunDir() + " && " + slemp.getRunDir() + "/bin/python3 " + cfile + " " + \
                     source_stype + " " + \
                     param['sname'] + " " + str(param['save'])
             try:

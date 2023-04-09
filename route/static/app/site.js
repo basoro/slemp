@@ -1575,7 +1575,7 @@ function toProxy(siteName, type, obj) {
 						$.post('/site/save_proxy_conf', data, function(res) {
 							layer.close(load)
 							if (res.status == true) {
-								layer.msg('保存成功', {icon: 1});
+								layer.msg('Saved successfully', {icon: 1});
 								layer.close(index);
 							} else {
 								layer.msg(res.msg, {time: 3000,icon: 2});
