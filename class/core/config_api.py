@@ -15,7 +15,7 @@ from flask import request
 
 class config_api:
 
-    __version = '3.4'
+    __version = '3.5'
     __api_addr = 'data/api.json'
 
     def __init__(self):
@@ -175,7 +175,7 @@ class config_api:
         ba_conf = None
         if os.path.exists(path):
             try:
-                ba_conf = json.loads(public.readFile(path))
+                ba_conf = json.loads(slemp.readFile(path))
             except:
                 os.remove(path)
 
