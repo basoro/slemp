@@ -877,7 +877,7 @@ function setLocalImport(db_name){
                     <input type="hidden" id="input-val" value="'+upload_dir+'" />\
                     <input type="file" id="file_input"  multiple="true" autocomplete="off" />\
                     <button type="button"  id="opt" autocomplete="off">Add files</button>\
-                    <button type="button" id="up" autocomplete="off" >Start upload</button>\
+                    <button type="button" id="up" autocomplete="off" >Upload</button>\
                     <span id="totalProgress" style="position: absolute;top: 7px;right: 147px;"></span>\
                     <span style="float:right;margin-top: 9px;">\
                     <font>File encoding:</font>\
