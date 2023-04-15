@@ -8,14 +8,14 @@ class Page():
     #--------------------------
     # Pagination class - JS callback version
     #--------------------------
-    __PREV = 'Prev'
+    __PREV = 'Prev '
     __NEXT = 'Next'
-    __START = 'Start'
+    __START = 'Start '
     __END = 'End'
-    __COUNT_START = 'Count Start'
-    __COUNT_END = 'Count End'
-    __FO = 'From'
-    __LINE = 'Item'
+    __COUNT_START = 'From '
+    __COUNT_END = ' Item'
+    __FO = 'From '
+    __LINE = ' Item'
     __LIST_NUM = 4
     SHIFT = None
     ROW = None

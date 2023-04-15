@@ -90,10 +90,10 @@ rname=%s
 plugin_path=%s
 logs_file=$plugin_path/send/${rname}/run.log
 ''' % (name, getServerDir())
-    cmd += 'echo "★【`date +"%Y-%m-%d %H:%M:%S"`】 STSRT" >> $logs_file' + "\n"
+    cmd += 'echo "★ [`date +"%Y-%m-%d %H:%M:%S"`] STSRT" >> $logs_file' + "\n"
     cmd += 'echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" >> $logs_file' + "\n"
     cmd += 'bash $plugin_path/send/${rname}/cmd >> $logs_file 2>&1' + "\n"
-    cmd += 'echo "【`date +"%Y-%m-%d %H:%M:%S"`】 END★" >> $logs_file' + "\n"
+    cmd += 'echo " [`date +"%Y-%m-%d %H:%M:%S"`] END★" >> $logs_file' + "\n"
     cmd += 'echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" >> $logs_file' + "\n"
 
     params = {

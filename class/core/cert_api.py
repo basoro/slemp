@@ -137,10 +137,10 @@ if [ -f bin/activate ];then
 fi
 
 ''' % (slemp.getRunDir(), logs_file)
-            cmd += 'echo "★【`date +"%Y-%m-%d %H:%M:%S"`】 STSRT★" >> $logs_file' + "\n"
+            cmd += 'echo "★ [`date +"%Y-%m-%d %H:%M:%S"`] STSRT★" >> $logs_file' + "\n"
             cmd += 'echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" >> $logs_file' + "\n"
             cmd += 'cd $dst_dir && ' + shell + ' >> $logs_file 2>&1' + "\n"
-            cmd += 'echo "【`date +"%Y-%m-%d %H:%M:%S"`】 END★" >> $logs_file' + "\n"
+            cmd += 'echo " [`date +"%Y-%m-%d %H:%M:%S"`] END★" >> $logs_file' + "\n"
             cmd += 'echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" >> $logs_file' + "\n"
 
             file = cron_path + '/' + echo

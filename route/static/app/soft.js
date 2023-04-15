@@ -203,7 +203,7 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
         }
         option = "<select id='selectVersion' class='bt-input-text' style='margin-left:30px'>" + selectVersion + "</select>";
     } else {
-        option = '<span id="selectVersion" val="' + name + ' ' + ver + '">【' + titlename + '】 ' + ver + '</span>';
+        option = '<span id="selectVersion" val="' + name + ' ' + ver + '"> [' + titlename + '] ' + ver + '</span>';
     }
 
     layer.open({
