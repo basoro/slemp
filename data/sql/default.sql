@@ -46,9 +46,8 @@ CREATE TABLE IF NOT EXISTS `firewall` (
 
 INSERT INTO `firewall` (`id`, `port`, `ps`, `addtime`) VALUES
 (1, '80', 'Website default port', '0000-00-00 00:00:00'),
-(2, '22', 'SSH remote management service', '0000-00-00 00:00:00'),
-(3, '443', 'HTTPS', '0000-00-00 00:00:00'),
-(4, '888', 'phpMyAdmin default port', '0000-00-00 00:00:00');
+(2, '443', 'HTTPS', '0000-00-00 00:00:00'),
+(3, '888', 'phpMyAdmin default port', '0000-00-00 00:00:00');
 
 
 

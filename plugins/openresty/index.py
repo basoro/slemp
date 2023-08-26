@@ -178,6 +178,17 @@ def confReplace():
         os.system('echo %s|sudo -S %s' % (sudoPwd, cmd_s))
 
 
+    # vhost
+    vhost_dir = slemp.getServerDir() + '/web_conf/nginx/vhost'
+    vhost_tpl_dir = getPluginDir() + '/conf/vhost'
+    # print(vhost_dir, vhost_tpl_dir)
+    vhost_list = ['0.websocket.conf', '0.nginx_status.conf']
+    for f in vhost_list:
+        a_conf = vhost_dir + '/' + f
+        a_conf_tpl = vhost_tpl_dir + '/' + f
+        if not os.path.exists(a_conf):
+            slemp.writeFile(a_conf, slemp.readFile(a_conf_tpl))
+
 def initDreplace():
 
     file_tpl = getInitDTpl()

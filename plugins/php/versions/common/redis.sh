@@ -12,7 +12,7 @@ serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
 
 LIBNAME=redis
-LIBV=5.3.6
+LIBV=5.3.7
 sysName=`uname`
 actionType=$1
 version=$2
@@ -22,7 +22,7 @@ if [ "$version" == "52" ];then
 elif [ "$version" -lt "70" ];then
 	LIBV=4.2.0
 elif [ "$version" -gt "74" ];then
-	LIBV=5.3.5
+	LIBV=5.3.7
 else
 	echo 'ok'
 fi
@@ -49,8 +49,8 @@ Install_lib()
 		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
 		return
 	fi
-	
-	
+
+
 	if [ ! -f "$extFile" ];then
 
 		php_lib=$sourcePath/php_lib
@@ -58,9 +58,9 @@ Install_lib()
 		if [ ! -d $php_lib/${LIBNAME}-${LIBV} ];then
 			wget -O $php_lib/${LIBNAME}-${LIBV}.tgz http://pecl.php.net/get/${LIBNAME}-${LIBV}.tgz
 			cd $php_lib && tar xvf ${LIBNAME}-${LIBV}.tgz
-		fi 
+		fi
 		cd $php_lib/${LIBNAME}-${LIBV}
-		
+
 		$serverPath/php/$version/bin/phpize
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config
 		make clean && make && make install && make clean
@@ -93,10 +93,10 @@ Uninstall_lib()
 		echo "php-$version not install memcache, Plese select other version!"
 		return
 	fi
-	
+
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
-		
+
 	rm -f $extFile
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='

@@ -162,29 +162,6 @@ function myPort(){
     });
 }
 
-function changeMySQLDataPath(act) {
-    if (act != undefined) {
-        layer.confirm(lan.soft.mysql_to_msg, { closeBtn: 2, icon: 3 }, function() {
-            var datadir = $("#datadir").val();
-            var data = 'datadir=' + datadir;
-            var loadT = layer.msg(lan.soft.mysql_to_msg1, { icon: 16, time: 0, shade: [0.3, '#000'] });
-            $.post('/database?action=SetDataDir', data, function(rdata) {
-                layer.close(loadT)
-                layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
-            });
-        });
-        return;
-    }
-
-    $.post('/database?action=GetMySQLInfo', '', function(rdata) {
-        var LimitCon = '<p class="conf_p">\
-                            <input id="datadir" class="phpUploadLimit bt-input-text mr5" style="width:350px;" type="text" value="' + rdata.datadir + '" name="datadir">\
-                            <span onclick="ChangePath(\'datadir\')" class="glyphicon glyphicon-folder-open cursor mr20" style="width:auto"></span><button class="btn btn-success btn-sm" onclick="changeMySQLDataPath(1)">' + lan.soft.mysql_to + '</button>\
-                        </p>';
-        $(".soft-man-con").html(LimitCon);
-    });
-}
-
 function myPerfOpt() {
     myPost('db_status','',function(data){
         var rdata = $.parseJSON(data.data);
@@ -1671,12 +1648,12 @@ function getMasterRepSlaveListPage(){
 }
 
 
-function deleteSlave(){
-    myPost('delete_slave', {}, function(data){
+function deleteSlave(sign){
+    myPost('delete_slave', {sign:sign}, function(data){
         var rdata = $.parseJSON(data.data);
         showMsg(rdata['msg'], function(){
             masterOrSlaveConf();
-        },{},3000);
+        },{icon:rdata.status?1:2,time:3000},3000);
     });
 }
 
@@ -1684,28 +1661,73 @@ function deleteSlave(){
 function getFullSyncStatus(db){
     var timeId = null;
 
-    var btn = '<div class="table_toolbar" style="left:0px;"><span data-status="init" class="sync btn btn-default btn-sm" id="begin_full_sync" title="">Start</span></div>';
-    var loadOpen = layer.open({
-        type: 1,
-        title: 'Full synchronization ['+db+']',
-        area: '500px',
-        content:"<div class='bt-form pd20 c6'>\
-                 <div class='divtable mtb10'>\
-                    <span id='full_msg'></span>\
-                    <div class='progress'>\
-                        <div class='progress-bar' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='min-width: 2em;'>0%</div>\
-                    </div>\
-                </div>\
-                "+btn+"\
-            </div>",
-        cancel: function(){
-            clearInterval(timeId);
+    myPost('get_slave_list', {page:1,page_size:100}, function(data){
+        var rdata = $.parseJSON(data.data);
+        var rsource = rdata.data;
+
+        if (db == 'ALL' && rsource.length>1){
+            layer.msg("Multi-master does not support this mode!",{icon:2});
+            return;
         }
+
+        var dataSource = '';
+        if (rsource.length>1){
+            var sourceList = '';
+            for (var i = 0; i < rsource.length; i++) {
+                if ('Channel_Name' in rsource[i]){
+                    sourceList += '<option val="'+rsource[i]['Master_Host']+'">'+rsource[i]['Master_Host']+'</option>';
+                }
+            }
+
+            dataSource = "<p class='line' style='text-align:center;'>\
+                <span>Synchronize data sources：</span>\
+                <select class='bt-input-text' name='data_source' style='width:200px;'>" + sourceList + "</select>\
+            </p>";
+        }
+
+        layer.open({
+            type: 1,
+            title: 'Full sync ['+db+']',
+            area: '500px',
+            content:"<div class='bt-form pd15'>\
+                     <div class='divtable mtb10'>\
+                        "+dataSource+"\
+                        <span id='full_msg'></span>\
+                        <div class='progress'>\
+                            <div class='progress-bar' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='min-width: 2em;'>0%</div>\
+                        </div>\
+                    </div>\
+                    <div class='table_toolbar' style='left:0px;'>\
+                        <span data-status='init' class='sync btn btn-default btn-sm' id='begin_full_sync'>Start</span>\
+                    </div>\
+                </div>",
+            cancel: function(){
+                clearInterval(timeId);
+            },
+            success:function(){
+                $('#begin_full_sync').click(function(){
+                    var val = $(this).data('status');
+                    var sign = '';
+                    if (dataSource !=''){
+                        sign = $('select[name="data_source"]').val();
+                    }
+                    if (val == 'init'){
+                        fullSync(db, sign, 1);
+                        timeId = setInterval(function(){
+                            fullSync(db,sign,0);
+                        }, 1000);
+                        $(this).data('status','starting');
+                    } else {
+                        layer.msg("synchronizing..",{icon:0});
+                    }
+                });
+            }
+        });
     });
 
-    function fullSync(db,begin){
+    function fullSync(db,sign,begin){
 
-        myPostN('full_sync', {db:db,begin:begin}, function(data){
+        myPostN('full_sync', {db:db,sign:sign,begin:begin}, function(data){
             var rdata = $.parseJSON(data.data);
             $('#full_msg').text(rdata['msg']);
             $('.progress-bar').css('width',rdata['progress']+'%');
@@ -1719,18 +1741,6 @@ function getFullSyncStatus(db){
         });
     }
 
-    $('#begin_full_sync').click(function(){
-        var val = $(this).attr('data-status');
-        if (val == 'init'){
-            fullSync(db,1);
-            timeId = setInterval(function(){
-                fullSync(db,0);
-            }, 1000);
-            $(this).attr('data-status','starting');
-        } else {
-            layer.msg("Synchronizing..");
-        }
-    });
 }
 
 function addSlaveSSH(ip=''){
@@ -1764,7 +1774,7 @@ function addSlaveSSH(ip=''){
                 <div class='line'><span class='tname'>Port</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
                 <div class='line'><span class='tname'>Sync account [DB]</span><div class='info-r'><input name='db_user'  placeholder='If it is empty, take the first one!' class='bt-input-text mr5' type='text' style='width:330px;' value='"+db_user+"'></div></div>\
                 <div class='line'>\
-                <span class='tname'>ID_RSA</span>\
+                <span class='tname'>CMD[required]</span>\
                 <div class='info-r'><textarea class='bt-input-text mr5' row='20' cols='50' name='id_rsa' style='width:330px;height:200px;'></textarea></div>\
                 </div>\
                 <input type='hidden' name='ps' value='' />\
@@ -1910,8 +1920,20 @@ function addSlaveSyncUser(ip=''){
 
                 $('textarea[name="cmd"]').change(function(){
                     var val = $(this).val();
-                    var vlist = val.split(',');
                     var a = {};
+                    if (val.toLowerCase().indexOf('for')>0){
+                        cmd_tmp = val.split('for');
+                        val = cmd_tmp[0].trim();
+
+                        const channel_str = cmd_tmp[1].trim();
+                        const ch_reg = /channel \'(.*)\';/;
+                        var match_val = channel_str.match(ch_reg);
+                        if (match_val.length>1){
+                            a['channel'] = match_val[1];
+                        }
+                    }
+
+                    var vlist = val.split(',');
                     for (var i in vlist) {
                         var tmp = toTrim(vlist[i]);
                         var tmp_a = tmp.split(" ");
@@ -2078,7 +2100,7 @@ function getSlaveUserList(){
     layerId = layer.open({
         type: 1,
         title: 'Sync account list',
-        area: '500px',
+        area: '600px',
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
                     <div><table class='table table-hover get-slave-ssh-list'>\
@@ -2102,7 +2124,7 @@ function getSlaveSSHList(page=1){
     layerId = layer.open({
         type: 1,
         title: 'SSH list',
-        area: '500px',
+        area: '600px',
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
                     <div><table class='table table-hover get-slave-ssh-list'>\
@@ -2210,10 +2232,16 @@ function masterOrSlaveConf(version=''){
         myPost('get_slave_list', _data, function(data){
             var rdata = $.parseJSON(data.data);
             var list = '';
+
+            var isHasSign = false;
             for(i in rdata.data){
 
                 var v = rdata.data[i];
-                var status = "<a class='btlink db_error'>Abnormal</>";
+                if ('Channel_Name' in v){
+                    isHasSign = true;
+                }
+
+                var status = "<a data-id="+i+"  class='btlink db_error'>Abnormal</>";
                 if (v['Slave_SQL_Running'] == 'Yes' && v['Slave_IO_Running'] == 'Yes'){
                     status = "Normal";
                 }
@@ -2225,11 +2253,21 @@ function masterOrSlaveConf(version=''){
                 list += '<td>' + rdata.data[i]['Master_Log_File'] +'</td>';
                 list += '<td>' + rdata.data[i]['Slave_IO_Running'] +'</td>';
                 list += '<td>' + rdata.data[i]['Slave_SQL_Running'] +'</td>';
+
+                if (isHasSign){
+                    list += '<td>' + v['Channel_Name'] +'</td>';
+                }
+
                 list += '<td>' + status +'</td>';
                 list += '<td style="text-align:right">' +
-                    '<a href="javascript:;" class="btlink" onclick="deleteSlave()" title="Delete">Delete</a>' +
+                    '<a data-id="'+i+'" href="javascript:;" class="btlink btn_delete_slave" title="Delete">Delete</a>' +
                 '</td>';
                 list += '</tr>';
+            }
+
+            var signThead_th = '';
+            if (isHasSign){
+                var signThead_th = '<th>Mark</th>';
             }
 
             var con = '<div class="divtable mtb10">\
@@ -2242,6 +2280,7 @@ function masterOrSlaveConf(version=''){
                         <th>Log</th>\
                         <th>IO</th>\
                         <th>SQL</th>\
+                        '+signThead_th+'\
                         <th>Status</th>\
                         <th style="text-align:right;">Action</th></tr></thead>\
                         <tbody>\
@@ -2252,22 +2291,70 @@ function masterOrSlaveConf(version=''){
 
             $(".table_slave_status_list").html(con);
 
-            $('.db_error').click(function(){
+            $(".btn_delete_slave").click(function(){
+                var id = $(this).data('id');
+                var v = rdata.data[id];
+                if ('Channel_Name' in v){
+                    deleteSlave(v['Channel_Name']);
+                } else{
+                    deleteSlave();
+                }
+            });
+
+             $('.db_error').click(function(){
+                var id = $(this).data('id');
+                var info = rdata.data[id];
+
+                var err_line = "";
+                err_line +="<tr>\
+                    <td>IO错误</td>\
+                    <td>"+ (info['Last_IO_Error'] == '' ? '无':info['Last_IO_Error'])+"</td>\
+                </tr>";
+                err_line +="<tr>\
+                    <td>SQL错误</td>\
+                    <td>"+(info['Last_SQL_Error'] == '' ? '无':info['Last_SQL_Error'])+"</td>\
+                </tr>";
+
+                err_line +="<tr>\
+                    <td>状态</td>\
+                    <td>"+(info['Slave_SQL_Running_State'] == '' ? '无':info['Slave_SQL_Running_State']) +"</td>\
+                </tr>";
+
                 layer.open({
                     type: 1,
                     title: 'Synchronization exception information',
-                    area: '500px',
-                    content:"<form class='bt-form pd20 pb70'>\
-                    <div class='line'>"+v['Error']+"</div>\
-                    <div class='bt-form-submit-btn'>\
-                        <button type='button' class='btn btn-success btn-sm btn-title class-copy-db-err'>Copy</button>\
+                    area: ['600px','300px'],
+                    btn:['Copy error',"Cancel"],
+                    content:"<form class='bt-form pd15'>\
+                        <div class='divtable mtb10'>\
+                        <div class='tablescroll'>\
+                            <table class='table table-hover' width='100%' cellspacing='0' cellpadding='0' border='0' style='border: 0 none;'>\
+                            <thead><tr>\
+                                <th style='width:80px;'>Type</th>\
+                                <th>Detail</th>\
+                            </tr></thead>\
+                            <tbody>"+ err_line +"</tbody>\
+                            </table>\
+                        </div>\
                     </div>\
-                  </form>",
+                    </form>",
                     success:function(){
-                        copyText(v['Error']);
-                        $('.class-copy-db-err').click(function(){
-                            copyText(v['Error']);
-                        });
+                    },
+                    yes:function(){
+                        if (info['Last_IO_Error'] != ''){
+                            copyText(info['Last_IO_Error']);
+                            return;
+                        }
+
+                        if (info['Last_SQL_Error'] != ''){
+                            copyText(info['Last_SQL_Error']);
+                            return;
+                        }
+
+                        if (info['Slave_SQL_Running_State'] != ''){
+                            copyText(info['Slave_SQL_Running_State']);
+                            return;
+                        }
                     }
                 });
             });

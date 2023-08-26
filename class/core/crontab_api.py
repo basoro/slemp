@@ -482,6 +482,22 @@ class crontab_api:
         else:
             head = "#!/bin/bash\nPATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin\nexport PATH\n"
 
+            start_head = '''
+SCRIPT_RUN_TIME="0s"
+SLEMP_ToSeconds()
+{
+    SEC=$1
+    if [ $SEC -lt 60 ]; then
+       SCRIPT_RUN_TIME="${SEC}s"
+    elif [ $SEC -ge 60 ] && [ $SEC -lt 3600 ];then
+       SCRIPT_RUN_TIME="$(( SEC / 60 ))m$(( SEC % 60 ))s"
+    elif [ $SEC -ge 3600 ]; then
+       SCRIPT_RUN_TIME="$(( SEC / 3600 ))h$(( (SEC % 3600) / 60 ))m$(( (SEC % 3600) % 60 ))s"
+    fi
+}
+START_SLEMP_SHELL_TIME=`date +%s`
+'''
+
             source_bin_activate = '''
 export LANG=en_US.UTF-8
 SLEMP_PATH=%s/bin/activate
@@ -489,7 +505,7 @@ if [ -f $SLEMP_PATH ];then
     source $SLEMP_PATH
 fi''' % (slemp.getRunDir(),)
 
-            head = head + source_bin_activate + "\n"
+            head = head + start_head + ssource_bin_activate + "\n"
             log = '.log'
 
             script_dir = slemp.getRunDir() + "/scripts"
@@ -531,7 +547,10 @@ fi''' % (slemp.getRunDir(),)
                 shell += '''
 echo "----------------------------------------------------------------------------"
 endDate=`date +"%Y-%m-%d %H:%M:%S"`
-echo "★[$endDate] Successful"
+END_SLEMP_SHELL_TIME=`date +"%s"`
+((SHELL_COS_TIME=($END_SLEMP_SHELL_TIME-$START_SLEMP_SHELL_TIME)))
+SLEMP_ToSeconds $SHELL_COS_TIME
+echo "★[$endDate] Successful | Script Run [$SCRIPT_RUN_TIME] "
 echo "----------------------------------------------------------------------------"
 '''
         cronPath = slemp.getServerDir() + '/cron'

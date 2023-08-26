@@ -126,7 +126,7 @@ class plugins_api:
     def initApi(self):
 
         plugin_names = {
-            'openresty': '1.21.4.1',
+            'openresty': '1.21.4.2',
             'php': '73',
             'swap': '1.1',
             'mysql': '5.7',

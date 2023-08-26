@@ -1,77 +1,130 @@
 setTimeout(function(){
 	Wday(0,'getload');
-},500);
+},100);
 setTimeout(function(){
 	Wday(0,'cpu');
-},500);
+},200);
 setTimeout(function(){
 	Wday(0,'mem');
-},1000);
+},500);
 setTimeout(function(){
 	Wday(0,'disk');
-},1500);
+},100);
 setTimeout(function(){
 	Wday(0,'network');
-},2000);
+},1500);
 
-$(".st").hover(function(){
+$(".searcTime .st").click(function(){
+	var status = $(this).data('status');
+	if (status == 'show'){
+		$(this).next().hide();
+		$(this).data('status','hide');
+	} else{
+		$(this).next().show();
+		$(this).data('status','show');
+	}
+});
+
+$(".searcTime .st").hover(function(){
+	$(this).data('status','show');
 	$(this).next().show();
 },function(){
-	$(this).next().hide();
-	$(this).next().hover(function(){
-		$(this).show();
-	},function(){
-		$(this).hide();
-	})
+	// $(this).next().hide();
+	// $(this).next().hover(function(){
+	// 	$(this).show();
+	// },function(){
+	// 	$(this).hide();
+	// })
 })
 $(".searcTime .gt").click(function(){
 	$(this).addClass("on").siblings().removeClass("on");
 })
-$(".loadbtn").click(function(){
-	$(this).parents(".searcTime").find("span").removeClass("on");
-	$(this).parents(".searcTime").find(".st").addClass("on");
-	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
-	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
+// $(".loadbtn").click(function(){
+// 	$(this).parents(".searcTime").find("span").removeClass("on");
+// 	$(this).parents(".searcTime").find(".st").addClass("on");
+// 	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
+// 	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
+// 	b = Math.round(b);
+// 	e = Math.round(e);
+// 	getload(b,e)
+// })
+// $(".cpubtn").click(function(){
+// 	$(this).parents(".searcTime").find("span").removeClass("on");
+// 	$(this).parents(".searcTime").find(".st").addClass("on");
+// 	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
+// 	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
+// 	b = Math.round(b);
+// 	e = Math.round(e);
+// 	cpu(b,e)
+// })
+// $(".membtn").click(function(){
+// 	$(this).parents(".searcTime").find("span").removeClass("on");
+// 	$(this).parents(".searcTime").find(".st").addClass("on");
+// 	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
+// 	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
+// 	b = Math.round(b);
+// 	e = Math.round(e);
+// 	mem(b,e)
+// })
+// $(".diskbtn").click(function(){
+// 	$(this).parents(".searcTime").find("span").removeClass("on");
+// 	$(this).parents(".searcTime").find(".st").addClass("on");
+// 	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
+// 	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
+// 	b = Math.round(b);
+// 	e = Math.round(e);
+// 	disk(b,e)
+// })
+// $(".networkbtn").click(function(){
+// 	$(this).parents(".searcTime").find("span").removeClass("on");
+// 	$(this).parents(".searcTime").find(".st").addClass("on");
+// 	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
+// 	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
+
+var render_dlist = [
+	'loadbtn_rtime',
+	'cpubtn_rtime',
+	'membtn_rtime',
+	'diskbtn_rtime',
+	'networkbtn_rtime'
+];
+
+for (var i = 0; i < render_dlist.length; i++) {
+
+	laydate.render({
+		elem: '#'+render_dlist[i]
+		,type: 'datetime'
+		,range: true
+	});
+
+
+	var b = getBeforeDate(28).replaceAll('/','-') + " 00:00:00";
+	var e = getBeforeDate(0).replaceAll('/','-') + " 23:59:59";
+
+	$('#'+render_dlist[i]).val(b + ' - ' + e);
+}
+
+$('.sbtn').click(function(){
+	$(".searcTime .st").next().hide();
+
+	var rtime = $(this).parent().find(".rtime").val();
+	var rarr = rtime.split(' - ');
+
+	var b = (new Date(rarr[0]).getTime())/1000;
+	var e = (new Date(rarr[1]).getTime())/1000;
+
 	b = Math.round(b);
 	e = Math.round(e);
-	getload(b,e)
-})
-$(".cpubtn").click(function(){
-	$(this).parents(".searcTime").find("span").removeClass("on");
-	$(this).parents(".searcTime").find(".st").addClass("on");
-	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
-	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
-	b = Math.round(b);
-	e = Math.round(e);
-	cpu(b,e)
-})
-$(".membtn").click(function(){
-	$(this).parents(".searcTime").find("span").removeClass("on");
-	$(this).parents(".searcTime").find(".st").addClass("on");
-	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
-	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
-	b = Math.round(b);
-	e = Math.round(e);
-	mem(b,e)
-})
-$(".diskbtn").click(function(){
-	$(this).parents(".searcTime").find("span").removeClass("on");
-	$(this).parents(".searcTime").find(".st").addClass("on");
-	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
-	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
-	b = Math.round(b);
-	e = Math.round(e);
-	disk(b,e)
-})
-$(".networkbtn").click(function(){
-	$(this).parents(".searcTime").find("span").removeClass("on");
-	$(this).parents(".searcTime").find(".st").addClass("on");
-	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
-	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
-	b = Math.round(b);
-	e = Math.round(e);
-	network(b,e)
-})
+	if ($(this).hasClass('loadbtn')){
+		getload(b,e);
+	} else if ($(this).hasClass('cpubtn')){
+		cpu(b,e);
+	}else if ($(this).hasClass('membtn')){
+		mem(b,e);
+	} else if ($(this).hasClass('diskbtn')){
+		disk(b,e);
+	}
+});
 
 function Wday(day,name){
 	var now = (new Date().getTime())/1000;
@@ -93,19 +146,19 @@ function Wday(day,name){
 	}
 	switch (name){
 		case "cpu":
-			cpu(b,e);
+			cpu(b, e);
 			break;
 		case "mem":
-			mem(b,e);
+			mem(b, e);
 			break;
 		case "disk":
-			disk(b,e);
+			disk(b, e);
 			break;
 		case "network":
-			network(b,e);
+			network(b, e);
 			break;
 		case "getload":
-			getload(b,e);
+			getload(b, e);
 			break;
 	}
 }
@@ -117,6 +170,8 @@ function getToday(){
    str += mydate.getDate();
    return str;
 }
+
+getStatus();
 
 function getStatus(){
 	loadT = layer.msg('Reading, please wait...',{icon:16,time:0})
@@ -139,7 +194,6 @@ function getStatus(){
 
 	},'json');
 }
-getStatus();
 
 function setControl(act, value=false){
 
@@ -169,8 +223,9 @@ function setControl(act, value=false){
 
 	loadT = layer.msg('Processing, please wait...',{icon:16,time:0})
 	$.post('/system/set_control','type='+type+'&day='+day,function(rdata){
-		layer.close(loadT);
-		layer.msg(rdata.msg,{icon:rdata.status?1:2});
+		showMsg(rdata.msg, function(){
+			layer.close(loadT);
+		},{icon:rdata.status?1:2})
 	},'json');
 }
 
@@ -179,8 +234,9 @@ function closeControl(){
 	layer.confirm('Do you really clear all monitoring records?',{title:'Clear record',icon:3,closeBtn:1}, function() {
 		loadT = layer.msg('Processing, please wait...',{icon:16,time:0})
 		$.post('/system/set_control','type=del',function(rdata){
-			layer.close(loadT);
-			layer.msg(rdata.msg,{icon:rdata.status?1:2});
+			showMsg(rdata.msg, function(){
+				layer.close(loadT);
+			},{icon:rdata.status?1:2})
 		},'json');
 	});
 }
@@ -193,19 +249,18 @@ function getBeforeDate(n){
     var day=d.getDate();
     if(day <= n){
 		if(mon>1) {
-		   mon=mon-1;
-		}
-		else {
-		 year = year-1;
-		 mon = 12;
+			mon = mon-1;
+		} else {
+			year = year-1;
+			mon = 12;
 		}
 	}
 	d.setDate(d.getDate()-n);
 	year = d.getFullYear();
 	mon=d.getMonth()+1;
 	day=d.getDate();
-    s = year+"/"+(mon<10?('0'+mon):mon)+"/"+(day<10?('0'+day):day);
-    return s;
+  s = year+"/"+(mon<10?('0'+mon):mon)+"/"+(day<10?('0'+day):day);
+  return s;
 }
 //cpu
 function cpu(b,e){

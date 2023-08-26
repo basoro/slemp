@@ -712,6 +712,8 @@ class system_api:
 #!/bin/bash
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 
+P_VER=`python3 -V | awk '{print $2}'`
+
 if [ ! -f /home/slemp/server/panel/bin/activate ];then
     cd /home/slemp/server/panel && python3 -m venv .
     cd /home/slemp/server/panel && source /home/slemp/server/panel/bin/activate
@@ -722,6 +724,13 @@ fi
 PIPSRC="https://pypi.python.org/simple"
 
 cd /home/slemp/server/panel && pip3 install -r /home/slemp/server/panel/requirements.txt -i $PIPSRC
+
+P_VER_D=`echo "$P_VER"|awk -F '.' '{print $1}'`
+P_VER_M=`echo "$P_VER"|awk -F '.' '{print $2}'`
+NEW_P_VER=${P_VER_D}.${P_VER_M}
+if [ -f /home/slemp/server/panel/version/r${NEW_P_VER}.txt ];then
+    cd /home/slemp/server/panel && pip3 install -r /home/slemp/server/panel/version/r${NEW_P_VER}.txt -i $PIPSRC
+fi
 '''
                 os.system(update_env)
                 self.restartSlemp()

@@ -22,8 +22,8 @@ if [ "$version" -lt "73" ];then
 	exit 1
 fi
 
-if [ "$version" -gt "74" ];then
-	LIBV=5.1.2
+if [ "$version" -gt "73" ];then
+	LIBV=5.2.3
 fi
 
 LIB_PATH_NAME=lib/php
@@ -48,7 +48,7 @@ Install_lib()
 		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
 		return
 	fi
-	
+
 	if [ ! -f "$extFile" ];then
 
 		php_lib=$sourcePath/php_lib
@@ -60,12 +60,12 @@ Install_lib()
 			tar xvf ${LIBNAME}-${LIBV}.tgz
 		fi
 		cd $php_lib/${LIBNAME}-${LIBV}
-		
+
 		$serverPath/php/$version/bin/phpize
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config
 		make clean && make && make install && make clean
 	fi
-	
+
 	while [[ ! -f "$extFile" ]];
     do
         echo -e ".\c"
@@ -83,7 +83,7 @@ Install_lib()
     echo "" >> $serverPath/php/$version/etc/php.ini
 	echo "[${LIBNAME}]" >> $serverPath/php/$version/etc/php.ini
 	echo "extension=${LIBNAME}.so" >> $serverPath/php/$version/etc/php.ini
-	
+
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==========================================================='
 	echo 'successful!'
@@ -96,16 +96,16 @@ Uninstall_lib()
 		echo "php-$version is not installed, please choose another version!"
 		return
 	fi
-	
+
 	if [ ! -f "$extFile" ];then
 		echo "php-$version ${LIBNAME} is not installed, please choose another version"
 		return
 	fi
-	
+
 	echo $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
-		
+
 	rm -f $extFile
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='

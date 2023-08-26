@@ -21,7 +21,7 @@ version=$2
 IC_VERSION=${version:0:1}.${version:1:2}
 ARCH=`uname -m`
 
-if [ "$version" -gt "74" ];then
+if [ "$version" -gt "55" ];then
 	echo "not need"
 	exit 1
 fi
@@ -53,8 +53,8 @@ Install_lib()
 		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
 		return
 	fi
-	
-	
+
+
 	if [ ! -f "$extFile" ];then
 
 		php_lib=$sourcePath/php_lib
@@ -62,12 +62,12 @@ Install_lib()
 		if [ ! -f $php_lib/ioncube_loaders_lin.tar.gz ];then
 			wget -O $php_lib/ioncube_loaders_lin.tar.gz https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_${DEFAULT_ARCH}.tar.gz
 			cd $php_lib && tar -zxvf ioncube_loaders_lin.tar.gz
-		fi 
+		fi
 		cd $php_lib/ioncube
-		
+
 		cp -rf $php_lib/ioncube/ioncube_loader_lin_${IC_VERSION}.so $extFile
 	fi
-	
+
 	if [ ! -f "$extFile" ];then
 		echo "ERROR!"
 		return
@@ -89,16 +89,16 @@ Uninstall_lib()
 		echo "php$version is not installed, please choose another version!"
 		return
 	fi
-	
+
 	if [ ! -f "$extFile" ];then
 		echo "php$version ${LIBNAME} is not installed, please choose another version!"
 		echo "php-$vphp not install ${LIBNAME}, Plese select other version!"
 		return
 	fi
-	
+
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
-		
+
 	rm -f $extFile
 
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
