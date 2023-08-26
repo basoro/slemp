@@ -2331,6 +2331,11 @@ function masterOrSlaveConf(version=''){
                         </div>\
                     </div>\
                     </form>",
+                  success:function(){
+                      // copyText(v['Error']);
+                      // $('.class-copy-db-err').click(function(){
+                      //     copyText(v['Error']);
+                      // });
                   },
                   yes:function(){
                       if (info['Last_IO_Error'] != ''){
