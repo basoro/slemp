@@ -2488,8 +2488,6 @@ def initSlaveStatusSSH(version=''):
     paramiko.util.log_to_file('paramiko.log')
     ssh = paramiko.SSHClient()
 
-    try:
-
     db.query('stop slave')
     db.query('reset slave all')
     for data in ssh_list:
