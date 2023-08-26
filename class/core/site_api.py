@@ -1937,6 +1937,7 @@ location ^~ {from} {\n\
     {\n\
         add_header Cache-Control no-cache;\n\
     }\n\
+"
 
         # replace
         if _from[0] != '/':

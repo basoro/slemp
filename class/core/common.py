@@ -51,7 +51,7 @@ def initDB():
 
 def initDBSshPort():
     import firewall_api
-    cmd_data = mw.execShell(
+    cmd_data = slemp.execShell(
         "cat /etc/ssh/sshd_config | grep '^Port \d*' | tail -1")
     ssh_port = cmd_data[0].replace("Port ", '').strip()
     if ssh_port == '':
