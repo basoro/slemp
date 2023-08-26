@@ -12,12 +12,12 @@ serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
 
 LIBNAME=solr
-LIBV=2.5.1
+LIBV=2.6.0
 sysName=`uname`
 actionType=$1
 version=$2
 
-if [ "$version" -lt "70" ];then
+if [ "$version" -lt "72" ];then
 	LIBV=2.4.0
 fi
 
@@ -42,9 +42,9 @@ Install_lib()
 		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
 		return
 	fi
-	
+
 	if [ ! -f "$extFile" ];then
-		
+
 		OPTIONS=''
 		if [ $sysName == 'Darwin' ]; then
 			OPTIONS="${OPTIONS} --with-curl=${serverPath}/lib/curl"
@@ -57,7 +57,7 @@ Install_lib()
 			wget -O $php_lib/${LIBNAME}-${LIBV}.tgz http://pecl.php.net/get/${LIBNAME}-${LIBV}.tgz
 			cd $php_lib && tar xvf ${LIBNAME}-${LIBV}.tgz
 		fi
-		
+
 		cd  $php_lib/${LIBNAME}-${LIBV}
 		$serverPath/php/$version/bin/phpize
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
@@ -85,17 +85,17 @@ Uninstall_lib()
 		echo "php$version is not installed, please choose another version!"
 		return
 	fi
-	
+
 	extFile=$extDir${LIBNAME}.so
 	if [ ! -f "$extFile" ];then
 		echo "php$version ${LIBNAME} is not installed, please choose another version!"
 		echo "php-$vphp not install ${LIBNAME}, Plese select other version!"
 		return
 	fi
-	
+
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
-		
+
 	rm -f $extFile
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='

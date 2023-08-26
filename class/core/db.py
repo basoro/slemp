@@ -50,7 +50,7 @@ class Sql():
         self.__DB_TABLE = table
         return self
 
-    def where(self, where, param):
+    def where(self, where, param=()):
         if where:
             self.__OPT_WHERE = " WHERE " + where
             self.__OPT_PARAM = param

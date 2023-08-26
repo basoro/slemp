@@ -2,6 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 export LANG=en_US.UTF-8
+SYS_ARCH=`arch`
 
 if [ ! -f /usr/bin/applydeltarpm ];then
     yum -y provides '*/applydeltarpm'
@@ -24,6 +25,16 @@ fi
 PKGMGR='yum'
 if [ $VERSION_ID -ge 8 ];then
     PKGMGR='dnf'
+fi
+
+echo "install remi source"
+if [ "$VERSION_ID" == "9" ];then
+    echo "install remi start"
+    if [ ! -f /etc/yum.repos.d/remi.repo ];then
+        rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-9.rpm
+        rpm --import http://rpms.famillecollet.com/RPM-GPG-KEY-remi
+    fi
+    echo "install remi end"
 fi
 
 #https need
@@ -103,11 +114,25 @@ $PKGMGR makecache
 $PKGMGR groupinstall -y "Development Tools"
 
 if [ $VERSION_ID -ge 8 ];then
-    if [ $VERSION_ID -ge 9 ];then
-        REPOS='--enablerepo=appstream,baseos,epel,extras,crb'
-    else
-        REPOS='--enablerepo=appstream,baseos,epel,extras,powertools'
-    fi
+
+    # find repo
+
+    REPO_LIST=(remi appstream baseos epel extras crb powertools)
+    REPOS='--enablerepo='
+    for REPO_VAR in ${REPO_LIST[@]}
+    do
+        if [ -f /etc/yum.repos.d/${REPO_VAR}.repo ];then
+            REPOS="${REPOS},${REPO_VAR}"
+        fi
+    done
+    REPOS=${REPOS//=,/=}
+    echo "REPOS:${REPOS}"
+
+    # if [ $VERSION_ID -ge 9 ];then
+    #     REPOS='--enablerepo=remi,appstream,baseos,epel,extras,crb'
+    # else
+    #     REPOS='--enablerepo=remi,appstream,baseos,epel,extras,powertools'
+    # fi
 
     for rpms in gcc gcc-c++ lsof autoconf bzip2 bzip2-devel c-ares-devel \
         ca-certificates cairo-devel cmake crontabs curl curl-devel diffutils e2fsprogs e2fsprogs-devel \

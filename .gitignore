@@ -154,5 +154,7 @@ data/api.json
 data/hook_menu.json
 data/letsencrypt.json
 data/notify.json
+plugins/docker
+plugins/tgbot
 
 debug.out

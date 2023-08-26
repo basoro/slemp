@@ -24,7 +24,10 @@ $('input[name="port"]').change(function(){
 	$('.btn_port').removeAttr('disabled');
 	$('.btn_port').unbind().click(function(){
 		$.post('/config/set_port','port='+port, function(rdata){
-			showMsg(rdata.msg,function(){window.location.reload();},{icon:rdata.status?1:2},2000);
+			showMsg(rdata.msg,function(){
+				window.location.href = window.location.href.replace(old_port,port);
+				// window.location.reload();
+			},{icon:rdata.status?1:2},5000);
 		},'json');
 	});
 });

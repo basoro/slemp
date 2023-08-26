@@ -87,19 +87,31 @@ class site_api:
         limit = request.form.get('limit', '10')
         p = request.form.get('p', '1')
         type_id = request.form.get('type_id', '0').strip()
+        search = request.form.get('search', '').strip()
 
         start = (int(p) - 1) * (int(limit))
 
         siteM = slemp.M('sites').field('id,name,path,status,ps,addtime,edate')
-        if type_id != '' and int(type_id) >= 0:
-            siteM.where('type_id=?', (type_id,))
+
+        sql_where = ''
+        if search != '':
+            sql_where = " name like '%" + search + "%' or ps like '%" + search + "%' "
+
+        if type_id != '' and int(type_id) >= 0 and search != '':
+            sql_where = sql_where + " and type_id=" + type_id + ""
+        elif type_id != '' and int(type_id) >= 0:
+            sql_where = " type_id=" + type_id
+
+        if sql_where != '':
+            siteM.where(sql_where)
 
         _list = siteM.limit((str(start)) + ',' +
                             limit).order('id desc').select()
 
-        for i in range(len(_list)):
-            _list[i]['backup_count'] = slemp.M('backup').where(
-                "pid=? AND type=?", (_list[i]['id'], 0)).count()
+        if _list != None:
+            for i in range(len(_list)):
+                _list[i]['backup_count'] = slemp.M('backup').where(
+                    "pid=? AND type=?", (_list[i]['id'], 0)).count()
 
         _ret = {}
         _ret['data'] = _list
@@ -754,6 +766,8 @@ class site_api:
                 slemp.execShell('echo "lets" > "' + path + '/README"')
         elif ssl_type == 'acme':
             ssl_acme_dir = slemp.getAcmeDir() + '/' + site_name
+            if not os.path.exists(ssl_acme_dir):
+                ssl_acme_dir = slemp.getAcmeDir() + '/' + site_name + '_ecc'
             acme_csrpath = ssl_acme_dir + '/fullchain.cer'
             acme_keypath = ssl_acme_dir + '/' + site_name + '.key'
             if slemp.md5(slemp.readFile(acme_csrpath)) == slemp.md5(slemp.readFile(csr_path)):
@@ -1389,6 +1403,8 @@ class site_api:
             data['data'] = slemp.readFile(filename)
             data['rlist'] = []
             for ds in os.listdir(self.rewritePath):
+                if ds[0:1] == '.':
+                    continue
                 if ds == 'list.txt':
                     continue
                 data['rlist'].append(ds[0:len(ds) - 5])
@@ -1624,19 +1640,16 @@ class site_api:
         if _id == '' or _siteName == '':
             return slemp.returnJson(False, "Required fields cannot be empty!")
 
-        _old_config = slemp.readFile(
-            "{}/{}/{}.conf".format(self.redirectPath, _siteName, _id))
-        if _old_config == False:
-            return slemp.returnJson(False, "Illegal operation")
-
-        slemp.writeFile("{}/{}/{}.conf".format(self.redirectPath,
-                                            _siteName, _id), _config)
+        proxy_file = "{}/{}/{}.conf".format(self.proxyPath, _siteName, _id)
+        slemp.backFile(proxy_file)
+        slemp.writeFile(proxy_file, _config)
         rule_test = slemp.checkWebConfig()
         if rule_test != True:
-            slemp.writeFile("{}/{}/{}.conf".format(self.redirectPath,
-                                                _siteName, _id), _old_config)
+            slemp.restoreFile(proxy_file)
+            slemp.removeBackFile(proxy_file)
             return slemp.returnJson(False, "OpenResty configuration test failed, please try again: {}".format(rule_test))
 
+        slemp.removeBackFile(proxy_file)
         self.operateRedirectConf(_siteName, 'start')
         slemp.restartWeb()
         return slemp.returnJson(True, "ok")
@@ -1858,15 +1871,14 @@ class site_api:
         _from = request.form.get('from', '')
         _to = request.form.get('to', '')
         _host = request.form.get('host', '')
+        _name = request.form.get('name', '')
         _open_proxy = request.form.get('open_proxy', '')
+        _open_cache = request.form.get('open_cache', '')
+        _cache_time = request.form.get('cache_time', '')
+        _id = request.form.get('id', '')
 
-        if _siteName == "" or _from == "" or _to == "" or _host == "":
+        if _name == "" or _siteName == "" or _from == "" or _to == "" or _host == "":
             return slemp.returnJson(False, "Required fields cannot be empty")
-
-        data_path = self.getProxyDataPath(_siteName)
-        data_content = slemp.readFile(
-            data_path) if os.path.exists(data_path) else ""
-        data = json.loads(data_content) if data_content != "" else []
 
         rep = "http(s)?\:\/\/([a-zA-Z0-9][-a-zA-Z0-9]{0,62}\.)+([a-zA-Z0-9][a-zA-Z0-9]{0,62})+.?"
         if not re.match(rep, _to):
@@ -1882,6 +1894,11 @@ class site_api:
             return slemp.returnJson(False, "Wrong target address")
 
         # location ~* ^{from}(.*)$ {
+        proxy_site_path = self.getProxyDataPath(_siteName)
+        data_content = slemp.readFile(
+            proxy_site_path) if os.path.exists(proxy_site_path) else ""
+        data = json.loads(data_content) if data_content != "" else []
+
         tpl = "#PROXY-START\n\
 location ^~ {from} {\n\
     proxy_pass {to};\n\
@@ -1889,12 +1906,28 @@ location ^~ {from} {\n\
     proxy_set_header X-Real-IP $remote_addr;\n\
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\
     proxy_set_header REMOTE-HOST $remote_addr;\n\
+    proxy_set_header Upgrade $http_upgrade;\n\
+    proxy_set_header Connection $connection_upgrade;\n\
+    proxy_http_version 1.1;\n\
     \n\
     add_header X-Cache $upstream_cache_status;\n\
+     {proxy_cache}\n\
+}\n\
+# PROXY-END"
+
+        tpl_proxy_cache = "\n\
+    if ( $uri ~* \"\.(gif|png|jpg|css|js|woff|woff2)$\" )\n\
+    {\n\
+        expires {cache_time}m;\n\
+    }\n\
     proxy_ignore_headers Set-Cookie Cache-Control expires;\n\
-    add_header Cache-Control no-cache;\n\
-    \n\
-    set $static_files_app 0;\n\
+    proxy_cache slemp_cache;\n\
+    proxy_cache_key \"$host$uri$is_args$args\";\n\
+    proxy_cache_valid 200 304 301 302 {cache_time}m;\n\
+"
+
+        tpl_proxy_nocache = "\n\
+    set $static_files_app 0; \n\
     if ( $uri ~* \"\.(gif|png|jpg|css|js|woff|woff2)$\" )\n\
     {\n\
         set $static_files_app 1;\n\
@@ -1904,8 +1937,6 @@ location ^~ {from} {\n\
     {\n\
         add_header Cache-Control no-cache;\n\
     }\n\
-}\n\
-#PROXY-END"
 
         # replace
         if _from[0] != '/':
@@ -1913,27 +1944,67 @@ location ^~ {from} {\n\
         tpl = tpl.replace("{from}", _from, 999)
         tpl = tpl.replace("{to}", _to)
         tpl = tpl.replace("{host}", _host, 999)
+        tpl = tpl.replace("{cache_time}", _cache_time, 999)
 
-        _id = slemp.md5("{}+{}+{}".format(_from, _to, _siteName))
-        for item in data:
-            if item["id"] == _id:
-                return slemp.returnJson(False, "The rule already exists!")
-            if item["from"] == _from:
-                return slemp.returnJson(False, "Proxy directory already exists!")
-        data.append({
-            "from": _from,
-            "to": _to,
-            "host": _host,
-            "id": _id
-        })
+        if _open_cache == 'on':
+            tpl_proxy_cache = tpl_proxy_cache.replace(
+                "{cache_time}", _cache_time, 999)
+            tpl = tpl.replace("{proxy_cache}", tpl_proxy_cache, 999)
+        else:
+            tpl = tpl.replace("{proxy_cache}", tpl_proxy_nocache, 999)
 
-        conf_file = "{}/{}.conf".format(self.getProxyPath(_siteName), _id)
+        proxy_action = 'add'
+        if _id == "":
+            _id = slemp.md5("{}".format(_name))
+        else:
+            proxy_action = 'edit'
+
+        conf_proxy = "{}/{}.conf".format(self.getProxyPath(_siteName), _id)
+        conf_bk = "{}/{}.conf.txt".format(self.getProxyPath(_siteName), _id)
+
+        slemp.writeFile(conf_proxy, tpl)
+
+        rule_test = slemp.checkWebConfig()
+        if rule_test != True:
+            os.remove(conf_proxy)
+            return slemp.returnJson(False, "OpenResty configuration test failed, please try again: {}".format(rule_test))
+
+        if proxy_action == "add":
+            _id = slemp.md5("{}".format(_name))
+            for item in data:
+                if item["name"] == _name:
+                    return slemp.returnJson(False, "Duplicate name!")
+                if item["from"] == _from:
+                    return slemp.returnJson(False, "Proxy directory already exists!")
+            data.append({
+                "name": _name,
+                "from": _from,
+                "to": _to,
+                "host": _host,
+                "open_cache": _open_cache,
+                "open_proxy": _open_proxy,
+                "cache_time": _cache_time,
+                "id": _id,
+            })
+        else:
+            dindex = -1
+            for x in range(len(data)):
+                if data[x]["id"] == _id:
+                    dindex = x
+                    break
+            if dindex < 0:
+                return slemp.returnJson(False, "Bad request")
+            data[dindex]['from'] = _from
+            data[dindex]['to'] = _to
+            data[dindex]['host'] = _host
+            data[dindex]['open_cache'] = _open_cache
+            data[dindex]['open_proxy'] = _open_proxy
+            data[dindex]['cache_time'] = _cache_time
+
         if _open_proxy != 'on':
-            conf_file = "{}/{}.conf.txt".format(
-                self.getProxyPath(_siteName), _id)
+            os.rename(conf_proxy, conf_bk)
 
-        slemp.writeFile(data_path, json.dumps(data))
-        slemp.writeFile(conf_file, tpl)
+        slemp.writeFile(proxy_site_path, json.dumps(data))
 
         self.operateProxyConf(_siteName, 'start')
         slemp.restartWeb()
@@ -2605,7 +2676,7 @@ location ^~ {from} {\n\
 
         self.saveCert(keyPath, certPath)
 
-        msg = slemp.getInfo('Website [{1}] successfully enabled SSL!', siteName)
+        msg = slemp.getInfo('Website [{}] successfully enabled SSL!', siteName)
         slemp.writeLog('Website management', msg)
 
         slemp.restartWeb()
@@ -2662,7 +2733,3 @@ location ^~ {from} {\n\
         slemp.execShell("chattr +i " + filename)
 
         return slemp.returnJson(True, 'The anti-cross-site setting is turned on!')
-
-    def strfToTime(self, sdate):
-        import time
-        return time.strftime('%Y-%m-%d', time.strptime(sdate, '%b %d %H:%M:%S %Y %Z'))

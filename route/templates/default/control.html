@@ -51,14 +51,15 @@
 									<div class="ss">
 										<span class="st">Custom time</span>
 										<div class="time">
-											<span class="bt">Start<input class="btime" type="text" value="2022/1/10 00:00:00"></span>
-											<span class="et">End<input class="etime" type="text" value="2022/1/13 00:00:00"></span>
+											<span class="bt">Date range
+												<input id="loadbtn_rtime" class="rtime" type="text" value="2023-07-06 00:00:00 - 2023-08-08 00:00:00">
+											</span>
 											<div class="sbtn loadbtn">Submit</div>
 										</div>
 									</div>
 								</div>
 							</div>
-							<div id="getloadview" style="width:100%; height:330px"></div>
+							<div id="getloadview" style="width:100%; height:330px;"></div>
 						</div>
 					</div>
 				</div>
@@ -76,8 +77,9 @@
 									<div class="ss">
 										<span class="st">Custom time</span>
 										<div class="time">
-											<span class="bt">Start<input class="btime" type="text" value="2022/1/10 00:00:00"></span>
-											<span class="et">End<input class="etime" type="text" value="2022/1/13 00:00:00"></span>
+											<span class="bt">Date range
+												<input id="cpubtn_rtime" class="rtime" type="text" value="2023-07-06 00:00:00 - 2023-08-08 00:00:00">
+											</span>
 											<div class="sbtn cpubtn">Submit</div>
 										</div>
 									</div>
@@ -101,8 +103,9 @@
 									<div class="ss">
 										<span class="st">Custom time</span>
 										<div class="time">
-											<span class="bt">Start<input class="btime" type="text" value="2022/1/10 00:00:00"></span>
-											<span class="et">End<input class="etime" type="text" value="2022/1/13 00:00:00"></span>
+											<span class="bt">Date range
+												<input id="membtn_rtime" class="rtime" type="text" value="2023-07-06 00:00:00 - 2023-08-08 00:00:00">
+											</span>
 											<div class="sbtn membtn">Submit</div>
 										</div>
 									</div>
@@ -126,8 +129,9 @@
 									<div class="ss">
 										<span class="st">Custom time</span>
 										<div class="time">
-											<span class="bt">Start<input class="btime" type="text" value="2022/1/10 00:00:00"></span>
-											<span class="et">End<input class="etime" type="text" value="2022/1/13 00:00:00"></span>
+											<span class="bt">Date range
+												<input id="diskbtn_rtime" class="rtime" type="text" value="2023-07-06 00:00:00 - 2023-08-08 00:00:00">
+											</span>
 											<div class="sbtn diskbtn">Submit</div>
 										</div>
 									</div>
@@ -151,8 +155,9 @@
 									<div class="ss">
 										<span class="st">Custom time</span>
 										<div class="time">
-											<span class="bt">Start<input class="btime" type="text" value="2022/1/10 00:00:00"></span>
-											<span class="et">End<input class="etime" type="text" value="2022/1/13 00:00:00"></span>
+											<span class="bt">Date range
+												<input id="networkbtn_rtime" class="rtime" type="text" value="2023-07-06 00:00:00 - 2023-08-08 00:00:00">
+											</span>
 											<div class="sbtn networkbtn">Submit</div>
 										</div>
 									</div>
@@ -166,6 +171,7 @@
 		</div>
 	</div>
 </div>
+<script type="text/javascript" src="/static/laydate/laydate.js?v={{config.version}}"></script>
 <script src="/static/app/control.js?v={{config.version}}"></script>
 
 {% endblock %}

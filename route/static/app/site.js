@@ -1,6 +1,6 @@
 function getWeb(page, search, type_id) {
-	search = $("#SearchValue").prop("value");
-	page = page == undefined ? '1':page;
+	var search = $("#SearchValue").prop("value");
+	var page = page == undefined ? '1':page;
 	var order = getCookie('order');
 	if(order){
 		order = '&order=' + order;
@@ -116,7 +116,7 @@ function getWeb(page, search, type_id) {
 			if(databak == null){
 				databak = '';
 			}
-			$(this).hide().after("<input class='baktext' type='text' data-id='"+dataid+"' name='bak' value='" + databak + "' placeholder='Description' onblur='getBakPost(\"sites\")' />");
+			$(this).hide().after("<input class='baktext' type='text' data-id='"+dataid+"' data-page='"+page+"' name='bak' value='" + databak + "' placeholder='Description' onblur='getBakPost(\"sites\")' />");
 			$(".baktext").focus();
 		});
 
@@ -127,22 +127,23 @@ function getWeb(page, search, type_id) {
 
 function getBakPost(b) {
 	$(".baktext").hide().prev().show();
-	var c = $(".baktext").attr("data-id");
+	var id = $(".baktext").attr("data-id");
+	var page = $(".baktext").attr("data-page");
 	var a = $(".baktext").val();
 	if(a == "") {
 		a = 'null';
 	}
-	setWebPs(b, c, a);
-	$("a[data-id='" + c + "']").html(a);
+	setWebPs(b, id, a,page);
+	$("a[data-id='" + id + "']").html(a);
 	$(".baktext").remove();
 }
 
-function setWebPs(b, e, a) {
+function setWebPs(b, id, ps,page) {
 	var d = layer.load({shade: true,shadeClose: false});
-	var c = 'ps=' + a;
-	$.post('/site/set_ps', 'id=' + e + "&" + c, function(data) {
+	var ps = 'ps=' + ps;
+	$.post('/site/set_ps', 'id=' + id + "&" + ps, function(data) {
 		if(data['status']) {
-			getWeb(1);
+			getWeb(page);
 			layer.closeAll();
 			layer.msg('Successfully modified!', {icon: 1});
 		} else {
@@ -1199,10 +1200,10 @@ function showRewrite(rdata){
 					<select class='bt-input-text mr20' id='myRewrite' name='rewrite' style='width:30%;'>"+rList+"</select>\
 					<textarea class='bt-input-text mtb15' style='height: 260px; width: 470px; line-height:18px;padding:5px;' id='rewriteBody'>"+rdata.data+"</textarea>\
 				</div>\
-				<button id='SetRewriteBtn' class='btn btn-success btn-sm' onclick=\"SetRewrite('"+rdata.filename+"')\">Save</button>\
+				<button id='setRewriteBtn' class='btn btn-success btn-sm'>Save</button>\
 				<ul class='help-info-text c7 ptb10'>\
-					<li>Please select your application. If the website cannot be accessed normally after setting pseudo-static, please try to set it back to default</li>\
-					<li>You can modify the pseudo-static rules and save them after modification.</li>\
+					<li>Please select your application. If the website cannot be accessed normally after setting pseudo-static, please try to set it back to default.</li>\
+					<li>You can modify the pseudo-static rules, and save them after modification.</li>\
 				</ul>\
 			</div>";
 	layer.open({
@@ -1212,14 +1213,21 @@ function showRewrite(rdata){
 		closeBtn: 1,
 		shift: 5,
 		shadeClose: true,
-		content:webBakHtml
-	});
+		content:webBakHtml,
+		success:function(){
 
-	$("#myRewrite").change(function(){
-		var rewriteName = $(this).val();
-		$.post('/files/get_body','path='+rdata['rewrite_dir']+'/'+rewriteName+'.conf',function(fileBody){
-			 $("#rewriteBody").val(fileBody.data.data);
-		},'json');
+			$("#myRewrite").change(function(){
+				var rewriteName = $(this).val();
+				$.post('/files/get_body','path='+rdata['rewrite_dir']+'/'+rewriteName+'.conf',function(fileBody){
+					 $("#rewriteBody").val(fileBody.data.data);
+				},'json');
+			});
+
+			$('#setRewriteBtn').click(function(){
+				var data = $("#rewriteBody").val();
+				setRewrite(rdata.filename, encodeURIComponent(data));
+			});
+		}
 	});
 }
 
@@ -1231,7 +1239,7 @@ function addDirBinding(id){
 		return;
 	}
 
-	var data = 'id='+id+'&domain='+domain+'&dirName='+dirName
+	var data = 'id='+id+'&domain='+domain+'&dirName='+dirName;
 	$.post('/site/add_dir_bind',data,function(rdata){
 		dirBinding(id);
 		layer.msg(rdata.msg,{icon:rdata.status?1:2});
@@ -1448,80 +1456,160 @@ function to301(siteName, type, obj){
 }
 
 
-function toProxySwitch(){
-	var status = $("input[name='open_proxy']").prop("checked")==true?1:0;
-	if(status==1){
-		$("input[name='open_proxy']").prop("checked",false);
-	}else{
-		$("input[name='open_proxy']").prop("checked",true);
-	}
-}
-
 function toProxy(siteName, type, obj) {
 	if(type == 1) {
-		var proxy_form = layer.open({
+		var proxy_title = "Create a reverse proxy";
+		if (typeof(obj) != 'undefined'){
+			proxy_title = "Edit reverse proxy";
+		}
+
+		layer.open({
 			type: 1,
 			area: '650px',
-			title: "Create a reverse proxy",
+			title: proxy_title,
 			closeBtn: 1,
 			shift: 5,
 			shadeClose: false,
 			btn: ['Submit','Cancel'],
-			content: "<form id='form_redirect' class='divtable pd15' style='padding-bottom: 10px'>" +
-				"<div class='line'>" +
-					'<span class="tname">Turn on proxy</span>'+
-					"<div class='info-r ml0'>" +
-						"<input name='open_proxy' class='btswitch btswitch-ios' type='checkbox' checked><label id='open_proxy' class='btswitch-btn' for='openProxy' onclick='toProxySwitch();'></label>" +
-					"</div>" +
-				"</div>" +
-				"<div class='line'>"+
-					"<span class='tname'>Agent directory</span>" +
-					"<div class='info-r ml0'>" +
-					"<input name='from' value='/' placeholder='/' class='bt-input-text mr5' type='text' style='width:200px''>" +
-					"</div>" +
-				"</div>" +
-				"<div class='line'>" +
-					"<span class='tname'>Target URL</span>" +
-					"<div class='info-r ml0'>" +
-					"<input name='to' class='bt-input-text mr5' type='text' style='width:200px;float: left;margin-right:0px''>" +
-					"<span class='tname' style='width:90px'>Send domain name</span>" +
-					"<input name='host' value='$host' class='bt-input-text mr5' type='text' style='width:200px'>" +
-					"</div>" +
-				"</div>" +
-				"<div class='help-info-text c7'>" +
-					"<ul class='help-info-text c7'>" +
-					"<li>Proxy directory: When accessing this directory, the content of the target URL will be returned and displayed</li>" +
-					"<li>Target URL: You can fill in the site you need to proxy, the target URL must be a URL that can be accessed normally, otherwise an error will be returned</li>" +
-					"<li>Send domain name: Add the domain name to the request header and pass it to the proxy server. The default is the domain name of the target URL. If it is not set properly, the proxy may not work properly</li>" +
-					"</ul>" +
-				"</div>" +
-				"</form>",
-			yes:function(){
-				var data = $('#form_redirect').serializeArray();
+			content: "<form id='form_proxy' class='divtable pd15' style='padding-bottom: 10px'>\
+				<div class='line'>\
+					<span class='tname'>Turn on proxy</span>\
+					<div class='info-r ml0 mt5'>\
+						<input name='open_proxy' class='btswitch btswitch-ios' type='checkbox' checked>\
+						<label id='open_proxy' class='btswitch-btn' for='openProxy' style='float:left'></label>\
+						<div style='display: inline-block'>\
+							<span class='tname' style='margin-left:15px;position: relative;top: -5px;'>Whether to cache</span>\
+							<input class='btswitch btswitch-ios' type='checkbox' name='open_cache'>\
+							<label class='btswitch-btn' id='open_cache' for='openCache' style='float:left'></label>\
+						</div>\
+					</div>\
+				</div>\
+				<div class='line'>\
+					<span class='tname'>Name</span>\
+					<div class='info-r ml0'>\
+					<input name='name' value='index' placeholder='Please enter a name' class='bt-input-text mr5' type='text' style='width:200px''>\
+					</div>\
+				</div>\
+				<div class='line' style='display:none' id='cache_time'>\
+					<span class='tname'>Cache time</span>\
+					<div class='info-r ml0'>\
+					<input name='cache_time' value='1' class='bt-input-text mr5' type='text' style='width:200px''>分钟\
+					</div>\
+				</div>\
+				<div class='line'>\
+					<span class='tname'>Agent directory</span>\
+					<div class='info-r ml0'>\
+					<input name='from' value='/' placeholder='/' class='bt-input-text mr5' type='text' style='width:200px''>\
+					</div>\
+				</div>\
+				<div class='line'>\
+					<span class='tname'>Target URL</span>\
+					<div class='info-r ml0'>\
+					<input name='to' class='bt-input-text mr5' type='text' style='width:200px;float: left;margin-right:0px''>\
+					<span class='tname' style='width:90px'>Send domain name</span>\
+					<input name='host' value='$host' class='bt-input-text mr5' type='text' style='width:200px'>\
+					</div>\
+				</div>\
+				<input name='id' value='' type='hidden'>\
+				<div class='help-info-text c7'>\
+					<ul class='help-info-text c7'>\
+					<li>Proxy directory: When accessing this directory, the content of the target URL will be returned and displayed</li>\
+					<li>Target URL: You can fill in the site you need to proxy, the target URL must be a URL that can be accessed normally, otherwise an error will be returned</li>\
+					<li>Send domain name: Add the domain name to the request header and pass it to the proxy server. The default is the domain name of the target URL. If it is not set properly, the proxy may not work properly</li>\
+					</ul>\
+				</div>\
+				</form>",
+			success:function(){
+
+				if (typeof(obj) != 'undefined'){
+					// console.log(obj);
+					$('input[name="name"]').val(obj['name']).attr('readonly','readonly').addClass('disabled');
+					if (obj['open_cache'] == 'on'){
+						$("input[name='open_cache']").prop("checked",true);
+						$('#cache_time').show();
+					}
+
+					$('input[name="from"]').val(obj['from']);
+					$('input[name="to"]').val(obj['to']);
+
+					var url = obj['to'];
+					var ip_reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
+	                url = url.replace(/^http[s]?:\/\//, '');
+	                url = url.replace(/(:|\?|\/|\\)(.*)$/, '');
+	                if (ip_reg.test(url)) {
+	                    $("[name='host']").val('$host');
+	                } else {
+	                    $("[name='host']").val(url);
+	                }
+
+	                $('input[name="id"]').val(obj['id']);
+	                $('input[name="cache_time"]').val(obj['cache_time']);
+				}
+
+
+				$('input[name="to"]').on('keyup', function(){
+					var url = $(this).val();
+					var ip_reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
+	                url = url.replace(/^http[s]?:\/\//, '');
+	                url = url.replace(/(:|\?|\/|\\)(.*)$/, '');
+	                if (ip_reg.test(url)) {
+	                    $("[name='host']").val('$host');
+	                } else {
+	                    $("[name='host']").val(url);
+	                }
+				});
+
+				$("#open_proxy").click(function(){
+					var status = $("input[name='open_proxy']").prop("checked")==true?1:0;
+					if(status==1){
+						$("input[name='open_proxy']").prop("checked",false);
+					}else{
+						$("input[name='open_proxy']").prop("checked",true);
+					}
+				});
+
+				$('#open_cache').click(function(){
+					var status = $("input[name='open_cache']").prop("checked")==true?1:0;
+					if(status==1){
+						$('#cache_time').hide();
+						$("input[name='open_cache']").prop("checked",false);
+					}else{
+						$('#cache_time').show();
+						$("input[name='open_cache']").prop("checked",true);
+					}
+				});
+			},
+			yes:function(index,layer_ro){
+				var data = $('#form_proxy').serializeArray();
 				var t = {};
 				t['name'] = 'siteName';
 				t['value'] = siteName;
 				data.push(t);
 
-				var loading = layer.msg('Adding...',{icon:16,time:0,shade: [0.3, '#000']});
+				var loading = layer.msg('Adding '+proxy_title+'...',{icon:16,time:0,shade: [0.3, '#000']});
 				$.post('/site/set_proxy',data, function(res) {
 					layer.close(loading);
-					if (res.status) {
-						layer.close(proxy_form);
-						toProxy(siteName)
-					} else {
-						layer.msg(res.msg, {icon: 2});
+					if (!res.status){
+						layer.msg(res.msg, {icon: 2,time:10000});
+						return;
 					}
+					showMsg(proxy_title+"成功!",function(){
+						layer.close(index);
+						toProxy(siteName);
+					},{icon: 1, time:2000});
 				},'json');
 			}
 		});
 	}
 
 	if (type == 2) {
+		var loading = layer.msg('Is being deleted...',{icon:16,time:0,shade: [0.3, '#000']});
 		$.post('/site/del_proxy', {siteName: siteName,id: obj,}, function(res) {
+			layer.close(loading);
 			if (res.status == true) {
-				layer.msg('Successfully deleted', {time: 1000,icon: 1});
-				toProxy(siteName)
+				showMsg('Successfully deleted', function(){
+					toProxy(siteName);
+				},{time: 1000,icon: 1});
 			} else {
 				layer.msg(res.msg, {time: 1000,icon: 2});
 			}
@@ -1535,73 +1623,94 @@ function toProxy(siteName, type, obj) {
 		var data = {siteName: siteName,id: obj};
 		$.post('/site/get_proxy_conf', data, function(res) {
 			layer.close(laoding);
-			if (res.status == true) {
-				var mBody = "<div class='webEdit-box' style='padding: 20px'>\
-				<textarea style='height: 320px; width: 445px; margin-left: 20px; line-height:18px' id='configProxyBody'>"+res.data.result+"</textarea>\
-					<div class='info-r'>\
-						<ul class='help-info-text c7 ptb10'>\
-							<li>Here is the reverse proxy configuration file, if you do not understand the configuration rules, please do not modify it at will.</li>\
-						</ul>\
-					</div>\
-				</div>";
-				var editor;
-				var index = layer.open({
-					type: 1,
-					title: 'Edit configuration file',
-					closeBtn: 1,
-					shadeClose: true,
-					area: ['500px', '500px'],
-					btn: ['Submit','Cancel'],
-					content: mBody,
-					success: function () {
-						editor = CodeMirror.fromTextArea(document.getElementById("configProxyBody"), {
-							extraKeys: {"Ctrl-Space": "autocomplete"},
-							lineNumbers: true,
-							matchBrackets:true,
-						});
-						editor.focus();
-						$(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
-						$("#onlineEditFileBtn").unbind('click');
-					},
-					yes:function(index,layero){
-						$("#configProxyBody").empty().text(editor.getValue());
-						var load = layer.load();
-						var data = {
-							siteName: siteName,
-							id: obj,
-							config: editor.getValue(),
-						};
-
-						$.post('/site/save_proxy_conf', data, function(res) {
-							layer.close(load)
-							if (res.status == true) {
-								layer.msg('Saved successfully', {icon: 1});
-								layer.close(index);
-							} else {
-								layer.msg(res.msg, {time: 3000,icon: 2});
-							}
-						},'json');
-						return true;
-			        },
-				});
-			} else {
+			if (!res.status){
 				layer.msg('Wrong request!!', {time: 3000,icon: 2});
+				return;
 			}
+			var mBody = "<div class='webEdit-box' style='padding: 20px'>\
+			<textarea style='height: 320px; width: 445px; margin-left: 20px; line-height:18px' id='configProxyBody'>"+res.data.result+"</textarea>\
+				<div class='info-r'>\
+					<ul class='help-info-text c7 ptb10'>\
+						<li>Here is the reverse proxy configuration file, if you do not understand the configuration rules, please do not modify it at will.</li>\
+					</ul>\
+				</div>\
+			</div>";
+			var editor;
+			var index = layer.open({
+				type: 1,
+				title: 'Edit configuration file',
+				closeBtn: 1,
+				shadeClose: true,
+				area: ['500px', '500px'],
+				btn: ['Submit','Cancel'],
+				content: mBody,
+				success: function () {
+					editor = CodeMirror.fromTextArea(document.getElementById("configProxyBody"), {
+						extraKeys: {"Ctrl-Space": "autocomplete"},
+						lineNumbers: true,
+						matchBrackets:true,
+					});
+					editor.focus();
+					$(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
+					$("#onlineEditFileBtn").unbind('click');
+				},
+				yes:function(index,layero){
+					$("#configProxyBody").empty().text(editor.getValue());
+					var load = layer.load();
+					var data = {
+						siteName: siteName,
+						id: obj,
+						config: editor.getValue(),
+					};
+
+					$.post('/site/save_proxy_conf', data, function(res) {
+						layer.close(load)
+						if (res.status == true) {
+							layer.msg('Saved successfully', {icon: 1});
+							layer.close(index);
+						} else {
+							layer.msg(res.msg, {time: 3000,icon: 2});
+						}
+					},'json');
+					return true;
+		        },
+			});
 		},'json');
-		return
+		return;
 	}
 
 	if (type == 10 || type == 11) {
 		status = type==10 ? '0' : '1';
 		var loading = layer.msg(lan.site.the_msg,{icon:16,time:0,shade: [0.3, '#000']});
-		$.post('/site/set_proxy_status', {siteName: siteName,'status':status,'id':obj}, function(res) {
+		$.post('/site/set_proxy_status', {siteName: siteName,'status':status,'id':obj}, function(rdata) {
 			layer.close(loading);
-			if (res.status == true) {
-				layer.msg('Successfully set', {icon: 1});
-				toProxy(siteName);
-			} else {
+			if (!rdata.status){
 				layer.msg(res.msg, {time: 3000,icon: 2});
+				return;
 			}
+			showMsg("Successfully set",function(){
+				toProxy(siteName);
+			},{icon: 1,time:2000});
+		},'json');
+		return;
+	}
+
+	if (type == 20 || type == 21) {
+		var status = type == 20 ? 'on' : '';
+		obj['open_cache'] = status;
+		obj['siteName'] = siteName;
+
+		var loading = layer.msg('Submitting request...',{icon:16,time:0,shade: [0.3, '#000']});
+		$.post('/site/set_proxy',obj, function(rdata) {
+			layer.close(loading);
+			if (!rdata.status){
+				layer.msg(rdata.msg, {icon: 2,time:2000});
+				return;
+			}
+
+			showMsg("Successfully set!",function(){
+				toProxy(siteName);
+			},{icon: 1, time:2000});
 		},'json');
 		return;
 	}
@@ -1614,10 +1723,12 @@ function toProxy(siteName, type, obj) {
 						<table class="table table-hover" >\
 							<thead style="position: relative;z-index: 1;">\
 								<tr>\
-									<th><span data-index="1"><span>Agent directory</span></span></th>\
-									<th><span data-index="2"><span>Target address</span></span></th>\
-									<th><span data-index="2"><span>Status</span></span></th>\
-									<th><span data-index="3"><span>Action</span></span></th>\
+									<th>Name</th>\
+									<th>Agent directory</th>\
+									<th>Target address</th>\
+									<th>Cache</th>\
+									<th>Status</th>\
+									<th>Action</th>\
 								</tr>\
 							</thead>\
 							<tbody id="md-301-body"></tbody>\
@@ -1629,28 +1740,62 @@ function toProxy(siteName, type, obj) {
 	var loading = layer.msg(lan.site.the_msg,{icon:16,time:0,shade: [0.3, '#000']});
 	$.post("/site/get_proxy_list", {siteName: siteName},function (res) {
 		layer.close(loading);
-		if (res.status === true) {
-			let data = res.data.result;
-			data.forEach(function(item){
-				var switchProxy  = '<span onclick="toProxy(\''+siteName+'\', 10, \''+ item.id +'\')" style="color:rgb(92, 184, 92);" class="btlink glyphicon glyphicon-play"></span>';
-				if (!item['status']){
-					switchProxy = '<span onclick="toProxy(\''+siteName+'\', 11, \''+ item.id +'\')" style="color:rgb(255, 0, 0);" class="btlink glyphicon glyphicon-pause"></span>';
-				}
-
-				let tmp = '<tr>\
-					<td><span data-index="1"><span>'+item.from+'</span></span></td>\
-					<td><span data-index="2"><span>'+item.to+'</span></span></td>\
-					<td>'+switchProxy+'</td>\
-					<td>\
-					   <span data-index="4" onclick="toProxy(\''+siteName+'\', 3, \''+ item.id +'\')" class="btlink">Detail</span> |\
-					   <span data-index="4" onclick="toProxy(\''+siteName+'\', 2, \''+ item.id +'\')" class="btlink">Delete</span>\
-					</td>\
-				</tr>';
-				$("#md-301-body").append(tmp);
-			})
-		} else {
+		if (!res.status){
 			layer.msg(res.msg, {icon:2});
+			return;
 		}
+
+		var data = res.data.result;
+		for (var i = 0; i < data.length; i++) {
+			var item = data[i];
+
+			var switchProxy  = '<span onclick="toProxy(\''+siteName+'\', 10, \''+ item.id +'\')" style="color:rgb(92, 184, 92);" class="btlink glyphicon glyphicon-play"></span>';
+			if (!item['status']){
+				switchProxy = '<span onclick="toProxy(\''+siteName+'\', 11, \''+ item.id +'\')" style="color:rgb(255, 0, 0);" class="btlink glyphicon glyphicon-pause"></span>';
+			}
+
+			var openCache = '<span  data-index="'+i+'" class="btlink cache off">Stop</span>';
+			if (item['open_cache'] == 'on'){
+				openCache = '<span  data-index="'+i+'" class="btlink cache on">Start</span>';
+			}
+
+			let tmp = '<tr>\
+				<td>'+item.name+'</td>\
+				<td>'+item.from+'</td>\
+				<td>'+item.to+'</td>\
+				<td>'+openCache+'</td>\
+				<td>'+switchProxy+'</td>\
+				<td>\
+				   <span data-index="'+i+'" class="btlink detail">Detail</span> |\
+				   <span data-index="'+i+'" class="btlink edit">Edit</span> |\
+				   <span data-index="'+i+'" class="btlink delete">Delete</span>\
+				</td>\
+			</tr>';
+			$("#md-301-body").append(tmp);
+		}
+			$('#md-301-body .detail').click(function(){
+				var index = $(this).data('index');
+				toProxy(siteName, 3 ,data[index]['id']);
+			});
+
+			$('#md-301-body .edit').click(function(){
+				var index = $(this).data('index');
+				toProxy(siteName, 1 ,data[index]);
+			});
+
+			$('#md-301-body .delete').click(function(){
+				var index = $(this).data('index');
+				toProxy(siteName, 2 ,data[index]['id']);
+			});
+
+			$('#md-301-body .cache').click(function(){
+				var index = $(this).data('index');
+				if ($(this).hasClass('on')){
+					toProxy(siteName, 21 ,data[index]);
+				} else{
+					toProxy(siteName, 20 ,data[index]);
+				}
+			});
 	},'json');
 }
 
@@ -2303,7 +2448,7 @@ function rewrite(siteName){
 			$("#SetRewriteBtn").click(function(){
 				$("#rewriteBody").empty();
 				$("#rewriteBody").text(editor.getValue());
-				setRewrite(filename);
+				setRewrite(filename, encodeURIComponent(editor.getValue()));
 			});
 			$("#SetRewriteBtnTel").click(function(){
 				$("#rewriteBody").empty();
@@ -2333,8 +2478,8 @@ function rewrite(siteName){
 	},'json');
 }
 
-function setRewrite(filename){
-	var data = 'data='+encodeURIComponent($("#rewriteBody").val())+'&path='+filename+'&encoding=utf-8';
+function setRewrite(filename,data){
+	var data = 'data='+data+'&path='+filename+'&encoding=utf-8';
 	var loadT = layer.msg(lan.site.saving_txt,{icon:16,time:0,shade: [0.3, '#000']});
 	$.post('/site/set_rewrite',data,function(rdata){
 		layer.close(loadT);

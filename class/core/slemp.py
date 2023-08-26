@@ -330,7 +330,7 @@ def restartSlemp():
 
 def checkWebConfig():
     op_dir = getServerDir() + '/openresty/nginx'
-    cmd = "ulimit -n 10240 && " + op_dir + \
+    cmd = op_dir + \
         "/sbin/nginx -t -c " + op_dir + "/conf/nginx.conf"
     result = execShell(cmd)
     searchStr = 'test is successful'
@@ -1004,6 +1004,12 @@ def formatDate(format="%Y-%m-%d %H:%M:%S", times=None):
     return time.strftime(format, time_local)
 
 
+def strfToTime(sdate):
+    # 转换时间
+    import time
+    return time.strftime('%Y-%m-%d', time.strptime(sdate, '%b %d %H:%M:%S %Y %Z'))
+
+
 def checkIp(ip):
     import re
     p = re.compile(
@@ -1309,7 +1315,9 @@ def checkInput(data):
 
 
 def checkCert(certPath='ssl/certificate.pem'):
-    openssl = '/usr/local/openssl/bin/openssl'
+    openssl = '/usr/bin/openssl'
+    if not os.path.exists(openssl):
+        openssl = '/usr/local/openssl/bin/openssl'
     if not os.path.exists(openssl):
         openssl = 'openssl'
     certPem = readFile(certPath)

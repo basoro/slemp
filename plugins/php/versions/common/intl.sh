@@ -33,7 +33,7 @@ else
 fi
 
 OPTIONS=''
-if [ "$version" -lt "71" ];then
+if [ "$version" -lt "74" ];then
 	cd ${rootPath}/plugins/php/lib && /bin/bash icu.sh
 	OPTIONS="--with-icu-dir=${serverPath}/lib/icu"
 fi
@@ -58,6 +58,7 @@ Install_lib()
 
 		$serverPath/php/$version/bin/phpize
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
+		#./configure --with-php-config=/Users/ataaka/Desktop/SLEMP/server/php/81/bin/php-config --with-icu-dir=/Users/ataaka/Desktop/SLEMP/server/lib/icu/lib/icu
 		make clean && make && make install && make clean
 
 	fi

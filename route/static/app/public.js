@@ -223,16 +223,41 @@ function changePathCallback(default_dir, callback) {
 		closeBtn: 1,
 		shift: 5,
 		shadeClose: false,
-		content: "<div class='changepath'><div class='path-top'><button type='button' class='btn btn-default btn-sm' onclick='backFile()'><span class='glyphicon glyphicon-share-alt'></span>Return</button>\
-		<div class='place' id='PathPlace'>Current path：<span></span></div></div><div class='path-con'><div class='path-con-left'><dl><dt id='changecomlist' onclick='backMyComputer()'>Computer</dt></dl></div>\
-		<div class='path-con-right'><ul class='default' id='computerDefautl'></ul><div class='file-list divtable'>\
-			<table class='table table-hover' style='border:0 none'>\
-				<thead><tr class='file-list-head'><th width='40%'>Filename</th><th width='20%'>Modified</th><th width='10%'>Permissions</th><th width='10%'>Owner</th><th width='10%'></th></tr></thead>\
-				<tbody id='tbody' class='list-list'></tbody></table></div></div></div></div><div class='getfile-btn' style='margin-top:0'>\
-				<button type='button' class='btn btn-default btn-sm pull-left' onclick='createFolder()'>New folder</button>\
-				<button type='button' class='btn btn-danger btn-sm mr5 btn-close'>Cancel</button>\
-				<button type='button' class='btn btn-success btn-sm btn-choose'>Select</button>\
-		</div>",
+		content: "<div class='changepath'>\
+					<div class='path-top'>\
+						<button type='button' class='btn btn-default btn-sm' onclick='backFile()'>\
+							<span class='glyphicon glyphicon-share-alt'></span>Return\
+						</button>\
+						<div class='place' id='PathPlace'>Current path：<span></span></div>\
+					</div>\
+					<div class='path-con'>\
+						<div class='path-con-left'>\
+						<dl><dt id='changecomlist' onclick='backMyComputer()'>My Computer</dt></dl>\
+						</div>\
+						<div class='path-con-right'>\
+							<ul class='default' id='computerDefautl'></ul>\
+							<div class='file-list divtable'>\
+								<table class='table table-hover' style='border:0 none'>\
+									<thead>\
+										<tr class='file-list-head'>\
+											<th width='40%'>File name</th>\
+											<th width='20%'>Modified</th>\
+											<th width='10%'>Permissions</th>\
+											<th width='10%'>Owner</th>\
+											<th width='10%'></th>\
+										</tr>\
+									</thead>\
+									<tbody id='tbody' class='list-list'></tbody>\
+								</table>\
+							</div>\
+						</div>\
+					</div>\
+				</div>\
+				<div class='getfile-btn' style='margin-top:0'>\
+					<button type='button' class='btn btn-default btn-sm pull-left' onclick='createFolder()'>New folder</button>\
+					<button type='button' class='btn btn-danger btn-sm mr5 btn-close'>Close</button>\
+					<button type='button' class='btn btn-success btn-sm btn-choose'>Select</button>\
+				</div>",
 		success:function(layero,layer_index){
 			$('.btn-close').click(function(){
 				layer.close(layer_index);
@@ -264,15 +289,37 @@ function changePath(d) {
 		closeBtn: 1,
 		shift: 5,
 		shadeClose: false,
-		content: "<div class='changepath'><div class='path-top'><button type='button' class='btn btn-default btn-sm' onclick='backFile()'><span class='glyphicon glyphicon-share-alt'></span>Return</button>\
-		<div class='place' id='PathPlace'>Current path：<span></span></div></div><div class='path-con'><div class='path-con-left'><dl><dt id='changecomlist' onclick='backMyComputer()'>Computer</dt></dl></div>\
-		<div class='path-con-right'><ul class='default' id='computerDefautl'></ul><div class='file-list divtable'>\
-			<table class='table table-hover' style='border:0 none'>\
-				<thead><tr class='file-list-head'><th width='40%'>Filename</th><th width='20%'>Modified</th><th width='10%'>Permissions</th><th width='10%'>Owner</th><th width='10%'></th></tr></thead>\
-				<tbody id='tbody' class='list-list'></tbody></table></div></div></div></div><div class='getfile-btn' style='margin-top:0'>\
-				<button type='button' class='btn btn-default btn-sm pull-left' onclick='createFolder()'>New folder</button>\
-				<button type='button' class='btn btn-danger btn-sm mr5' onclick=\"layer.close(getCookie('changePath'))\">Cancel</button>\
-				<button type='button' class='btn btn-success btn-sm' onclick='getfilePath()'>Select</button>\
+		content: "\
+			<div class='changepath'>\
+				<div class='path-top'>\
+					<button type='button' class='btn btn-default btn-sm' onclick='backFile()'><span class='glyphicon glyphicon-share-alt'></span>Return</button>\
+					<div class='place' id='PathPlace'>Current path：<span></span></div>\
+				</div>\
+				<div class='path-con'>\
+					<div class='path-con-left'><dl><dt id='changecomlist' onclick='backMyComputer()'>My Computer</dt></dl></div>\
+					<div class='path-con-right'>\
+						<ul class='default' id='computerDefautl'></ul>\
+						<div class='file-list divtable'>\
+							<table class='table table-hover' style='border:0 none'>\
+								<thead>\
+									<tr class='file-list-head'>\
+										<th width='40%'>File name</th>\
+										<th width='20%'>Modified</th>\
+										<th width='10%'>Permissions</th>\
+										<th width='10%'>Owner</th>\
+										<th width='10%'></th>\
+									</tr>\
+								</thead>\
+								<tbody id='tbody' class='list-list'></tbody>\
+							</table>\
+						</div>\
+					</div>\
+				</div>\
+			</div>\
+			<div class='getfile-btn' style='margin-top:0'>\
+			<button type='button' class='btn btn-default btn-sm pull-left' onclick='createFolder()'>New folder</button>\
+			<button type='button' class='btn btn-danger btn-sm mr5' onclick=\"layer.close(getCookie('changePath'))\">Cancel</button>\
+			<button type='button' class='btn btn-success btn-sm' onclick='getfilePath()'>Select</button>\
 		</div>"
 	});
 	setCookie("changePath", c);
@@ -313,7 +360,13 @@ function getDiskList(b) {
 					e = e.substring(0, 10) + "..."
 				}
 			}
-			d += "<tr><td onclick=\"getDiskList('" + h.PATH + "/" + g[0] + "')\" title='" + g[0] + "'><span class='glyphicon glyphicon-folder-open'></span>" + e + "</td><td>" + getLocalTime(g[2]) + "</td><td>" + g[3] + "</td><td>" + g[4] + "</td><td><span class='delfile-btn' onclick=\"NewDelFile('" + h.PATH + "/" + g[0] + "')\">X</span></td></tr>"
+			d += "<tr>\
+				<td onclick=\"getDiskList('" + h.PATH + "/" + g[0] + "')\" title='" + g[0] + "'>\
+					<span class='glyphicon glyphicon-folder-open'></span>" + e + "</td><td>" + getLocalTime(g[2]) + "</td>\
+				<td>" + g[3] + "</td>\
+				<td>" + g[4] + "</td>\
+				<td><span class='delfile-btn' onclick=\"NewDelFile('" + h.PATH + "/" + g[0] + "')\">X</span></td>\
+			</tr>";
 		}
 		if(h.FILES != null && h.FILES != "") {
 			for(var f = 0; f < h.FILES.length; f++) {
@@ -327,7 +380,13 @@ function getDiskList(b) {
 						e = e.substring(0, 10) + "..."
 					}
 				}
-				d += "<tr><td title='" + g[0] + "'><span class='glyphicon glyphicon-file'></span>" + e + "</td><td>" + getLocalTime(g[2]) + "</td><td>" + g[3] + "</td><td>" + g[4] + "</td><td></td></tr>"
+				d += "<tr>\
+					<td title='" + g[0] + "'><span class='glyphicon glyphicon-file'></span>" + e + "</td>\
+					<td>" + getLocalTime(g[2]) + "</td>\
+					<td>" + g[3] + "</td>\
+					<td>" + g[4] + "</td>\
+					<td></td>\
+				</tr>";
 			}
 		}
 		$(".default").hide();
@@ -710,7 +769,12 @@ function safeMessage(j, h, g, f) {
 		area: "350px",
 		closeBtn: 1,
 		shadeClose: true,
-		content: "<div class='bt-form webDelete pd20 pb70'><p>" + h + "</p>" + f + "<div class='vcode'>"+lan.bt.cal_msg+"<span class='text'>" + sumtext + "</span>=<input type='number' id='vcodeResult' value=''></div><div class='bt-form-submit-btn'><button type='button' class='btn btn-danger btn-sm bt-cancel'>"+lan.public.cancel+"</button> <button type='button' id='toSubmit' class='btn btn-success btn-sm' >"+lan.public.ok+"</button></div></div>"
+		content: "<div class='bt-form webDelete pd20 pb70'>\
+			<p>" + h + "</p>" + f + "<div class='vcode'>"+lan.bt.cal_msg+"<span class='text'>" + sumtext + "</span>=<input type='number' id='vcodeResult' value=''></div>\
+			<div class='bt-form-submit-btn'>\
+				<button type='button' class='btn btn-danger btn-sm bt-cancel'>"+lan.public.cancel+"</button>\
+				<button type='button' id='toSubmit' class='btn btn-success btn-sm' >"+lan.public.ok+"</button></div>\
+			</div>"
 	});
 	$("#vcodeResult").focus().keyup(function(a) {
 		if(a.keyCode == 13) {
@@ -1867,8 +1931,14 @@ function utf8to16(str) {
     return out;
 }
 
-function pluginService(_name, version){
-	var data = {name:_name, func:'status'}
+function pluginService(_name, version, _suffix_name=''){
+
+	var default_name = 'status';
+	if ( _suffix_name != '' ){
+		default_name = 'status_'+_suffix_name;
+	}
+
+	var data = {name:_name, func:default_name};
 	if ( typeof(version) != 'undefined' ){
 		data['version'] = version;
 	} else {
@@ -1884,27 +1954,39 @@ function pluginService(_name, version){
             return;
         }
         if (data.data == 'start'){
-            pluginSetService(_name, true, version);
+            pluginSetService(_name, true, version, _suffix_name);
         } else {
-            pluginSetService(_name, false, version);
+            pluginSetService(_name, false, version, _suffix_name);
         }
     },'json');
 }
 
-function pluginSetService(_name ,status, version){
+function pluginSetService(_name ,status, version, _suffix_name=''){
+
+	var default_name = 'status';
+	var restart_name = 'restart';
+	var reload_name = 'reload';
+	var status_ss = (status?'stop':'start');
+	if ( _suffix_name != '' ){
+		default_name = 'status_'+_suffix_name;
+		restart_name = 'restart_'+_suffix_name;
+		reload_name = 'reload_'+_suffix_name;
+		status_ss = status_ss+'_'+_suffix_name;
+	}
+
 	var serviceCon ='<p class="status">Current status：<span>'+(status ? 'start' : 'stop' )+
         '</span><span style="color: '+
         (status?'#20a53a;':'red;')+
         ' margin-left: 3px;" class="glyphicon ' + (status?'glyphicon glyphicon-play':'glyphicon-pause')+'"></span></p><div class="sfm-opt">\
-            <button class="btn btn-default btn-sm" onclick="pluginOpService(\''+_name+'\',\''+(status?'stop':'start')+'\',\''+version+'\')">'+(status?'stop':'start')+'</button>\
-            <button class="btn btn-default btn-sm" onclick="pluginOpService(\''+_name+'\',\'restart\',\''+version+'\')">restart</button>\
-            <button class="btn btn-default btn-sm" onclick="pluginOpService(\''+_name+'\',\'reload\',\''+version+'\')">reload</button>\
+						<button class="btn btn-default btn-sm" onclick="pluginOpService(\''+_name+'\',\''+status_ss+'\',\''+version+'\',\''+_suffix_name+'\')">'+(status?'stop':'start')+'</button>\
+						<button class="btn btn-default btn-sm" onclick="pluginOpService(\''+_name+'\',\''+restart_name+'\',\''+version+'\',\''+_suffix_name+'\')">restart</button>\
+						<button class="btn btn-default btn-sm" onclick="pluginOpService(\''+_name+'\',\''+reload_name+'\',\''+version+'\',\''+_suffix_name+'\')">reload</button>\
         </div>';
     $(".soft-man-con").html(serviceCon);
 }
 
 
-function pluginOpService(a, b, v) {
+function pluginOpService(a, b, v, _suffix_name='') {
 
     var c = "name=" + a + "&func=" + b;
     if(v != ''){
@@ -1912,26 +1994,34 @@ function pluginOpService(a, b, v) {
     }
 
     var d = "";
+    b = b.split('_')[0];
     switch(b) {
         case "stop":d = 'stop';break;
         case "start":d = 'start';break;
         case "restart":d = 'restart';break;
         case "reload":d = 'reload';break;
     }
-    layer.confirm( msgTpl('Do you really want {1}{2}{3} service？', [d,a,v]), {icon:3,closeBtn: 1}, function() {
-        var e = layer.msg(msgTpl('Serving {1}{2}{3}, please wait...',[d,a,v]), {icon: 16,time: 0});
+
+    _ver = v;
+    if(v != ''){
+    	_ver = '【' + v + '】';
+    }
+
+    layer.confirm( msgTpl('Do you really want {1}{2}{3} service？', [d,a,_ver]), {icon:3,closeBtn: 1}, function() {
+        var e = layer.msg(msgTpl('Serving {1}{2}{3}, please wait...',[d,a,_ver]), {icon: 16,time: 0});
+
         $.post("/plugins/run", c, function(g) {
             layer.close(e);
 
 
-            var f = g.data == 'ok' ? msgTpl('{1} {2} service has been {3}',[a,v,d]) : msgTpl('{1}{2} failed to serve {3}!',[a,v,d]);
+            var f = g.data == 'ok' ? msgTpl('{1} {2} service has been {3}',[a,_ver,d]) : msgTpl('{1}{2} failed to serve {3}!',[a,_ver,d]);
             layer.msg(f, {icon: g.data == 'ok' ? 1 : 2});
 
             if( b != "reload" && g.data == 'ok' ) {
                 if ( b == 'start' ) {
-                    pluginSetService(a, true, v);
+                    pluginSetService(a, true, v, _suffix_name);
                 } else if ( b == 'stop' ){
-                    pluginSetService(a, false, v);
+                    pluginSetService(a, false, v, _suffix_name);
                 }
             }
 
@@ -2147,12 +2237,20 @@ function pluginConfigSave(fileName) {
     },'json');
 }
 
-function pluginInitD(_name,_version){
+
+function pluginInitD(_name, _version, _suffix_name=''){
 	if (typeof _version == 'undefined'){
     	_version = '';
     }
+
+  var default_name = 'initd_status';
+
+	if ( _suffix_name != '' ){
+		default_name = 'initd_status_'+_suffix_name;
+	}
+
 	var loadT = layer.msg('Retrieving...', { icon: 16, time: 0, shade: 0.3 });
-	$.post('/plugins/run', {name:_name, func:'initd_status',version : _version}, function(data) {
+	$.post('/plugins/run', {name:_name, func:default_name, version : _version}, function(data) {
 		layer.close(loadT);
         if( !data.status ){
             layer.msg(data.msg,{icon:0,time:3000,shade: [0.3, '#000']});
@@ -2163,35 +2261,48 @@ function pluginInitD(_name,_version){
             return;
         }
         if (data.data == 'ok'){
-            pluginSetInitD(_name, _version, true);
+            pluginSetInitD(_name, _version, true, _suffix_name);
         } else {
-            pluginSetInitD(_name, _version, false);
+            pluginSetInitD(_name, _version, false, _suffix_name);
         }
     },'json');
 }
 
-function pluginSetInitD(_name, _version, status){
+function pluginSetInitD(_name, _version, status,_suffix_name=''){
+
+	var default_name = (status?'initd_uninstall':'initd_install');
+	if ( _suffix_name != '' ){
+		default_name = default_name + '_' + _suffix_name;
+	}
+
 	var serviceCon ='<p class="status">Current status：<span>'+(status ? 'start' : 'stop' )+
         '</span><span style="color: '+
         (status?'#20a53a;':'red;')+
         ' margin-left: 3px;" class="glyphicon ' + (status?'glyphicon glyphicon-play':'glyphicon-pause')+'"></span></p><div class="sfm-opt">\
-            <button class="btn btn-default btn-sm" onclick="pluginOpInitD(\''+_name+'\',\''+_version+'\',\''+(status?'initd_uninstall':'initd_install')+'\')">'+(status?'stop':'start')+'</button>\
+            <button class="btn btn-default btn-sm" onclick="pluginOpInitD(\''+_name+'\',\''+_version+'\',\''+default_name+'\',\''+_suffix_name+'\')">'+(status?'stop':'start')+'</button>\
         </div>';
     $(".soft-man-con").html(serviceCon);
 }
 
-function pluginOpInitD(a, _version, b) {
+function pluginOpInitD(a, _version, b, _suffix_name='') {
     var c = "name=" + a + "&func=" + b + "&version="+_version;
     var d = "";
+    b = b.split('_'+_suffix_name)[0];
     switch(b) {
         case "initd_install":d = 'start';break;
         case "initd_uninstall":d = 'stop';break;
     }
-    layer.confirm( msgTpl('Do you really want {1}{2}{3} service？', [d,a,_version]), {icon:3,closeBtn: 1}, function() {
-        var e = layer.msg(msgTpl('Serving {1}{2}{3}, please wait...',[d,a,_version]), {icon: 16,time: 0});
+
+		_ver = _version;
+    if(_version != ''){
+    	_ver = '【' + _version + '】';
+    }
+
+    layer.confirm( msgTpl('Do you really want {1}{2}{3} service？', [d,a,_ver]), {icon:3,closeBtn: 1}, function() {
+        var e = layer.msg(msgTpl('Serving {1}{2}{3}, please wait...',[d,a,_ver]), {icon: 16,time: 0});
         $.post("/plugins/run", c, function(g) {
             layer.close(e);
-            var f = g.data == 'ok' ? msgTpl('{1} {3} service has been {2}',[a,d,_version]) : msgTpl('{1}{3} failed to serve {2}!',[a,d,_version]);
+            var f = g.data == 'ok' ? msgTpl('{1} {3} service has been {2}',[a,d,_version]) : msgTpl('{1}{3} failed to serve {2}!',[a,d,_ver]);
             layer.msg(f, {icon: g.data == 'ok' ? 1 : 2});
 
             if ( b == 'initd_install' && g.data == 'ok' ) {

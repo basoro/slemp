@@ -21,7 +21,7 @@ Install_app()
 	mkdir -p ${mariadbDir}
 	echo 'Installing script file...' > $install_tmp
 
-	if id mysql &> /dev/null ;then 
+	if id mysql &> /dev/null ;then
 	    echo "mysql uid is `id -u www`"
 	    echo "mysql shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
 	else
@@ -71,10 +71,18 @@ Install_app()
 	if [ ! -d ${mariadbDir}/mariadb-${MY_VER} ];then
 		 cd ${mariadbDir} && tar -zxvf  ${mariadbDir}/mariadb-${MY_VER}.tar.gz
 	fi
-	
+
+	INSTALL_CMD=cmake
+	# check cmake version
+	CMAKE_VERSION=`cmake -version | grep version | awk '{print $3}' | awk -F '.' '{print $1}'`
+	if [ "$CMAKE_VERSION" -eq "2" ];then
+		mkdir -p /var/log/mariadb
+		touch /var/log/mariadb/mariadb.log
+		INSTALL_CMD=cmake3
+	fi
 
 	if [ ! -d $serverPath/mariadb ];then
-		cd ${mariadbDir}/mariadb-${MY_VER} && cmake \
+		cd ${mariadbDir}/mariadb-${MY_VER} && ${INSTALL_CMD} \
 		-DCMAKE_INSTALL_PREFIX=$serverPath/mariadb \
 		-DMYSQL_DATADIR=$serverPath/mariadb/data/ \
 		-DMYSQL_USER=mysql \

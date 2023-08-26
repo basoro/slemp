@@ -9,8 +9,8 @@
 					<a class="plr10 c4" href="/">Beranda</a>/<span class="plr10 c4">Aplikasi</span>
 				</div>
 				<div class="search pull-right">
-					<form target="hid" onsubmit='getSList()'>
-						<input type="text" id="SearchValue" class="ser-text pull-left" placeholder="Search" />
+					<form target="_self" onsubmit='getSList();return false;'>
+						<input type="text" id="SearchValue" class="ser-text pull-left" placeholder="Search" autocomplete="false" />
 						<button type="button" class="ser-sub pull-left" onclick='getSList()'></button>
 					</form>
 				</div>

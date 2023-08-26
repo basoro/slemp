@@ -474,7 +474,7 @@ function lsyncdExclude(name){
 }
 
 function lsyncdConfLog(){
-    pluginStandAloneLogs("rsyncd","","lsyncd_conf_log");;
+    pluginRollingLogs("rsyncd","","lsyncd_conf_log");
 }
 
 function lsyncdSend(){
@@ -558,7 +558,7 @@ function rsyncdConf(){
 }
 
 function rsyncdLog(){
-    pluginStandAloneLogs("rsyncd","","run_log");
+    pluginRollingLogs("rsyncd","","run_log");
 }
 
 

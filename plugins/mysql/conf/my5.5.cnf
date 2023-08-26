@@ -39,7 +39,7 @@ max_connections = 500
 max_connect_errors = 100
 open_files_limit = 65535
 
-skip-name-resolve=1
+skip_name_resolve=1
 #skip-grant-tables
 #skip-networking
 #skip-external-locking
@@ -70,7 +70,7 @@ log-slave-updates = 1
 # Prevent replication from starting automatically with MySQL
 #skip-slave-start = 1
 #replicate-do-db
-slave_skip_errors=1062
+slave_skip_errors=1062,1396
 replicate-ignore-db = information_schema
 replicate-ignore-db = performance_schema
 replicate-ignore-db = mysql
