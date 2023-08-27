@@ -78,6 +78,7 @@ function getWeb(page, search, type_id) {
 					,max:'2099-12-31'
 					,vlue:getDate(365)
 					,type:'date'
+					,lang: 'en'
 					,format :'yyyy-MM-dd'
 					,trigger:'click'
 					,btns:['perpetual', 'confirm']

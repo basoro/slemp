@@ -94,6 +94,7 @@ for (var i = 0; i < render_dlist.length; i++) {
 	laydate.render({
 		elem: '#'+render_dlist[i]
 		,type: 'datetime'
+		,lang: 'en'
 		,range: true
 	});
 
