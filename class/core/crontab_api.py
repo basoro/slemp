@@ -505,7 +505,7 @@ if [ -f $SLEMP_PATH ];then
     source $SLEMP_PATH
 fi''' % (slemp.getRunDir(),)
 
-            head = head + start_head + ssource_bin_activate + "\n"
+            head = head + start_head + source_bin_activate + "\n"
             log = '.log'
 
             script_dir = slemp.getRunDir() + "/scripts"
