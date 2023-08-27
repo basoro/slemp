@@ -66,12 +66,6 @@ def status():
         return 'stop'
     return 'start'
 
-
-def getInitDTpl():
-    path = getPluginDir() + "/init.d/" + getPluginName() + ".tpl"
-    return path
-
-
 def initDreplace():
 
     file_tpl = getInitDTpl()
