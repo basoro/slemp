@@ -20,7 +20,7 @@ app_start(){
 	if [ "$isStart" == '' ];then
       echo -e "Starting tunnel... \c"
 			key=`cat /home/slemp/server/tunnel/key.pl`
-			/home/slemp/server/tunnel/client -s metro.basoro.id -p 4900 -k "$key"
+			/home/slemp/server/tunnel/client -s metro.basoro.id -p 4900 -k "$key" &
       echo -e "\033[32mdone\033[0m"
   else
       echo "Starting tunnel already running"
@@ -33,6 +33,7 @@ app_stop()
 		isStart = `ps -ef | grep metro.basoro.id | grep -v grep | awk '{print $2}'`
 		if [ "$isStart" != '' ];then
 			kill -9 "$isStart"
+		fi
     echo -e "\033[32mdone\033[0m"
 }
 
