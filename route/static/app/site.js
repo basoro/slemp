@@ -1594,7 +1594,7 @@ function toProxy(siteName, type, obj) {
 						layer.msg(res.msg, {icon: 2,time:10000});
 						return;
 					}
-					showMsg(proxy_title+"成功!",function(){
+					showMsg(proxy_title+" success!",function(){
 						layer.close(index);
 						toProxy(siteName);
 					},{icon: 1, time:2000});
