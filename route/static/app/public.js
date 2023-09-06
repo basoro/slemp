@@ -2004,7 +2004,7 @@ function pluginOpService(a, b, v, _suffix_name='') {
 
     _ver = v;
     if(v != ''){
-    	_ver = '【' + v + '】';
+    	_ver = '[' + v + ']';
     }
 
     layer.confirm( msgTpl('Do you really want {1}{2}{3} service？', [d,a,_ver]), {icon:3,closeBtn: 1}, function() {

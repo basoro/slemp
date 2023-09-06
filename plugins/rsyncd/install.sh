@@ -32,13 +32,9 @@ Install_rsyncd()
 {
 	echo 'Installing script file...' > $install_tmp
 
-
 	if [ "$OSNAME" == "debian" ] || [ "$OSNAME" == "ubuntu" ];then
 		apt install -y rsync
 		apt install -y lsyncd
-	elif [[ "$OSNAME" == "arch" ]]; then
-		echo y | pacman -Sy rsync
-		echo y | pacman -Sy lsyncd
 	elif [[ "$OSNAME" == "macos" ]]; then
 		# brew install rsync
 		# brew install lsyncd
