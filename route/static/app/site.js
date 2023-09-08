@@ -1479,7 +1479,7 @@ function toProxy(siteName, type, obj) {
 						<input name='open_proxy' class='btswitch btswitch-ios' type='checkbox' checked>\
 						<label id='open_proxy' class='btswitch-btn' for='openProxy' style='float:left'></label>\
 						<div style='display: inline-block'>\
-							<span class='tname' style='margin-left:15px;position: relative;top: -5px;'>Whether to cache</span>\
+							<span class='tname' style='margin-left:15px;position: relative;top: -5px;'>Cache</span>\
 							<input class='btswitch btswitch-ios' type='checkbox' name='open_cache'>\
 							<label class='btswitch-btn' id='open_cache' for='openCache' style='float:left'></label>\
 						</div>\
@@ -1494,7 +1494,7 @@ function toProxy(siteName, type, obj) {
 				<div class='line' style='display:none' id='cache_time'>\
 					<span class='tname'>Cache time</span>\
 					<div class='info-r ml0'>\
-					<input name='cache_time' value='1' class='bt-input-text mr5' type='text' style='width:200px''>分钟\
+					<input name='cache_time' value='1' class='bt-input-text mr5' type='text' style='width:200px''>minute\
 					</div>\
 				</div>\
 				<div class='line'>\
