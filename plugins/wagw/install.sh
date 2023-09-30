@@ -39,7 +39,7 @@ Install_Plugin()
 	if [ ! -d $serverPath/wagw ];then
 		wget --no-check-certificate -O $serverPath/wagw.zip https://codeload.github.com/basoro/wagw/zip/refs/heads/master
 	fi
-	cd $serverPath && unzip master.zip
+	cd $serverPath && unzip wagw.zip
 	mv wagw-master wagw
 	cd $serverPath/wagw
 	source /root/.nvm/nvm.sh
