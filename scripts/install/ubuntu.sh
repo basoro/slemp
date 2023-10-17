@@ -40,7 +40,7 @@ if [ -f /usr/sbin/ufw ];then
 
 	ufw allow 80/tcp
 	ufw allow 443/tcp
-	ufw allow 888/tcp
+	#ufw allow 888/tcp
 fi
 
 if [ ! -f /usr/sbin/ufw ];then
@@ -56,12 +56,10 @@ if [ ! -f /usr/sbin/ufw ];then
 
 	firewall-cmd --permanent --zone=public --add-port=80/tcp
 	firewall-cmd --permanent --zone=public --add-port=443/tcp
-	firewall-cmd --permanent --zone=public --add-port=888/tcp
+	#firewall-cmd --permanent --zone=public --add-port=888/tcp
 
 	systemctl start firewalld
 
-	# fix:debian10 firewalld faq
-	# https://kawsing.gitbook.io/opensystem/andoid-shou-ji/untitled/fang-huo-qiang#debian-10-firewalld-0.6.3-error-commandfailed-usrsbinip6tablesrestorewn-failed-ip6tablesrestore-v1.8
 	sed -i 's#IndividualCalls=no#IndividualCalls=yes#g' /etc/firewalld/firewalld.conf
 
 	firewall-cmd --reload
@@ -109,15 +107,13 @@ apt install -y build-essential
 apt install -y libcurl4-openssl-dev
 apt install -y libcurl4-nss-dev
 apt install -y curl libcurl4-gnutls-dev
-#https://blog.csdn.net/qq_36228377/article/details/123154344
-# ln -s  /usr/include/x86_64-linux-gnu/curl  /usr/include/curl
 if [ ! -d /usr/include/curl ];then
   SYS_ARCH=`arch`
 	if [ -f /usr/include/x86_64-linux-gnu/curl ];then
 		ln -s /usr/include/x86_64-linux-gnu/curl /usr/include/curl
 	else
 		ln -s /usr/include/${SYS_ARCH}-linux-gnu/curl /usr/include/curl
-	fi 
+	fi
 fi
 
 
@@ -134,7 +130,6 @@ apt install -y libmariadb-dev-compat
 #apt install -y libmariadbclient-dev
 
 
-# mysql8.0 在ubuntu22需要的库
 apt install -y patchelf
 
 VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
