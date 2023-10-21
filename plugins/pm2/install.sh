@@ -18,8 +18,8 @@ Install_pm2()
 	#curl -o- http://npmjs.org/install.sh | bash
 	curl -fsLS http://npmjs.org/install.sh | sh
 	npm install pm2 -g
-	curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
-	#curl -fsLS https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | sh
+	#curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
+	curl -fsLS https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | sh
 
 	mkdir -p $serverPath/pm2
 	echo '1.0' > $serverPath/pm2/version.pl
