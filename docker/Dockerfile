@@ -11,8 +11,8 @@ RUN rm -f /lib/systemd/system/multi-user.target.wants/* \
   /lib/systemd/system/systemd-update-utmp*
 
 RUN apt update -y && \
-	apt install -y devscripts && \
-	apt install -y curl wget zip unzip && \
+  apt install -y devscripts && \
+  apt install -y curl wget zip unzip && \
   apt-get install -y locales && \
   localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 && \
   locale-gen en_US.UTF-8 && \
