@@ -29,11 +29,11 @@ RUN apt update -y && \
   echo '7200' > data/port.pl && \
   cd /home/slemp/server/panel/ && \
   echo 'login' > data/admin_path.pl && \
-  slemp stop 
+  slemp stop
 
 ADD ./start.sh /start.sh
-ADD start.service /usr/lib/systemd/system/start.service
-#RUN systemctl enable start
+ADD ./start.service /usr/lib/systemd/system/start.service
+RUN systemctl enable start
 
 CMD [ "/lib/systemd/systemd", "log-level=info", "unit=sysinit.target" ]
 
