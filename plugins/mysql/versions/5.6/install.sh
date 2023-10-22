@@ -106,7 +106,7 @@ Install_mysql()
 
 		if [ -d $serverPath/mysql ];then
 			echo '5.6' > $serverPath/mysql/version.pl
-			echo 'The installation is complete' > $install_tmp
+			echo 'The installation is complete'
 		else
 			# rm -rf ${mysqlDir}/mysql-5.6.50
 			echo 'installation failed' > $install_tmp
