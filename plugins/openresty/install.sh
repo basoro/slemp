@@ -90,8 +90,8 @@ Install_openresty()
 		echo 'set $PHP_ENV 0;' > $serverPath/web_conf/php/conf/enable-php-00.conf
 
 		#initialization
-		cd ${rootPath} && python3 ${rootPath}/plugins/openresty/index.py start
-		cd ${rootPath} && python3 ${rootPath}/plugins/openresty/index.py initd_install
+		#cd ${rootPath} && python3 ${rootPath}/plugins/openresty/index.py start
+		#cd ${rootPath} && python3 ${rootPath}/plugins/openresty/index.py initd_install
 		rm -rf $openrestyDir
     fi
 	echo 'The installation is complete' > $install_tmp
