@@ -51,8 +51,8 @@ cd ${curPath} && sh -x $curPath/versions/$2/install.sh $1
 
 if [ "${action}" == "install" ] && [ -d ${serverPath}/php/${type} ];then
 
-	cd ${rootPath} && python3 ${rootPath}/plugins/php/index.py start ${type}
-	cd ${rootPath} && python3 ${rootPath}/plugins/php/index.py initd_install ${type}
+	#cd ${rootPath} && python3 ${rootPath}/plugins/php/index.py start ${type}
+	#cd ${rootPath} && python3 ${rootPath}/plugins/php/index.py initd_install ${type}
 
 	echo "install PHP${type} extend start"
 
