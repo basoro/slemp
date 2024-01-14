@@ -57,11 +57,11 @@ fi
 VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
 
 
-VERSION=8.0.34
+VERSION=8.0.30
 Install_mysql()
 {
 	mkdir -p ${mysqlDir}
-	echo 'Installing script file...' > $install_tmp
+	echo 'installing script file...' > $install_tmp
 
 
 	if id mysql &> /dev/null ;then
@@ -90,10 +90,8 @@ Install_mysql()
 	    cpuCore="1"
 	fi
 
-	if [ "$cpuCore" -gt "2" ];then
+	if [ "$cpuCore" -gt "1" ];then
 		cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
-	else
-		cpuCore="1"
 	fi
 	# ----- cpu end ------
 
@@ -109,17 +107,19 @@ Install_mysql()
 	fi
 
 	if [ ! -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
-    wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-8.0/mysql-boost-${VERSION}.tar.gz
+		wget -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-8.0/mysql-boost-${VERSION}.tar.gz
 	fi
 
-	md5_mysql_ok=c8cfab52fbde1cca55accb3113c235eb
+	#检测文件是否损坏.
+	md5_mysql_ok=313d625fcaa932bd87b48f0cf9b40f1c
 	if [ -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
 		md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
 		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
 			echo "mysql8.0 file  check ok"
 		else
+			# 重新下载
 			rm -rf ${mysqlDir}/mysql-${VERSION}
-			wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-boost-${VERSION}.tar.gz
+			wget -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-8.0/mysql-boost-${VERSION}.tar.gz
 		fi
 	fi
 
@@ -160,10 +160,10 @@ Install_mysql()
 		add-apt-repository ppa:ubuntu-toolchain-r/test
 
 		LIBTIRPC_VER=`pkg-config libtirpc --modversion`
-		if [ ! -f ${mysqlDir}/libtirpc_1.3.3.orig.tar.bz2 ];then
-			wget --no-check-certificate -O ${mysqlDir}/libtirpc_1.3.3.orig.tar.bz2 https://downloads.sourceforge.net/libtirpc/libtirpc-1.3.3.tar.bz2
-			cd ${mysqlDir} && tar -jxvf libtirpc_1.3.3.orig.tar.bz2
-			cd libtirpc-1.3.3 && ./configure
+		if [ ! -f ${mysqlDir}/libtirpc_1.2.5.orig.tar.bz2 ];then
+			wget -O ${mysqlDir}/libtirpc_1.2.5.orig.tar.bz2 https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/libtirpc/1.2.5-1ubuntu0.1/libtirpc_1.2.5.orig.tar.bz2
+			cd ${mysqlDir} && tar -jxvf libtirpc_1.2.5.orig.tar.bz2
+			cd libtirpc-1.2.5 && ./configure
 		fi
 
 		export PKG_CONFIG_PATH=/usr/lib/pkgconfig
@@ -208,12 +208,11 @@ Install_mysql()
 		make -j${cpuCore} && make install && make clean
 
 		if [ -d $serverPath/mysql ];then
-			rm -rf ${mysqlDir}/mysql-${VERSION}
 			echo '8.0' > $serverPath/mysql/version.pl
 			echo 'The installation is complete' > $install_tmp
 		else
 			# rm -rf ${mysqlDir}/mysql-${VERSION}
-			echo 'installation failed' > $install_tmp
+			echo 'Installation failed' > $install_tmp
 			echo 'install fail'>&2
 			exit 1
 		fi
@@ -223,7 +222,7 @@ Install_mysql()
 Uninstall_mysql()
 {
 	rm -rf $serverPath/mysql
-	echo 'uninstall complete' > $install_tmp
+	echo 'Uninstall complete' > $install_tmp
 }
 
 action=$1

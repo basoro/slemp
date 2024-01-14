@@ -35,7 +35,6 @@ class system_api:
     def __init__(self):
         self.setupPath = slemp.getServerDir()
 
-    ##### ----- start ----- ###
     def networkApi(self):
         data = self.getNetWork()
         return slemp.getJson(data)
@@ -92,14 +91,13 @@ class system_api:
 
     def restartApi(self):
         self.restartSlemp()
-        return slemp.returnJson(True, 'Panel restarted!')
+        return slemp.returnJson(True, 'Panel telah dimulai ulang!')
 
     def restartServerApi(self):
         if slemp.isAppleSystem():
-            return slemp.returnJson(False, "The development environment cannot be restarted")
+            return slemp.returnJson(False, "Tidak support untuk MacOS")
         self.restartServer()
-        return slemp.returnJson(True, 'Restarting server!')
-    ##### ----- end ----- ###
+        return slemp.returnJson(True, 'Memulai ulang server!')
 
     def restartTask(self):
         initd = slemp.getRunDir() + '/scripts/init.d/slemp'
@@ -114,9 +112,9 @@ class system_api:
     @slemp_async
     def restartServer(self):
         if not slemp.isRestart():
-            return slemp.returnJson(False, 'Please wait for all installation tasks to complete before executing!')
+            return slemp.returnJson(False, 'Harap tunggu hingga semua tugas penginstalan selesai sebelum dijalankan!')
         slemp.execShell("sync && init 6 &")
-        return slemp.returnJson(True, 'Command sent successfully!')
+        return slemp.returnJson(True, 'Perintah berhasil dikirim!')
 
     def getPid(self, pname):
         try:
@@ -148,33 +146,6 @@ class system_api:
             return False
         except:
             return False
-
-    def getEnvInfoApi(self, get=None):
-        serverInfo = {}
-        serverInfo['status'] = True
-        sdir = slemp.getServerDir()
-
-        serverInfo['webserver'] = 'Not Installed'
-        if os.path.exists(sdir + '/openresty/nginx/sbin/nginx'):
-            serverInfo['webserver'] = 'OpenResty'
-        serverInfo['php'] = []
-        phpversions = ['52', '53', '54', '55', '56', '70', '71',
-                       '72', '73', '74', '80', '81', '82', '83', '84']
-        phpPath = sdir + '/php/'
-        for pv in phpversions:
-            if not os.path.exists(phpPath + pv + '/bin/php'):
-                continue
-            serverInfo['php'].append(pv)
-        serverInfo['mysql'] = False
-        if os.path.exists(sdir + '/mysql/bin/mysql'):
-            serverInfo['mysql'] = True
-        import psutil
-        try:
-            diskInfo = psutil.disk_usage('/www')
-        except:
-            diskInfo = psutil.disk_usage('/')
-        serverInfo['disk'] = diskInfo[2]
-        return slemp.returnJson(True, 'ok', serverInfo)
 
     def getPanelInfo(self, get=None):
         address = slemp.GetLocalIp()
@@ -222,6 +193,9 @@ class system_api:
     def getLoadAverage(self):
         c = os.getloadavg()
         data = {}
+        data['one'] = float(c[0])
+        data['five'] = float(c[1])
+        data['fifteen'] = float(c[2])
         data['one'] = round(float(c[0]), 2)
         data['five'] = round(float(c[1]), 2)
         data['fifteen'] = round(float(c[2]), 2)
@@ -242,14 +216,12 @@ class system_api:
         data['enable_ssh_status'] = ssh_info['status']
         data['disable_ping_status'] = not ssh_info['ping']
         data['time'] = self.GetBootTime()
-        # data['system'] = self.GetSystemVersion();
-        # data['mem'] = self.GetMemInfo();
         data['version'] = web.ctx.session.version
         return data
 
     def getTitle(self):
         titlePl = 'data/title.pl'
-        title = 'SLEMP Panel'
+        title = 'SLEMP'
         if os.path.exists(titlePl):
             title = slemp.readFile(titlePl).strip()
         return title
@@ -275,7 +247,7 @@ class system_api:
                 "cat /etc/*-release | grep PRETTY_NAME | awk -F = '{print $2}' | awk -F '\"' '{print $2}'")
             return version[0].strip()
 
-        return 'Unidentified system information'
+        return 'Informasi sistem tak dikenal'
 
     def getBootTime(self):
         uptime = slemp.readFile('/proc/uptime')
@@ -296,7 +268,6 @@ class system_api:
         cpuCount = psutil.cpu_count()
         cpuLogicalNum = psutil.cpu_count(logical=False)
         used = psutil.cpu_percent(interval=interval)
-
         if os.path.exists('/proc/cpuinfo'):
             c_tmp = slemp.readFile('/proc/cpuinfo')
             d_tmp = re.findall("physical id.+", c_tmp)
@@ -454,7 +425,7 @@ class system_api:
                 else:
                     os.remove(filename)
                 count += 1
-        slemp.restartWeb()
+        slemp.serviceReload()
         os.system('echo > /tmp/panelBoot.pl')
         return total, count
 
@@ -473,9 +444,6 @@ class system_api:
             result_io = tuple([all_io[i] - local_lo[i]
                                for i in range(0, len(all_io))])
 
-            # print(local_lo)
-            # print(all_io)
-            # print(result_io)
             return result_io
         return psutil.net_io_counters()[:4]
 
@@ -498,7 +466,6 @@ class system_api:
             networkInfo['downPackets'] = networkIo[3]
             networkInfo['upPackets'] = networkIo[2]
 
-            # print networkIo[1], session['down'], ntime, session['otime']
             session['up'] = networkIo[0]
             session['down'] = networkIo[1]
             session['otime'] = time.time()
@@ -578,7 +545,7 @@ class system_api:
         elif stype == '1':
             _day = int(day)
             if _day < 1:
-                return slemp.returnJson(False, "Setup failed!")
+                return slemp.returnJson(False, "Pengaturan gagal!")
             slemp.writeFile(filename, day)
         elif stype == '2':
             slemp.execShell("rm -rf " + stat_pl)
@@ -586,7 +553,7 @@ class system_api:
             slemp.execShell("echo 'True' > " + stat_pl)
         elif stype == 'del':
             if not slemp.isRestart():
-                return slemp.returnJson(False, 'Please wait for all installation tasks to complete before executing')
+                return slemp.returnJson(False, 'Harap tunggu hingga semua tugas penginstalan selesai sebelum dijalankan')
             os.remove("data/system.db")
 
             sql = db.Sql().dbfile('system')
@@ -594,7 +561,7 @@ class system_api:
             csql_list = csql.split(';')
             for index in range(len(csql_list)):
                 sql.execute(csql_list[index], ())
-            return slemp.returnJson(True, "Monitoring service is down")
+            return slemp.returnJson(True, "Layanan pemantauan sedang down")
         else:
             data = {}
             if os.path.exists(filename):
@@ -614,9 +581,14 @@ class system_api:
 
             return slemp.getJson(data)
 
-        return slemp.returnJson(True, "Successfully set!")
+        return slemp.returnJson(True, "Pengaturan berhasil!")
 
     def versionDiff(self, old, new):
+        '''
+            test uji
+            new versi baru
+            none tidak ada versi baru
+        '''
         new_list = new.split('.')
         if len(new_list) > 3:
             return 'test'
@@ -649,7 +621,7 @@ class system_api:
     def updateServer(self, stype, version=''):
         try:
             if not slemp.isRestart():
-                return slemp.returnJson(False, 'Please wait for all installation tasks to complete before executing!')
+                return slemp.returnJson(False, 'Harap tunggu hingga semua tugas penginstalan selesai sebelum dijalankan!')
 
             version_new_info = self.getServerInfo()
             version_now = config_api.config_api().getVersion()
@@ -658,32 +630,32 @@ class system_api:
 
             if stype == 'check':
                 if not 'name' in version_new_info:
-                    return slemp.returnJson(False, 'There is a problem with server data or network!')
+                    return slemp.returnJson(False, 'Masalah dengan data atau jaringan server!')
 
                 diff = self.versionDiff(version_now, new_ver)
                 if diff == 'new':
-                    return slemp.returnJson(True, 'New version available!', new_ver)
+                    return slemp.returnJson(True, 'Versi baru!', new_ver)
                 elif diff == 'test':
-                    return slemp.returnJson(True, 'There is a beta version!', new_ver)
+                    return slemp.returnJson(True, 'Ada versi uji!', new_ver)
                 else:
-                    return slemp.returnJson(False, 'Already the latest, no need to update!')
+                    return slemp.returnJson(False, 'Sudah up-to-date, tidak perlu diperbarui!')
 
             if stype == 'info':
                 if not 'name' in version_new_info:
-                    return slemp.returnJson(False, 'There is a problem with server data!')
+                    return slemp.returnJson(False, 'Masalah dengan data server!')
                 diff = self.versionDiff(version_now, new_ver)
                 data = {}
                 data['version'] = new_ver
                 data['content'] = version_new_info[
                     'body'].replace("\n", "<br/>")
-                return slemp.returnJson(True, 'Update information!', data)
+                return slemp.returnJson(True, 'Perbarui informasi!', data)
 
             if stype == 'update':
                 if version == '':
-                    return slemp.returnJson(False, 'Missing version information!')
+                    return slemp.returnJson(False, 'Informasi versi tidak ada!')
 
                 if new_ver != version:
-                    return slemp.returnJson(False, 'Update failed, please try again!')
+                    return slemp.returnJson(False, 'Pembaruan gagal, silakan coba lagi!')
 
                 toPath = slemp.getRootDir() + '/temp'
                 if not os.path.exists(toPath):
@@ -693,13 +665,12 @@ class system_api:
 
                 dist_slemp = toPath + '/slemp.zip'
                 if not os.path.exists(dist_slemp):
-                    slemp.execShell(
-                        'wget --no-check-certificate -O ' + dist_slemp + ' ' + newUrl)
+                    slemp.execShell('wget --no-check-certificate -O ' + dist_slemp + ' ' + newUrl)
 
                 dist_to = toPath + "/slemp-" + version
                 if not os.path.exists(dist_to):
-                    os.system('unzip -o ' + toPath +
-                              '/slemp.zip' + ' -d ' + toPath)
+                    os.execShell('unzip -o ' + toPath +
+                                 '/slemp.zip' + ' -d ' + toPath)
 
                 cmd_cp = 'cp -rf ' + toPath + '/slemp-' + \
                     version + '/* ' + slemp.getServerDir() + '/panel'
@@ -708,38 +679,12 @@ class system_api:
                 slemp.execShell('rm -rf ' + toPath + '/slemp-' + version)
                 slemp.execShell('rm -rf ' + toPath + '/slemp.zip')
 
-                update_env = '''
-#!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
-
-P_VER=`python3 -V | awk '{print $2}'`
-
-if [ ! -f /home/slemp/server/panel/bin/activate ];then
-    cd /home/slemp/server/panel && python3 -m venv .
-    cd /home/slemp/server/panel && source /home/slemp/server/panel/bin/activate
-else
-    cd /home/slemp/server/panel && source /home/slemp/server/panel/bin/activate
-fi
-
-PIPSRC="https://pypi.python.org/simple"
-
-cd /home/slemp/server/panel && pip3 install -r /home/slemp/server/panel/requirements.txt -i $PIPSRC
-
-P_VER_D=`echo "$P_VER"|awk -F '.' '{print $1}'`
-P_VER_M=`echo "$P_VER"|awk -F '.' '{print $2}'`
-NEW_P_VER=${P_VER_D}.${P_VER_M}
-if [ -f /home/slemp/server/panel/version/r${NEW_P_VER}.txt ];then
-    cd /home/slemp/server/panel && pip3 install -r /home/slemp/server/panel/version/r${NEW_P_VER}.txt -i $PIPSRC
-fi
-'''
-                os.system(update_env)
                 self.restartSlemp()
-                return slemp.returnJson(True, 'The update was successfully installed!')
+                return slemp.returnJson(True, 'Pembaruan berhasil diinstal!')
 
-            return slemp.returnJson(False, 'Already the latest, no need to update!')
+            return slemp.returnJson(False, 'Sudah up-to-date, tidak perlu diperbarui!')
         except Exception as ex:
-            # print('updateServer', ex)
-            return slemp.returnJson(False, "Connection failure! " + str(ex))
+            return slemp.returnJson(False, "Koneksi bermasalah!" + str(ex))
 
     def repPanel(self, get):
         vp = ''

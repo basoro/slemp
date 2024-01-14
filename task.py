@@ -16,14 +16,6 @@ sys.path.append(os.getcwd() + "/class/core")
 import slemp
 import db
 
-# print sys.path
-
-# cmd = 'ls /usr/local/lib/ | grep python  | cut -d \\  -f 1 | awk \'END {print}\''
-# info = slemp.execShell(cmd)
-# p = "/usr/local/lib/" + info[0].strip() + "/site-packages"
-# sys.path.append(p)
-
-
 global pre, timeoutCount, logPath, isTask, oldEdate, isCheck
 pre = 0
 timeoutCount = 0
@@ -236,14 +228,6 @@ def systemTask():
             tmp = {}
             tmp['used'] = psutil.cpu_percent(interval=1)
 
-            if tmp['used'] > 80:
-                panel_title = slemp.getConfig('title')
-                ip = slemp.getHostAddr()
-                now_time = slemp.getDateFromNow()
-                msg = now_time + '|Node [' + panel_title + ':' + ip + \
-                    '] under high load [' + str(tmp['used']) + '], Please check the reason!'
-                slemp.notifyMessage(msg, 'Panel monitoring', 600)
-
             if not cpuInfo:
                 tmp['mem'] = sm.getMemUsed()
                 cpuInfo = tmp
@@ -271,7 +255,6 @@ def systemTask():
                 networkInfo = tmp
             if (tmp['up'] + tmp['down']) > (networkInfo['up'] + networkInfo['down']):
                 networkInfo = tmp
-            # if os.path.exists('/proc/diskstats'):
             diskio_2 = psutil.disk_io_counters()
             if not diskio_1:
                 diskio_1 = diskio_2
@@ -294,7 +277,6 @@ def systemTask():
                 diskInfo['write_time'] += tmp['write_time']
             diskio_1 = diskio_2
 
-            # print diskInfo
             if count >= 12:
                 try:
                     addtime = int(time.time())
@@ -356,8 +338,6 @@ def systemTask():
         systemTask()
 
 
-# -------------------------------------- PHP monitoring start --------------------------------------------- #
-# 502 error checking thread
 def check502Task():
     try:
         while True:
@@ -381,8 +361,8 @@ def check502():
             if checkPHPVersion(ver):
                 continue
             if startPHPVersion(ver):
-                print('502 error checking thread-' + ver + ' exception handling, automatically fixed!')
-                slemp.writeLog('PHP daemon', 'PHP-' + ver + 'handling exception detected, has been automatically fixed!')
+                print('PHP-'+ver+' processing exception detected, fixed automatically!')
+                slemp.writeLog('PHP daemon', 'Detected PHP-' + ver + ' handling exception, fixed automatically!')
     except Exception as e:
         print(str(e))
 
@@ -471,7 +451,6 @@ def checkPHPVersion(version):
     except Exception as e:
         result = 'Bad Gateway'
 
-    # print(version,result)
     if result.find('Bad Gateway') != -1:
         return False
     if result.find('HTTP Error 404: Not Found') != -1:
@@ -495,11 +474,6 @@ def checkPHPVersion(version):
             os.system(initd + ' reload')
     return True
 
-# --------------------------------------PHP monitoring end--------------------------------------------- #
-
-
-# --------------------------------------OpenResty Auto Restart Start --------------------------------------------- #
-# After solving acme.sh renewal, it did not take effect.
 def openrestyAutoRestart():
     try:
         while True:
@@ -520,10 +494,6 @@ def openrestyAutoRestart():
         print(str(e))
         time.sleep(86400)
 
-# --------------------------------------OpenResty Auto Restart End   --------------------------------------------- #
-
-
-# --------------------------------------Panel Restart Start   --------------------------------------------- #
 def restartPanelService():
     restartTip = 'data/restart.pl'
     while True:
@@ -531,8 +501,6 @@ def restartPanelService():
             os.remove(restartTip)
             service_cmd('restart_panel')
         time.sleep(1)
-# --------------------------------------Panel Restart End   --------------------------------------------- #
-
 
 def setDaemon(t):
     if sys.version_info.major == 3 and sys.version_info.minor >= 10:
@@ -551,12 +519,10 @@ if __name__ == "__main__":
     php502 = setDaemon(php502)
     php502.start()
 
-    # OpenResty Auto Restart Start
     oar = threading.Thread(target=openrestyAutoRestart)
     oar = setDaemon(oar)
     oar.start()
 
-    # Panel Restart Start
     rps = threading.Thread(target=restartPanelService)
     rps = setDaemon(rps)
     rps.start()

@@ -189,7 +189,7 @@ function uploadStart(d) {
 					h.ready(i, e + 1, g);
 					h.num++;
 					if(i.length > 1) {
-						var k = (h.num == i.length) ? 'upload completed': 'uploaded';
+						var k = (h.num == i.length) ? 'Upload completed': 'Uploaded';
 						$("#totalProgress").html("<p>" + k + h.num + "/" + i.length + "</p><progress value='" + h.num + "' max='" + i.length + "' ></progress>")
 					}
 					if(h.num == i.length) {
@@ -200,8 +200,6 @@ function uploadStart(d) {
 					}
 					if(!d) {
 						getFiles(getCookie("open_dir_path"));
-					} else{
-						d();
 					}
 				},
 				error: function(j) {

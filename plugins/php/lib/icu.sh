@@ -13,12 +13,10 @@ rootPath=$(dirname "$rootPath")
 SERVER_ROOT=$rootPath/lib
 SOURCE_ROOT=$rootPath/source/lib
 
-HTTP_PREFIX="https://"
-
 if [ ! -d ${SERVER_ROOT}/icu ];then
 
 	if [ ! -f ${SOURCE_ROOT}/icu4c-52_2-src.tgz ];then
-		wget --no-check-certificate -O ${SOURCE_ROOT}/icu4c-52_2-src.tgz ${HTTP_PREFIX}github.com/unicode-org/icu/releases/download/release-52-2/icu4c-52_2-src.tgz
+		wget -O ${SOURCE_ROOT}/icu4c-52_2-src.tgz https://github.com/unicode-org/icu/releases/download/release-52-2/icu4c-52_2-src.tgz
 	fi
 
 	if [ ! -d ${SERVER_ROOT}/icu/52.2 ];then
@@ -26,6 +24,6 @@ if [ ! -d ${SERVER_ROOT}/icu ];then
 
 		cd ${SOURCE_ROOT}/icu/source
 		./runConfigureICU Linux --prefix=${SERVER_ROOT}/icu && make  CXXFLAGS="-g -O2 -std=c++11" && make install
-	fi
+	fi	
 
 fi

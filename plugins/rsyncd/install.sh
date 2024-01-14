@@ -10,31 +10,25 @@ serverPath=$(dirname "$rootPath")
 sysName=`uname`
 
 
+#Get info and version
 # bash /home/slemp/server/mdsever-web/scripts/getos.sh
 bash ${rootPath}/scripts/getos.sh
 OSNAME=`cat ${rootPath}/data/osname.pl`
 
-if [ -f ${rootPath}/bin/activate ];then
-	source ${rootPath}/bin/activate
-fi
-
-if id www &> /dev/null ;then
-    echo "www uid is `id -u www`"
-    echo "www shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
-else
-    groupadd www
-	useradd -g www -s /bin/bash www
-fi
 
 echo $OSNAME
 install_tmp=${rootPath}/tmp/slemp_install.pl
 Install_rsyncd()
 {
-	echo 'Installing script file...' > $install_tmp
+	echo 'installing script file...' > $install_tmp
+
 
 	if [ "$OSNAME" == "debian" ] || [ "$OSNAME" == "ubuntu" ];then
 		apt install -y rsync
 		apt install -y lsyncd
+	elif [[ "$OSNAME" == "arch" ]]; then
+		echo y | pacman -Sy rsync
+		echo y | pacman -Sy lsyncd
 	elif [[ "$OSNAME" == "macos" ]]; then
 		# brew install rsync
 		# brew install lsyncd
@@ -64,20 +58,12 @@ Uninstall_rsyncd()
 		systemctl daemon-reload
 	fi
 
-	if [ -f /usr/lib/systemd/system/lsyncd.service ] || [ -f /lib/systemd/system/lsyncd.service ];then
-		systemctl stop lsyncd
-		systemctl disable lsyncd
-		rm -rf /usr/lib/systemd/system/lsyncd.service
-		rm -rf /lib/systemd/system/lsyncd.service
-		systemctl daemon-reload
-	fi
-
 	if [ -f $serverPath/rsyncd/initd/rsyncd ];then
 		$serverPath/rsyncd/initd/rsyncd stop
 	fi
 
 	rm -rf $serverPath/rsyncd
-	echo "uninstall complete" > $install_tmp
+	echo "Uninstall complete" > $install_tmp
 }
 
 action=$1

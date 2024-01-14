@@ -2,9 +2,6 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-
 _os=`uname`
 if [ ${_os} == "Darwin" ]; then
     OSNAME='macos'
@@ -40,10 +37,4 @@ else
     OSNAME='unknow'
 fi
 
-if [ -d ${rootPath} ];then
-    echo "$OSNAME" > ${rootPath}/data/osname.pl
-fi
-
-if [ "$OSNAME" == "macos" ];then
-    echo "$OSNAME"
-fi
+echo "$OSNAME" > /home/slemp/server/panel/data/osname.pl

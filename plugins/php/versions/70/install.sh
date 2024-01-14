@@ -15,7 +15,7 @@ PHP_VER=70
 Install_php()
 {
 #------------------------ install start ------------------------------------#
-echo "install php -${version} ..." > $install_tmp
+echo "install php-${version} ..." > $install_tmp
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
@@ -52,6 +52,10 @@ if [ -z "${cpuCore}" ]; then
 	cpuCore="1"
 fi
 
+if [ "$cpuCore" -gt "1" ];then
+	cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
+fi
+
 if [ -f /proc/cpuinfo ];then
 	cpuCore=`cat /proc/cpuinfo | grep "processor" | wc -l`
 fi
@@ -63,12 +67,6 @@ if [ "${cpuCore}" != "1" ] && [ "${MEM_INFO}" != "0" ];then
     fi
 else
     cpuCore="1"
-fi
-
-if [ "$cpuCore" -gt "2" ];then
-	cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
-else
-	cpuCore="1"
 fi
 # ----- cpu end ------
 

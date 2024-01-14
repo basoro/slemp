@@ -35,8 +35,6 @@ def getPluginName():
 def getPluginDir():
     return slemp.getPluginDir() + '/' + getPluginName()
 
-def getSPluginDir():
-    return '/home/slemp/server/panel/plugins/' + getPluginName()
 
 def getServerDir():
     return slemp.getServerDir() + '/' + getPluginName()
@@ -50,27 +48,26 @@ def getInitDFile():
 
 def getArgs():
     args = sys.argv[2:]
+
     tmp = {}
     args_len = len(args)
+
     if args_len == 1:
         t = args[0].strip('{').strip('}')
-        if t.strip() == '':
-            tmp = []
-        else:
-            t = t.split(':', 1)
-            tmp[t[0]] = t[1]
+        t = t.split(':')
         tmp[t[0]] = t[1]
     elif args_len > 1:
         for i in range(len(args)):
-            t = args[i].split(':', 1)
+            t = args[i].split(':')
             tmp[t[0]] = t[1]
+
     return tmp
 
 
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, slemp.returnJson(False, 'Parameter: (' + ck[i] + ') none!'))
+            return (False, slemp.returnJson(False, 'Parameters: (' + ck[i] + ') no!'))
     return (True, slemp.returnJson(True, 'ok'))
 
 
@@ -86,25 +83,11 @@ def getDbPort():
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
-def getDbServerId():
-    file = getConf()
-    content = slemp.readFile(file)
-    rep = 'server-id\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
 
 def getSocketFile():
     file = getConf()
     content = slemp.readFile(file)
     rep = 'socket\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
-
-
-def getErrorLogsFile():
-    file = getConf()
-    content = slemp.readFile(file)
-    rep = 'log-error\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
@@ -136,27 +119,19 @@ def contentReplace(content):
 def pSqliteDb(dbname='databases'):
     file = getServerDir() + '/mysql.db'
     name = 'mysql'
-
-    import_sql = slemp.readFile(getPluginDir() + '/conf/mysql.sql')
-    md5_sql = slemp.md5(import_sql)
-
-    import_sign = False
-    save_md5_file = getServerDir() + '/import_sql.md5'
-    if os.path.exists(save_md5_file):
-        save_md5_sql = slemp.readFile(save_md5_file)
-        if save_md5_sql != md5_sql:
-            import_sign = True
-            slemp.writeFile(save_md5_file, md5_sql)
-    else:
-        slemp.writeFile(save_md5_file, md5_sql)
-
-    if not os.path.exists(file) or import_sql:
+    if not os.path.exists(file):
         conn = slemp.M(dbname).dbPos(getServerDir(), name)
-        csql_list = import_sql.split(';')
+        csql = slemp.readFile(getPluginDir() + '/conf/mysql.sql')
+        csql_list = csql.split(';')
         for index in range(len(csql_list)):
             conn.execute(csql_list[index], ())
-
-    conn = slemp.M(dbname).dbPos(getServerDir(), name)
+    else:
+        # conn = slemp.M(dbname).dbPos(getServerDir(), name)
+        # csql = slemp.readFile(getPluginDir() + '/conf/mysql.sql')
+        # csql_list = csql.split(';')
+        # for index in range(len(csql_list)):
+        #     conn.execute(csql_list[index], ())
+        conn = slemp.M(dbname).dbPos(getServerDir(), name)
     return conn
 
 
@@ -185,11 +160,11 @@ def makeInitRsaKey(version=''):
             'cd ' + datadir + ' && openssl rsa -in mysql.pem -pubout -out mysql.pub')
         # print(rdata)
 
-    if not slemp.isAppleSystem():
-        slemp.execShell('cd ' + datadir + ' && chmod 400 mysql.pem')
-        slemp.execShell('cd ' + datadir + ' && chmod 444 mysql.pub')
-        slemp.execShell('cd ' + datadir + ' && chown mysql:mysql mysql.pem')
-        slemp.execShell('cd ' + datadir + ' && chown mysql:mysql mysql.pub')
+        if not slemp.isAppleSystem():
+            slemp.execShell('cd ' + datadir + ' && chmod 400 mysql.pem')
+            slemp.execShell('cd ' + datadir + ' && chmod 444 mysql.pub')
+            slemp.execShell('cd ' + datadir + ' && chown mysql:mysql mysql.pem')
+            slemp.execShell('cd ' + datadir + ' && chown mysql:mysql mysql.pub')
 
 
 def initDreplace(version=''):
@@ -258,12 +233,6 @@ def initDreplace(version=''):
         slemp.execShell('chmod +x ' + file_bin)
     return file_bin
 
-def process_status():
-    cmd = "ps -ef|grep mysql |grep -v grep | grep -v python | awk '{print $2}'"
-    data = slemp.execShell(cmd)
-    if data[0] == '':
-        return 'stop'
-    return 'start'
 
 def status(version=''):
     path = getConf()
@@ -322,17 +291,20 @@ def binLog():
         slemp.execShell('rm -f ' + path + '/mysql-bin.*')
 
     slemp.writeFile(conf, con)
-    return slemp.returnJson(True, 'Successfully set!')
+    return slemp.returnJson(True, 'Set successfully!')
 
 
 def cleanBinLog():
     db = pMysqlDb()
     cleanTime = time.strftime('%Y-%m-%d %H:%i:%s', time.localtime())
     db.execute("PURGE MASTER LOGS BEFORE '" + cleanTime + "';")
-    return slemp.returnJson(True, 'Cleared BINLOG successfully!')
+    return slemp.returnJson(True, 'Clear BINLOG successfully!')
 
 
 def setSkipGrantTables(v):
+    '''
+    Set whether to verify password
+    '''
     conf = getConf()
     con = slemp.readFile(conf)
     if v:
@@ -346,12 +318,20 @@ def setSkipGrantTables(v):
 
 def getErrorLog():
     args = getArgs()
-    filename = getErrorLogsFile()
+    path = getDataDir()
+    filename = ''
+    for n in os.listdir(path):
+        if len(n) < 5:
+            continue
+        if n == 'error.log':
+            filename = path + '/' + n
+            break
+    # print filename
     if not os.path.exists(filename):
         return slemp.returnJson(False, 'The specified file does not exist!')
     if 'close' in args:
         slemp.writeFile(filename, '')
-        return slemp.returnJson(False, 'Log has been cleared')
+        return slemp.returnJson(False, 'Log cleared')
     info = slemp.getLastLine(filename, 18)
     return slemp.returnJson(True, 'OK', info)
 
@@ -394,7 +374,7 @@ def initMysql57Data():
         myconf = serverdir + "/etc/my.cnf"
         user = pGetDbUser()
         cmd = 'cd ' + serverdir + ' && ./bin/mysqld --defaults-file=' + myconf + \
-            ' --initialize-insecure --explicit_defaults_for_timestamp --user=mysql'
+            ' --initialize-insecure --explicit_defaults_for_timestamp'
         data = slemp.execShell(cmd)
         # print(data)
         return False
@@ -425,40 +405,42 @@ def initMysqlPwd():
     serverdir = getServerDir()
     myconf = serverdir + "/etc/my.cnf"
     pwd = slemp.getRandomString(16)
+    # cmd_pass = serverdir + '/bin/mysqladmin -uroot password ' + pwd
 
-    cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot -e'
-    cmd_pass = cmd_pass + \
-        '"UPDATE mysql.user SET password=PASSWORD(\'' + \
+    # cmd_pass = "insert into mysql.user(Select_priv,Insert_priv,Update_priv,Delete_priv,Create_priv,Drop_priv,Reload_priv,Shutdown_priv,Process_priv,File_priv,Grant_priv,References_priv,Index_priv,Alter_priv,Show_db_priv,Super_priv,Create_tmp_table_priv,Lock_tables_priv,Execute_priv,Repl_slave_priv,Repl_client_priv,Create_view_priv,Show_view_priv,Create_routine_priv,Alter_routine_priv,Create_user_priv,Event_priv,Trigger_priv,Create_tablespace_priv,User,Password,host)values('Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','root',password('" + pwd + "'),'127.0.0.1')"
+    # cmd_pass = cmd_pass + \
+    #     "insert into mysql.user(Select_priv,Insert_priv,Update_priv,Delete_priv,Create_priv,Drop_priv,Reload_priv,Shutdown_priv,Process_priv,File_priv,Grant_priv,References_priv,Index_priv,Alter_priv,Show_db_priv,Super_priv,Create_tmp_table_priv,Lock_tables_priv,Execute_priv,Repl_slave_priv,Repl_client_priv,Create_view_priv,Show_view_priv,Create_routine_priv,Alter_routine_priv,Create_user_priv,Event_priv,Trigger_priv,Create_tablespace_priv,User,Password,host)values('Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','root',password('" + pwd + "'),'localhost')"
+    # cmd_pass = cmd_pass + \
+    #     "UPDATE mysql.user SET password=PASSWORD('" + \
+    #     pwd + "') WHERE user='root'"
+    cmd_pass = serverdir + '/bin/mysql -uroot -e'
+    cmd_pass = cmd_pass + "\"UPDATE mysql.user SET password=PASSWORD('" + \
         pwd + "') WHERE user='root';"
-    cmd_pass = cmd_pass + 'flush privileges;"'
+    cmd_pass = cmd_pass + "flush privileges;\""
     data = slemp.execShell(cmd_pass)
     # print(cmd_pass)
     # print(data)
-
-    drop_empty_user = serverdir + '/bin/mysql -uroot -p' + \
-        pwd + ' -e "use mysql;delete from user where USER=\'\'"'
-    slemp.execShell(drop_empty_user)
 
     drop_test_db = serverdir + '/bin/mysql -uroot -p' + \
         pwd + ' -e "drop database test";'
     slemp.execShell(drop_test_db)
 
     hostname = slemp.execShell('hostname')[0].strip()
-    if hostname != 'localhost':
-        drop_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
-            myconf + ' -uroot -p' + pwd + ' -e "drop user \'\'@\'' + hostname + '\'";'
-        slemp.execShell(drop_hostname)
 
-        drop_root_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
-            myconf + ' -uroot -p' + pwd + ' -e "drop user \'root\'@\'' + hostname + '\'";'
-        slemp.execShell(drop_root_hostname)
+    drop_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
+        myconf + ' -uroot -p' + pwd + ' -e "drop user \'\'@\'' + hostname + '\'";'
+    slemp.execShell(drop_hostname)
+
+    drop_root_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
+        myconf + ' -uroot -p' + pwd + ' -e "drop user \'root\'@\'' + hostname + '\'";'
+    slemp.execShell(drop_root_hostname)
 
     pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
     return True
 
 
 def initMysql8Pwd():
-    time.sleep(8)
+    time.sleep(2)
 
     serverdir = getServerDir()
     myconf = serverdir + "/etc/my.cnf"
@@ -495,14 +477,14 @@ def initMysql8Pwd():
     slemp.execShell(drop_test_db)
 
     hostname = slemp.execShell('hostname')[0].strip()
-    if hostname != 'localhost':
-        drop_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
-            myconf + ' -uroot -p' + pwd + ' -e "drop user \'\'@\'' + hostname + '\'";'
-        slemp.execShell(drop_hostname)
 
-        drop_root_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
-            myconf + ' -uroot -p' + pwd + ' -e "drop user \'root\'@\'' + hostname + '\'";'
-        slemp.execShell(drop_root_hostname)
+    drop_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
+        myconf + ' -uroot -p' + pwd + ' -e "drop user \'\'@\'' + hostname + '\'";'
+    slemp.execShell(drop_hostname)
+
+    drop_root_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
+        myconf + ' -uroot -p' + pwd + ' -e "drop user \'root\'@\'' + hostname + '\'";'
+    slemp.execShell(drop_root_hostname)
 
     pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
 
@@ -546,12 +528,7 @@ def my8cmd(version, method):
             else:
                 slemp.execShell('systemctl start mysql')
 
-            for x in range(10):
-                mydb_status = process_status()
-                if mydb_status == 'start':
-                    initMysql8Pwd()
-                    break
-                time.sleep(1)
+            initMysql8Pwd()
 
             if slemp.isAppleSystem():
                 cmd_init_stop = init_file + ' stop'
@@ -573,11 +550,11 @@ def my8cmd(version, method):
 
 
 def appCMD(version, action):
-    makeInitRsaKey(version)
     if version == '8.0' or version == '5.7':
         status = my8cmd(version, action)
     else:
         status = myOp(version, action)
+    makeInitRsaKey(version)
     return status
 
 
@@ -641,7 +618,7 @@ def setMyDbPos():
     s_datadir = getMyDbPos()
     t_datadir = args['datadir']
     if t_datadir == s_datadir:
-        return slemp.returnJson(False, 'Same as the current storage directory, unable to migrate files!')
+        return slemp.returnJson(False, 'Same as current storage directory, cannot migrate files!')
 
     if not os.path.exists(t_datadir):
         slemp.execShell('mkdir -p ' + t_datadir)
@@ -667,7 +644,7 @@ def setMyDbPos():
         'ps aux|grep mysqld| grep -v grep|grep -v python')
     if len(result[0]) > 10:
         slemp.writeFile('data/datadir.pl', t_datadir)
-        return slemp.returnJson(True, 'Storage directory migrated successfully!')
+        return slemp.returnJson(True, 'Storage directory migration succeeded!')
     else:
         slemp.execShell('pkill -9 mysqld')
         slemp.writeFile(myfile, slemp.readFile(path + '/etc/my_backup.cnf'))
@@ -699,18 +676,14 @@ def setMyPort():
     return slemp.returnJson(True, 'Edited successfully!')
 
 
-def runInfo(version):
+def runInfo():
 
     if status(version) == 'stop':
-        return slemp.returnJson(False, 'MySQL is not started', [])
+        return slemp.returnJson(False, 'MySQL not starting', [])
 
     db = pMysqlDb()
     data = db.query('show global status')
-    isError = isSqlError(data)
-    if isError != None:
-        return isError
-
-    gets = ['Max_used_connections', 'Com_commit', 'Com_select', 'Com_rollback', 'Questions', 'Innodb_buffer_pool_reads', 'Innodb_buffer_pool_read_requests', 'Key_reads', 'Key_read_requests', 'Key_writes',
+    gets = ['Max_used_connections', 'Com_commit', 'Com_rollback', 'Questions', 'Innodb_buffer_pool_reads', 'Innodb_buffer_pool_read_requests', 'Key_reads', 'Key_read_requests', 'Key_writes',
             'Key_write_requests', 'Qcache_hits', 'Qcache_inserts', 'Bytes_received', 'Bytes_sent', 'Aborted_clients', 'Aborted_connects',
             'Created_tmp_disk_tables', 'Created_tmp_tables', 'Innodb_buffer_pool_pages_dirty', 'Opened_files', 'Open_tables', 'Opened_tables', 'Select_full_join',
             'Select_range_check', 'Sort_merge_passes', 'Table_locks_waited', 'Threads_cached', 'Threads_connected', 'Threads_created', 'Threads_running', 'Connections', 'Uptime']
@@ -735,7 +708,7 @@ def runInfo(version):
     return slemp.getJson(result)
 
 
-def myDbStatus(version):
+def myDbStatus():
     result = {}
     db = pMysqlDb()
     data = db.query('show variables')
@@ -745,10 +718,6 @@ def myDbStatus(version):
 
     gets = ['table_open_cache', 'thread_cache_size', 'key_buffer_size', 'tmp_table_size', 'max_heap_table_size', 'innodb_buffer_pool_size',
             'innodb_additional_mem_pool_size', 'innodb_log_buffer_size', 'max_connections', 'sort_buffer_size', 'read_buffer_size', 'read_rnd_buffer_size', 'join_buffer_size', 'thread_stack', 'binlog_cache_size']
-
-    if version != "8.0":
-        gets.append('query_cache_size')
-
     result['mem'] = {}
     for d in data:
         vname = d['Variable_name']
@@ -759,16 +728,9 @@ def myDbStatus(version):
     return slemp.getJson(result)
 
 
-def setDbStatus(version):
+def setDbStatus():
     gets = ['key_buffer_size', 'tmp_table_size', 'max_heap_table_size', 'innodb_buffer_pool_size', 'innodb_log_buffer_size', 'max_connections',
             'table_open_cache', 'thread_cache_size', 'sort_buffer_size', 'read_buffer_size', 'read_rnd_buffer_size', 'join_buffer_size', 'thread_stack', 'binlog_cache_size']
-
-    if version != "8.0":
-        # gets.append('query_cache_size')
-        gets = ['key_buffer_size', 'query_cache_size', 'tmp_table_size', 'max_heap_table_size', 'innodb_buffer_pool_size', 'innodb_log_buffer_size', 'max_connections',
-                'table_open_cache', 'thread_cache_size', 'sort_buffer_size', 'read_buffer_size', 'read_rnd_buffer_size', 'join_buffer_size', 'thread_stack', 'binlog_cache_size']
-
-    # print(gets)
     emptys = ['max_connections', 'thread_cache_size', 'table_open_cache']
     args = getArgs()
     conFile = getConf()
@@ -788,28 +750,29 @@ def setDbStatus(version):
             content = content.replace('[mysqld]\n', '[mysqld]\n' + c)
         n += 1
     slemp.writeFile(conFile, content)
-    return slemp.returnJson(True, 'Successfully set!')
+    return slemp.returnJson(True, 'Set successfully!')
 
 
 def isSqlError(mysqlMsg):
+    # Detect database execution errors
     mysqlMsg = str(mysqlMsg)
     if "MySQLdb" in mysqlMsg:
-        return slemp.returnJson(False, 'The MySQLdb component is missing! <br>Enter the SSH command line and enter: pip install mysql-python | pip install mysqlclient==2.0.3')
+        return slemp.returnJson(False, 'MySQLdb component is missing! <br>Enter the SSH command line and enter: pip install mysql-python | pip install mysqlclient==2.0.3')
     if "2002," in mysqlMsg:
-        return slemp.returnJson(False, 'The database connection failed, please check whether the database service is started!')
+        return slemp.returnJson(False, 'Database connection failed, please check whether the database service is started!')
     if "2003," in mysqlMsg:
-        return slemp.returnJson(False, "Can not connect to MySQL server on '127.0.0.1' (61)")
+        return slemp.returnJson(False, "Can't connect to MySQL server on '127.0.0.1' (61)")
     if "using password:" in mysqlMsg:
-        return slemp.returnJson(False, 'The database password is wrong, in the database list - click [Repair]!')
-    if "1045," in mysqlMsg:
-        return slemp.returnJson(False, 'Connection error!')
+        return slemp.returnJson(False, 'Database management password error!')
+    if "1045" in mysqlMsg:
+        return slemp.returnJson(False, 'Error in connecting!')
     if "SQL syntax" in mysqlMsg:
         return slemp.returnJson(False, 'SQL syntax error!')
     if "Connection refused" in mysqlMsg:
-        return slemp.returnJson(False, 'The database connection failed, please check whether the database service is started!')
-    if "1133," in mysqlMsg:
+        return slemp.returnJson(False, 'Database connection failed, please check whether the database service is started!')
+    if "1133" in mysqlMsg:
         return slemp.returnJson(False, 'Database user does not exist!')
-    if "1007," in mysqlMsg:
+    if "1007" in mysqlMsg:
         return slemp.returnJson(False, 'Database already exists!')
     return None
 
@@ -853,98 +816,9 @@ def setDbBackup():
         return data[1]
 
     scDir = slemp.getRunDir() + '/scripts/backup.py'
-    cmd = 'python3 ' + scDir + ' database ' + args['name'] + ' 3'
+
+    cmd = 'python ' + scDir + ' database ' + args['name'] + ' 3'
     os.system(cmd)
-    return slemp.returnJson(True, 'ok')
-
-
-def myPass(act, root):
-    conf_file = getConf()
-    slemp.execShell("sed -i '/user=root/d' {}".format(conf_file))
-    slemp.execShell("sed -i '/password=/d' {}".format(conf_file))
-    if act:
-        mycnf = slemp.readFile(conf_file)
-        src_dump = "[mysqldump]\n"
-        sub_dump = src_dump + "user=root\npassword=\"{}\"\n".format(root)
-        if not mycnf:
-            return False
-        mycnf = mycnf.replace(src_dump, sub_dump)
-        if len(mycnf) > 100:
-            slemp.writeFile(conf_file, mycnf)
-        return True
-    return True
-
-
-def importDbExternal():
-    args = getArgs()
-    data = checkArgs(args, ['file', 'name'])
-    if not data[0]:
-        return data[1]
-
-    file = args['file']
-    name = args['name']
-
-    import_dir = slemp.getRootDir() + '/backup/import/'
-
-    file_path = import_dir + file
-    if not os.path.exists(file_path):
-        return slemp.returnJson(False, 'File suddenly disappears?')
-
-    exts = ['sql', 'gz', 'zip']
-    ext = slemp.getFileSuffix(file)
-    if ext not in exts:
-        return slemp.returnJson(False, 'Import database format is wrong!')
-
-    tmp = file.split('/')
-    tmpFile = tmp[len(tmp) - 1]
-    tmpFile = tmpFile.replace('.sql.' + ext, '.sql')
-    tmpFile = tmpFile.replace('.' + ext, '.sql')
-    tmpFile = tmpFile.replace('tar.', '')
-
-    # print(tmpFile)
-    import_sql = ""
-    if file.find("sql.gz") > -1:
-        cmd = 'cd ' + import_dir + ' && gzip -dc ' + \
-            file + " > " + import_dir + tmpFile
-        info = slemp.execShell(cmd)
-        if info[1] == "":
-            import_sql = import_dir + tmpFile
-
-    if file.find(".zip") > -1:
-        cmd = 'cd ' + import_dir + ' && unzip -o ' + file
-        slemp.execShell(cmd)
-        import_sql = import_dir + tmpFile
-
-    if file.find("tar.gz") > -1:
-        cmd = 'cd ' + import_dir + ' && tar -zxvf ' + file
-        slemp.execShell(cmd)
-        import_sql = import_dir + tmpFile
-
-    if file.find(".sql") > -1 and file.find(".sql.gz") == -1:
-        import_sql = import_dir + file
-
-    if import_sql == "":
-        return slemp.returnJson(False, 'SQL file not found')
-
-    pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
-    sock = getSocketFile()
-
-    my_cnf = getConf()
-
-    myPass(True, pwd)
-    mysql_cmd = getServerDir() + '/bin/mysql --defaults-file=' + my_cnf + \
-        ' -uroot -p\"' + pwd + '\" -f ' + name + ' < ' + import_sql
-
-    # print(mysql_cmd)
-    rdata = slemp.execShell(mysql_cmd)
-    myPass(False, pwd)
-    # print(rdata)
-    if ext != 'sql':
-        os.remove(import_sql)
-
-    if rdata[1].lower().find('error') > -1:
-        return slemp.returnJson(False, rdata[1])
-
     return slemp.returnJson(True, 'ok')
 
 
@@ -964,39 +838,25 @@ def importDbBackup():
         cmd = 'cd ' + slemp.getRootDir() + '/backup/database && gzip -d ' + file
         slemp.execShell(cmd)
 
-    local_mode = recognizeDbMode()
-    if local_mode == 'gtid':
-        pdb = pMysqlDb()
-        pdb.execute('reset master')
-
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
     sock = getSocketFile()
     mysql_cmd = getServerDir() + '/bin/mysql -S ' + sock + ' -uroot -p' + pwd + \
         ' ' + name + ' < ' + file_path_sql
 
     # print(mysql_cmd)
-    # os.system(mysql_cmd)
-
-    rdata = slemp.execShell(mysql_cmd)
-    if rdata[1].lower().find('error') > -1:
-        return slemp.returnJson(False, rdata[1])
-
+    os.system(mysql_cmd)
     return slemp.returnJson(True, 'ok')
 
 
 def deleteDbBackup():
     args = getArgs()
-    data = checkArgs(args, ['filename', 'path'])
+    data = checkArgs(args, ['filename'])
     if not data[0]:
         return data[1]
 
-    path = args['path']
-    full_file = ""
     bkDir = slemp.getRootDir() + '/backup/database'
-    full_file = bkDir + '/' + args['filename']
-    if path != "":
-        full_file = path + "/" + args['filename']
-    os.remove(full_file)
+
+    os.remove(bkDir + '/' + args['filename'])
     return slemp.returnJson(True, 'ok')
 
 
@@ -1026,39 +886,6 @@ def getDbBackupList():
         data['file'] = p
 
     return slemp.returnJson(True, 'ok', rr)
-
-
-def getDbBackupImportList():
-
-    bkImportDir = slemp.getRootDir() + '/backup/import'
-    if not os.path.exists(bkImportDir):
-        os.mkdir(bkImportDir)
-
-    blist = os.listdir(bkImportDir)
-
-    rr = []
-    for x in range(0, len(blist)):
-        name = blist[x]
-        p = bkImportDir + '/' + name
-        data = {}
-        data['name'] = name
-
-        rsize = os.path.getsize(p)
-        data['size'] = slemp.toSize(rsize)
-
-        t = os.path.getctime(p)
-        t = time.localtime(t)
-
-        data['time'] = time.strftime('%Y-%m-%d %H:%M:%S', t)
-        rr.append(data)
-
-        data['file'] = p
-
-    rdata = {
-        "list": rr,
-        "upload_dir": bkImportDir,
-    }
-    return slemp.returnJson(True, 'ok', rdata)
 
 
 def getDbList():
@@ -1147,7 +974,7 @@ def syncGetDatabases():
         if psdb.add('name,username,password,accept,ps,addtime', (vdb_name, vdb_name, '', host, ps, addTime)):
             n += 1
 
-    msg = slemp.getInfo('A total of {1} databases have been obtained from the server this time!', (str(n),))
+    msg = slemp.getInfo('This time, a total of {1} databases were obtained from the server!', (str(n),))
     return slemp.returnJson(True, msg)
 
 
@@ -1202,7 +1029,7 @@ def syncToDatabases():
             result = toDbBase(find)
             if result == 1:
                 n += 1
-    msg = slemp.getInfo('{1} databases were synchronized this time!', (str(n),))
+    msg = slemp.getInfo('This time, {1} databases were jointly synchronized!', (str(n),))
     return slemp.returnJson(True, msg)
 
 
@@ -1289,7 +1116,7 @@ def setDbPs():
         psdb.where("id=?", (sid,)).setField('ps', ps)
         return slemp.returnJson(True, slemp.getInfo('Modify database [{1}] remarks successfully!', (name,)))
     except Exception as e:
-        return slemp.returnJson(True, slemp.getInfo('Failed to modify database [{1}] comment!', (name,)))
+        return slemp.returnJson(True, slemp.getInfo('Failed to modify database [{1}] remarks!', (name,)))
 
 
 def addDb():
@@ -1311,12 +1138,12 @@ def addDb():
     dataAccess = args['dataAccess'].strip()
     ps = args['ps'].strip()
 
-    reg = "^[\w-]+$"
+    reg = "^[\w\.-]+$"
     if not re.match(reg, args['name']):
-        return slemp.returnJson(False, 'Database names cannot have special symbols!')
+        return slemp.returnJson(False, 'Database name cannot have special symbols!')
     checks = ['root', 'mysql', 'test', 'sys', 'panel_logs']
     if dbuser in checks or len(dbuser) < 1:
-        return slemp.returnJson(False, 'Invalid database username!')
+        return slemp.returnJson(False, 'Database username is invalid!')
     if dbname in checks or len(dbname) < 1:
         return slemp.returnJson(False, 'Invalid database name!')
 
@@ -1362,15 +1189,16 @@ def delDb():
     if not data[0]:
         return data[1]
     try:
-        sid = args['id']
+        id = args['id']
         name = args['name']
         psdb = pSqliteDb('databases')
         pdb = pMysqlDb()
-        find = psdb.where("id=?", (sid,)).field(
+        find = psdb.where("id=?", (id,)).field(
             'id,pid,name,username,password,accept,ps,addtime').find()
         accept = find['accept']
         username = find['username']
 
+        # delete MYSQL
         result = pdb.execute("drop database `" + name + "`")
 
         users = pdb.query("select Host from mysql.user where User='" +
@@ -1380,7 +1208,8 @@ def delDb():
             pdb.execute("drop user '" + username + "'@'" + us["Host"] + "'")
         pdb.execute("flush privileges")
 
-        psdb.where("id=?", (sid,)).delete()
+        # delete SQLITE
+        psdb.where("id=?", (id,)).delete()
         return slemp.returnJson(True, 'Successfully deleted!')
     except Exception as ex:
         return slemp.returnJson(False, 'Failed to delete!' + str(ex))
@@ -1396,10 +1225,6 @@ def getDbAccess():
 
     users = pdb.query("select Host from mysql.user where User='" +
                       username + "' AND Host!='localhost'")
-
-    isError = isSqlError(users)
-    if isError != None:
-        return isError
 
     if len(users) < 1:
         return slemp.returnJson(True, "127.0.0.1")
@@ -1437,22 +1262,7 @@ def setDbAccess():
     __createUser(dbname, name, password, access)
 
     psdb.where('username=?', (name,)).save('accept,rw', (access, 'rw',))
-    return slemp.returnJson(True, 'Successfully set!')
-
-
-def fixDbAccess(version):
-    try:
-        pdb = pMysqlDb()
-        data = pdb.query('show databases')
-        isError = isSqlError(data)
-        if isError != None:
-            appCMD(version, 'stop')
-            slemp.execShell("rm -rf " + getServerDir() + "/data")
-            appCMD(version, 'start')
-            return slemp.returnJson(True, 'Successful repair!')
-        return slemp.returnJson(True, 'Normal without repairs!!')
-    except Exception as e:
-        return slemp.returnJson(False, 'Repair failed, please try again!')
+    return slemp.returnJson(True, 'Set successfully!')
 
 
 def setDbRw(version=''):
@@ -1568,7 +1378,7 @@ def repairTable():
     if len(ret) > 0:
         for i in ret:
             pdb.execute('REPAIR TABLE `%s`.`%s`' % (db_name, i))
-        return slemp.returnJson(True, "Repair completed!")
+        return slemp.returnJson(True, "Repair done!")
     return slemp.returnJson(False, "Repair failed!")
 
 
@@ -1592,8 +1402,8 @@ def optTable():
     if len(ret) > 0:
         for i in ret:
             pdb.execute('OPTIMIZE TABLE `%s`.`%s`' % (db_name, i))
-        return slemp.returnJson(True, "Optimized successfully!")
-    return slemp.returnJson(False, "Optimization failed or has already been optimized!")
+        return slemp.returnJson(True, "Optimization succeeded!")
+    return slemp.returnJson(False, "Optimization failed or has been optimized!")
 
 
 def alterTable():
@@ -1619,7 +1429,7 @@ def alterTable():
         for i in ret:
             pdb.execute('alter table `%s`.`%s` ENGINE=`%s`' %
                         (db_name, i, table_type))
-        return slemp.returnJson(True, "Change successful!")
+        return slemp.returnJson(True, "Change succeeded!")
     return slemp.returnJson(False, "Change failed!")
 
 
@@ -1748,61 +1558,59 @@ def setDbMasterAccess():
 
     pdb.execute("flush privileges")
     psdb.where('username=?', (username,)).save('accept', (access,))
-    return slemp.returnJson(True, 'Successfully set!')
+    return slemp.returnJson(True, 'Set successfully!')
 
 
 def getMasterDbList(version=''):
-    try:
-        args = getArgs()
-        page = 1
-        page_size = 10
-        search = ''
-        data = {}
-        if 'page' in args:
-            page = int(args['page'])
+    args = getArgs()
+    page = 1
+    page_size = 10
+    search = ''
+    data = {}
+    if 'page' in args:
+        page = int(args['page'])
 
-        if 'page_size' in args:
-            page_size = int(args['page_size'])
+    if 'page_size' in args:
+        page_size = int(args['page_size'])
 
-        if 'search' in args:
-            search = args['search']
+    if 'search' in args:
+        search = args['search']
 
-        conn = pSqliteDb('databases')
-        limit = str((page - 1) * page_size) + ',' + str(page_size)
-        condition = ''
-        dodb = findBinlogDoDb()
-        data['dodb'] = dodb
+    conn = pSqliteDb('databases')
+    limit = str((page - 1) * page_size) + ',' + str(page_size)
+    condition = ''
+    dodb = findBinlogDoDb()
+    data['dodb'] = dodb
 
-        slave_dodb = findBinlogSlaveDoDb()
+    slave_dodb = findBinlogSlaveDoDb()
 
-        if not search == '':
-            condition = "name like '%" + search + "%'"
-        field = 'id,pid,name,username,password,accept,ps,addtime'
-        clist = conn.where(condition, ()).field(
-            field).limit(limit).order('id desc').select()
-        count = conn.where(condition, ()).count()
+    if not search == '':
+        condition = "name like '%" + search + "%'"
+    field = 'id,pid,name,username,password,accept,ps,addtime'
+    clist = conn.where(condition, ()).field(
+        field).limit(limit).order('id desc').select()
+    count = conn.where(condition, ()).count()
 
-        for x in range(0, len(clist)):
-            if clist[x]['name'] in dodb:
-                clist[x]['master'] = 1
-            else:
-                clist[x]['master'] = 0
+    for x in range(0, len(clist)):
+        if clist[x]['name'] in dodb:
+            clist[x]['master'] = 1
+        else:
+            clist[x]['master'] = 0
 
-            if clist[x]['name'] in slave_dodb:
-                clist[x]['slave'] = 1
-            else:
-                clist[x]['slave'] = 0
+        if clist[x]['name'] in slave_dodb:
+            clist[x]['slave'] = 1
+        else:
+            clist[x]['slave'] = 0
 
-        _page = {}
-        _page['count'] = count
-        _page['p'] = page
-        _page['row'] = page_size
-        _page['tojs'] = 'dbList'
-        data['page'] = slemp.getPage(_page)
-        data['data'] = clist
-        return slemp.getJson(data)
-    except Exception as e:
-        return slemp.returnJson(False, "The database password is wrong, in the management list - click [Repair]!")
+    _page = {}
+    _page['count'] = count
+    _page['p'] = page
+    _page['row'] = page_size
+    _page['tojs'] = 'dbList'
+    data['page'] = slemp.getPage(_page)
+    data['data'] = clist
+
+    return slemp.getJson(data)
 
 
 def setDbMaster(version):
@@ -1833,7 +1641,7 @@ def setDbMaster(version):
 
     restart(version)
     time.sleep(4)
-    return slemp.returnJson(True, 'Successfully set', [args, dodb])
+    return slemp.returnJson(True, 'Set successfully', [args, dodb])
 
 
 def setDbSlave(version):
@@ -1863,38 +1671,34 @@ def setDbSlave(version):
 
     restart(version)
     time.sleep(4)
-    return slemp.returnJson(True, 'Successfully set', [args, dodb])
+    return slemp.returnJson(True, 'Set successfully', [args, dodb])
 
 
 def getMasterStatus(version=''):
 
-    try:
-        if status(version) == 'stop':
-            return slemp.returnJson(False, 'MySQL is not started, or is starting...!', [])
+    if status(version) == 'stop':
+        return slemp.returnJson(False, 'MySQL is not started, or is being started...!', [])
 
-        conf = getConf()
-        content = slemp.readFile(conf)
-        master_status = False
-        if content.find('#log-bin') == -1 and content.find('log-bin') > 1:
-            dodb = findBinlogDoDb()
-            if len(dodb) > 0:
-                master_status = True
+    conf = getConf()
+    content = slemp.readFile(conf)
+    master_status = False
+    if content.find('#log-bin') == -1 and content.find('log-bin') > 1:
+        dodb = findBinlogDoDb()
+        if len(dodb) > 0:
+            master_status = True
 
-        data = {}
-        data['mode'] = recognizeDbMode()
-        data['status'] = master_status
-        data['slave_status'] = False
+    data = {}
+    data['mode'] = recognizeDbMode()
+    data['status'] = master_status
 
-        db = pMysqlDb()
-        dlist = db.query('show slave status')
+    db = pMysqlDb()
+    dlist = db.query('show slave status')
 
-        for v in dlist:
-            if v["Slave_IO_Running"] == 'Yes' or v["Slave_SQL_Running"] == 'Yes':
-                data['slave_status'] = True
+    # print(dlist[0])
+    if len(dlist) > 0 and (dlist[0]["Slave_IO_Running"] == 'Yes' or dlist[0]["Slave_SQL_Running"] == 'Yes'):
+        data['slave_status'] = True
 
-        return slemp.returnJson(master_status, 'Successfully set', data)
-    except Exception as e:
-        return slemp.returnJson(False, "The database password is wrong, in the management list - click [Repair]!", 'pwd')
+    return slemp.returnJson(master_status, 'Set successfully', data)
 
 
 def setMasterStatus(version=''):
@@ -1921,7 +1725,7 @@ def setMasterStatus(version=''):
         slemp.writeFile(conf, con)
 
     restart(version)
-    return slemp.returnJson(True, 'Successfully set')
+    return slemp.returnJson(True, 'Set successfully')
 
 
 def getMasterRepSlaveList(version=''):
@@ -1978,14 +1782,14 @@ def addMasterRepSlaveUser(version=''):
     # address = args['address'].strip()
     # dataAccess = args['dataAccess'].strip()
 
-    reg = "^[\w-]+$"
+    reg = "^[\w\.-]+$"
     if not re.match(reg, username):
         return slemp.returnJson(False, 'Username cannot contain special symbols!')
     checks = ['root', 'mysql', 'test', 'sys', 'panel_logs']
     if username in checks or len(username) < 1:
         return slemp.returnJson(False, 'Username is invalid!')
     if password in checks or len(password) < 1:
-        return slemp.returnJson(False, 'Password is invalid!')
+        return slemp.returnJson(False, 'Invalid password!')
 
     if len(password) < 1:
         password = slemp.md5(time.time())[0:8]
@@ -2006,17 +1810,16 @@ def addMasterRepSlaveUser(version=''):
         if isError != None:
             return isError
 
+        sql = "FLUSH PRIVILEGES;"
+        pdb.execute(sql)
     else:
-        sql = "grant replication SLAVE ON *.* TO  '" + username + \
+        sql = "GRANT REPLICATION SLAVE ON *.* TO  '" + username + \
             "'@'%' identified by '" + password + "';"
         result = pdb.execute(sql)
+        result = pdb.execute('FLUSH PRIVILEGES;')
         isError = isSqlError(result)
         if isError != None:
             return isError
-
-    sql_select = "grant select,lock tables,PROCESS on *.* to " + username + "@'%';"
-    pdb.execute(sql_select)
-    pdb.execute('FLUSH PRIVILEGES;')
 
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     psdb.add('username,password,accept,ps,addtime',
@@ -2037,7 +1840,7 @@ def getMasterRepSlaveUserCmd(version):
     if username == '':
         count = psdb.count()
         if count == 0:
-            return slemp.returnJson(False, 'Please add sync account!')
+            return slemp.returnJson(False, 'Please add a sync account!')
 
         clist = psdb.field(f).limit('1').order('id desc').select()
     else:
@@ -2050,39 +1853,31 @@ def getMasterRepSlaveUserCmd(version):
 
     mstatus = db.query('show master status')
     if len(mstatus) == 0:
-        return slemp.returnJson(False, 'Stopped!')
+        return slemp.returnJson(False, 'Unopened!')
 
     mode = recognizeDbMode()
-
-    sid = getDbServerId()
-    channel_name = ""
-    if sid != '':
-        channel_name = " for channel 'r{}';".format(sid)
 
     if mode == "gtid":
         sql = "CHANGE MASTER TO MASTER_HOST='" + ip + "', MASTER_PORT=" + port + ", MASTER_USER='" + \
             clist[0]['username'] + "', MASTER_PASSWORD='" + \
-            clist[0]['password'] + "', MASTER_AUTO_POSITION=1" + channel_name
+            clist[0]['password'] + "', MASTER_AUTO_POSITION=1"
         if version == '8.0':
             sql = "CHANGE REPLICATION SOURCE TO SOURCE_HOST='" + ip + "', SOURCE_PORT=" + port + ", SOURCE_USER='" + \
                 clist[0]['username']  + "', SOURCE_PASSWORD='" + \
-                clist[0]['password'] + \
-                "', MASTER_AUTO_POSITION=1" + channel_name
+                clist[0]['password'] + "', MASTER_AUTO_POSITION=1"
     else:
         sql = "CHANGE MASTER TO MASTER_HOST='" + ip + "', MASTER_PORT=" + port + ", MASTER_USER='" + \
             clist[0]['username']  + "', MASTER_PASSWORD='" + \
             clist[0]['password'] + \
             "', MASTER_LOG_FILE='" + mstatus[0]["File"] + \
-            "',MASTER_LOG_POS=" + str(mstatus[0]["Position"]) + channel_name
+            "',MASTER_LOG_POS=" + str(mstatus[0]["Position"])
 
         if version == "8.0":
             sql = "CHANGE REPLICATION SOURCE TO SOURCE_HOST='" + ip + "', SOURCE_PORT=" + port + ", SOURCE_USER='" + \
                 clist[0]['username']  + "', SOURCE_PASSWORD='" + \
                 clist[0]['password'] + \
                 "', SOURCE_LOG_FILE='" + mstatus[0]["File"] + \
-                "',SOURCE_LOG_POS=" + \
-                str(mstatus[0]["Position"]) + channel_name
-
+                "',SOURCE_LOG_POS=" + str(mstatus[0]["Position"])
 
     data = {}
     data['cmd'] = sql
@@ -2162,123 +1957,6 @@ def getSlaveSSHList(version=''):
     return slemp.getJson(data)
 
 
-def getSlaveSyncUserByIp(version=''):
-    args = getArgs()
-    data = checkArgs(args, ['ip'])
-    if not data[0]:
-        return data[1]
-
-    ip = args['ip']
-
-    conn = pSqliteDb('slave_sync_user')
-    data = conn.field('ip,port,user,pass,mode,cmd').where(
-        "ip=?", (ip,)).select()
-    return slemp.returnJson(True, 'ok', data)
-
-
-def addSlaveSyncUser(version=''):
-    import base64
-
-    args = getArgs()
-    data = checkArgs(args, ['ip'])
-    if not data[0]:
-        return data[1]
-
-    ip = args['ip']
-    if ip == "":
-        return slemp.returnJson(True, 'ok')
-
-    data = checkArgs(args, ['port', 'user', 'pass', 'mode'])
-    if not data[0]:
-        return data[1]
-
-    cmd = args['cmd']
-    port = args['port']
-    user = args['user']
-    apass = args['pass']
-    mode = args['mode']
-    addTime = time.strftime('%Y-%m-%d %X', time.localtime())
-
-    conn = pSqliteDb('slave_sync_user')
-    data = conn.field('ip').where("ip=?", (ip,)).select()
-    if len(data) > 0:
-        res = conn.where("ip=?", (ip,)).save(
-            'port,user,pass,mode,cmd', (port, user, apass, mode, cmd))
-    else:
-        conn.add('ip,port,user,cmd,user,pass,mode,addtime',
-                 (ip, port, user, cmd, user, apass, mode, addTime))
-
-    return slemp.returnJson(True, 'Successfully set!')
-
-
-def delSlaveSyncUser(version=''):
-    args = getArgs()
-    data = checkArgs(args, ['ip'])
-    if not data[0]:
-        return data[1]
-
-    ip = args['ip']
-
-    conn = pSqliteDb('slave_sync_user')
-    conn.where("ip=?", (ip,)).delete()
-    return slemp.returnJson(True, 'Successfully deleted!')
-
-
-def getSlaveSyncUserList(version=''):
-    args = getArgs()
-    data = checkArgs(args, ['page', 'page_size'])
-    if not data[0]:
-        return data[1]
-
-    page = int(args['page'])
-    page_size = int(args['page_size'])
-
-    conn = pSqliteDb('slave_sync_user')
-    limit = str((page - 1) * page_size) + ',' + str(page_size)
-
-    field = 'id,ip,port,user,pass,cmd,addtime'
-    clist = conn.field(field).limit(limit).order('id desc').select()
-    count = conn.count()
-
-    data = {}
-    _page = {}
-    _page['count'] = count
-    _page['p'] = page
-    _page['row'] = page_size
-    _page['tojs'] = args['tojs']
-    data['page'] = slemp.getPage(_page)
-    data['data'] = clist
-
-    return slemp.getJson(data)
-
-
-def getSyncModeFile():
-    return getServerDir() + "/sync.mode"
-
-
-def getSlaveSyncMode(version):
-    sync_mode = getSyncModeFile()
-    if os.path.exists(sync_mode):
-        mode = slemp.readFile(sync_mode).strip()
-        return slemp.returnJson(True, 'ok', mode)
-    return slemp.returnJson(False, 'fail')
-
-
-def setSlaveSyncMode(version):
-    args = getArgs()
-    data = checkArgs(args, ['mode'])
-    if not data[0]:
-        return data[1]
-    mode = args['mode']
-    sync_mode = getSyncModeFile()
-
-    if mode == 'none':
-        os.remove(sync_mode)
-    else:
-        slemp.writeFile(sync_mode, mode)
-    return slemp.returnJson(True, 'Successfully set', mode)
-
-
 def getSlaveSSHByIp(version=''):
     args = getArgs()
     data = checkArgs(args, ['ip'])
@@ -2323,7 +2001,7 @@ def addSlaveSSH(version=''):
         conn.add('ip,port,user,id_rsa,db_user,ps,addtime',
                  (ip, port, user, id_rsa, db_user, '', addTime))
 
-    return slemp.returnJson(True, 'Successfully set!')
+    return slemp.returnJson(True, 'Set successfully!')
 
 
 def delSlaveSSH(version=''):
@@ -2336,7 +2014,7 @@ def delSlaveSSH(version=''):
 
     conn = pSqliteDb('slave_id_rsa')
     conn.where("ip=?", (ip,)).delete()
-    return slemp.returnJson(True, 'Successfully deleted SSH!')
+    return slemp.returnJson(True, 'ok')
 
 
 def updateSlaveSSH(version=''):
@@ -2356,9 +2034,18 @@ def getSlaveList(version=''):
 
     db = pMysqlDb()
     dlist = db.query('show slave status')
-
+    ret = []
+    for x in range(0, len(dlist)):
+        tmp = {}
+        tmp['Master_User'] = dlist[x]["Master_User"]
+        tmp['Master_Host'] = dlist[x]["Master_Host"]
+        tmp['Master_Port'] = dlist[x]["Master_Port"]
+        tmp['Master_Log_File'] = dlist[x]["Master_Log_File"]
+        tmp['Slave_IO_Running'] = dlist[x]["Slave_IO_Running"]
+        tmp['Slave_SQL_Running'] = dlist[x]["Slave_SQL_Running"]
+        ret.append(tmp)
     data = {}
-    data['data'] = dlist
+    data['data'] = ret
 
     return slemp.getJson(data)
 
@@ -2367,221 +2054,102 @@ def getSlaveSyncCmd(version=''):
 
     root = slemp.getRunDir()
     cmd = 'cd ' + root + ' && python3 ' + root + \
-        '/plugins/mysql/index.py do_full_sync {"db":"all","sign",""}'
+        '/plugins/mysql/index.py do_full_sync {"db":"all"}'
     return slemp.returnJson(True, 'ok', cmd)
 
 
 def initSlaveStatus(version=''):
-    mode_file = getSyncModeFile()
-    if not os.path.exists(mode_file):
-        return slemp.returnJson(False, 'Synchronization configuration needs to be set first')
-
-    mode = slemp.readFile(mode_file)
-    if mode == 'ssh':
-        return initSlaveStatusSSH(version)
-    if mode == 'sync-user':
-        return initSlaveStatusSyncUser(version)
-
-
-def makeSyncUsercmd(u, version=''):
-    mode = recognizeDbMode()
-    sql = ''
-
-    ip = u['ip']
-    port = u['port']
-    username = u['user']
-    password = u['pass']
-    if mode == "gtid":
-        sql = "CHANGE MASTER TO MASTER_HOST='" + ip + "', MASTER_PORT=" + port + ", MASTER_USER='" + \
-            username + "', MASTER_PASSWORD='" + \
-            password + "', MASTER_AUTO_POSITION=1"
-        if version == '8.0':
-            sql = "CHANGE REPLICATION SOURCE TO SOURCE_HOST='" + ip  + "', SOURCE_PORT=" + port + ", SOURCE_USER='" + \
-                username  + "', SOURCE_PASSWORD='" + \
-                password + "', MASTER_AUTO_POSITION=1"
-    return sql
-
-
-def parseSlaveSyncCmd(cmd):
-    a = {}
-    if cmd.lower().find('for') > 0:
-        cmd_tmp = cmd.split('for')
-        cmd = cmd_tmp[0].strip()
-
-        pattern_c = r"channel \'(.*)\';"
-        match_val = re.match(pattern_c, cmd_tmp[1].strip(), re.I)
-        if match_val:
-            m_groups = match_val.groups()
-            a['channel'] = m_groups[0]
-    vlist = cmd.split(',')
-    for i in vlist:
-        tmp = i.strip()
-        tmp_a = tmp.split(" ")
-        real_tmp = tmp_a[len(tmp_a) - 1]
-        kv = real_tmp.split("=")
-        a[kv[0]] = kv[1].replace("'", '').replace("'", '').replace(";", '')
-    return a
-
-
-def initSlaveStatusSyncUser(version=''):
-    conn = pSqliteDb('slave_sync_user')
-    slave_data = conn.field('ip,port,user,pass,mode,cmd').select()
-    if len(slave_data) < 1:
-        return slemp.returnJson(False, 'Need to add sync user configuration first!')
-
-    # print(data)
-    pdb = pMysqlDb()
-    if len(slave_data) == 1:
-        dlist = pdb.query('show slave status')
-        if len(dlist) > 0:
-            return slemp.returnJson(False, 'Already initialized zzzz...')
-
-    msg = ''
-    local_mode = recognizeDbMode()
-    for x in range(len(slave_data)):
-        slave_t = slave_data[x]
-        mode_name = 'classic'
-        base_t = 'IP:' + slave_t['ip'] + ",PORT:" + \
-            slave_t['port'] + ",USER:" + slave_t['user']
-
-        if slave_t['mode'] == '1':
-            mode_name = 'gtid'
-
-        if local_mode != mode_name:
-            msg += base_t + '->Inconsistent sync mode'
-            continue
-
-        cmd_sql = slave_t['cmd']
-        if cmd_sql == '':
-            msg += base_t + '->Synchronization command cannot be empty'
-            continue
-
-        try:
-            pinfo = parseSlaveSyncCmd(cmd_sql)
-        except Exception as e:
-            return slemp.returnJson(False, base_t + '->CMD synchronization command is out of specification!')
-        # print(u['cmd'])
-        t = pdb.query(cmd_sql)
-        isError = isSqlError(t)
-        if isError:
-            return isError
-
-    pdb.query("start slave")
-    pdb.query("start all slaves")
-
-    if msg == '':
-        msg = 'Initialization successful!'
-    return slemp.returnJson(True, msg)
-
-
-def initSlaveStatusSSH(version=''):
     db = pMysqlDb()
     dlist = db.query('show slave status')
-    ssh_list = conn.field('ip,port,id_rsa,db_user').select()
+    if len(dlist) > 0:
+        return slemp.returnJson(False, 'Zzz has been initialized...')
 
-    if len(ssh_list) < 1:
-        return slemp.returnJson(False, 'You need to configure [[main] SSH configuration] first!')
+    conn = pSqliteDb('slave_id_rsa')
+    data = conn.field('ip,port,id_rsa').find()
 
-    local_mode = recognizeDbMode()
+    if len(data) < 1:
+        return slemp.returnJson(False, 'Need to configure [[main] SSH configuration] first!')
+
+    SSH_PRIVATE_KEY = "/tmp/t_ssh.txt"
+    ip = data['ip']
+    master_port = data['port']
+    slemp.writeFile(SSH_PRIVATE_KEY, data['id_rsa'].replace('\\n', '\n'))
 
     import paramiko
     paramiko.util.log_to_file('paramiko.log')
     ssh = paramiko.SSHClient()
 
-    db.query('stop slave')
-    db.query('reset slave all')
-    for data in ssh_list:
-        ip = data['ip']
-        SSH_PRIVATE_KEY = "/tmp/t_ssh_" + ip + ".txt"
-        master_port = data['port']
-        slemp.writeFile(SSH_PRIVATE_KEY, data['id_rsa'].replace('\\n', '\n'))
+    try:
+
         slemp.execShell("chmod 600 " + SSH_PRIVATE_KEY)
+        key = paramiko.RSAKey.from_private_key_file(SSH_PRIVATE_KEY)
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(hostname=ip, port=int(master_port),
+                    username='root', pkey=key)
 
-        try:
-            key = paramiko.RSAKey.from_private_key_file(SSH_PRIVATE_KEY)
-            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            ssh.connect(hostname=ip, port=int(master_port),
-                        username='root', pkey=key)
+        cmd = 'cd /home/slemp/server/panel && python3 plugins/mysql/index.py get_master_rep_slave_user_cmd {"username":"","db":""}'
+        stdin, stdout, stderr = ssh.exec_command(cmd)
+        result = stdout.read()
+        result = result.decode('utf-8')
+        cmd_data = json.loads(result)
 
-            db_user = data['db_user']
-            cmd = 'cd /home/slemp/server/panel && source bin/activate && python3 ' + \
-                getSPluginDir() + \
-                '/index.py get_master_rep_slave_user_cmd {"username":"' + \
-                db_user + '","db":""}'
-            stdin, stdout, stderr = ssh.exec_command(cmd)
-            result = stdout.read()
-            result = result.decode('utf-8')
-            if result.strip() == "":
-                return slemp.returnJson(False, '[Host][' + ip + ']:Failed to get sync command!')
+        if not cmd_data['status']:
+            return slemp.returnJson(False, '[host]:' + cmd_data['msg'])
 
-            cmd_data = json.loads(result)
-            if not cmd_data['status']:
-                return slemp.returnJson(False, '[Host][' + ip + ']:' + cmd_data['msg'])
+        local_mode = recognizeDbMode()
+        if local_mode != cmd_data['data']['mode']:
+            return slemp.returnJson(False, 'Master [{}] and slave [{}], the operation mode is inconsistent!'.format(cmd_data['data']['mode'], local_mode))
 
-            if local_mode != cmd_data['data']['mode']:
-                return slemp.returnJson(False, '[Host][' + ip + ']: [{}] From [{}] , the running mode is inconsistent!'.format(cmd_data['data']['mode'], local_mode))
+        u = cmd_data['data']['info']
+        ps = u['username'] + "|" + u['password']
+        conn.where('ip=?', (ip,)).setField('ps', ps)
+        db.query('stop slave')
 
-            u = cmd_data['data']['info']
+        cmd = cmd_data['data']['cmd']
+        if cmd.find('SOURCE_HOST') > -1:
+            cmd = re.sub(r"SOURCE_HOST='(.*)'",
+                         "SOURCE_HOST='" + ip + "'", cmd, 1)
 
-            ps = u['username'] + "|" + u['password']
-            print(ps)
-            conn.where('ip=?', (ip,)).setField('ps', ps)
-            db.query('stop slave')
+        if cmd.find('MASTER_HOST') > -1:
+            cmd = re.sub(r"MASTER_HOST='(.*)'",
+                         "MASTER_HOST='" + ip + "'", cmd, 1)
+        db.query(cmd)
+        db.query("start slave user='{}' password='{}';".format(
+            u['username'], u['password']))
+    except Exception as e:
+        return slemp.returnJson(False, 'SSH authentication configuration connection failed!' + str(e))
 
-            cmd = cmd_data['data']['cmd']
-            if cmd.find('SOURCE_HOST') > -1:
-                cmd = re.sub(r"SOURCE_HOST='(.*?)'",
-                             "SOURCE_HOST='" + ip + "'", cmd, 1)
-
-            if cmd.find('MASTER_HOST') > -1:
-                cmd = re.sub(r"MASTER_HOST='(.*?)'",
-                             "MASTER_HOST='" + ip + "'", cmd, 1)
-            db.query(cmd)
-            ssh.close()
-            if os.path.exists(SSH_PRIVATE_KEY):
-                os.system("rm -rf " + SSH_PRIVATE_KEY)
-        except Exception as e:
-            return slemp.returnJson(False, '[Host][' + ip + ']:SSH authentication configuration connection failed!' + str(e))
-    db.query('start slave')
+    ssh.close()
+    time.sleep(1)
+    os.system("rm -rf " + SSH_PRIVATE_KEY)
     return slemp.returnJson(True, 'Initialization successful!')
 
 
 def setSlaveStatus(version=''):
-    mode_file = getSyncModeFile()
-    if not os.path.exists(mode_file):
-        return slemp.returnJson(False, 'Synchronization configuration needs to be set first')
 
-    pdb = pMysqlDb()
-    dlist = pdb.query('show slave status')
+    db = pMysqlDb()
+    dlist = db.query('show slave status')
     if len(dlist) == 0:
-        return slemp.returnJson(False, 'You need to manually add a synchronization account or perform initialization!')
+        return slemp.returnJson(False, 'Need to manually add the main service command or execute [initialize]!')
 
-    for v in dlist:
-        connection_name = ''
-        cmd = "slave"
-        if 'Channel_Name' in v:
-            ch_name = v['Channel_Name']
-            cmd = "slave for channel '{}'".format(ch_name)
+    if len(dlist) > 0 and (dlist[0]["Slave_IO_Running"] == 'Yes' or dlist[0]["Slave_SQL_Running"] == 'Yes'):
+        db.query('stop slave')
+    else:
+        ip = dlist[0]['Master_Host']
+        conn = pSqliteDb('slave_id_rsa')
+        data = conn.field('ip,ps').where("ip=?", (ip,)).find()
+        if len(data) == 0:
+            return slemp.returnJson(False, 'Can\'t restart without data!')
+        u = data['ps'].split("|")
+        db.query("start slave user='{}' password='{}';".format(u[0], u[1]))
 
-        if (v["Slave_IO_Running"] == 'Yes' or v["Slave_SQL_Running"] == 'Yes'):
-            pdb.query("stop {}".format(cmd))
-        else:
-            pdb.query("start {}".format(cmd))
-
-    return slemp.returnJson(True, 'Successfully set!')
+    return slemp.returnJson(True, 'Set successfully!')
 
 
 def deleteSlave(version=''):
-    args = getArgs()
     db = pMysqlDb()
-    if 'sign' in args:
-        sign = args['sign']
-        db.query("stop slave for channel '{}'".format(sign))
-        db.query("reset slave all for channel '{}'".format(sign))
-    else:
-        db.query('stop slave')
-        db.query('reset slave all')
-
+    dlist = db.query('stop slave')
+    dlist = db.query('reset slave all')
     return slemp.returnJson(True, 'Successfully deleted!')
 
 
@@ -2603,12 +2171,11 @@ def dumpMysqlData(version=''):
     if args['db'].lower() == 'all':
         dlist = findBinlogDoDb()
         cmd = mysql_dir + "/bin/mysqldump --defaults-file=" + myconf + " " + option + " -uroot -p" + \
-            pwd + " --force --databases " + \
+            pwd + " --databases " + \
             ' '.join(dlist) + " | gzip > /tmp/dump.sql.gz"
     else:
         cmd = mysql_dir + "/bin/mysqldump --defaults-file=" + myconf + " " + option + " -uroot -p" + \
-            pwd + " --force --databases " + \
-            args['db'] + " | gzip > /tmp/dump.sql.gz"
+            pwd + " --databases " + args['db'] + " | gzip > /tmp/dump.sql.gz"
 
     ret = slemp.execShell(cmd)
     if ret[0] == '':
@@ -2616,114 +2183,22 @@ def dumpMysqlData(version=''):
     return 'fail'
 
 
-############### --- important synchronization --- ###########
-
-def asyncTmpfile():
-    path = '/tmp/mysql_async_status.txt'
-    return path
-
 def writeDbSyncStatus(data):
-    path = asyncTmpfile()
+    path = '/tmp/db_async_status.txt'
     slemp.writeFile(path, json.dumps(data))
 
 
 def doFullSync(version=''):
-    mode_file = getSyncModeFile()
-    if not os.path.exists(mode_file):
-        return slemp.returnJson(False, 'Synchronization configuration needs to be set first')
-
-    mode = slemp.readFile(mode_file)
-    if mode == 'ssh':
-        return doFullSyncSSH(version)
-    if mode == 'sync-user':
-        return doFullSyncUser(version)
-
-
-def doFullSyncUser(version=''):
-    args = getArgs()
-    data = checkArgs(args, ['db', 'sign'])
-    if not data[0]:
-        return data[1]
-
-    sync_db = args['db']
-    sync_db_import = args['db']
-
-    if sync_db.lower() == 'all':
-        sync_db_import = ''
-        dbs = findBinlogSlaveDoDb()
-        dbs_str = ''
-        for x in dbs:
-            dbs_str += ' ' + x
-        sync_db = "--databases " + dbs_str.strip()
-
-    sync_sign = args['sign']
-
-    db = pMysqlDb()
-
-    conn = pSqliteDb('slave_sync_user')
-    if sync_sign != '':
-        data = conn.field('ip,port,user,pass,mode,cmd').where(
-            'ip=?', (sync_sign,)).find()
-    else:
-        data = conn.field('ip,port,user,pass,mode,cmd').find()
-    user = data['user']
-    apass = data['pass']
-    port = data['port']
-    ip = data['ip']
-
-    bak_file = '/tmp/tmp.sql'
-
-    writeDbSyncStatus({'code': 0, 'msg': 'Start sync...', 'progress': 0})
-    dmp_option = ''
-    mode = recognizeDbMode()
-    if mode == 'gtid':
-        dmp_option = ' --set-gtid-purged=off '
-
-    writeDbSyncStatus({'code': 1, 'msg': 'Export data remotely...', 'progress': 20})
-
-    if not os.path.exists(bak_file):
-        dump_sql_data = getServerDir() + "/bin/mysqldump " + dmp_option + "  --force --opt --default-character-set=utf8 --single-transaction -h" + ip + " -P" + \
-            port + " -u" + user + " -p\"" + apass + \
-            "\" --ssl-mode=DISABLED " + sync_db + " > " + bak_file
-        slemp.execShell(dump_sql_data)
-
-    writeDbSyncStatus({'code': 2, 'msg': 'Import data locally...', 'progress': 40})
-    if os.path.exists(bak_file):
-        pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
-        sock = getSocketFile()
-        my_import_cmd = getServerDir() + '/bin/mysql -S ' + sock + ' -uroot -p' + pwd + \
-            ' ' + sync_db_import + ' < ' + bak_file
-        slemp.execShell(my_import_cmd)
-
-    if version == '8.0':
-        db.query("start slave user='{}' password='{}';".format(user, apass))
-    else:
-        db.query("start slave")
-
-    writeDbSyncStatus({'code': 6, 'msg': 'Restart complete from library...', 'progress': 100})
-    if os.path.exists(bak_file):
-        os.system("rm -rf " + bak_file)
-    return True
-
-
-def doFullSyncSSH(version=''):
 
     args = getArgs()
-    data = checkArgs(args, ['db', 'sign'])
+    data = checkArgs(args, ['db'])
     if not data[0]:
         return data[1]
-
-    sync_db = args['db']
-    sync_sign = args['sign']
 
     db = pMysqlDb()
 
     id_rsa_conn = pSqliteDb('slave_id_rsa')
-    if sync_sign != '':
-        data = id_rsa_conn.field('ip,port,db_user,id_rsa').where(
-            'ip=?', (sync_sign,)).find()
-    else:
-        data = id_rsa_conn.field('ip,port,db_user,id_rsa').find()
+    data = id_rsa_conn.field('ip,port,db_user,id_rsa').find()
 
     SSH_PRIVATE_KEY = "/tmp/mysql_sync_id_rsa.txt"
     id_rsa = data['id_rsa'].replace('\\n', '\n')
@@ -2759,23 +2234,22 @@ def doFullSyncSSH(version=''):
     except Exception as e:
         print(str(e))
         writeDbSyncStatus(
-            {'code': 0, 'msg': 'SSH misconfiguration:' + str(e), 'progress': 0})
+            {'code': 0, 'msg': 'SSH configuration error:' + str(e), 'progress': 0})
         return 'fail'
 
-    writeDbSyncStatus({'code': 0, 'msg': 'Log in to Master successfully...', 'progress': 5})
+    writeDbSyncStatus({'code': 0, 'msg': 'Successful login to Master...', 'progress': 5})
 
     dbname = args['db']
-    cmd = "cd /home/slemp/server/panel && source bin/activate && python3 " + \
-        getSPluginDir() + "/index.py dump_mysql_data {\"db\":'" + dbname + "'}"
+    cmd = "cd /home/slemp/server/panel && python3 plugins/mysql/index.py dump_mysql_data {\"db\":'" + dbname + "'}"
     print(cmd)
     stdin, stdout, stderr = ssh.exec_command(cmd)
     result = stdout.read()
     result = result.decode('utf-8')
     if result.strip() == 'ok':
-        writeDbSyncStatus({'code': 1, 'msg': 'Master server backup completed...', 'progress': 30})
+        writeDbSyncStatus({'code': 1, 'msg': 'Primary server backup completed...', 'progress': 30})
     else:
         writeDbSyncStatus(
-            {'code': 1, 'msg': 'Master server backup failed...:' + str(result), 'progress': 100})
+            {'code': 1, 'msg': 'Primary server backup failed...:' + str(result), 'progress': 100})
         return 'fail'
 
     print("Sync files", "start")
@@ -2787,32 +2261,30 @@ def doFullSyncSSH(version=''):
     print("Synchronization information:", copy_status)
     print("Sync files", "end")
     if copy_status == None:
-        writeDbSyncStatus({'code': 2, 'msg': 'Data synchronization is completed locally...', 'progress': 40})
+        writeDbSyncStatus({'code': 2, 'msg': 'Data synchronization is done locally...', 'progress': 40})
 
-    cmd = 'cd /home/slemp/server/panel && source bin/activate && python3 plugins/mysql/index.py get_master_rep_slave_user_cmd {"username":"' + db_user + '","db":""}'
+    cmd = 'cd /home/slemp/server/panel && python3 plugins/mysql/index.py get_master_rep_slave_user_cmd {"username":"' + db_user + '","db":""}'
     stdin, stdout, stderr = ssh.exec_command(cmd)
     result = stdout.read()
     result = result.decode('utf-8')
     cmd_data = json.loads(result)
 
     db.query('stop slave')
-    writeDbSyncStatus({'code': 3, 'msg': 'Stop slave completion...', 'progress': 45})
+    writeDbSyncStatus({'code': 3, 'msg': 'Stop completion from library...', 'progress': 45})
 
     cmd = cmd_data['data']['cmd']
     # Ensure that the synchronization IP is consistent
     if cmd.find('SOURCE_HOST') > -1:
-        cmd = re.sub(r"SOURCE_HOST='(.*?)'",
-                     "SOURCE_HOST='" + ip + "'", cmd, 1)
+        cmd = re.sub(r"SOURCE_HOST='(.*)'", "SOURCE_HOST='" + ip + "'", cmd, 1)
 
     if cmd.find('MASTER_HOST') > -1:
-        cmd = re.sub(r"MASTER_HOST='(.*?)'",
-                     "MASTER_HOST='" + ip + "'", cmd, 1)
+        cmd = re.sub(r"MASTER_HOST='(.*)'", "SOURCE_HOST='" + ip + "'", cmd, 1)
 
     db.query(cmd)
     uinfo = cmd_data['data']['info']
     ps = uinfo['username'] + "|" + uinfo['password']
     id_rsa_conn.where('ip=?', (ip,)).setField('ps', ps)
-    writeDbSyncStatus({'code': 4, 'msg': 'Refresh slave library synchronization information completed...', 'progress': 50})
+    writeDbSyncStatus({'code': 4, 'msg': 'Refreshing the synchronization information from the library is complete...', 'progress': 50})
 
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
     root_dir = getServerDir()
@@ -2820,19 +2292,18 @@ def doFullSyncSSH(version=''):
     slemp.execShell("cd /tmp && gzip -d dump.sql.gz")
     cmd = root_dir + "/bin/mysql -S " + msock + \
         " -uroot -p" + pwd + " < /tmp/dump.sql"
-
-    print(cmd)
     import_data = slemp.execShell(cmd)
     if import_data[0] == '':
         print(import_data[1])
-        writeDbSyncStatus({'code': 5, 'msg': 'Import data complete...', 'progress': 90})
+        writeDbSyncStatus({'code': 5, 'msg': 'Import data completed...', 'progress': 90})
     else:
         print(import_data[0])
         writeDbSyncStatus({'code': 5, 'msg': 'Failed to import data...', 'progress': 100})
         return 'fail'
 
-    db.query("start slave")
-    writeDbSyncStatus({'code': 6, 'msg': 'Restart complete from library...', 'progress': 100})
+    db.query("start slave user='{}' password='{}';".format(
+        uinfo['username'], uinfo['password']))
+    writeDbSyncStatus({'code': 6, 'msg': 'Restart from the library completes...', 'progress': 100})
 
     os.system("rm -rf " + SSH_PRIVATE_KEY)
     os.system("rm -rf /tmp/dump.sql")
@@ -2845,15 +2316,12 @@ def fullSync(version=''):
     if not data[0]:
         return data[1]
 
-    sign = ''
-    if 'sign' in args:
-        sign = args['sign']
-
-    status_file = asyncTmpfile()
+    status_file = '/tmp/db_async_status.txt'
     if args['begin'] == '1':
-        cmd = 'cd ' + slemp.getRunDir() + ' && python3 ' + getPluginDir() + \
-            '/index.py do_full_sync {"db":"' + \
-            args['db'] + '","sign":"' + sign + '"} &'
+        cmd = 'cd ' + slemp.getRunDir() + ' && python3 ' + \
+            getPluginDir() + \
+            '/index.py do_full_sync {"db":"' + args['db'] + '"} &'
+        print(cmd)
         slemp.execShell(cmd)
         return json.dumps({'code': 0, 'msg': 'Synchronizing data!', 'progress': 0})
 
@@ -2864,14 +2332,14 @@ def fullSync(version=''):
             sys_dump_sql = "/tmp/dump.sql"
             if os.path.exists(sys_dump_sql):
                 dump_size = os.path.getsize(sys_dump_sql)
-                tmp['msg'] = tmp['msg'] + " : " + "Sync files:" + slemp.toSize(dump_size)
+                tmp['msg'] = tmp['msg'] + ":" + "Sync files:" + slemp.toSize(dump_size)
             c = json.dumps(tmp)
 
         # if tmp['code'] == 6:
         #     os.remove(status_file)
         return c
 
-    return json.dumps({'code': 0, 'msg': 'Click start to start syncing!', 'progress': 0})
+    return json.dumps({'code': 0, 'msg': 'Click Start to start syncing!', 'progress': 0})
 
 
 def installPreInspection(version):
@@ -2885,9 +2353,6 @@ def uninstallPreInspection(version):
     stop(version)
     if slemp.isDebugMode():
         return 'ok'
-
-    import plugins_api
-    plugins_api.plugins_api().removeIndex(getPluginName(), version)
 
     return "Please manually delete MySQL[{}]<br/> rm -rf {}".format(version, getServerDir())
 
@@ -2920,11 +2385,11 @@ if __name__ == "__main__":
     elif func == 'uninstall_pre_inspection':
         print(uninstallPreInspection(version))
     elif func == 'run_info':
-        print(runInfo(version))
+        print(runInfo())
     elif func == 'db_status':
-        print(myDbStatus(version))
+        print(myDbStatus())
     elif func == 'set_db_status':
-        print(setDbStatus(version))
+        print(setDbStatus())
     elif func == 'conf':
         print(getConf())
     elif func == 'bin_log':
@@ -2951,14 +2416,10 @@ if __name__ == "__main__":
         print(setDbBackup())
     elif func == 'import_db_backup':
         print(importDbBackup())
-    elif func == 'import_db_external':
-        print(importDbExternal())
     elif func == 'delete_db_backup':
         print(deleteDbBackup())
     elif func == 'get_db_backup_list':
         print(getDbBackupList())
-    elif func == 'get_db_backup_import_list':
-        print(getDbBackupImportList())
     elif func == 'add_db':
         print(addDb())
     elif func == 'del_db':
@@ -2975,8 +2436,6 @@ if __name__ == "__main__":
         print(getDbAccess())
     elif func == 'set_db_access':
         print(setDbAccess())
-    elif func == 'fix_db_access':
-        print(fixDbAccess(version))
     elif func == 'set_db_rw':
         print(setDbRw(version))
     elif func == 'set_db_ps':
@@ -3031,18 +2490,6 @@ if __name__ == "__main__":
         print(delSlaveSSH(version))
     elif func == 'update_slave_ssh':
         print(updateSlaveSSH(version))
-    elif func == 'get_slave_sync_user_list':
-        print(getSlaveSyncUserList(version))
-    elif func == 'get_slave_sync_user_by_ip':
-        print(getSlaveSyncUserByIp(version))
-    elif func == 'add_slave_sync_user':
-        print(addSlaveSyncUser(version))
-    elif func == 'del_slave_sync_user':
-        print(delSlaveSyncUser(version))
-    elif func == 'get_slave_sync_mode':
-        print(getSlaveSyncMode(version))
-    elif func == 'set_slave_sync_mode':
-        print(setSlaveSyncMode(version))
     elif func == 'init_slave_status':
         print(initSlaveStatus(version))
     elif func == 'set_slave_status':

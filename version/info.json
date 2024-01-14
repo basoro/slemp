@@ -1,17 +1,12 @@
 [
     {
-        "version": "3.2",
-        "content": "Bug fixed!",
-        "path": "https://github.com/basoro/slemp/releases/download/3.2/slemp.zip"
-    },
-    {
         "version": "3.1",
         "content": "Bug fixed!",
         "path": "https://github.com/basoro/slemp/releases/download/3.1/slemp.zip"
     },
     {
         "version": "3.0",
-        "content": "Major update dari versi 2",
+        "content": "1.项目初建!<br/>2.面板更新功能!",
         "path": "https://github.com/basoro/slemp/releases/download/3.0/slemp.zip"
     }
 ]

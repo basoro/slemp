@@ -13,23 +13,19 @@
                             <span id='DirPathPlace' class="pull-left"><input id="fileInputPath" type="text"></span>
                             <span id='PathPlaceBtn' class="pull-left"></span>
                         </div>
-                        <div class="pull-left mlr15" style="line-height:26px"><span id='dir_info'></span></div>
+                        <div class="pull-left mlr15" style="line-height:26px"><span id='DirInfo'></span></div>
                         <div class="search pull-right" style="position: absolute; top: 6px; right: 5px;">
-                            <form target="hid">
-                                <input type="text" id="SearchValue" class="ser-text pull-left" placeholder="Search for files/directories" />
-                                <button type="button" class="ser-sub pull-left" onclick='searchFile(1)'></button>
-                                <div class="file_search" draggable="false">
-                                    <div id="search_all" class="file_search_checked"></div>
-                                    <label for="search_all"></label>
-                                </div>
+                            <form target="hid" onsubmit='getFiles(1)'>
+                                <input type="text" id="SearchValue" class="ser-text pull-left" placeholder="" />
+                                <button type="button" class="ser-sub pull-left" onclick='getFiles(1)'></button>
                             </form>
                             <iframe name='hid' id="hid" style="display:none"></iframe>
                         </div>
                     </div>
                 </div>
                 <div class="clearfix ptb10">
-                    <button class="btn btn-default btn-sm pull-left" onclick="uploadFiles()">Upload</button>
-                    <button class="btn btn-default btn-sm pull-left" onclick="downloadFile()" title="Remote download" style="margin:0 5px">Download</button>
+                    <button class="btn btn-default btn-sm pull-left" onclick="uploadFiles()">Unggah</button>
+                    <button class="btn btn-default btn-sm pull-left" onclick="downloadFile()" title="Unduhan jarak jauh" style="margin:0 5px">Unduh</button>
                     <span id='BarTools'></span>
                     <span id='Batch' style="background-color:#fff;position:absolute;right:190px;z-index:10"></span>
                     <span id='comlist' class="comlist"></span>
@@ -54,14 +50,15 @@
 <ul id="rmenu" class="dropdown-menu" style="display:none">
     <li onclick="javascript:batch(1);"><a style="cursor: pointer;">Copy</a></li>
     <li onclick="javascript:batch(2);"><a style="cursor: pointer;">Cut</a></li>
-    <li onclick="javascript:batch(3);"><a style="cursor: pointer;">Zip</a></li>
-    <li onclick="javascript:batch(5);"><a style="cursor: pointer;">Chmod</a></li>
+    <li onclick="javascript:batch(5);"><a style="cursor: pointer;">Permission</a></li>
+    <li onclick="javascript:batch(3);"><a style="cursor: pointer;">Compress</a></li>
     <li onclick="javascript:batch(4);"><a style="cursor: pointer;">Del</a></li>
 </ul>
 
-<script src="/static/app/files.js?v={{config.version}}"></script>
 <script src="/static/js/jquery-ui.min.js?v={{config.version}}"></script>
 <script src="/static/js/jquery.contextify.min.js?v={{config.version}}"></script>
+<script src="/static/app/files.js?v={{config.version}}"></script>
+<script src="/static/app/upload.js?v={{config.version}}"></script>
 <script type="text/javascript">
 
 setTimeout(function() {
@@ -97,10 +94,5 @@ $("#set_list").click(function() {
 $(".refreshBtn").click(function() {
     getFiles(getCookie('open_dir_path'));
 })
-
-
-$('#search_all').click(function(){
-    $(this).toggleClass('active');
-});
 </script>
 {% endblock %}

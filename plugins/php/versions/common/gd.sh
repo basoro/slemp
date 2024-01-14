@@ -18,16 +18,9 @@ LIBNAME=gd
 LIBV=0
 
 
-bash ${rootPath}/scripts/getos.sh
-OSNAME=`cat ${rootPath}/data/osname.pl`
-OSNAME_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
-
-
-if [ "centos" == "$OSNAME" ] || [ "OSNAME_ID" != "9" ];then
-	if [ "$version" -lt "74" ];then
-		bash $curPath/gd_old.sh $1 $2
-		exit 0
-	fi
+if [ "$version" -lt "74" ];then
+	bash $curPath/gd_old.sh $1 $2
+	exit 0
 fi
 
 
@@ -51,7 +44,7 @@ Install_lib()
 
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
+		echo "php-$version ${LIBNAME} is installed, please select another version!"
 		return
 	fi
 
@@ -66,7 +59,6 @@ Install_lib()
 
 		$serverPath/php/$version/bin/phpize
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config \
-		--enable-gd \
 		--with-webp \
 		--with-xpm \
 		--with-jpeg \
@@ -95,12 +87,12 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php-$version is not installed, please choose another version!"
+		echo "php-$version is not installed, please select another version!"
 		return
 	fi
 
 	if [ ! -f "$extFile" ];then
-		echo "php-$version ${LIBNAME} is not installed, please choose another version"
+		echo "php-$version ${LIBNAME} is not installed, please select another version!"
 		return
 	fi
 

@@ -94,7 +94,7 @@ def pm2Log():
     path = pm2LogDir() + '/pm2.log'
     return path
 
-def __pm2GetList():
+def pm2GetList():
     try:
         tmp = slemp.execShell(__SR + "pm2 list|grep -v 'pm2 show'")
         t2 = tmp[0].replace("│", "").replace("└", "").replace(
@@ -141,7 +141,7 @@ def __pm2GetList():
     except Exception as e:
         return []
 
-def pm2GetList():
+def __pm2GetList():
     try:
         tmp = slemp.execShell(__SR + "pm2 list|grep -v 'pm2 show'")
         t2 = tmp[0].replace("│", "").replace("└", "").replace(
@@ -292,11 +292,11 @@ def setNodeVersion():
     # Switch Node version
     version = args['version'].replace('v', '')
     estr = '''
-export NVM_NODEJS_ORG_MIRROR=https://cdn.npmmirror.com/binaries/node && nvm install %s
+export NVM_NODEJS_ORG_MIRROR=http://npm.taobao.org/mirrors/node && nvm install %s
 nvm use %s
 nvm alias default %s
 oldreg=`npm get registry`
-npm config set registry https://registry.npmmirror.com/
+npm config set registry http://registry.npm.taobao.org/
 npm install pm2 -g
 npm config set registry $oldreg
 ''' % (version, version, version)

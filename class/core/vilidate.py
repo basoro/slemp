@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding: utf-8
 
 import random
@@ -20,6 +21,10 @@ class vieCode:
     __fontPatn = 'class/fonts/2.ttf'
 
     def GetCodeImage(self, size=80, length=4):
+        '''Get the verification code picture
+           @param int size verification code size
+           @param int length verification code length
+        '''
         self.__length = length
         self.__fontSize = size
         self.__width = self.__fontSize * self.__length
@@ -34,11 +39,13 @@ class vieCode:
         return self.__img, self.__code
 
     def __cerateFilter(self):
+        '''Obfuscation'''
         self.__img = self.__img.filter(ImageFilter.BLUR)
         filter = ImageFilter.ModeFilter(8)
         self.__img = self.__img.filter(filter)
 
     def __createCode(self):
+        '''Create captcha characters'''
         if not self.__str:
             number = "3456789"
             srcLetter = "qwertyuipasdfghjkzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"
@@ -51,12 +58,14 @@ class vieCode:
         self.__code = random.sample(self.__str, self.__length)
 
     def __createImage(self):
+        '''Create a canvas'''
         bgColor = (random.randint(200, 255), random.randint(
             200, 255), random.randint(200, 255))
         self.__img = Image.new('RGB', (self.__width, self.__heigth), bgColor)
         self.__draw = ImageDraw.Draw(self.__img)
 
     def __createNoise(self):
+        '''Draw distraction points'''
         if not self.__inNoise:
             return
         font = ImageFont.truetype(self.__fontPatn, int(self.__fontSize / 1.5))
@@ -71,6 +80,7 @@ class vieCode:
         pass
 
     def __createCurve(self):
+        '''draw interference lines'''
         if not self.__inCurve:
             return
         x = y = 0
@@ -96,6 +106,7 @@ class vieCode:
                         i -= i
 
     def __printString(self):
+        '''print verification code string'''
         font = ImageFont.truetype(self.__fontPatn, self.__fontSize)
         x = 0
         for i in range(self.__length):

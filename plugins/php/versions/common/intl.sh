@@ -33,7 +33,7 @@ else
 fi
 
 OPTIONS=''
-if [ "$version" -lt "74" ];then
+if [ "$version" -lt "71" ];then
 	cd ${rootPath}/plugins/php/lib && /bin/bash icu.sh
 	OPTIONS="--with-icu-dir=${serverPath}/lib/icu"
 fi
@@ -44,10 +44,10 @@ Install_lib()
 
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
+		echo "php-$version ${LIBNAME} is installed, please select another version!"
 		return
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
 
 		if [ ! -d $sourcePath/php${version}/ext ];then
@@ -55,12 +55,11 @@ Install_lib()
 		fi
 
 		cd $sourcePath/php${version}/ext/${LIBNAME}
-
+		
 		$serverPath/php/$version/bin/phpize
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
-		#./configure --with-php-config=/Users/ataaka/Desktop/SLEMP/server/php/81/bin/php-config --with-icu-dir=/Users/ataaka/Desktop/SLEMP/server/lib/icu/lib/icu
 		make clean && make && make install && make clean
-
+		
 	fi
 
 	if [ ! -f "$extFile" ];then
@@ -72,7 +71,7 @@ Install_lib()
     echo "" >> $serverPath/php/$version/etc/php.ini
 	echo "[${LIBNAME}]" >> $serverPath/php/$version/etc/php.ini
 	echo "extension=${LIBNAME}.so" >> $serverPath/php/$version/etc/php.ini
-
+	
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==========================================================='
 	echo 'successful!'
@@ -82,19 +81,19 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php-$version is not installed, please choose another version!"
+		echo "php-$version is not installed, please select another version!"
 		return
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
-		echo "php-$version ${LIBNAME} is not installed, please choose another version"
+		echo "php-$version ${LIBNAME} is not installed, please select another version!"
 		return
 	fi
-
+	
 	echo $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
-
+		
 	rm -f $extFile
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='

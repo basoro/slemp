@@ -1,131 +1,77 @@
 setTimeout(function(){
 	Wday(0,'getload');
-},100);
-setTimeout(function(){
-	Wday(0,'cpu');
-},200);
-setTimeout(function(){
-	Wday(0,'mem');
 },500);
 setTimeout(function(){
+	Wday(0,'cpu');
+},500);
+setTimeout(function(){
+	Wday(0,'mem');
+},1000);
+setTimeout(function(){
 	Wday(0,'disk');
-},100);
+},1500);
 setTimeout(function(){
 	Wday(0,'network');
-},1500);
+},2000);
 
-$(".searcTime .st").click(function(){
-	var status = $(this).data('status');
-	if (status == 'show'){
-		$(this).next().hide();
-		$(this).data('status','hide');
-	} else{
-		$(this).next().show();
-		$(this).data('status','show');
-	}
-});
-
-$(".searcTime .st").hover(function(){
-	$(this).data('status','show');
+$(".st").hover(function(){
 	$(this).next().show();
 },function(){
-	// $(this).next().hide();
-	// $(this).next().hover(function(){
-	// 	$(this).show();
-	// },function(){
-	// 	$(this).hide();
-	// })
+	$(this).next().hide();
+	$(this).next().hover(function(){
+		$(this).show();
+	},function(){
+		$(this).hide();
+	})
 })
 $(".searcTime .gt").click(function(){
 	$(this).addClass("on").siblings().removeClass("on");
 })
-// $(".loadbtn").click(function(){
-// 	$(this).parents(".searcTime").find("span").removeClass("on");
-// 	$(this).parents(".searcTime").find(".st").addClass("on");
-// 	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
-// 	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
-// 	b = Math.round(b);
-// 	e = Math.round(e);
-// 	getload(b,e)
-// })
-// $(".cpubtn").click(function(){
-// 	$(this).parents(".searcTime").find("span").removeClass("on");
-// 	$(this).parents(".searcTime").find(".st").addClass("on");
-// 	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
-// 	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
-// 	b = Math.round(b);
-// 	e = Math.round(e);
-// 	cpu(b,e)
-// })
-// $(".membtn").click(function(){
-// 	$(this).parents(".searcTime").find("span").removeClass("on");
-// 	$(this).parents(".searcTime").find(".st").addClass("on");
-// 	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
-// 	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
-// 	b = Math.round(b);
-// 	e = Math.round(e);
-// 	mem(b,e)
-// })
-// $(".diskbtn").click(function(){
-// 	$(this).parents(".searcTime").find("span").removeClass("on");
-// 	$(this).parents(".searcTime").find(".st").addClass("on");
-// 	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
-// 	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
-// 	b = Math.round(b);
-// 	e = Math.round(e);
-// 	disk(b,e)
-// })
-// $(".networkbtn").click(function(){
-// 	$(this).parents(".searcTime").find("span").removeClass("on");
-// 	$(this).parents(".searcTime").find(".st").addClass("on");
-// 	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
-// 	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
-
-var render_dlist = [
-	'loadbtn_rtime',
-	'cpubtn_rtime',
-	'membtn_rtime',
-	'diskbtn_rtime',
-	'networkbtn_rtime'
-];
-
-for (var i = 0; i < render_dlist.length; i++) {
-
-	laydate.render({
-		elem: '#'+render_dlist[i]
-		,type: 'datetime'
-		,lang: 'en'
-		,range: true
-	});
-
-
-	var b = getBeforeDate(28).replaceAll('/','-') + " 00:00:00";
-	var e = getBeforeDate(0).replaceAll('/','-') + " 23:59:59";
-
-	$('#'+render_dlist[i]).val(b + ' - ' + e);
-}
-
-$('.sbtn').click(function(){
-	$(".searcTime .st").next().hide();
-
-	var rtime = $(this).parent().find(".rtime").val();
-	var rarr = rtime.split(' - ');
-
-	var b = (new Date(rarr[0]).getTime())/1000;
-	var e = (new Date(rarr[1]).getTime())/1000;
-
+$(".loadbtn").click(function(){
+	$(this).parents(".searcTime").find("span").removeClass("on");
+	$(this).parents(".searcTime").find(".st").addClass("on");
+	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
+	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
 	b = Math.round(b);
 	e = Math.round(e);
-	if ($(this).hasClass('loadbtn')){
-		getload(b,e);
-	} else if ($(this).hasClass('cpubtn')){
-		cpu(b,e);
-	}else if ($(this).hasClass('membtn')){
-		mem(b,e);
-	} else if ($(this).hasClass('diskbtn')){
-		disk(b,e);
-	}
-});
+	getload(b,e)
+})
+$(".cpubtn").click(function(){
+	$(this).parents(".searcTime").find("span").removeClass("on");
+	$(this).parents(".searcTime").find(".st").addClass("on");
+	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
+	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
+	b = Math.round(b);
+	e = Math.round(e);
+	cpu(b,e)
+})
+$(".membtn").click(function(){
+	$(this).parents(".searcTime").find("span").removeClass("on");
+	$(this).parents(".searcTime").find(".st").addClass("on");
+	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
+	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
+	b = Math.round(b);
+	e = Math.round(e);
+	mem(b,e)
+})
+$(".diskbtn").click(function(){
+	$(this).parents(".searcTime").find("span").removeClass("on");
+	$(this).parents(".searcTime").find(".st").addClass("on");
+	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
+	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
+	b = Math.round(b);
+	e = Math.round(e);
+	disk(b,e)
+})
+$(".networkbtn").click(function(){
+	$(this).parents(".searcTime").find("span").removeClass("on");
+	$(this).parents(".searcTime").find(".st").addClass("on");
+	var b = (new Date($(this).parent().find(".btime").val()).getTime())/1000;
+	var e = (new Date($(this).parent().find(".etime").val()).getTime())/1000;
+	b = Math.round(b);
+	e = Math.round(e);
+	network(b,e)
+})
 
 function Wday(day,name){
 	var now = (new Date().getTime())/1000;
@@ -147,19 +93,19 @@ function Wday(day,name){
 	}
 	switch (name){
 		case "cpu":
-			cpu(b, e);
+			cpu(b,e);
 			break;
 		case "mem":
-			mem(b, e);
+			mem(b,e);
 			break;
 		case "disk":
-			disk(b, e);
+			disk(b,e);
 			break;
 		case "network":
-			network(b, e);
+			network(b,e);
 			break;
 		case "getload":
-			getload(b, e);
+			getload(b,e);
 			break;
 	}
 }
@@ -172,29 +118,25 @@ function getToday(){
    return str;
 }
 
-getStatus();
-
 function getStatus(){
-	loadT = layer.msg('Reading, please wait...',{icon:16,time:0})
+	loadT = layer.msg('Membaca data, harap tunggu...',{icon:16,time:0})
 	$.post('/system/set_control','type=-1',function(rdata){
+		// console.log(rdata);
 		layer.close(loadT);
-
 		if(rdata.status){
 			$("#openJK").html("<input class='btswitch btswitch-ios' id='ctswitch' type='checkbox' checked><label class='btswitch-btn' for='ctswitch' onclick='setControl(\"openjk\", true)'></label>");
 		} else {
 			$("#openJK").html("<input class='btswitch btswitch-ios' id='ctswitch' type='checkbox'><label class='btswitch-btn' for='ctswitch' onclick='setControl(\"openjk\",false)'></label>");
 		}
-
 		if(rdata.stat_all_status){
 			$("#statAll").html("<input class='btswitch btswitch-ios' id='stat_witch' type='checkbox' checked><label class='btswitch-btn' for='stat_witch' onclick='setControl(\"stat\",true)'></label>");
 		} else{
 			$("#statAll").html("<input class='btswitch btswitch-ios' id='stat_witch' type='checkbox'><label class='btswitch-btn' for='stat_witch' onclick='setControl(\"stat\",false)'></label>");
 		}
-
-		$("#save_day").val(rdata.day);
-
+		$("#save_day").val(rdata.day)
 	},'json');
 }
+getStatus();
 
 function setControl(act, value=false){
 
@@ -202,7 +144,7 @@ function setControl(act, value=false){
 		var type = $("#ctswitch").prop('checked')?'0':'1';
 		var day = $("#save_day").val();
 		if(day < 1){
-			layer.msg('The number of storage days is invalid!',{icon:2});
+			layer.msg('Invalid number of days to keep!',{icon:2});
 			return;
 		}
 	} else if (act == 'stat'){
@@ -212,32 +154,30 @@ function setControl(act, value=false){
 		var day = $("#save_day").val();
 
 		if(type == 0){
-			layer.msg('Start monitoring first!',{icon:2});
+			layer.msg('Turn on monitoring first!',{icon:2});
 			return;
 		}
 
 		if(day < 1){
-			layer.msg('The number of storage days is invalid!',{icon:2});
+			layer.msg('Invalid number of days to keep!',{icon:2});
 			return;
 		}
 	}
 
-	loadT = layer.msg('Processing, please wait...',{icon:16,time:0})
+	loadT = layer.msg('Memproses ... tunggu sebentar...',{icon:16,time:0})
 	$.post('/system/set_control','type='+type+'&day='+day,function(rdata){
-		showMsg(rdata.msg, function(){
-			layer.close(loadT);
-		},{icon:rdata.status?1:2})
+		layer.close(loadT);
+		layer.msg(rdata.msg,{icon:rdata.status?1:2});
 	},'json');
 }
 
-
 function closeControl(){
-	layer.confirm('Do you really clear all monitoring records?',{title:'Clear record',icon:3,closeBtn:1}, function() {
-		loadT = layer.msg('Processing, please wait...',{icon:16,time:0})
+	layer.confirm('Apakah Anda benar-benar menghapus semua catatan pemantauan?？',{title:'Hapus catatan pemantauan',icon:3,closeBtn:1,btn:['Yes','No']}, function() {
+		loadT = layer.msg('Memproses ... tunggu sebentar...',{icon:16,time:0})
 		$.post('/system/set_control','type=del',function(rdata){
-			showMsg(rdata.msg, function(){
-				layer.close(loadT);
-			},{icon:rdata.status?1:2})
+			layer.close(loadT);
+			// $.get('/system?action=ReWeb',function(){});
+			layer.msg(rdata.msg,{icon:rdata.status?1:2});
 		},'json');
 	});
 }
@@ -250,20 +190,21 @@ function getBeforeDate(n){
     var day=d.getDate();
     if(day <= n){
 		if(mon>1) {
-			mon = mon-1;
-		} else {
-			year = year-1;
-			mon = 12;
+		   mon=mon-1;
+		}
+		else {
+		 year = year-1;
+		 mon = 12;
 		}
 	}
 	d.setDate(d.getDate()-n);
 	year = d.getFullYear();
 	mon=d.getMonth()+1;
 	day=d.getDate();
-  s = year+"/"+(mon<10?('0'+mon):mon)+"/"+(day<10?('0'+day):day);
-  return s;
+    s = year+"/"+(mon<10?('0'+mon):mon)+"/"+(day<10?('0'+day):day);
+    return s;
 }
-//cpu
+
 function cpu(b,e){
 	$.get('/system/get_cpu_io?start='+b+'&end='+e,function(rdata){
 		var myChartCpu = echarts.init(document.getElementById('cupview'));
@@ -462,10 +403,10 @@ function disk(b,e){
 				axisPointer: {
 					type: 'cross'
 				},
-				formatter:"time：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s",
+				formatter:"Waktu：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s",
 			},
 			legend: {
-				data:['read bytes','write bytes']
+				data:['Jumlah byte yang dibaca','Jumlah byte yang ditulis']
 			},
 			xAxis: {
 				type: 'category',
@@ -479,7 +420,7 @@ function disk(b,e){
 			},
 			yAxis: {
 				type: 'value',
-				name: 'unit:KB/s',
+				name: 'Unit:KB/s',
 				boundaryGap: [0, '100%'],
 				splitLine:{
 					lineStyle:{
@@ -512,7 +453,7 @@ function disk(b,e){
 			}],
 			series: [
 				{
-					name:'read bytes',
+					name:'Jumlah byte yang dibaca',
 					type:'line',
 					smooth:true,
 					symbol: 'none',
@@ -525,7 +466,7 @@ function disk(b,e){
 					data: rData
 				},
 				{
-					name:'write bytes',
+					name:'Jumlah byte yang ditulis',
 					type:'line',
 					smooth:true,
 					symbol: 'none',
@@ -677,7 +618,7 @@ function getload_old(b,e){
 			},
 			calculable: true,
 			legend: {
-				data:['System resource usage','1 minute','5 minutes','15 minutes'],
+				data:['Penggunaan sumber daya sistem','1 menit','5 menit','15 menit'],
 				selectedMode: 'single',
 			},
 			xAxis: {
@@ -725,7 +666,7 @@ function getload_old(b,e){
 			}],
 			series: [
 				{
-					name:'System resource usage',
+					name:'Penggunaan sumber daya sistem',
 					type:'line',
 					smooth:true,
 					symbol: 'none',
@@ -738,7 +679,7 @@ function getload_old(b,e){
 					data: yData
 				},
 				{
-					name:'1 minute',
+					name:'1 menit',
 					type:'line',
 					smooth:true,
 					symbol: 'none',
@@ -751,7 +692,7 @@ function getload_old(b,e){
 					data: zData
 				},
 				{
-					name:'5 minute',
+					name:'5 menit',
 					type:'line',
 					smooth:true,
 					symbol: 'none',
@@ -764,7 +705,7 @@ function getload_old(b,e){
 					data: aData
 				},
 				{
-					name:'15 minute',
+					name:'15 menit',
 					type:'line',
 					smooth:true,
 					symbol: 'none',
@@ -810,7 +751,7 @@ function getload(b,e){
 	            }
 			},
 			legend: {
-				data:['1 minute','5 minute','15 minute'],
+				data:['1 menit','5 menit','15 menit'],
 				right:'16%',
 				top:'10px'
 			},
@@ -859,7 +800,7 @@ function getload(b,e){
 			],
 			yAxis: [{
 					scale: true,
-					name: 'resource usage %',
+					name: 'Percentage',
 					splitLine: {
 						show: true,
 						lineStyle:{
@@ -879,7 +820,7 @@ function getload(b,e){
 				},
 				{
 					scale: true,
-					name: 'load details',
+					name: 'Memuat detail',
 					gridIndex: 1,
 					splitLine: {
 						show: true,
@@ -924,7 +865,7 @@ function getload(b,e){
 			}],
 			series: [
 				{
-					name: 'resource usage %',
+					name: 'Percentage',
 					type: 'line',
 					lineStyle: {
 						normal: {
@@ -942,7 +883,7 @@ function getload(b,e){
 				{
 					xAxisIndex: 1,
 					yAxisIndex: 1,
-					name: '1 minute',
+					name: '1 menit',
 					type: 'line',
 					lineStyle: {
 						normal: {
@@ -960,7 +901,7 @@ function getload(b,e){
 				{
 					xAxisIndex: 1,
 					yAxisIndex: 1,
-					name: '5 minute',
+					name: '5 menit',
 					type: 'line',
 					lineStyle: {
 						normal: {
@@ -978,7 +919,7 @@ function getload(b,e){
 				{
 					xAxisIndex: 1,
 					yAxisIndex: 1,
-					name: '15 minute',
+					name: '15 menit',
 					type: 'line',
 					lineStyle: {
 						normal: {

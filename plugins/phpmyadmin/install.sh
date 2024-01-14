@@ -10,20 +10,10 @@ serverPath=$(dirname "$rootPath")
 install_tmp=${rootPath}/tmp/slemp_install.pl
 
 
-if [ -f ${rootPath}/bin/activate ];then
-	source ${rootPath}/bin/activate
-fi
-
-if [ "$sys_os" == "Darwin" ];then
-	BAK='_bak'
-else
-	BAK=''
-fi
-
 sysName=`uname`
 echo "use system: ${sysName}"
 
-if [ "${sysName}" == "Darwin" ]; then
+if [ ${sysName} == "Darwin" ]; then
 	OSNAME='macos'
 elif grep -Eqi "CentOS" /etc/issue || grep -Eq "CentOS" /etc/*-release; then
 	OSNAME='centos'
@@ -41,13 +31,8 @@ fi
 
 Install_phpmyadmin()
 {
-	if [ -d $serverPath/phpmyadmin ];then
-		exit 0
-	fi
-
 	mkdir -p ${serverPath}/phpmyadmin
 	mkdir -p ${serverPath}/source/phpmyadmin
-	echo "${1}" > ${serverPath}/phpmyadmin/version.pl
 
 	VER=$1
 
@@ -67,8 +52,14 @@ Install_phpmyadmin()
 	cp -r $serverPath/source/phpmyadmin/$FDIR $serverPath/phpmyadmin/
 	cd $serverPath/phpmyadmin/ && mv $FDIR phpmyadmin
 
+	mkdir -p  $serverPath/phpmyadmin/tmp
+	chown -R www:www $serverPath/phpmyadmin/tmp
 
+	if [ "$OSNAME" != 'macos' ];then
+		chown -R www:www $serverPath/phpmyadmin/tmp
+	fi
 
+	echo "${1}" > ${serverPath}/phpmyadmin/version.pl
 	echo 'The installation is complete' > $install_tmp
 
 	cd ${rootPath} && python3 ${rootPath}/plugins/phpmyadmin/index.py start
@@ -80,7 +71,7 @@ Uninstall_phpmyadmin()
 	cd ${rootPath} && python3 ${rootPath}/plugins/phpmyadmin/index.py stop
 
 	rm -rf ${serverPath}/phpmyadmin
-	echo 'uninstall complete' > $install_tmp
+	echo 'Uninstall complete' > $install_tmp
 }
 
 action=$1

@@ -2,8 +2,8 @@
 	"title":"OpenResty",
 	"tip":"soft",
 	"name":"openresty",
-	"type":"other plugins",
-	"ps":"Lightweight, occupies less memory, and has strong concurrency",
+	"type":"other plugins-pp[0,]",
+	"ps":"Server Web ringan turunan Nginx",
 	"shell":"install.sh",
 	"install_pre_inspection":true,
 	"checks":"server/openresty",
@@ -12,6 +12,6 @@
 	"home":"http://openresty.org",
 	"date":"2017-11-24",
 	"pid": "1",
-	"versions": ["1.17.8.2","1.19.3.1","1.21.4.2"],
-	"updates": ["1.17.8.2","1.19.3.1","1.21.4.2"]
+	"versions": ["1.17.8.2","1.19.3.1","1.21.4.1"],
+	"updates": ["1.17.8.2","1.19.3.1","1.21.4.1"]
 }

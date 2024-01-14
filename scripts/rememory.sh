@@ -7,12 +7,12 @@ sysName=`uname`
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 
-log="Free memory!"
+log="free memory!"
 echo "★[$endDate] $log"
 echo '----------------------------------------------------------------------------'
 
 if [ $sysName == 'Darwin' ]; then
-	echo 'Apple memory release!'
+	echo 'Apple memory free!'
 else
 	echo 'do start!'
 fi
@@ -29,7 +29,7 @@ fi
 echo "OpenResty -- END"
 
 
-PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81)
+PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81 82)
 for PHP_VER in ${PHP_VER_LIST[@]}; do
 echo "PHP${PHP_VER} -- START"
 if [ -f /usr/lib/systemd/system/php${PHP_VER}.service ];then

@@ -12,14 +12,15 @@ serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
 
 LIBNAME=memcache
-LIBV=3.2.0
+LIBV=2.2.7
 sysName=`uname`
 actionType=$1
 version=$2
 
-if [ "$version" -lt "70" ];then
-	LIBV=2.2.0
-fi
+if [ "$version" -gt "56" ];then
+	echo "not need"
+	exit 1
+fi 
 
 
 LIB_PATH_NAME=lib/php
@@ -40,10 +41,10 @@ Install_lib()
 {
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
+		echo "php-$version ${LIBNAME} is installed, please select another version!"
 		return
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
 		php_lib=$sourcePath/php_lib
 		mkdir -p $php_lib
@@ -57,7 +58,7 @@ Install_lib()
 		make clean && make && make install && make clean
 
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
 		echo "ERROR!"
 		return
@@ -65,7 +66,7 @@ Install_lib()
 	echo "" >> $serverPath/php/$version/etc/php.ini
 	echo "[${LIBNAME}]" >> $serverPath/php/$version/etc/php.ini
 	echo "extension=${LIBNAME}.so" >> $serverPath/php/$version/etc/php.ini
-
+	
 
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==========================================================='
@@ -76,19 +77,19 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php-$version is not installed, please choose another version!"
+		echo "php-$version is not installed, please select another version!"
 		return
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
-		echo "php-$version ${LIBNAME} is not installed, please choose another version"
+		echo "php-$version ${LIBNAME} is not installed, please select another version!"
 		echo "php-$version not install memcache, Plese select other version!"
 		return
 	fi
-
+	
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
-
+		
 	rm -f $extFile
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='

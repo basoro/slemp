@@ -5,6 +5,8 @@ curPath=`pwd`
 rootPath=$(dirname "$curPath")
 
 
+#----------------------------- 代码打包 -------------------------#
+
 echo $rootPath
 cd $rootPath
 rm -rf ./*.pyc
@@ -14,9 +16,7 @@ startTime=`date +%s`
 
 zip -r -q -o slemp.zip  ./ -x@$curPath/pick_filter.txt
 
-
-
-mv slemp.zip $rootPath/scripts
+mv slemp.zip $rootPath/scripts 
 
 endTime=`date +%s`
 ((outTime=($endTime-$startTime)))

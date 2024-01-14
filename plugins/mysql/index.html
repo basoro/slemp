@@ -4,19 +4,19 @@
 		<div class="bt-w-menu">
 			<!-- <script type="text/javascript">console.log($('.plugin_version').attr('version'));</script> -->
 			<p class="bgw" onclick="pluginService('mysql', $('.plugin_version').attr('version'));">Service</p>
-			<p onclick="pluginInitD('mysql', $('.plugin_version').attr('version'));">Install Service</p>
-			<p onclick="pluginConfig('mysql', $('.plugin_version').attr('version'));">Config</p>
+			<p onclick="pluginInitD('mysql', $('.plugin_version').attr('version'));">Init</p>
+			<p onclick="pluginConfig('mysql', $('.plugin_version').attr('version'));">File Config</p>
 			<p onclick="myDbPos();">Storage</p>
 			<p onclick="myPort();">Port</p>
-			<p onclick="runInfo();">Current status</p>
+			<p onclick="runInfo();">Current state</p>
 			<p onclick="myPerfOpt();">Optimization</p>
 			<p onclick="myLogs();">Logs</p>
-			<p onclick="pluginLogs('mysql',$('.plugin_version').attr('version'),'show_log');">Slow logs</p>
-			<p onclick="dbList()">Database List</p>
-			<p onclick="masterOrSlaveConf($('.plugin_version').attr('version'))">Master-Slave Config</p>
+			<p onclick="pluginLogs('mysql',$('.plugin_version').attr('version'),'show_log');">Slow log</p>
+			<p onclick="dbList()">Manage lists</p>
+			<p onclick="masterOrSlaveConf($('.plugin_version').attr('version'))">Replication</p>
 		</div>
-		<div class="bt-w-con pd15" style="height:555px;overflow: auto;">
-			<div class="soft-man-con"></div>
+		<div class="bt-w-con pd15">
+			<div class="soft-man-con" style="height: 530px; overflow: auto;"></div>
 		</div>
 	</div>
 
@@ -53,7 +53,7 @@
 .conf_p span {
     display: inline-block;
     margin-right: 10px;
-    width: 115px;
+    width: 135px;
     text-align: right;
 }
 </style>

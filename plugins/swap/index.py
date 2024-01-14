@@ -56,7 +56,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, slemp.returnJson(False, 'Parameter: (' + ck[i] + ') none!'))
+            return (False, slemp.returnJson(False, 'parameter:(' + ck[i] + ')no!'))
     return (True, slemp.returnJson(True, 'ok'))
 
 
@@ -65,6 +65,12 @@ def status():
     if data[0].strip() == '0':
         return 'stop'
     return 'start'
+
+
+def getInitDTpl():
+    path = getPluginDir() + "/init.d/" + getPluginName() + ".tpl"
+    return path
+
 
 def initDreplace():
 
@@ -159,7 +165,6 @@ def initdUinstall():
     slemp.execShell('systemctl disable swap')
     return 'ok'
 
-
 def swapStatus():
     sfile = getServerDir() + '/swapfile'
 
@@ -209,9 +214,5 @@ if __name__ == "__main__":
         print(initdUinstall())
     elif func == 'conf':
         print(getConf())
-    elif func == "swap_status":
-        print(swapStatus())
-    elif func == "change_swap":
-        print(changeSwap())
     else:
         print('error')

@@ -19,6 +19,7 @@ class ORM:
     __DB_CHARSET = 'utf8'
 
     def __Conn(self):
+        '''Connect to MYSQL database'''
         try:
 
             try:
@@ -81,7 +82,7 @@ class ORM:
 
     def setUser(self, user):
         self.__DB_USER = user
-
+        
     def execute(self, sql):
         if not self.__Conn():
             return self.__DB_ERR

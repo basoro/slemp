@@ -1,6 +1,6 @@
-function getWeb(page, search, type_id) {
-	var search = $("#SearchValue").prop("value");
-	var page = page == undefined ? '1':page;
+ function getWeb(page, search, type_id) {
+	search = $("#SearchValue").prop("value");
+	page = page == undefined ? '1':page;
 	var order = getCookie('order');
 	if(order){
 		order = '&order=' + order;
@@ -10,7 +10,7 @@ function getWeb(page, search, type_id) {
 
 	var type = '';
 	if ( typeof(type_id) == 'undefined' ){
-		type = '&type_id=-1';
+		type = '&type_id=0';
 	} else {
 		type = '&type_id='+type_id;
 	}
@@ -18,24 +18,25 @@ function getWeb(page, search, type_id) {
 	var sUrl = '/site/list';
 	var pdata = 'limit=10&p=' + page + '&search=' + search + order + type;
 	var loadT = layer.load();
+
 	$.post(sUrl, pdata, function(data) {
 		layer.close(loadT);
 		var body = '';
 		$("#webBody").html(body);
 		for (var i = 0; i < data.data.length; i++) {
 			if (data.data[i].status == 'running' || data.data[i].status == '1') {
-				var status = "<a href='javascript:;' title='Disable this site' onclick=\"webStop(" + data.data[i].id + ",'" + data.data[i].name + "')\" class='btn-defsult'><span style='color:rgb(92, 184, 92)'>Running</span><span style='color:rgb(92, 184, 92)' class='glyphicon glyphicon-play'></span></a>";
+				var status = "<a href='javascript:;' title='Nonaktifkan situs ini' onclick=\"webStop(" + data.data[i].id + ",'" + data.data[i].name + "')\" class='btn-defsult'><span style='color:rgb(92, 184, 92)'>running</span><span style='color:rgb(92, 184, 92)' class='glyphicon glyphicon-play'></span></a>";
 			} else {
-				var status = "<a href='javascript:;' title='Enable this site' onclick=\"webStart(" + data.data[i].id + ",'" + data.data[i].name + "')\" class='btn-defsult'><span style='color:red'>Stopped</span><span style='color:rgb(255, 0, 0);' class='glyphicon glyphicon-pause'></span></a>";
+				var status = "<a href='javascript:;' title='Aktifkan situs ini' onclick=\"webStart(" + data.data[i].id + ",'" + data.data[i].name + "')\" class='btn-defsult'><span style='color:red'>stopped</span><span style='color:rgb(255, 0, 0);' class='glyphicon glyphicon-pause'></span></a>";
 			}
 
 			if (data.data[i].backup_count > 0) {
-				var backup = "<a href='javascript:;' class='btlink' onclick=\"getBackup(" + data.data[i].id + ")\">Have backup</a>";
+				var backup = "<a href='javascript:;' class='btlink' onclick=\"getBackup(" + data.data[i].id + ")\">Ada</a>";
 			} else {
-				var backup = "<a href='javascript:;' class='btlink' onclick=\"getBackup(" + data.data[i].id + ")\">No backup</a>";
+				var backup = "<a href='javascript:;' class='btlink' onclick=\"getBackup(" + data.data[i].id + ")\">Tidak</a>";
 			}
 
-			var web_end_time = (data.data[i].edate == "0000-00-00") ? 'Forever': data.data[i].edate;
+			var web_end_time = (data.data[i].edate == "0000-00-00") ? 'forever': data.data[i].edate;
 
 			var shortwebname = data.data[i].name;
 			var shortpath = data.data[i].path;
@@ -51,16 +52,16 @@ function getWeb(page, search, type_id) {
 					<td><a class='btlink webtips' href='javascript:;' onclick=\"webEdit(" + data.data[i].id + ",'" + data.data[i].name + "','" + data.data[i].edate + "','" + data.data[i].addtime + "')\" title='"+data.data[i].name+"'>" + shortwebname + "</td>\
 					<td>" + status + "</td>\
 					<td>" + backup + "</td>\
-					<td><a class='btlink' title='Open Directory"+data.data[i].path+"' href=\"javascript:openPath('"+data.data[i].path+"');\">" + shortpath + "</a></td>\
+					<td><a class='btlink' title='open Directory"+data.data[i].path+"' href=\"javascript:openPath('"+data.data[i].path+"');\">" + shortpath + "</a></td>\
 					<td><a class='btlink setTimes' id='site_"+data.data[i].id+"' data-ids='"+data.data[i].id+"'>" + web_end_time + "</a></td>\
 					<td><a class='btlinkbed' href='javascript:;' data-id='"+data.data[i].id+"'>" + data.data[i].ps + "</a></td>\
 					<td style='text-align:right; color:#bbb'>\
-					<a href='javascript:;' class='btlink' onclick=\"webEdit(" + data.data[i].id + ",'" + data.data[i].name + "','" + data.data[i].edate + "','" + data.data[i].addtime + "')\">Setup</a>\
-                        | <a href='javascript:;' class='btlink' onclick=\"webDelete('" + data.data[i].id + "','" + data.data[i].name + "')\" title='Delete site'>Delete</a>\
+					<a href='javascript:;' class='btlink' onclick=\"webEdit(" + data.data[i].id + ",'" + data.data[i].name + "','" + data.data[i].edate + "','" + data.data[i].addtime + "')\">Setting</a>\
+                        | <a href='javascript:;' class='btlink' onclick=\"webDelete('" + data.data[i].id + "','" + data.data[i].name + "')\" title='Hapus situs'>Del</a>\
 					</td></tr>"
 
 			$("#webBody").append(body);
-			//setEdate(data.data[i].id,data.data[i].edate);
+
 			function getDate(a) {
 				var dd = new Date();
 				dd.setTime(dd.getTime() + (a == undefined || isNaN(parseInt(a)) ? 0 : parseInt(a)) * 86400000);
@@ -78,13 +79,12 @@ function getWeb(page, search, type_id) {
 					,max:'2099-12-31'
 					,vlue:getDate(365)
 					,type:'date'
-					,lang: 'en'
 					,format :'yyyy-MM-dd'
 					,trigger:'click'
 					,btns:['perpetual', 'confirm']
 					,theme:'#20a53a'
 					,done:function(dates){
-						if(_this.html() == 'Forever'){
+						if(_this.html() == 'forever'){
 						 	dates = '0000-00-00';
 						}
 						var loadT = layer.msg(lan.site.saving_txt, { icon: 16, time: 0, shade: [0.3, "#000"]});
@@ -98,8 +98,7 @@ function getWeb(page, search, type_id) {
             });
 		}
 		if(body.length < 10){
-			body = "<tr><td colspan='9'>Currently no site data</td></tr>";
-			// $(".dataTables_paginate").hide();
+			body = "<tr><td colspan='9'>Saat ini tidak ada data situs</td></tr>";
 			$("#webBody").html(body);
 		}
 
@@ -117,7 +116,7 @@ function getWeb(page, search, type_id) {
 			if(databak == null){
 				databak = '';
 			}
-			$(this).hide().after("<input class='baktext' type='text' data-id='"+dataid+"' data-page='"+page+"' name='bak' value='" + databak + "' placeholder='Description' onblur='getBakPost(\"sites\")' />");
+			$(this).hide().after("<input class='baktext' type='text' data-id='"+dataid+"' name='bak' value='" + databak + "' placeholder='Catatan' onblur='getBakPost(\"sites\")' />");
 			$(".baktext").focus();
 		});
 
@@ -128,34 +127,33 @@ function getWeb(page, search, type_id) {
 
 function getBakPost(b) {
 	$(".baktext").hide().prev().show();
-	var id = $(".baktext").attr("data-id");
-	var page = $(".baktext").attr("data-page");
+	var c = $(".baktext").attr("data-id");
 	var a = $(".baktext").val();
 	if(a == "") {
-		a = 'null';
+		a = 'batal';
 	}
-	setWebPs(b, id, a,page);
-	$("a[data-id='" + id + "']").html(a);
+	setWebPs(b, c, a);
+	$("a[data-id='" + c + "']").html(a);
 	$(".baktext").remove();
 }
 
-function setWebPs(b, id, ps,page) {
+function setWebPs(b, e, a) {
 	var d = layer.load({shade: true,shadeClose: false});
-	var ps = 'ps=' + ps;
-	$.post('/site/set_ps', 'id=' + id + "&" + ps, function(data) {
+	var c = 'ps=' + a;
+	$.post('/site/set_ps', 'id=' + e + "&" + c, function(data) {
 		if(data['status']) {
-			getWeb(page);
+			getWeb(1);
 			layer.closeAll();
-			layer.msg('Successfully modified!', {icon: 1});
+			layer.msg('Berhasil dimodifikasi!', {icon: 1});
 		} else {
 			layer.closeAll();
-			layer.msg('Fail to edit!', {icon: 2});
+			layer.msg('Gagal mengedit!', {icon: 2});
 		}
 	},'json');
 }
 
 function webAdd(type){
-	loading = layer.msg('Checking whether the OpenResty service is enabled!',{icon:16,time:0,shade: [0.3, "#000"]})
+	loading = layer.msg('Memeriksa apakah layanan OpenResty diaktifkan!',{icon:16,time:0,shade: [0.3, "#000"]})
 	$.post('/site/check_web_status', function(data){
 		layer.close(loading);
 		if (data.status){
@@ -197,7 +195,7 @@ function webAddPage(type) {
 			if (ret.status == true) {
 				getWeb(1);
 				layer.closeAll();
-				layer.msg('Successfully created site',{icon:1})
+				layer.msg('Situs berhasil dibuat',{icon:1})
 			} else {
 				layer.msg(ret.msg, {icon: 2});
 			}
@@ -221,7 +219,7 @@ function webAddPage(type) {
 			type: 1,
 			skin: 'demo-class',
 			area: '640px',
-			title: 'Add site',
+			title: 'Tambahkan situs web',
 			closeBtn: 1,
 			shift: 0,
 			shadeClose: false,
@@ -233,13 +231,13 @@ function webAddPage(type) {
 							</div>\
 						</div>\
 	                    <div class='line'>\
-	                    <span class='tname'>Description</span>\
+	                    <span class='tname'>Catatan</span>\
 	                    <div class='info-r c4'>\
-	                    	<input id='Wbeizhu' class='bt-input-text' type='text' name='ps' placeholder='Site Description' style='width:458px' />\
+	                    	<input id='Wbeizhu' class='bt-input-text' type='text' name='ps' placeholder='Catatan Situs Web' style='width:458px' />\
 	                    </div>\
 	                    </div>\
 	                    <div class='line'>\
-	                    <span class='tname'>Root directory</span>\
+	                    <span class='tname'>Directori</span>\
 	                    <div class='info-r c4'>\
 	                    	<input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='"+www['dir']+"/' placeholder='"+www['dir']+"' style='width:458px' />\
 	                    	<span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span>\
@@ -247,8 +245,8 @@ function webAddPage(type) {
 	                    </div>\
 						"+php_version+"\
 	                    <div class='bt-form-submit-btn'>\
-							<button type='button' class='btn btn-danger btn-sm btn-title' onclick='layer.closeAll()'>Cancel</button>\
-							<button type='button' class='btn btn-success btn-sm btn-title' onclick=\"webAdd(1)\">Add</button>\
+							<button type='button' class='btn btn-danger btn-sm btn-title' onclick='layer.closeAll()'>Batal</button>\
+							<button type='button' class='btn btn-success btn-sm btn-title' onclick=\"webAdd(1)\">Submit</button>\
 						</div>\
 	                  </form>",
 		});
@@ -272,7 +270,7 @@ function webAddPage(type) {
 
 			$("select[name='version']").change(function(){
 				if($(this).val() == '52'){
-					var msgerr = 'PHP5.2 has cross-site risk when your site has vulnerabilities, please try to use PHP5.3 or above!';
+					var msgerr = 'PHP5.2 memiliki risiko lintas situs ketika situs Anda memiliki celah, coba gunakan PHP5.3 atau lebih tinggi!';
 					$('#php_w').text(msgerr);
 				}else{
 					$('#php_w').text('');
@@ -307,11 +305,12 @@ function webAddPage(type) {
 				if (len > 20) {
 					str = str.substring(0, 20);
 					$(this).val(str);
-					layer.msg('Cannot exceed 20 characters!', {
+					layer.msg('Tidak boleh melebihi 20 karakter!', {
 						icon: 0
 					});
 				}
 			})
+
 			var timestamp = new Date().getTime().toString();
 			var dtpw = timestamp.substring(7);
 		});
@@ -323,7 +322,7 @@ function webPathEdit(id){
 		var userini = data['data'];
 		var webpath = userini['path'];
 		var siteName = userini['name'];
-		var runPath = userini['runPath']['runPath'];
+    var runPath = userini['runPath']['runPath'];
 		var userinicheckeds = userini.userini?'checked':'';
 		var logscheckeds = userini.logs?'checked':'';
 		var opt = ''
@@ -337,55 +336,53 @@ function webPathEdit(id){
 		}
 		var webPathHtml = "<div class='webedit-box soft-man-con'>\
 					<div class='label-input-group ptb10'>\
-						<input type='checkbox' name='userini' id='userini'"+userinicheckeds+" /><label class='mr20' for='userini' style='font-weight:normal'>Anti-cross-site attack (open_basedir)</label>\
-						<input type='checkbox' name='logs' id='logs'"+logscheckeds+" /><label for='logs' style='font-weight:normal'>Write access log</label>\
+						<input type='checkbox' name='userini' id='userini'"+userinicheckeds+" /><label class='mr20' for='userini' style='font-weight:normal'>Serangan anti-cross-site(open_basedir)</label>\
+						<input type='checkbox' name='logs' id='logs'"+logscheckeds+" /><label for='logs' style='font-weight:normal'>Menulis log akses</label>\
 					</div>\
 					<div class='line mt10'>\
-						<span class='mr5'>Website directory</span>\
-						<input class='bt-input-text mr5' type='text' style='width:50%' placeholder='Website root directory' value='"+webpath+"' name='webdir' id='inputPath'>\
+						<span class='mr5'>Direktori situs</span>\
+						<input class='bt-input-text mr5' type='text' style='width:50%' placeholder='Direktori root situs web' value='"+webpath+"' name='webdir' id='inputPath'>\
 						<span onclick='changePath(&quot;inputPath&quot;)' class='glyphicon glyphicon-folder-open cursor mr20'></span>\
-						<button class='btn btn-success btn-sm' onclick='setSitePath("+id+")'>Save</button>\
+						<button class='btn btn-success btn-sm' onclick='setSitePath("+id+")'>Simpan</button>\
 					</div>\
 					<div class='line mtb15'>\
-						<span class='mr5'>Run directory</span>\
+						<span class='mr5'>Run Path</span>\
 						<select class='bt-input-text' type='text' style='width:50%; margin-right:41px' name='runPath' id='runPath'>"+opt+"</select>\
-						<button class='btn btn-success btn-sm' onclick='setSiteRunPath("+id+")' style='margin-top: -1px;'>Save</button>\
+						<button class='btn btn-success btn-sm' onclick='setSiteRunPath("+id+")' style='margin-top: -1px;'>Simpan</button>\
 					</div>\
 					<ul class='help-info-text c7 ptb10'>\
-						<li>Some programs need to specify a secondary directory as the running directory, such as Laravel</li>\
-						<li>Select your running directory, click save</li>\
+						<li>Beberapa program perlu menentukan direktori sekunder sebagai direktori yang sedang berjalan, seperti ThinkPHP5, Laravel</li>\
+						<li>Pilih direktori aplikasi berjalan dan klik simpan</li>\
 					</ul>"
 					+'<div class="user_pw_tit" style="margin-top: -8px;padding-top: 11px;">'
-						+'<span class="tit">Password access</span>'
+						+'<span class="tit">Akses password</span>'
 						+'<span class="btswitch-p"><input '+(userini.pass?'checked':'')+' class="btswitch btswitch-ios" id="pathSafe" type="checkbox">'
 							+'<label class="btswitch-btn phpmyadmin-btn" for="pathSafe" onclick="pathSafe('+id+')"></label>'
 						+'</span>'
 					+'</div>'
 					+'<div class="user_pw" style="margin-top: 10px;display:'+(userini.pass?'block;':'none;')+'">'
-						+'<p><span>Authorized account</span><input id="username_get" class="bt-input-text" name="username_get" value="" type="text" placeholder="Do not modify please leave blank"></p>'
-						+'<p><span>Password</span><input id="password_get_1" class="bt-input-text" name="password_get_1" value="" type="password" placeholder="Do not modify please leave blank"></p>'
-						+'<p><span>Re-Password</span><input id="password_get_2" class="bt-input-text" name="password_get_1" value="" type="password" placeholder="Do not modify please leave blank"></p>'
-						+'<p><button class="btn btn-success btn-sm" onclick="setPathSafe('+id+')">Save</button></p>'
+						+'<p><span>Akun</span><input id="username_get" class="bt-input-text" name="username_get" value="" type="text" placeholder="Silakan kosongkan"></p>'
+						+'<p><span>Password</span><input id="password_get_1" class="bt-input-text" name="password_get_1" value="" type="password" placeholder="Silakan kosongkan"></p>'
+						+'<p><span>Re-Password</span><input id="password_get_2" class="bt-input-text" name="password_get_1" value="" type="password" placeholder="Silakan kosongkan"></p>'
+						+'<p><button class="btn btn-success btn-sm" onclick="setPathSafe('+id+')">Simpan</button></p>'
 					+'</div>'
 				+'</div>';
 
 		$("#webedit-con").html(webPathHtml);
 		$("#userini").change(function(){
-			$.post('/site/set_dir_user_ini',{
+      $.post('/site/set_dir_user_ini',{
 				'path':webpath,
 				'runPath':runPath,
 			},function(userini){
-				layer.msg(userini.msg+'<p style="color:red;">Note: Setting anti-cross-site needs to restart PHP to take effect!</p>',{icon:userini.status?1:2});
+				layer.msg(userini.msg+'<p style="color:red;">Catatan: Pengaturan anti-cross-site perlu restart PHP!</p>',{icon:userini.status?1:2});
 				tryRestartPHP(siteName);
 			},'json');
 		});
 
 		$("#logs").change(function(){
-			var loadT = layer.msg("Setting up...",{icon:16,time:10000,shade: [0.3, '#000']});
-			$.post('/site/logs_open','id='+id, function(rdata){
-				layer.close(loadT);
-				layer.msg(rdata.msg,{icon:rdata.status?1:2});
-			},'json');
+			$.post('/site/logs_open','id='+id,function(userini){
+				layer.msg(userini.msg,{icon:userini.status?1:2});
+			},'josn');
 		});
 
 	},'json');
@@ -410,10 +407,10 @@ function setPathSafe(id){
 	var pass1 = $("#password_get_1").val();
 	var pass2 = $("#password_get_2").val();
 	if(pass1 != pass2){
-		layer.msg('The two entered passwords do not match!',{icon:2});
+		layer.msg('Kedua kata sandi yang dimasukkan tidak cocok!',{icon:2});
 		return;
 	}
-	var loadT = layer.msg('Processing, please wait...',{icon:16,time:10000,shade: [0.3, '#000']});
+	var loadT = layer.msg('Memproses ... tunggu sebentar...',{icon:16,time:10000,shade: [0.3, '#000']});
 	$.post('/site/set_has_pwd',{id:id,username:username,password:pass1},function(rdata){
 		layer.close(loadT);
 		layer.msg(rdata.msg,{icon:rdata.status?1:2});
@@ -432,7 +429,7 @@ function setSiteRunPath(id){
 
 function setSitePath(id){
 	var NewPath = $("#inputPath").val();
-	var loadT = layer.msg('Processing, please wait...',{icon:16,time:10000,shade: [0.3, '#000']});
+	var loadT = layer.msg('Memproses ... tunggu sebentar...',{icon:16,time:10000,shade: [0.3, '#000']});
 	$.post('/site/set_path','id='+id+'&path='+NewPath,function(rdata){
 		layer.close(loadT);
 		layer.msg(rdata.msg,{icon:rdata.status?1:2});
@@ -446,7 +443,7 @@ function webBakEdit(id){
 					<label><span>"+lan.site.note_ph+"</span></label>\
 					<div class='info-r'>\
 					<textarea name='beizhu' id='webbeizhu' col='5' style='width:96%'>"+rdata+"</textarea>\
-					<br><br><button class='btn btn-success btn-sm' onclick='SetSitePs("+id+")'>Save</button>\
+					<br><br><button class='btn btn-success btn-sm' onclick='SetSitePs("+id+")'>Simpan</button>\
 					</div>\
 					</div>";
 		$("#webedit-con").html(webBakHtml);
@@ -463,7 +460,7 @@ function setIndexEdit(id){
 						<button type='button' class='btn btn-success btn-sm pull-right' onclick='setIndexList("+id+")' style='margin: 70px 130px 0px 0px;'>"+lan.public.save+"</button>\
 				</div>\
 				<ul class='help-info-text c7 ptb10'>\
-					<li>Default document, one per line, with priority from top to bottom.</li>\
+					<li>Dokumen default, satu per baris, prioritas atas-ke-bawah.</li>\
 				</ul>\
 				</div></div>";
 		$("#webedit-con").html(setIndexHtml);
@@ -471,7 +468,7 @@ function setIndexEdit(id){
 }
 
 function webStop(wid, wname) {
-	layer.confirm('After the site is disabled, you will not be able to access it. Do you really want to disable this site？', {icon:3,closeBtn:2},function(index) {
+	layer.confirm('Situs tidak akan dapat diakses setelah penonaktifan, apakah Anda benar-benar ingin menonaktifkan situs ini?', {title:'Notification',icon:3,closeBtn:2,btn:['Yes','No']},function(index) {
 		if (index > 0) {
 			var loadT = layer.load();
 			$.post("/site/stop","id=" + wid + "&name=" + wname, function(ret) {
@@ -484,7 +481,7 @@ function webStop(wid, wname) {
 }
 
 function webStart(wid, wname) {
-	layer.confirm('About to launch the site, do you really want to launch this site?',{icon:3,closeBtn:2}, function(index) {
+	layer.confirm('Situs akan diaktifkan, apakah Anda benar-benar ingin mengaktifkan situs ini?',{title:'Notification',icon:3,closeBtn:2,btn:['Yes','No']}, function(index) {
 		if (index > 0) {
 			var loadT = layer.load()
 			$.post("/site/start","id=" + wid + "&name=" + wname, function(ret) {
@@ -498,15 +495,15 @@ function webStart(wid, wname) {
 
 function webDelete(wid, wname){
 	var thtml = "<div class='options'>\
-	    	<label><input type='checkbox' id='delpath' name='path'><span>Root directory</span></label>\
+	    	<label><input type='checkbox' id='delpath' name='path'><span>Direktori</span></label>\
 	    	</div>";
-	var info = 'Do you want to delete the root directory with the same name';
-	safeMessage('Delete site '+"["+wname+"]",info, function(){
+	var info = 'Apakah akan menghapus direktori root dengan nama yang sama';
+	safeMessage('Hapus situs '+"["+wname+"]",info, function(){
 		var path='';
 		if($("#delpath").is(":checked")){
 			path='&path=1';
 		}
-		var loadT = layer.msg('Processing, please wait...',{icon:16,time:10000,shade: [0.3, '#000']});
+		var loadT = layer.msg('Memproses ... tunggu sebentar...',{icon:16,time:10000,shade: [0.3, '#000']});
 		$.post("/site/delete","id=" + wid + "&webname=" + wname + path, function(ret){
 			layer.closeAll();
 			layer.msg(ret.msg,{icon:ret.status?1:2})
@@ -581,10 +578,10 @@ function domainEdit(id, name, msg, status) {
 		}
 		var bodyHtml = "<textarea id='newdomain' class='bt-input-text' style='height: 100px; width: 340px;padding:5px 10px;line-height:20px'></textarea>\
 								<input type='hidden' id='newport' value='80' />\
-								<button type='button' class='btn btn-success btn-sm pull-right' style='margin:30px 35px 0 0' onclick=\"domainAdd(" + id + ",'" + name + "',1)\">Add to</button>\
+								<button type='button' class='btn btn-success btn-sm pull-right' style='margin:30px 35px 0 0' onclick=\"domainAdd(" + id + ",'" + name + "',1)\">Tambah</button>\
 							<div class='divtable mtb15' style='height:350px;overflow:auto'>\
 								<table class='table table-hover' width='100%'>\
-								<thead><tr><th>"+lan.site.domain+"</th><th width='70px'>Port</th><th width='50px' class='text-center'>Action</th></tr></thead>\
+								<thead><tr><th>"+lan.site.domain+"</th><th width='70px'>Port</th><th width='50px' class='text-center'>Aksi</th></tr></thead>\
 								<tbody id='checkDomain'>" + echoHtml + "</tbody>\
 								</table>\
 							</div>";
@@ -592,7 +589,7 @@ function domainEdit(id, name, msg, status) {
 		if(msg != undefined){
 			layer.msg(msg,{icon:status?1:5});
 		}
-		var placeholder = "<div class='placeholder c9' style='left:28px;width:330px;top:16px;'>Fill in a domain name in each line, the default is port 80<br>Pan analysis method to add *.domain.com<br>If you add another port, the format is www.domain.com:88</div>";
+		var placeholder = "<div class='placeholder c9' style='left:28px;width:330px;top:16px;'>Isikan satu nama domain per baris, defaultnya adalah port 80<br>Tambahkan metode untuk pan-analytics *.domain.com<br>Jika format port tambahan adalah www.domain.com:88</div>";
 		$('#newdomain').after(placeholder);
 		$(".placeholder").click(function(){
 			$(this).hide();
@@ -615,8 +612,56 @@ function domainEdit(id, name, msg, status) {
 				$('.btn-zhm').hide();
 			}
 		})
-		//checkDomain();
 	},'json');
+}
+
+function DomainRoot(id, name,msg) {
+	$.get('/data?action=getData&table=domain&list=True&search=' + id, function(domain) {
+		var echoHtml = "";
+		for (var i = 0; i < domain.length; i++) {
+			echoHtml += "<tr><td><a title='"+lan.site.click_access+"' target='_blank' href='http://" + domain[i].name + ":" + domain[i].port + "' class='btlinkbed'>" + domain[i].name + "</a></td><td><a class='btlinkbed'>" + domain[i].port + "</a></td><td class='text-center'><a class='table-btn-del' href='javascript:;' onclick=\"delDomain(" + id + ",'" + name + "','" + domain[i].name + "','" + domain[i].port + "',1)\"><span class='glyphicon glyphicon-trash'></span></a></td></tr>";
+		}
+		var index = layer.open({
+			type: 1,
+			skin: 'demo-class',
+			area: '450px',
+			title: lan.site.domain_man,
+			closeBtn: 1,
+			shift: 0,
+			shadeClose: true,
+			content: "<div class='divtable padding-10'>\
+						<textarea id='newdomain'></textarea>\
+						<input type='hidden' id='newport' value='80' />\
+						<button type='button' class='btn btn-success btn-sm pull-right' style='margin:30px 35px 0 0' onclick=\"domainAdd(" + id + ",'" + name + "')\">Tambah</button>\
+						<table class='table table-hover' width='100%' style='margin-bottom:0'>\
+						<thead><tr><th>"+lan.site.domain+"</th><th width='70px'>"+lan.site.port+"</th><th width='50px' class='text-center'>"+lan.site.operate+"</th></tr></thead>\
+						<tbody id='checkDomain'>" + echoHtml + "</tbody>\
+						</table></div>"
+		});
+		if(msg != undefined){
+			layer.msg(msg,{icon:1});
+		}
+		var placeholder = "<div class='placeholder'>"+lan.site.domain_help+"</div>";
+		$('#newdomain').after(placeholder);
+		$(".placeholder").click(function(){
+			$(this).hide();
+			$('#newdomain').focus();
+		})
+		$('#newdomain').focus(function() {
+		    $(".placeholder").hide();
+		});
+
+		$('#newdomain').blur(function() {
+			if($(this).val().length==0){
+				$(".placeholder").show();
+			}
+		});
+		$("#newdomain").on("input",function(){
+			var str = $(this).val();
+			if(isChineseChar(str)) $('.btn-zhm').show();
+			else $('.btn-zhm').hide();
+		})
+	});
 }
 
 function cancelSend(){
@@ -659,7 +704,7 @@ function delDomain(wid, wname, domain, port,type) {
 	if(num==1){
 		layer.msg(lan.site.domain_last_cannot);
 	}
-	layer.confirm(lan.site.domain_del_confirm,{icon:3,closeBtn:2}, function(index) {
+	layer.confirm(lan.site.domain_del_confirm,{title:'Notification',icon:3,closeBtn:2,btn:['Yes','No']}, function(index) {
 		var url = "/site/del_domain"
 		var data = "id=" + wid + "&webname=" + wname + "&domain=" + domain + "&port=" + port;
 		var loadT = layer.msg(lan.public.the_del,{time:0,icon:16});
@@ -678,7 +723,6 @@ function delDomain(wid, wname, domain, port,type) {
 }
 
 function isDomain(domain) {
-	//domain = 'http://'+domain;
 	var re = new RegExp();
 	re.compile("^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_%&\?\/.=]+$");
 	if (re.test(domain)) {
@@ -689,7 +733,7 @@ function isDomain(domain) {
 }
 
 function webBackup(id, name) {
-	var loadT =layer.msg('Backup in progress, please wait...', {icon:16,time:0,shade: [0.3, '#000']});
+	var loadT =layer.msg('Mencadangkan, harap tunggu...', {icon:16,time:0,shade: [0.3, '#000']});
 	$.post('/site/to_backup', "id="+id, function(rdata) {
 		layer.closeAll();
 		layer.msg(rdata.msg,{icon:rdata.status?1:2});
@@ -699,8 +743,8 @@ function webBackup(id, name) {
 }
 
 function webBackupDelete(id,pid){
-	layer.confirm('Do you really want to delete the backup package?',{title:'Delete backup file!',icon:3,closeBtn:2},function(index){
-		var loadT =layer.msg('正在删除,请稍候...', {icon:16,time:0,shade: [0.3, '#000']});
+	layer.confirm('Apakah Anda benar-benar ingin menghapus paket cadangan??',{title:'Hapus file cadangan!',icon:3,closeBtn:2,btn:['Yes','No']},function(index){
+		var loadT =layer.msg('Menghapus, harap tunggu...', {icon:16,time:0,shade: [0.3, '#000']});
 		$.post('/site/del_backup','id='+id, function(rdata){
 			layer.closeAll();
 			layer.msg(rdata.msg,{icon:rdata.status?1:2});
@@ -711,30 +755,29 @@ function webBackupDelete(id,pid){
 
 function getBackup(id,name,page) {
 
-	if(typeof(page) == 'undefined'){
+	if(page == undefined){
 		page = '1';
 	}
 	$.post('/site/get_backup','search=' + id + '&limit=5&p='+page, function(frdata){
 		var body = '';
-		for (var i = 0; i < frdata.data.length; i++) {
-			if(frdata.data[i].type == '1') {
-				continue;
+			for (var i = 0; i < frdata.data.length; i++) {
+				if(frdata.data[i].type == '1') {
+					continue;
+				}
+
+				var ftpdown = "<a class='btlink' href='/files/download?filename="+frdata.data[i].filename+"&name="+frdata.data[i].name+"' target='_blank'>Unduh</a> | ";
+				body += "<tr><td><span class='glyphicon glyphicon-file'></span>"+frdata.data[i].name+"</td>\
+						<td>" + (toSize(frdata.data[i].size)) + "</td>\
+						<td>" + frdata.data[i].addtime + "</td>\
+						<td class='text-right' style='color:#ccc'>"+ ftpdown + "<a class='btlink' href='javascript:;' onclick=\"webBackupDelete('" + frdata.data[i].id + "',"+id+")\">Hapus</a></td>\
+					</tr>"
 			}
-
-			var ftpdown = "<a class='btlink' href='/files/download?filename="+frdata.data[i].filename+"&name="+frdata.data[i].name+"' target='_blank'>Download</a> | ";
-			body += "<tr><td><span class='glyphicon glyphicon-file'></span>"+frdata.data[i].name+"</td>\
-					<td>" + (toSize(frdata.data[i].size)) + "</td>\
-					<td>" + frdata.data[i].addtime + "</td>\
-					<td class='text-right' style='color:#ccc'>"+ ftpdown + "<a class='btlink' href='javascript:;' onclick=\"webBackupDelete('" + frdata.data[i].id + "',"+id+")\">Delete</a></td>\
-				</tr>"
-		}
-
 		var ftpdown = '';
 		frdata.page = frdata.page.replace(/'/g,'"').replace(/getBackup\(/g,"getBackup(" + id + ",0,");
 
 		if(name == 0){
 			var sBody = "<table width='100%' id='webBackupList' class='table table-hover'>\
-						<thead><tr><th>Filename</th><th>Size</th><th>Modified</th><th width='140px' class='text-right'>Action< /th></tr></thead>\
+						<thead><tr><th>Nama</th><th>Ukuran</th><th>Waktu</th><th width='140px' class='text-right'>Aksi</th></tr></thead>\
 						<tbody id='webBackupBody' class='list-list'>"+body+"</tbody>\
 						</table>"
 			$("#webBackupList").html(sBody);
@@ -746,24 +789,19 @@ function getBackup(id,name,page) {
 			type: 1,
 			skin: 'demo-class',
 			area: '700px',
-			title: 'Package backup',
+			title: 'Paket cadangan',
 			closeBtn: 1,
 			shift: 0,
 			shadeClose: false,
 			content: "<div class='bt-form ptb15 mlr15' id='webBackup'>\
-						<button class='btn btn-default btn-sm' style='margin-right:10px' type='button' onclick=\"webBackup('" + frdata['site']['id'] + "','" +  frdata['site']['name'] + "')\">Package backup</button>\
-						<div class='divtable mtb15' style='margin-bottom:0'>\
-							<table width='100%' id='webBackupList' class='table table-hover'>\
-							<thead>\
-								<tr><th>Filename</th><th>Size</th><th>Modified</th><th width='140px' class='text-right'>Action</th> </tr>\
-							</thead>\
-							<tbody id='webBackupBody' class='list-list'>" + body + "</tbody>\
-							</table>\
-							<div class='page'>" + frdata.page + "</div>\
-						</div>\
-					</div>"
+						<button class='btn btn-default btn-sm' style='margin-right:10px' type='button' onclick=\"webBackup('" + frdata['site']['id'] + "','" +  frdata['site']['name'] + "')\">Paket cadangan</button>\
+						<div class='divtable mtb15' style='margin-bottom:0'><table width='100%' id='webBackupList' class='table table-hover'>\
+						<thead><tr><th>Nama</th><th>Ukuran</th><th>Waktu</th><th width='140px' class='text-right'>Aksi</th></tr></thead>\
+						<tbody id='webBackupBody' class='list-list'>"+body+"</tbody>\
+						</table><div class='page'>"+frdata.page+"</div></div></div>"
 		});
 	},'json');
+
 }
 
 function goSet(num) {
@@ -772,7 +810,6 @@ function goSet(num) {
 	var data = '';
 	var a = '';
 	var count = 0;
-
 	for (var i = 0; i < len; i++) {
 		if (el[i].checked == true && el[i].value != 'on') {
 			data += a + count + '=' + el[i].value;
@@ -780,7 +817,6 @@ function goSet(num) {
 			count++;
 		}
 	}
-
 	if(num==1){
 		reAdd(data);
 	}
@@ -820,7 +856,7 @@ function setIndex(id){
 
 function setDefaultSite(){
 	var name = $("#default_site").val();
-	var loadT = layer.msg('Processing, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
+	var loadT = layer.msg('Memproses ... tunggu sebentar...',{icon:16,time:0,shade: [0.3, '#000']});
 	$.post('/site/set_default_site','name='+name,function(rdata){
 		layer.closeAll();
 		layer.msg(rdata.msg,{icon:rdata.status?1:5});
@@ -829,7 +865,7 @@ function setDefaultSite(){
 
 function getDefaultSite(){
 	$.post('/site/get_default_site','',function(rdata){
-		var opt = '<option value="off">No default site set</option>';
+		var opt = '<option value="off">Situs default tidak disetel</option>';
 		var selected = '';
 		for(var i=0;i<rdata.sites.length;i++){
 			selected = '';
@@ -838,84 +874,26 @@ function getDefaultSite(){
 		}
 
 		layer.open({
-			type: 1,
-			area: '530px',
-			title: 'Set default site',
-			closeBtn: 1,
-			shift: 5,
-			shadeClose: true,
-			content:'<div class="bt-form ptb15 pb70">\
-						<p class="line">\
-							<span class="tname text-right">Default site</span>\
-							<select id="default_site" class="bt-input-text" style="width: 300px;">'+opt+'</select>\
-						</p>\
-						<ul class="help-info-text c6 plr20">\
-						    <li>After setting the default site, all unbound domain names and IPs are directed to the default site</li>\
-						    <li>Can effectively prevent malicious analysis</li>\
-					    </ul>\
-						<div class="bt-form-submit-btn">\
-							<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Cancel</button>\
-							<button class="btn btn-success btn-sm btn-title" onclick="setDefaultSite()">Submit</button>\
-						</div>\
-					</div>'
-		});
-	},'json');
-}
-
-function setPHPVer(){
-	$.post('/site/get_cli_php_version','',function(rdata){
-		if(typeof(rdata['status'])!='undefined'){
-			layer.msg(rdata.msg,{icon:rdata.status?1:2});
-			return;
-		}
-
-		var opt = '';
-		var selected = '';
-		for(var i=0;i<rdata.versions.length;i++){
-			selected = '';
-			if(rdata.select.version == rdata.versions[i].version) selected = 'selected';
-
-			if (rdata.versions[i].version.indexOf("yum")>-1){
-				continue;
-			}
-
-			if (rdata.versions[i].version.indexOf("apt")>-1){
-				continue;
-			}
-
-			opt += '<option value="' + rdata.versions[i].version + '" ' + selected + '>' + rdata.versions[i].name + '</option>';
-		}
-
-		var phpver_layer = layer.open({
-			type: 1,
-			area: '530px',
-			title: 'Set PHP-CLI (command line) version',
-			closeBtn: 1,
-			shift: 5,
-			shadeClose: true,
-			btn:["Yes","No"],
-			content:'<div class="bt-form ptb15">\
-						<p class="line">\
-							<span class="tname text-right">PHP-CLI version</span>\
-							<select id="default_ver" class="bt-input-text" style="width: 300px;">'+opt+'</select>\
-						</p>\
-						<ul class="help-info-text c6 plr20">\
-						    <li>Here you can set the PHP version used when running php on the command line</li>\
-						    <li>This needs to be reset after installing a new PHP version</li>\
-					    </ul>\
-					</div>',
-			yes:function(layero,index){
-				var version = $("#default_ver").val();
-				var loadT = layer.msg('processing, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
-				$.post('/site/set_cli_php_version','version='+version,function(rdata){
-					layer.close(loadT);
-					showMsg(rdata.msg,function(){
-						if (rdata.status){
-							layer.close(phpver_layer);
-						}
-					},{icon:rdata.status?1:5},2000);
-				},'json');
-			},
+				type: 1,
+				area: '530px',
+				title: 'Atur situs default',
+				closeBtn: 1,
+				shift: 5,
+				shadeClose: true,
+				content:'<div class="bt-form ptb15 pb70">\
+							<p class="line">\
+								<span class="tname text-right">Situs bawaan</span>\
+								<select id="default_site" class="bt-input-text" style="width: 300px;">'+opt+'</select>\
+							</p>\
+							<ul class="help-info-text c6 plr20">\
+							    <li>Setelah mengatur situs default, semua nama domain dan IP yang tidak terikat diarahkan ke situs default</li>\
+							    <li>Dapat secara efektif mencegah analisis berbahaya</li>\
+						    </ul>\
+							<div class="bt-form-submit-btn">\
+								<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Batal</button>\
+								<button class="btn btn-success btn-sm btn-title" onclick="setDefaultSite()">Simpan</button>\
+							</div>\
+						</div>'
 		});
 	},'json');
 }
@@ -936,67 +914,68 @@ function setIndexList(id){
 }
 
 function webEdit(id,website,endTime,addtime){
+	var eMenu = "<p onclick='dirBinding("+id+")' title='Subdir Binding'>Subdir Bind</p>"
+	+"<p onclick='webPathEdit("+id+")' title='Direktori situs web'>Website Dir</p>"
+	+"<p onclick='limitNet("+id+")' title='Traffic restrictions'>Traffic</p>"
+	+"<p onclick=\"rewrite('"+website+"')\" title='Rewrite'>Rewrite</p>"
+	+"<p onclick='setIndexEdit("+id+")' title='Index'>Index</p>"
+	+"<p onclick=\"configFile('"+website+"')\" title='Config'>Config</p>"
+	+"<p onclick=\"setSSL("+id+",'"+website+"')\" title='SSL'>SSL</p>"
+	+"<p onclick=\"phpVersion('"+website+"')\" title='Versi PHP'>Versi PHP</p>"
+	+"<p onclick=\"to301('"+website+"')\" title='Redirect'>Redirect</p>"
+	+"<p onclick=\"toProxy('"+website+"')\" title='Proxy'>Proxy</p>"
+	+"<p id='site_"+id+"' onclick=\"security('"+id+"','"+website+"')\" title='Anti theft chain'>Security</p>"
+	+"<p id='site_"+id+"' onclick=\"getSiteLogs('"+website+"')\" title='Lihat log permintaan situs'>Access Log</p>"
+	+"<p id='site_"+id+"' onclick=\"getSiteErrorLogs('"+website+"')\" title='Lihat log kesalahan situs'>Error Log</p>";
+
 	layer.open({
 		type: 1,
-		area: '700px',
-		title: 'Site modification ['+website+']  --  add time ['+addtime+']',
+		area: '640px',
+		title: 'Modifikasi situs ['+website+']  --  tambahkan waktu ['+addtime+']',
 		closeBtn: 1,
 		shift: 0,
-		content: "<div class='bt-form'>\
-			<div class='bt-w-menu pull-left' style='height: 565px;'>\
-				<p class='bgw'  onclick=\"domainEdit(" + id + ",'" + website + "')\">"+lan.site.domain_man+"</p>\
-				<p onclick='dirBinding("+id+")' title='Subdirectory Binding'>Dir Binding</p>\
-				<p onclick='webPathEdit("+id+")' title='Website directory'>Website directory</p>\
-				<p onclick='limitNet("+id+")' title='Traffic restrictions'>Traffic restrictions</p>\
-				<p onclick=\"rewrite('"+website+"')\" title='Rewrite'>Rewrite</p>\
-				<p onclick='setIndexEdit("+id+")' title='Default document'>Default Index</p>\
-				<p onclick=\"configFile('"+website+"')\" title='Configuration file'>Config</p>\
-				<p onclick=\"setSSL("+id+",'"+website+"')\" title='SSL'>SSL</p>\
-				<p onclick=\"phpVersion('"+website+"')\" title='PHP version'>PHP version</p>\
-				<p onclick=\"to301('"+website+"')\" title='Redirect'>Redirect</p>\
-				<p onclick=\"toProxy('"+website+"')\" title='Proxy'>Proxy</p>\
-				<p id='site_"+id+"' onclick=\"security('"+id+"','"+website+"')\" title='Anti-leech'>Anti-leech</p>\
-				<p id='site_"+id+"' onclick=\"getSiteLogs('"+website+"')\" title='View site request logs'>Access Logs</p>\
-				<p id='site_"+id+"' onclick=\"getSiteErrorLogs('"+website+"')\" title='View site error logs'>Error Logs</p>\
-			</div>\
-			<div id='webedit-con' class='bt-w-con webedit-con pd15' style='height: 565px;overflow: scroll;'></div>\
-		</div>",
-		success:function(){
-			var placeholder = "<div class='placeholder'>Fill in a domain name in each line, the default is port 80<br>Pan analysis method to add *.domain.com<br>If you add another port, the format is www.domain.com:88</div>";
-			$('#newdomain').after(placeholder);
-			$(".placeholder").click(function(){
-				$(this).hide();
-				$('#newdomain').focus();
-			});
+		content: "<div class='bt-form'>"
+			+"<div class='bt-w-menu pull-left' style='height: 565px;'>"
+			+"	<p class='bgw'  onclick=\"domainEdit(" + id + ",'" + website + "')\">"+lan.site.domain_man+"</p>"
+			+"	"+eMenu+""
+			+"</div>"
+			+"<div id='webedit-con' class='bt-w-con webedit-con pd15'></div>"
+			+"</div>"
+	});
+	domainEdit(id,website);
 
-			$('#newdomain').focus(function() {
-			    $(".placeholder").hide();
-			});
+	var placeholder = "<div class='placeholder'>Isikan satu nama domain per baris, defaultnya adalah port 80<br>Tambahkan metode untuk pan-analytics *.domain.com<br>Jika format port tambahan adalah www.domain.com:88</div>";
+	$('#newdomain').after(placeholder);
+	$(".placeholder").click(function(){
+		$(this).hide();
+		$('#newdomain').focus();
+	});
+	$('#newdomain').focus(function() {
+	    $(".placeholder").hide();
+	});
 
-			$('#newdomain').blur(function() {
-				if($(this).val().length == 0){
-					$(".placeholder").show();
-				}
-			});
-
-			$(".bt-w-menu p").click(function(){
-				$(this).addClass("bgw").siblings().removeClass("bgw");
-			});
-
-			domainEdit(id,website);
+	$('#newdomain').blur(function() {
+		if($(this).val().length==0){
+			$(".placeholder").show();
 		}
+	});
+
+	var $p = $(".bt-w-menu p");
+	$p.click(function(){
+		$(this).addClass("bgw").siblings().removeClass("bgw");
 	});
 }
 
 function getSiteLogs(siteName){
-	var loadT = layer.msg('Processing, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
+	var loadT = layer.msg('Memproses ... tunggu sebentar...',{icon:16,time:0,shade: [0.3, '#000']});
 	$.post('/site/get_logs',{siteName:siteName},function(logs){
+		// console.log(logs);
 		layer.close(loadT);
 		if(logs.status !== true){
 			logs.msg = '';
 		}
-		if (logs.msg == '') logs.msg = 'Currently no logs.';
-		var phpCon = '<textarea wrap="off" readonly="" style="white-space: pre;margin: 0px;width: 560px;height: 530px;background-color: #333;color:#fff; padding:0 5px" id="error_log">'+logs.msg+'</textarea>';
+		if (logs.msg == '') logs.msg = 'Saat ini tidak ada log.';
+		var phpCon = '<textarea wrap="off" readonly="" style="white-space: pre;margin: 0px;width: 500px;height: 520px;background-color: #333;color:#fff; padding:0 5px" id="error_log">'+logs.msg+'</textarea>';
 		$("#webedit-con").html(phpCon);
 		var ob = document.getElementById('error_log');
 		ob.scrollTop = ob.scrollHeight;
@@ -1004,15 +983,15 @@ function getSiteLogs(siteName){
 }
 
 function getSiteErrorLogs(siteName){
-	var loadT = layer.msg('Processing, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
+	var loadT = layer.msg('Memproses ... tunggu sebentar...',{icon:16,time:0,shade: [0.3, '#000']});
 	$.post('/site/get_error_logs',{siteName:siteName},function(logs){
 		// console.log(logs);
 		layer.close(loadT);
 		if(logs.status !== true){
 			logs.msg = '';
 		}
-		if (logs.msg == '') logs.msg = 'Currently no logs.';
-		var phpCon = '<textarea wrap="off" readonly="" style="white-space: pre;margin: 0px;width: 560px;height: 530px;background-color: #333;color:#fff; padding:0 5px" id="error_log">'+logs.msg+'</textarea>';
+		if (logs.msg == '') logs.msg = 'Saat ini tidak ada log.';
+		var phpCon = '<textarea wrap="off" readonly="" style="white-space: pre;margin: 0px;width: 500px;height: 520px;background-color: #333;color:#fff; padding:0 5px" id="error_log">'+logs.msg+'</textarea>';
 		$("#webedit-con").html(phpCon);
 		var ob = document.getElementById('error_log');
 		ob.scrollTop = ob.scrollHeight;
@@ -1024,13 +1003,13 @@ function security(id,name){
 	$.post('/site/get_security',{id:id,name:name},function(rdata){
 		layer.close(loadT);
 		var mbody = '<div>'
-					+'<p style="margin-bottom:8px"><span style="display: inline-block; width: 60px;">URL suffix</span><input class="bt-input-text" type="text" name="sec_fix" value="'+rdata.fix+'" style="margin-left: 5px;width: 425px;height: 30px;margin-right:10px;'+(rdata.status?'background-color: #eee;':'')+'" placeholder="Multiple please separate with commas, for example：png,jpeg,jpg,gif,zip" '+(rdata.status?'readonly':'')+'></p>'
-					+'<p style="margin-bottom:8px"><span style="display: inline-block; width: 60px;">Domain name</span><input class="bt-input-text" type="text" name="sec_domains" value="'+rdata.domains+'" style="margin-left: 5px;width: 425px;height: 30px;margin-right:10px;'+(rdata.status?'background-color: #eee;':'')+'" placeholder="Wildcards are supported, please separate multiple domain names with commas, for example: *.example.com, example.com" '+(rdata.status?'readonly':'')+'></p>'
-					+'<div class="label-input-group ptb10"><label style="font-weight:normal"><input type="checkbox" name="sec_status" onclick="setSecurity(\''+name+'\','+id+')" '+(rdata.status?'checked':'')+'>Enable anti-leech</label></div>'
+					+'<p style="margin-bottom:8px"><span style="display: inline-block; width: 60px;">Akhiran</span><input class="bt-input-text" type="text" name="sec_fix" value="'+rdata.fix+'" style="margin-left: 5px;width: 425px;height: 30px;margin-right:10px;'+(rdata.status?'background-color: #eee;':'')+'" placeholder="Pisahkan beberapa item dengan koma, misalnya: png, jpeg, jpg, gif, zip" '+(rdata.status?'readonly':'')+'></p>'
+					+'<p style="margin-bottom:8px"><span style="display: inline-block; width: 60px;">Domain</span><input class="bt-input-text" type="text" name="sec_domains" value="'+rdata.domains+'" style="margin-left: 5px;width: 425px;height: 30px;margin-right:10px;'+(rdata.status?'background-color: #eee;':'')+'" placeholder="Wildcard didukung, harap pisahkan beberapa nama domain dengan koma, misalnya: *.test.com,test.com" '+(rdata.status?'readonly':'')+'></p>'
+					+'<div class="label-input-group ptb10"><label style="font-weight:normal"><input type="checkbox" name="sec_status" onclick="setSecurity(\''+name+'\','+id+')" '+(rdata.status?'checked':'')+'>Aktifkan anti-leech</label></div>'
 					+'<ul class="help-info-text c7 ptb10">'
-						+'<li>By default, resources are allowed to be accessed directly, that is, requests with empty HTTP_REFERER are not restricted</li>'
-						+'<li>Multiple URL suffixes and domain names should be separated by commas (,), such as: png,jpeg,zip,js</li>'
-						+'<li>When the anti-leech is triggered, it will directly return the 404 status</li>'
+						+'<li>Secara default, sumber daya diizinkan untuk diakses secara langsung, yaitu, permintaan dengan HTTP_REFERER kosong tidak dibatasi</li>'
+						+'<li>Gunakan koma (,) untuk memisahkan beberapa sufiks URL dan nama domain, seperti: png, jpeg, zip, js</li>'
+						+'<li>Ketika rantai anti-pencurian dipicu, itu akan langsung kembali ke status 404</li>'
 					+'</ul>'
 				+'</div>'
 		$("#webedit-con").html(mbody);
@@ -1051,6 +1030,76 @@ function setSecurity(name,id){
 		layer.msg(rdata.msg,{icon:rdata.status?1:2});
 		if(rdata.status) setTimeout(function(){security(id,name);},1000);
 	},'json');
+}
+
+function CheckSafe(id,act){
+	if(act != undefined){
+		var loadT = layer.msg(lan.site.the_msg,{icon:16,time:0,shade: [0.3, '#000']});
+		$.post('/site?action=CheckSafe','id='+id,function(rdata){
+			$(".btnStart").hide()
+			setTimeout(function(){
+				CheckSafe(id);
+			},3000);
+			GetTaskCount();
+			layer.close(loadT)
+			layer.msg(rdata.msg,{icon:rdata.status?1:5});
+		});
+
+		return;
+	}
+
+   $.post('/site?action=GetCheckSafe','id='+id,function(rdata){
+   		var done = "<button type='button' class='btn btn-success btn-sm btnStart mr5'  onclick=\"CheckSafe("+id+",1)\">"+lan.site.start_scan+"</button>\
+   					<button type='button' class='btn btn-default btn-sm btnStart mr20'  onclick=\"UpdateRulelist()\">"+lan.site.update_lib+"</button>\
+   					<a class='f14 mr20' style='color:green;'>"+lan.site.scanned+"："+rdata.count+"</a><a class='f14' style='color:red;'>"+lan.site.risk_quantity+"："+rdata.error+"</a>";
+
+   		if(rdata['scan']) done = "<a class='f14 mr20' style='color:green;'>"+lan.site.scanned+"："+rdata.count+"</a><a class='f14' style='color:red;'>"+lan.site.risk_quantity+"："+rdata.error+"</a>";
+		var echoHtml = "<div class='mtb15'>"
+					   + done
+					   +"</div>"
+		for(var i=0;i<rdata.phpini.length;i++){
+			echoHtml += "<tr><td>"+lan.site.danger_fun+"</td><td>"+lan.site.danger+"</td><td>"+lan.site.danger_fun_no+"："+rdata.phpini[i].function+"<br>"+lan.site.file+"：<a style='color: red;' href='javascript:;' onclick=\"OnlineEditFile(0,'/home/slemp/server/php/"+rdata.phpini[i].version+"/etc/php.ini')\">/home/slemp/server/php/"+rdata.phpini[i].version+"/etc/php.ini</a></td></tr>";
+		}
+
+		if(!rdata.sshd){
+			echoHtml += "<tr><td>"+lan.site.ssh_port+"</td><td>"+lan.site.high_risk+"</td><td>"+lan.site.sshd_tampering+"</td></tr>";
+		}
+
+		if(!rdata.userini){
+			echoHtml += "<tr><td>"+lan.site.xss_attack+"</td><td>"+lan.site.danger+"</td><td>"+lan.site.site_xss_attack+"</td></tr>";
+		}
+
+		for(var i=0;i<rdata.data.length;i++){
+			echoHtml += "<tr><td>"+rdata.data[i].msg+"</td><td>"+rdata.data[i].level+"</td><td>文件：<a style='color: red;' href='javascript:;' onclick=\"OnlineEditFile(0,'"+rdata.data[i].filename+"')\">"+rdata.data[i].filename+"</a><br>"+lan.site.mod_time+"："+rdata.data[i].etime+"<br>"+lan.site.code+"："+rdata.data[i].code+"</td></tr>";
+		}
+
+		var body = "<div>"
+					+"<div class='divtable mtb15'><table class='table table-hover' width='100%' style='margin-bottom:0'>"
+				  	+"<thead><tr><th width='100px'>"+lan.site.behavior+"</th><th width='70px'>"+lan.site.risk+"</th><th>"+lan.site.details+"</th></tr></thead>"
+				   	+"<tbody id='checkDomain'>" + echoHtml + "</tbody>"
+				   	+"</table></div>"
+
+		$("#webedit-con").html(body);
+		$(".btnStart").click(function(){
+			fly('btnStart');
+		});
+		if(rdata['scan']){
+			c = $("#site_"+id).attr('class');
+			if(c != 'active') return;
+			setTimeout(function(){
+				CheckSafe(id);
+			},1000);
+		}
+	});
+}
+
+function UpdateRulelist(){
+	var loadT = layer.msg(lan.site.to_update,{icon:16,time:0,shade: [0.3, '#000']});
+	$.post('/site?action=UpdateRulelist','',function(rdata){
+		layer.close(loadT)
+		layer.msg(rdata.msg,{icon:rdata.status?1:5});
+	});
+
 }
 
 function limitNet(id){
@@ -1154,7 +1203,7 @@ function dirBinding(id){
 		var rdata = data['data'];
 		var echoHtml = '';
 		for(var i=0;i<rdata.binding.length;i++){
-			echoHtml += "<tr><td>"+rdata.binding[i].domain+"</td><td>"+rdata.binding[i].port+"</td><td>"+rdata.binding[i].path+"</td><td class='text-right'><a class='btlink' href='javascript:setDirRewrite("+rdata.binding[i].id+");'>Rewrite</a> | <a class='btlink' href='javascript:delDirBind("+rdata.binding[i].id+","+id+");'>Delete</a></td></tr>";
+			echoHtml += "<tr><td>"+rdata.binding[i].domain+"</td><td>"+rdata.binding[i].port+"</td><td>"+rdata.binding[i].path+"</td><td class='text-right'><a class='btlink' href='javascript:setDirRewrite("+rdata.binding[i].id+");'>Rewrite</a> | <a class='btlink' href='javascript:delDirBind("+rdata.binding[i].id+","+id+");'>Dir Bind</a></td></tr>";
 		}
 
 		var dirList = '';
@@ -1165,10 +1214,10 @@ function dirBinding(id){
 		var body = "<div class='dirBinding c5'>"
 			   + "Domain：<input class='bt-input-text mr20' type='text' name='domain' />"
 			   + "Subdir：<select class='bt-input-text mr20' name='dirName'>"+dirList+"</select>"
-			   + "<button class='btn btn-success btn-sm' onclick='addDirBinding("+id+")'>Add</button>"
+			   + "<button class='btn btn-success btn-sm' onclick='addDirBinding("+id+")'>Tambah</button>"
 			   + "</div>"
 			   + "<div class='divtable mtb15' style='height:470px;overflow:auto'><table class='table table-hover' width='100%' style='margin-bottom:0'>"
-			   + "<thead><tr><th>Domain</th><th width='70'>Port</th><th width='100'>Subdirectory</th><th width='100' class='text- right'>Action</th></tr></thead>"
+			   + "<thead><tr><th>Domain</th><th width='70'>Port</th><th width='100'>Subdir</th><th width='100' class='text-right'>Aksi</th></tr></thead>"
 			   + "<tbody id='checkDomain'>" + echoHtml + "</tbody>"
 			   + "</table></div>";
 
@@ -1179,7 +1228,7 @@ function dirBinding(id){
 function setDirRewrite(id){
 	$.post('/site/get_dir_bind_rewrite','id='+id,function(rdata){
 		if(!rdata.status){
-			var confirmObj = layer.confirm('Do you really want to create separate pseudo-static rules for this subdirectory?',{icon:3,closeBtn:2},function(){
+			var confirmObj = layer.confirm('Apakah Anda benar-benar ingin membuat rewrite rules terpisah untuk subdirektori ini?',{title:'Notification',icon:3,closeBtn:2,btn:['Yes','No']},function(){
 				$.post('/site/get_dir_bind_rewrite','id='+id+'&add=1',function(rdata){
 					layer.close(confirmObj);
 					showRewrite(rdata);
@@ -1197,38 +1246,30 @@ function showRewrite(rdata){
 		rList += "<option value='"+rdata.rlist[i]+"'>"+rdata.rlist[i]+"</option>";
 	}
 	var webBakHtml = "<div class='c5 plr15'>\
-				<div class='line'>\
-					<select class='bt-input-text mr20' id='myRewrite' name='rewrite' style='width:30%;'>"+rList+"</select>\
-					<textarea class='bt-input-text mtb15' style='height: 260px; width: 470px; line-height:18px;padding:5px;' id='rewriteBody'>"+rdata.data+"</textarea>\
-				</div>\
-				<button id='setRewriteBtn' class='btn btn-success btn-sm'>Save</button>\
-				<ul class='help-info-text c7 ptb10'>\
-					<li>Please select your application. If the website cannot be accessed normally after setting pseudo-static, please try to set it back to default.</li>\
-					<li>You can modify the pseudo-static rules, and save them after modification.</li>\
-				</ul>\
-			</div>";
+						<div class='line'>\
+						<select class='bt-input-text mr20' id='myRewrite' name='rewrite' style='width:30%;'>"+rList+"</select>\
+						<textarea class='bt-input-text mtb15' style='height: 260px; width: 470px; line-height:18px;padding:5px;' id='rewriteBody'>"+rdata.data+"</textarea></div>\
+						<button id='SetRewriteBtn' class='btn btn-success btn-sm' onclick=\"SetRewrite('"+rdata.filename+"')\">Simpan</button>\
+						<ul class='help-info-text c7 ptb10'>\
+							<li>Silakan pilih aplikasi Anda, jika situs web tidak dapat diakses secara normal setelah pengaturan rewrite rules, silakan coba untuk mengaturnya kembali ke default</li>\
+							<li>Anda dapat memodifikasi aturan rewrite rule dan menyimpannya setelah modifikasi.</li>\
+						</ul>\
+						</div>";
 	layer.open({
 		type: 1,
 		area: '500px',
-		title: 'Configure rewrite rules',
+		title: 'Konfigurasikan rewrite rule',
 		closeBtn: 1,
 		shift: 5,
 		shadeClose: true,
-		content:webBakHtml,
-		success:function(){
+		content:webBakHtml
+	});
 
-			$("#myRewrite").change(function(){
-				var rewriteName = $(this).val();
-				$.post('/files/get_body','path='+rdata['rewrite_dir']+'/'+rewriteName+'.conf',function(fileBody){
-					 $("#rewriteBody").val(fileBody.data.data);
-				},'json');
-			});
-
-			$('#setRewriteBtn').click(function(){
-				var data = $("#rewriteBody").val();
-				setRewrite(rdata.filename, encodeURIComponent(data));
-			});
-		}
+	$("#myRewrite").change(function(){
+		var rewriteName = $(this).val();
+		$.post('/files/get_body','path='+rdata['rewrite_dir']+'/'+rewriteName+'.conf',function(fileBody){
+			 $("#rewriteBody").val(fileBody.data.data);
+		},'json');
 	});
 }
 
@@ -1240,7 +1281,7 @@ function addDirBinding(id){
 		return;
 	}
 
-	var data = 'id='+id+'&domain='+domain+'&dirName='+dirName;
+	var data = 'id='+id+'&domain='+domain+'&dirName='+dirName
 	$.post('/site/add_dir_bind',data,function(rdata){
 		dirBinding(id);
 		layer.msg(rdata.msg,{icon:rdata.status?1:2});
@@ -1248,11 +1289,19 @@ function addDirBinding(id){
 }
 
 function delDirBind(id,siteId){
-	layer.confirm(lan.site.s_bin_del,{icon:3,closeBtn:2},function(){
+	layer.confirm(lan.site.s_bin_del,{title:'Notification',icon:3,closeBtn:2,btn:['Yes','No']},function(){
 		$.post('/site/del_dir_bind','id='+id,function(rdata){
 			dirBinding(siteId);
 			layer.msg(rdata.msg,{icon:rdata.status?1:2});
 		},'json');
+	});
+}
+
+function openCache(siteName){
+	var loadT = layer.msg(lan.site.the_msg,{icon:16,time:0,shade: [0.3, '#000']});
+	$.post('/site?action=ProxyCache',{siteName:siteName},function(rdata){
+		layer.close(loadT);
+		layer.msg(rdata.msg,{icon:rdata.status?1:2});
 	});
 }
 
@@ -1271,34 +1320,34 @@ function to301(siteName, type, obj){
 			type: 1,
 			skin: 'demo-class',
 			area: '650px',
-			title: type == 1 ? 'create redirection' : 'modify redirection [' + obj.redirectname + ']',
+			title: type == 1 ? 'Buat pengalihan' : 'Ubah pengalihan[' + obj.redirectname + ']',
 			closeBtn: 1,
 			shift: 5,
 			shadeClose: false,
 			content: "<form id='form_redirect' class='divtable pd20' style='padding-bottom: 60px'>" +
 				"<div class='line' style='overflow:hidden;height: 40px;'>" +
 				"<div style='display: inline-block;'>" +
-				"<span class='tname' style='margin-left:10px;position: relative;top: -5px;'>Preserve URI parameters</span>" +
+				"<span class='tname' style='margin-left:10px;position: relative;top: -5px;'>Pertahankan parameter URI</span>" +
 				"<input class='btswitch btswitch-ios' id='keep_path' type='checkbox' name='keep_path' " + (obj.keep_path == 1 ? 'checked="checked"' : '') + " /><label class='btswitch-btn phpmyadmin-btn' for='keep_path' style='float:left'></label>" +
 				"</div>" +
 				"</div>" +
 				"<div class='line' style='clear:both;'>" +
-				"<span class='tname'>Redirect type</span>" +
+				"<span class='tname'>Jenis pengalihan</span>" +
 				"<div class='info-r  ml0'>" +
 				"<select class='bt-input-text mr5' name='type' style='width:100px'><option value='domain' " + (obj.type == 'domain' ? 'selected ="selected"' : "") + ">Domain</option><option value='path'  " + (obj.type == 'path' ? 'selected ="selected"' : "") + ">Path</option></select>" +
-				"<span class='mlr15'>Redirect method</span>" +
+				"<span class='mlr15'>Metode pengalihan</span>" +
 				"<select class='bt-input-text ml10' name='r_type' style='width:100px'><option value='301' " + (obj.r_type == '301' ? 'selected ="selected"' : "") + " >301</option><option value='302' " + (obj.r_type == '302' ? 'selected ="selected"' : "") + ">302</option></select></div>" +
 				"</div>" +
 				"<div class='line redirectdomain'>" +
-				"<span class='tname'>Redirect source</span>" +
+				"<span class='tname'>Sumber pengalihan</span>" +
 				"<div class='info-r  ml0'>" +
-				"<input  name='from' placeholder='Domain name or path' class='bt-input-text mr5' type='text' style='width:200px;float: left;margin-right:0px' value='" + obj.from + "'>" +
-				"<span class='tname' style='width:90px'>Target URL</span>" +
+				"<input  name='from' placeholder='Nama domain atau path' class='bt-input-text mr5' type='text' style='width:200px;float: left;margin-right:0px' value='" + obj.from + "'>" +
+				"<span class='tname' style='width:90px'>URL sasaran</span>" +
 				"<input  name='to' class='bt-input-text mr5' type='text' style='width:200px' value='" + obj.to + "'>" +
 				"</div>" +
 				"</div>" +
 				"</div>" +
-				"<div class='bt-form-submit-btn'><button type='button' class='btn btn-sm btn-danger btn-colse-prosy'>Cancel</button><button type='button' class='btn btn-sm btn-success btn-submit-redirect'>" + (type == 1 ? "Sumbit" : "Save") + "</button></div>" +
+				"<div class='bt-form-submit-btn'><button type='button' class='btn btn-sm btn-danger btn-colse-prosy'>Tutup</button><button type='button' class='btn btn-sm btn-success btn-submit-redirect'>" + (type == 1 ? " Submit" : "Simpan") + "</button></div>" +
 				"</form>"
 		});
 		setTimeout(function() {
@@ -1341,7 +1390,7 @@ function to301(siteName, type, obj){
 		}, function(res) {
 			res = JSON.parse(res);
 			if (res.status == true) {
-				layer.msg('Successfully deleted', {time: 1000,icon: 1});
+				layer.msg('Berhasil dihapus', {time: 1000,icon: 1});
 				to301(siteName);
 			} else {
 				layer.msg(res.msg, {time: 1000,icon: 2});
@@ -1361,18 +1410,18 @@ function to301(siteName, type, obj){
 				<textarea style='height: 320px; width: 445px; margin-left: 20px; line-height:18px' id='configRedirectBody'>"+res.data.result+"</textarea>\
 					<div class='info-r'>\
 						<ul class='help-info-text c7 ptb10'>\
-							<li>Here is the redirect configuration file, if you do not understand the configuration rules, please do not modify it at will.</li>\
+							<li>Ini adalah file konfigurasi redirection, jika tidak memahami aturan konfigurasi, jangan mengubahnya sesuka hati.</li>\
 						</ul>\
 					</div>\
 				</div>";
 				var editor;
 				var index = layer.open({
 					type: 1,
-					title: 'Edit configuration file',
+					title: 'Edit file konfigurasi',
 					closeBtn: 1,
 					shadeClose: true,
 					area: ['500px', '500px'],
-					btn: ['Submit','Cancel'],
+					btn: ['Yes','No'],
 					content: mBody,
 					success: function () {
 						editor = CodeMirror.fromTextArea(document.getElementById("configRedirectBody"), {
@@ -1395,7 +1444,7 @@ function to301(siteName, type, obj){
 						$.post('/site/save_redirect_conf', data, function(res) {
 							layer.close(load)
 							if (res.status == true) {
-								layer.msg('Saved successfully', {icon: 1});
+								layer.msg('Berhasil disimpan', {icon: 1});
 								layer.close(index);
 							} else {
 								layer.msg(res.msg, {time: 3000,icon: 2});
@@ -1406,7 +1455,7 @@ function to301(siteName, type, obj){
 				});
 
 			} else {
-				layer.msg('Wrong request!!', {time: 3000,icon: 2});
+				layer.msg('Kesalahan permintaan!!', {time: 3000,icon: 2});
 			}
 		});
 		return
@@ -1414,16 +1463,16 @@ function to301(siteName, type, obj){
 
 	var body = '<div id="redirect_list" class="bt_table">\
 					<div style="padding-bottom: 10px">\
-						<button type="button" title="Add redirection" class="btn btn-success btn-sm mr5" onclick="to301(\''+siteName+'\',1)" ><span>Add redirection</span></button>\
+						<button type="button" title="Tambahkan pengalihan" class="btn btn-success btn-sm mr5" onclick="to301(\''+siteName+'\',1)" ><span>Tambahkan pengalihan</span></button>\
 					</div>\
 					<div class="divtable" style="max-height:200px;">\
 						<table class="table table-hover" >\
 							<thead style="position: relative;z-index: 1;">\
 								<tr>\
-									<th><span data-index="1"><span>Redirect type</span></span></th>\
-									<th><span data-index="2"><span>Redirect method</span></span></th>\
-									<th><span data-index="3"><span>Preserve URL parameters</span></span></th>\
-									<th><span data-index="4"><span>Action</span></span></th>\
+									<th><span data-index="1"><span>Jenis pengalihan</span></span></th>\
+									<th><span data-index="2"><span>Metode pengalihan</span></span></th>\
+									<th><span data-index="3"><span>Pertahankan parameter URL</span></span></th>\
+									<th><span data-index="4"><span>Aksi</span></span></th>\
 								</tr>\
 							</thead>\
 							<tbody id="md-301-body">\
@@ -1440,13 +1489,13 @@ function to301(siteName, type, obj){
 		if (res.status === true) {
 			let data = res.data.result;
 			data.forEach(function(item){
-				lan_r_type = item.r_type == 0 ? "Permanent Redirect" : "Temporary Redirect"
-				keep_path = item.keep_path == 0 ? "Not Retained" : "Reserve"
+				lan_r_type = item.r_type == 0 ? "Pengalihan permanen" : "Pengalihan sementara"
+				keep_path = item.keep_path == 0 ? "Tidak Dipertahankan" : "Dipesan"
 				let tmp = '<tr>\
 					<td><span data-index="1"><span>'+item.r_from+'</span></span></td>\
 					<td><span data-index="2"><span>'+lan_r_type+'</span></span></td>\
 					<td><span data-index="2"><span>'+keep_path+'</span></span></td>\
-					<td><span data-index="4"  onclick="to301(\''+siteName+'\', 3, \''+ item.id +'\')"  class="btlink">Detail</span> | <span data-index="5" onclick="to301(\''+siteName+'\', 2, \''+ item.id +'\')" class="btlink">Delete</span></td>\
+					<td><span data-index="4"  onclick="to301(\''+siteName+'\', 3, \''+ item.id +'\')"  class="btlink">Detail</span> | <span data-index="5" onclick="to301(\''+siteName+'\', 2, \''+ item.id +'\')" class="btlink">Hapus</span></td>\
 				</tr>';
 				$("#md-301-body").append(tmp);
 			})
@@ -1457,160 +1506,81 @@ function to301(siteName, type, obj){
 }
 
 
+function toProxySwitch(){
+	var status = $("input[name='open_proxy']").prop("checked")==true?1:0;
+	if(status==1){
+		$("input[name='open_proxy']").prop("checked",false);
+	}else{
+		$("input[name='open_proxy']").prop("checked",true);
+	}
+}
+
 function toProxy(siteName, type, obj) {
 	if(type == 1) {
-		var proxy_title = "Create a reverse proxy";
-		if (typeof(obj) != 'undefined'){
-			proxy_title = "Edit reverse proxy";
-		}
-
-		layer.open({
+		var proxy_form = layer.open({
 			type: 1,
 			area: '650px',
-			title: proxy_title,
+			title: "Buat proxy reverse",
 			closeBtn: 1,
 			shift: 5,
 			shadeClose: false,
-			btn: ['Submit','Cancel'],
-			content: "<form id='form_proxy' class='divtable pd15' style='padding-bottom: 10px'>\
-				<div class='line'>\
-					<span class='tname'>Turn on proxy</span>\
-					<div class='info-r ml0 mt5'>\
-						<input name='open_proxy' class='btswitch btswitch-ios' type='checkbox' checked>\
-						<label id='open_proxy' class='btswitch-btn' for='openProxy' style='float:left'></label>\
-						<div style='display: inline-block'>\
-							<span class='tname' style='margin-left:15px;position: relative;top: -5px;'>Cache</span>\
-							<input class='btswitch btswitch-ios' type='checkbox' name='open_cache'>\
-							<label class='btswitch-btn' id='open_cache' for='openCache' style='float:left'></label>\
-						</div>\
-					</div>\
-				</div>\
-				<div class='line'>\
-					<span class='tname'>Name</span>\
-					<div class='info-r ml0'>\
-					<input name='name' value='index' placeholder='Please enter a name' class='bt-input-text mr5' type='text' style='width:200px''>\
-					</div>\
-				</div>\
-				<div class='line' style='display:none' id='cache_time'>\
-					<span class='tname'>Cache time</span>\
-					<div class='info-r ml0'>\
-					<input name='cache_time' value='1' class='bt-input-text mr5' type='text' style='width:200px''>minute\
-					</div>\
-				</div>\
-				<div class='line'>\
-					<span class='tname'>Agent directory</span>\
-					<div class='info-r ml0'>\
-					<input name='from' value='/' placeholder='/' class='bt-input-text mr5' type='text' style='width:200px''>\
-					</div>\
-				</div>\
-				<div class='line'>\
-					<span class='tname'>Target URL</span>\
-					<div class='info-r ml0'>\
-					<input name='to' class='bt-input-text mr5' type='text' style='width:200px;float: left;margin-right:0px''>\
-					<span class='tname' style='width:90px'>Send domain name</span>\
-					<input name='host' value='$host' class='bt-input-text mr5' type='text' style='width:200px'>\
-					</div>\
-				</div>\
-				<input name='id' value='' type='hidden'>\
-				<div class='help-info-text c7'>\
-					<ul class='help-info-text c7'>\
-					<li>Proxy directory: When accessing this directory, the content of the target URL will be returned and displayed</li>\
-					<li>Target URL: You can fill in the site you need to proxy, the target URL must be a URL that can be accessed normally, otherwise an error will be returned</li>\
-					<li>Send domain name: Add the domain name to the request header and pass it to the proxy server. The default is the domain name of the target URL. If it is not set properly, the proxy may not work properly</li>\
-					</ul>\
-				</div>\
-				</form>",
-			success:function(){
-
-				if (typeof(obj) != 'undefined'){
-					// console.log(obj);
-					$('input[name="name"]').val(obj['name']).attr('readonly','readonly').addClass('disabled');
-					if (obj['open_cache'] == 'on'){
-						$("input[name='open_cache']").prop("checked",true);
-						$('#cache_time').show();
-					}
-
-					$('input[name="from"]').val(obj['from']);
-					$('input[name="to"]').val(obj['to']);
-
-					var url = obj['to'];
-					var ip_reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
-	                url = url.replace(/^http[s]?:\/\//, '');
-	                url = url.replace(/(:|\?|\/|\\)(.*)$/, '');
-	                if (ip_reg.test(url)) {
-	                    $("[name='host']").val('$host');
-	                } else {
-	                    $("[name='host']").val(url);
-	                }
-
-	                $('input[name="id"]').val(obj['id']);
-	                $('input[name="cache_time"]').val(obj['cache_time']);
-				}
-
-
-				$('input[name="to"]').on('keyup', function(){
-					var url = $(this).val();
-					var ip_reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
-	                url = url.replace(/^http[s]?:\/\//, '');
-	                url = url.replace(/(:|\?|\/|\\)(.*)$/, '');
-	                if (ip_reg.test(url)) {
-	                    $("[name='host']").val('$host');
-	                } else {
-	                    $("[name='host']").val(url);
-	                }
-				});
-
-				$("#open_proxy").click(function(){
-					var status = $("input[name='open_proxy']").prop("checked")==true?1:0;
-					if(status==1){
-						$("input[name='open_proxy']").prop("checked",false);
-					}else{
-						$("input[name='open_proxy']").prop("checked",true);
-					}
-				});
-
-				$('#open_cache').click(function(){
-					var status = $("input[name='open_cache']").prop("checked")==true?1:0;
-					if(status==1){
-						$('#cache_time').hide();
-						$("input[name='open_cache']").prop("checked",false);
-					}else{
-						$('#cache_time').show();
-						$("input[name='open_cache']").prop("checked",true);
-					}
-				});
-			},
-			yes:function(index,layer_ro){
-				var data = $('#form_proxy').serializeArray();
+			btn: ['Simpan','Tutup'],
+			content: "<form id='form_redirect' class='divtable pd15' style='padding-bottom: 10px'>" +
+				"<div class='line'>" +
+					'<span class="tname">Aktifkan proxy</span>'+
+					"<div class='info-r ml0'>" +
+						"<input name='open_proxy' class='btswitch btswitch-ios' type='checkbox' checked><label id='open_proxy' class='btswitch-btn' for='openProxy' onclick='toProxySwitch();'></label>" +
+					"</div>" +
+				"</div>" +
+				"<div class='line'>"+
+					"<span class='tname'>Direktori proxy</span>" +
+					"<div class='info-r ml0'>" +
+					"<input name='from' value='/' placeholder='/' class='bt-input-text mr5' type='text' style='width:200px''>" +
+					"</div>" +
+				"</div>" +
+				"<div class='line'>" +
+					"<span class='tname'>URL sasaran</span>" +
+					"<div class='info-r ml0'>" +
+					"<input name='to' class='bt-input-text mr5' type='text' style='width:200px;float: left;margin-right:0px''>" +
+					"<span class='tname' style='width:90px'>Domain/Host</span>" +
+					"<input name='host' value='$host' class='bt-input-text mr5' type='text' style='width:200px'>" +
+					"</div>" +
+				"</div>" +
+				"<div class='help-info-text c7'>" +
+					"<ul class='help-info-text c7'>" +
+					"<li>Direktori proxy: Saat mengakses direktori ini, konten URL target akan dikembalikan dan ditampilkan</li>" +
+					"<li>URL Target: Anda dapat mengisi situs yang Anda perlukan untuk proxy. URL target harus berupa URL yang dapat diakses secara normal, jika tidak, kesalahan akan dikembalikan</li>" +
+					"<li>Kirim nama domain: Tambahkan nama domain ke header permintaan dan berikan ke server proxy. Defaultnya adalah nama domain URL target. Jika pengaturannya tidak tepat, proxy mungkin tidak berfungsi dengan benar.</li>" +
+					"</ul>" +
+				"</div>" +
+				"</form>",
+			yes:function(){
+				var data = $('#form_redirect').serializeArray();
 				var t = {};
 				t['name'] = 'siteName';
 				t['value'] = siteName;
 				data.push(t);
 
-				var loading = layer.msg('Adding '+proxy_title+'...',{icon:16,time:0,shade: [0.3, '#000']});
+				var loading = layer.msg('Menambahkan...',{icon:16,time:0,shade: [0.3, '#000']});
 				$.post('/site/set_proxy',data, function(res) {
 					layer.close(loading);
-					if (!res.status){
-						layer.msg(res.msg, {icon: 2,time:10000});
-						return;
+					if (res.status) {
+						layer.close(proxy_form);
+						toProxy(siteName)
+					} else {
+						layer.msg(res.msg, {icon: 2});
 					}
-					showMsg(proxy_title+" success!",function(){
-						layer.close(index);
-						toProxy(siteName);
-					},{icon: 1, time:2000});
 				},'json');
+
 			}
 		});
 	}
 
 	if (type == 2) {
-		var loading = layer.msg('Is being deleted...',{icon:16,time:0,shade: [0.3, '#000']});
 		$.post('/site/del_proxy', {siteName: siteName,id: obj,}, function(res) {
-			layer.close(loading);
 			if (res.status == true) {
-				showMsg('Successfully deleted', function(){
-					toProxy(siteName);
-				},{time: 1000,icon: 1});
+				layer.msg('Berhasil dihapus', {time: 1000,icon: 1});
+				toProxy(siteName)
 			} else {
 				layer.msg(res.msg, {time: 1000,icon: 2});
 			}
@@ -1624,112 +1594,89 @@ function toProxy(siteName, type, obj) {
 		var data = {siteName: siteName,id: obj};
 		$.post('/site/get_proxy_conf', data, function(res) {
 			layer.close(laoding);
-			if (!res.status){
-				layer.msg('Wrong request!!', {time: 3000,icon: 2});
-				return;
-			}
-			var mBody = "<div class='webEdit-box' style='padding: 20px'>\
-			<textarea style='height: 320px; width: 445px; margin-left: 20px; line-height:18px' id='configProxyBody'>"+res.data.result+"</textarea>\
-				<div class='info-r'>\
-					<ul class='help-info-text c7 ptb10'>\
-						<li>Here is the reverse proxy configuration file, if you do not understand the configuration rules, please do not modify it at will.</li>\
-					</ul>\
-				</div>\
-			</div>";
-			var editor;
-			var index = layer.open({
-				type: 1,
-				title: 'Edit configuration file',
-				closeBtn: 1,
-				shadeClose: true,
-				area: ['500px', '500px'],
-				btn: ['Submit','Cancel'],
-				content: mBody,
-				success: function () {
-					editor = CodeMirror.fromTextArea(document.getElementById("configProxyBody"), {
-						extraKeys: {"Ctrl-Space": "autocomplete"},
-						lineNumbers: true,
-						matchBrackets:true,
-					});
-					editor.focus();
-					$(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
-					$("#onlineEditFileBtn").unbind('click');
-				},
-				yes:function(index,layero){
-					$("#configProxyBody").empty().text(editor.getValue());
-					var load = layer.load();
-					var data = {
-						siteName: siteName,
-						id: obj,
-						config: editor.getValue(),
-					};
+			if (res.status == true) {
+				var mBody = "<div class='webEdit-box' style='padding: 20px'>\
+				<textarea style='height: 320px; width: 445px; margin-left: 20px; line-height:18px' id='configProxyBody'>"+res.data.result+"</textarea>\
+					<div class='info-r'>\
+						<ul class='help-info-text c7 ptb10'>\
+							<li>Berikut adalah file konfigurasi reverse proxy.Jika tidak memahami aturan konfigurasi, jangan mengubahnya sesuka hati.</li>\
+						</ul>\
+					</div>\
+				</div>";
+				var editor;
+				var index = layer.open({
+					type: 1,
+					title: 'Edit file konfigurasi',
+					closeBtn: 1,
+					shadeClose: true,
+					area: ['500px', '500px'],
+					btn: ['Yes','No'],
+					content: mBody,
+					success: function () {
+						editor = CodeMirror.fromTextArea(document.getElementById("configProxyBody"), {
+							extraKeys: {"Ctrl-Space": "autocomplete"},
+							lineNumbers: true,
+							matchBrackets:true,
+						});
+						editor.focus();
+						$(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
+						$("#onlineEditFileBtn").unbind('click');
+					},
+					yes:function(index,layero){
+						$("#configProxyBody").empty().text(editor.getValue());
+						var load = layer.load();
+						var data = {
+							siteName: siteName,
+							id: obj,
+							config: editor.getValue(),
+						};
 
-					$.post('/site/save_proxy_conf', data, function(res) {
-						layer.close(load)
-						if (res.status == true) {
-							layer.msg('Saved successfully', {icon: 1});
-							layer.close(index);
-						} else {
-							layer.msg(res.msg, {time: 3000,icon: 2});
-						}
-					},'json');
-					return true;
-		        },
-			});
+						$.post('/site/save_proxy_conf', data, function(res) {
+							layer.close(load)
+							if (res.status == true) {
+								layer.msg('Berhasil disimpan', {icon: 1});
+								layer.close(index);
+							} else {
+								layer.msg(res.msg, {time: 3000,icon: 2});
+							}
+						},'json');
+						return true;
+			        },
+				});
+			} else {
+				layer.msg('Kesalahan permintaan!!', {time: 3000,icon: 2});
+			}
 		},'json');
-		return;
+		return
 	}
 
 	if (type == 10 || type == 11) {
 		status = type==10 ? '0' : '1';
 		var loading = layer.msg(lan.site.the_msg,{icon:16,time:0,shade: [0.3, '#000']});
-		$.post('/site/set_proxy_status', {siteName: siteName,'status':status,'id':obj}, function(rdata) {
+		$.post('/site/set_proxy_status', {siteName: siteName,'status':status,'id':obj}, function(res) {
 			layer.close(loading);
-			if (!rdata.status){
+			if (res.status == true) {
+				layer.msg('Pengaturan berhasil', {icon: 1});
+				toProxy(siteName);
+			} else {
 				layer.msg(res.msg, {time: 3000,icon: 2});
-				return;
 			}
-			showMsg("Successfully set",function(){
-				toProxy(siteName);
-			},{icon: 1,time:2000});
-		},'json');
-		return;
-	}
-
-	if (type == 20 || type == 21) {
-		var status = type == 20 ? 'on' : '';
-		obj['open_cache'] = status;
-		obj['siteName'] = siteName;
-
-		var loading = layer.msg('Submitting request...',{icon:16,time:0,shade: [0.3, '#000']});
-		$.post('/site/set_proxy',obj, function(rdata) {
-			layer.close(loading);
-			if (!rdata.status){
-				layer.msg(rdata.msg, {icon: 2,time:2000});
-				return;
-			}
-
-			showMsg("Successfully set!",function(){
-				toProxy(siteName);
-			},{icon: 1, time:2000});
 		},'json');
 		return;
 	}
 
 	var body = '<div id="proxy_list" class="bt_table">\
 					<div style="padding-bottom: 10px">\
-						<button type="button" title="Add reverse proxy" class="btn btn-success btn-sm mr5" onclick="toProxy(\''+siteName+'\',1)" ><span>Add reverse proxy</span></button>\
+						<button type="button" title="Tambahkan proxy reverse" class="btn btn-success btn-sm mr5" onclick="toProxy(\''+siteName+'\',1)" ><span>Tambahkan proxy reverse</span></button>\
 					</div>\
 					<div class="divtable" style="max-height:200px;">\
 						<table class="table table-hover" >\
 							<thead style="position: relative;z-index: 1;">\
 								<tr>\
-									<th>Name</th>\
-									<th>Agent directory</th>\
-									<th>Target address</th>\
-									<th>Cache</th>\
-									<th>Status</th>\
-									<th>Action</th>\
+									<th><span data-index="1"><span>Direktori</span></span></th>\
+									<th><span data-index="2"><span>Alamat</span></span></th>\
+									<th><span data-index="2"><span>Status</span></span></th>\
+									<th><span data-index="3"><span>Aksi</span></span></th>\
 								</tr>\
 							</thead>\
 							<tbody id="md-301-body"></tbody>\
@@ -1741,82 +1688,43 @@ function toProxy(siteName, type, obj) {
 	var loading = layer.msg(lan.site.the_msg,{icon:16,time:0,shade: [0.3, '#000']});
 	$.post("/site/get_proxy_list", {siteName: siteName},function (res) {
 		layer.close(loading);
-		if (!res.status){
-			layer.msg(res.msg, {icon:2});
-			return;
-		}
-
-		var data = res.data.result;
-		for (var i = 0; i < data.length; i++) {
-			var item = data[i];
-
-			var switchProxy  = '<span onclick="toProxy(\''+siteName+'\', 10, \''+ item.id +'\')" style="color:rgb(92, 184, 92);" class="btlink glyphicon glyphicon-play"></span>';
-			if (!item['status']){
-				switchProxy = '<span onclick="toProxy(\''+siteName+'\', 11, \''+ item.id +'\')" style="color:rgb(255, 0, 0);" class="btlink glyphicon glyphicon-pause"></span>';
-			}
-
-			var openCache = '<span  data-index="'+i+'" class="btlink cache off">Stop</span>';
-			if (item['open_cache'] == 'on'){
-				openCache = '<span  data-index="'+i+'" class="btlink cache on">Start</span>';
-			}
-
-			let tmp = '<tr>\
-				<td>'+item.name+'</td>\
-				<td>'+item.from+'</td>\
-				<td>'+item.to+'</td>\
-				<td>'+openCache+'</td>\
-				<td>'+switchProxy+'</td>\
-				<td>\
-				   <span data-index="'+i+'" class="btlink detail">Detail</span> |\
-				   <span data-index="'+i+'" class="btlink edit">Edit</span> |\
-				   <span data-index="'+i+'" class="btlink delete">Delete</span>\
-				</td>\
-			</tr>';
-			$("#md-301-body").append(tmp);
-		}
-			$('#md-301-body .detail').click(function(){
-				var index = $(this).data('index');
-				toProxy(siteName, 3 ,data[index]['id']);
-			});
-
-			$('#md-301-body .edit').click(function(){
-				var index = $(this).data('index');
-				toProxy(siteName, 1 ,data[index]);
-			});
-
-			$('#md-301-body .delete').click(function(){
-				var index = $(this).data('index');
-				toProxy(siteName, 2 ,data[index]['id']);
-			});
-
-			$('#md-301-body .cache').click(function(){
-				var index = $(this).data('index');
-				if ($(this).hasClass('on')){
-					toProxy(siteName, 21 ,data[index]);
-				} else{
-					toProxy(siteName, 20 ,data[index]);
+		if (res.status === true) {
+			let data = res.data.result;
+			data.forEach(function(item){
+				var switchProxy  = '<span onclick="toProxy(\''+siteName+'\', 10, \''+ item.id +'\')" style="color:rgb(92, 184, 92);" class="btlink glyphicon glyphicon-play"></span>';
+				if (!item['status']){
+					switchProxy = '<span onclick="toProxy(\''+siteName+'\', 11, \''+ item.id +'\')" style="color:rgb(255, 0, 0);" class="btlink glyphicon glyphicon-pause"></span>';
 				}
-			});
+
+				let tmp = '<tr>\
+					<td><span data-index="1"><span>'+item.from+'</span></span></td>\
+					<td><span data-index="2"><span>'+item.to+'</span></span></td>\
+					<td>'+switchProxy+'</td>\
+					<td>\
+					   <span data-index="4" onclick="toProxy(\''+siteName+'\', 3, \''+ item.id +'\')" class="btlink">Detail</span> |\
+					   <span data-index="4" onclick="toProxy(\''+siteName+'\', 2, \''+ item.id +'\')" class="btlink">Hapus</span>\
+					</td>\
+				</tr>';
+				$("#md-301-body").append(tmp);
+			})
+		} else {
+			layer.msg(res.msg, {icon:2});
+		}
 	},'json');
 }
 
 function sslAdmin(siteName){
-	var loadT = layer.msg('Submitting task...',{icon:16,time:0,shade: [0.3, '#000']});
+	var loadT = layer.msg('Mengirimkan task...',{icon:16,time:0,shade: [0.3, '#000']});
 	$.get('/site/get_cert_list',function(data){
 		layer.close(loadT);
 		var rdata = data['data'];
 		var tbody = '';
 		for(var i=0;i<rdata.length;i++){
-			tbody += '<tr><td>'+rdata[i].subject+'</td>\
-				<td>'+rdata[i].dns.join('<br>')+'</td>\
-				<td>'+rdata[i].notAfter+'</td>\
-				<td>'+rdata[i].issuer.split(' ')[0]+'</td>\
-				<td style="text-align: right;"><a onclick="setCertSsl(\''+rdata[i].subject+'\',\''+siteName+'\')" class="btlink">Deploy</a> | <a onclick="removeSsl(\''+rdata[i].subject+'\')" class="btlink">Delete</a></td>\
-			</tr>'
+			tbody += '<tr><td>'+rdata[i].subject+'</td><td>'+rdata[i].dns.join('<br>')+'</td><td>'+rdata[i].notAfter+'</td><td>'+rdata[i].issuer+'</td><td style="text-align: right;"><a onclick="setCertSsl(\''+rdata[i].subject+'\',\''+siteName+'\')" class="btlink">Deploy</a> | <a onclick="removeSsl(\''+rdata[i].subject+'\')" class="btlink">Hapus</a></td></tr>'
 		}
 		var txt = '<div class="mtb15" style="line-height:30px">\
-		<button style="margin-bottom: 7px;display:none;" class="btn btn-success btn-sm">Add</button>\
-		<div class="divtable"><table class="table table-hover"><thead><tr><th>Domain</th><th>Trusted Name</th><th>Expired</th><th>Brand</th><th class="text-right" width=" 75">Action</th></tr></thead>\
+		<button style="margin-bottom: 7px;display:none;" class="btn btn-success btn-sm">Add to</button>\
+		<div class="divtable"><table class="table table-hover"><thead><tr><th>Domain</th><th>Trus Name</th><th>Expire</th><th>Brand</th><th class="text-right" width="75">Aksi</th></tr></thead>\
 		<tbody>'+tbody+'</tbody>\
 		</table></div></div>';
 		$(".tab-con").html(txt);
@@ -1824,7 +1732,7 @@ function sslAdmin(siteName){
 }
 
 function removeSsl(certName){
-	safeMessage('Delete certificate','Do you really want to delete the certificate from the certificate folder?',function(){
+	safeMessage('Hapus sertifikat', 'Apakah Anda benar-benar ingin menghapus sertifikat dari folder sertifikat?',function(){
 		var loadT = layer.msg(lan.site.the_msg,{icon:16,time:0,shade: [0.3, '#000']});
 		$.post('/site/remove_cert',{certName:certName},function(rdata){
 			layer.close(loadT);
@@ -1835,36 +1743,97 @@ function removeSsl(certName){
 }
 
 function setCertSsl(certName,siteName){
-	var loadT = layer.msg('Deploying the certificate...',{icon:16,time:0,shade: [0.3, '#000']});
+	var loadT = layer.msg('Deploying certificate...',{icon:16,time:0,shade: [0.3, '#000']});
 	$.post('/site/set_cert_to_site',{certName:certName,siteName:siteName},function(rdata){
 		layer.close(loadT);
-		showMsg(rdata.msg, function(){
-			$(".tab-nav span:first-child").click();
-		},{icon:rdata.status?1:2},2000);
+		layer.msg(rdata.msg,{icon:rdata.status?1:2});
 	},'json');
 }
 
 function setSSL(id,siteName){
-	var sslHtml = '<div class="warning_info mb10" style="display:none;"><p class="">Reminder: The current site does not enable SSL certificate access, and site access may be risky. <button class="btn btn-success btn-xs ml10 cutTabView">Apply for a certificate</button></p></div>\
-				<div class="tab-nav" style="margin-top: 10px;">\
-					<span class="on" id="now_ssl" onclick="opSSL(\'now\','+id+',\''+siteName+'\')">Current certificate - <i class="error">[SSL not deployed]</i></span>\
-					<span onclick="opSSL(\'lets\','+id+',\''+siteName+'\')">Let\'s Encrypt</span>\
-					<span onclick="opSSL(\'acme\','+id+',\''+siteName+'\')">ACME</span>\
-					<span id="ssl_admin" onclick="sslAdmin(\''+siteName+'\')">Certificate folder</span>'
+	var mBody = '<div class="tab-nav">\
+					<span class="on" onclick="opSSL(\'lets\','+id+',\''+siteName+'\')">Let\'s Encrypt</span>\
+					<span onclick="opSSL(\'other\','+id+',\''+siteName+'\')">Other certificates</span>\
+					<span class="sslclose" onclick="closeSSL(\''+siteName+'\')">Close SSL</span>\
+					<span id="ssl_admin" onclick="sslAdmin(\''+siteName+'\')">Cert Folder</span>'
 					+ '<div class="ss-text pull-right mr30" style="position: relative;top:-4px">\
+	                    <em>Force HTTPS</em>\
+	                    <div class="ssh-item">\
+	                    	<input class="btswitch btswitch-ios" id="toHttps" type="checkbox">\
+	                    	<label class="btswitch-btn" for="toHttps" onclick="httpToHttps(\''+siteName+'\')"></label>\
+	                    </div>\
 	                </div></div>'
-			  + '<div class="tab-con" style="padding: 0px;"></div>';
-	$("#webedit-con").html(sslHtml);
+			  + '<div class="tab-con" style="padding: 0px;"></div>'
+
+	$("#webedit-con").html(mBody);
+	opSSL('lets',id,siteName);
 	$(".tab-nav span").click(function(){
 		$(this).addClass("on").siblings().removeClass("on");
 	});
-	opSSL('now',id,siteName);
+	var loadT = layer.msg(lan.site.the_msg,{icon:16,time:0,shade: [0.3, '#000']});
+	$.post('/site/get_ssl','siteName='+siteName,function(rdata){
+		layer.close(loadT);
+		$("#toHttps").attr('checked',rdata.data.httpTohttps);
+		switch(rdata.data.type){
+			case 1:
+				$(".tab-nav span").eq(1).addClass("on").siblings().removeClass("on");
+				setCookie('letssl',1);
+				var lets = '<div class="myKeyCon ptb15"><div class="ssl-con-key pull-left mr20">KEY<br><textarea id="key" class="bt-input-text" readonly="" style="background-color:#f6f6f6">'+rdata.data.key+'</textarea></div>'
+					+ '<div class="ssl-con-key pull-left">Certificate (PEM format)<br><textarea id="csr" class="bt-input-text" readonly="" style="background-color:#f6f6f6">'+rdata.data.csr+'</textarea></div>'
+					+ '</div>'
+					+ '<ul class="help-info-text c7 pull-left"><li>Let\'s Encrypt free certificate has been automatically generated for you;</li>\
+						<li>If you need to use other SSL, please switch other certificates, paste your KEY and PEM content, and then save.</li></ul>'
+				$(".tab-con").html(lets);
+				$(".help-info-text").after("<div class='line mtb15'><button class='btn btn-default btn-sm' onclick=\"ocSSL('close_ssl_conf','"+siteName+"')\" style='margin-left:10px'>Disable SSL</button></div>");
+				break;
+			case 0:
+			case 3:
+				$(".tab-nav span").eq(1).addClass("on").siblings().removeClass("on");
+				opSSL('other',id,siteName);
+				break;
+			case 2:
+				$(".tab-nav span").eq(0).addClass("on").siblings().removeClass("on");
+				opSSL('a',id,siteName);
+				break;
+		}
+	},'json');
+}
+
+function closeSSL(siteName){
+	var loadT = layer.msg(lan.site.the_msg,{icon:16,time:0,shade: [0.3, '#000']});
+	$.post('/site/get_ssl','siteName='+siteName,function(rdata){
+		layer.close(loadT);
+		switch(rdata.data.type){
+			case -1:
+				var txt = "<div class='mtb15' style='line-height:30px'>This site is not set up with SSL, if you need to set up SSL, please select switch category to apply for enabling SSL<br>\
+					<p style='color:red;'>After disabling SSL, be sure to clear the browser cache before visiting the site</p></div>";
+				setCookie('letssl',0);
+				$(".tab-con").html(txt);
+				break;
+			case 0:
+				var txt = "Let's Encrypt";
+				closeSSLHTML(txt,siteName);
+				break;
+			case 1:
+				var txt = 'Other';
+				closeSSLHTML(txt,siteName);
+				break;
+			case 2:
+				var txt = 'SSL';
+				closeSSLHTML(txt,siteName);
+				break;
+		}
+	},'json');
+}
+
+function closeSSLHTML(txt,siteName){
+	$(".tab-con").html("<div class='line mtb15'>"+lan.get('ssl_enable',[txt])+"</div><div class='line mtb15'><button class='btn btn-success btn-sm' onclick=\"ocSSL('close_ssl_conf','"+siteName+"')\">Disable SSL</button></div>");
 }
 
 function httpToHttps(siteName){
 	var isHttps = $("#toHttps").prop('checked');
 	if(isHttps){
-		layer.confirm('After turning off mandatory HTTPS, you need to clear the browser cache to see the effect, continue?',{icon:3,title:"Turn off Force HTTPS"},function(){
+		layer.confirm('After disabling forced HTTPS, you need to clear the browser cache to see the effect, continue?',{icon:3,title:"Turn off Force HTTPS"},function(){
 			$.post('/site/close_to_https','siteName='+siteName,function(rdata){
 				layer.msg(rdata.msg,{icon:rdata.status?1:2});
 			},'json');
@@ -1876,365 +1845,135 @@ function httpToHttps(siteName){
 	}
 }
 
+function opSSL(type,id,siteName){
+	var lets =  '<div class="btssl"><div class="label-input-group">'
+			  + '<div class="line mtb10"><form><span class="tname text-center">Ways of identifying</span><div style="margin-top:7px;display:inline-block"><input type="radio" name="c_type" onclick="file_check()" id="check_file" checked="checked" />\
+			  	<label class="mr20" for="check_file" style="font-weight:normal">Document verification</label></label></div></form></div>'
+			  + '<div class="check_message line"><div style="margin-left:100px"><input type="checkbox" name="checkDomain" id="checkDomain" checked=""><label class="mr20" for="checkDomain" style="font-weight:normal">Verify domain names in advance (discover problems in advance, reduce failure rate)</label></div></div>'
+			  + '</div><div class="line mtb10"><span class="tname text-center">Administrator email</span><input class="bt-input-text" style="width:240px;" type="text" name="admin_email" /></div>'
+			  + '<div class="line mtb10"><span class="tname text-center">Domain</span><ul id="ymlist" style="padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px"></ul></div>'
+			  + '<div class="line mtb10" style="margin-left:100px"><button class="btn btn-success btn-sm letsApply">Apply</button></div>'
+			  + '<ul class="help-info-text c7" id="lets_help"><li>Before applying, please make sure that the domain name has been resolved, otherwise the review will fail</li>\
+			  	<li>Let\'s Encrypt free certificate, valid for 3 months, supports multiple domain names. Auto-renew by default</li>\
+			  	<li>If your site uses a CDN or 301 redirection, the renewal will fail</li>\
+			  	<li>When the SSL default site is not specified, the site that does not have SSL enabled will use HTTPS to directly access the site that has enabled SSL.</li></ul>'
+			  + '</div>';
 
-function deleteSSL(type,id,siteName){
-	$.post('/site/delete_ssl','site_name='+siteName+'&ssl_type='+type,function(rdata){
-		showMsg(rdata.msg, function(){
-			opSSL(type,id,siteName);
-		},{icon:rdata.status?1:2}, 2000);
-	},'json');
-}
-
-function deploySSL(type,id,siteName){
-	$.post('/site/deploy_ssl','site_name='+siteName+'&ssl_type='+type,function(rdata){
-		showMsg(rdata.msg, function(){
-			if (rdata.status){
-				$('#now_ssl').click();
-			} else{
-				opSSL(type,id,siteName);
-			}
-		},{icon:rdata.status?1:2}, 2000);
-	},'json');
-}
-
-function renewSSL(type,id,siteName){
-	showSpeedWindow('Renewing...', 'site.get_let_logs', function(layers,index){
-		$.post('/site/renew_ssl','site_name='+siteName+'&ssl_type='+type,function(rdata){
-			showMsg(rdata.msg, function(){
-				if (rdata.status){
-					layer.close(index);
-					opSSL(type,id,siteName);
-				}
-			},{icon:rdata.status?1:2}, 2000);
-		},'json');
-	});
-}
-
-//SSL
-function opSSL(type, id, siteName, callback){
-
-	var now = '<div class="myKeyCon ptb15">\
-	 				<div class="ssl_state_info" style="display:none;"></div>\
-					<div class="custom_certificate_info">\
-						<div class="ssl-con-key pull-left mr20">Key (KEY)<br><textarea id="key" class="bt-input-text"></textarea></div>\
-						<div class="ssl-con-key pull-left">Certificate (PEM format)<br><textarea id="csr" class="bt-input-text"></textarea></div>\
-					</div>\
-					<div class="ssl-btn pull-left mtb15" style="width:100%">\
-						<button class="btn btn-success btn-sm" onclick="saveSSL(\''+siteName+'\')">Save</button>\
-					</div>\
-				</div>\
-				<ul class="help-info-text c7 pull-left">\
-					<li>Paste your *.key and *.pem content, then save.</li>\
-					<li>If the browser prompts that the certificate chain is incomplete, please check whether the PEM certificate is spliced correctly</li><li>PEM format certificate = domain name certificate.crt + root certificate (root_bundle).crt</li>\
-					<li>When the SSL default site is not specified, the site without SSL will directly access the site with SSL enabled using HTTPS</li>\
-				</ul>';
-
-	var lets =  '<div class="apply_ssl">\
-					<div class="label-input-group">\
-						<div class="line mtb10">\
-							<form>\
-								<span class="tname text-center">Ways of identifying</span>\
-								<div style="margin-top:7px;display:inline-block">\
-									<input type="radio" name="c_type" onclick="file_check()" id="check_file" checked="checked" />\
-				  					<label class="mr20" for="check_file" style="font-weight:normal">File verification</label></label>\
-				  				</div>\
-				  			</form>\
-				  		</div>\
-			  			<div class="check_message line">\
-			  				<div style="margin-left:100px">\
-			  					<input type="checkbox" name="checkDomain" id="checkDomain" checked="">\
-			  					<label class="mr20" for="checkDomain" style="font-weight:normal">Verify the domain name in advance (find problems in advance and reduce the failure rate)</label>\
-			  				</div>\
-			  			</div>\
-			  		</div>\
-			  		<div class="line mtb10">\
-			  			<span class="tname text-center">Admin mailbox</span>\
-			  			<input class="bt-input-text" style="width:240px;" type="text" name="admin_email" />\
-			  		</div>\
-			  		<div class="line mtb10">\
-			  			<span class="tname text-center">Domain</span>\
-			  			<ul id="ymlist" style="padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px"></ul>\
-			  		</div>\
-			  		<div class="line mtb10" style="margin-left:100px">\
-			  			<button class="btn btn-success btn-sm letsApply">Apply</button>\
-			  		</div>\
-				  	<ul class="help-info-text c7" id="lets_help">\
-				  		<li>Before applying, please ensure that the domain name has been resolved, otherwise it will cause the review to fail</li>\
-				  		<li>Let\'s Encrypt free certificate, valid for 3 months, supports multiple domain names. Automatically renew by default</li>\
-				  		<li>If your site uses CDN or 301 redirection, the renewal will fail</li>\
-				  		<li>When the SSL default site is not specified, the site without SSL will directly access the site with SSL enabled using HTTPS</li>\
-				  	</ul>\
-			  </div>';
-
-	var acme =  '<div class="apply_ssl">\
-					<div class="label-input-group">\
-						<div class="line mtb10">\
-							<form>\
-								<span class="tname text-center">Ways of identifying</span>\
-								<div style="margin-top:7px;display:inline-block">\
-									<input type="radio" name="c_type" onclick="file_check()" id="check_file" checked="checked" />\
-				  					<label class="mr20" for="check_file" style="font-weight:normal">File verification</label></label>\
-				  				</div>\
-				  			</form>\
-				  		</div>\
-			  			<div class="check_message line">\
-			  				<div style="margin-left:100px">\
-			  					<input type="checkbox" name="checkDomain" id="checkDomain" checked="">\
-			  					<label class="mr20" for="checkDomain" style="font-weight:normal">Verify the domain name in advance (find problems in advance and reduce the failure rate)</label>\
-			  				</div>\
-			  			</div>\
-			  		</div>\
-			  		<div class="line mtb10">\
-			  			<span class="tname text-center">Admin mailbox</span>\
-			  			<input class="bt-input-text" style="width:240px;" type="text" name="admin_email" />\
-			  		</div>\
-			  		<div class="line mtb10">\
-			  			<span class="tname text-center">Domain</span>\
-			  			<ul id="ymlist" style="padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px"></ul>\
-			  		</div>\
-			  		<div class="line mtb10" style="margin-left:100px">\
-			  			<button class="btn btn-success btn-sm letsApply">Apply</button>\
-			  		</div>\
-				  	<ul class="help-info-text c7" id="lets_help">\
-				  		<li>Before applying, please ensure that the domain name has been resolved, otherwise it will cause the review to fail</li>\
-			  			<li>ACME can apply for a certificate for free, valid for 3 months, and supports multiple domain names. Automatically renew by default</li>\
-			  			<li>If your site uses CDN or 301 redirection, the renewal will fail</li>\
-			  			<li>When the SSL default site is not specified, the site without SSL will directly access the site with SSL enabled using HTTPS</li></ul>\
-				  	</ul>\
-			  </div>';
-
-
+	var other = '<div class="myKeyCon ptb15"><div class="ssl-con-key pull-left mr20">KEY<br><textarea id="key" class="bt-input-text"></textarea></div>'
+					+ '<div class="ssl-con-key pull-left">Certificate (PEM format)<br><textarea id="csr" class="bt-input-text"></textarea></div>'
+					+ '<div class="ssl-btn pull-left mtb15" style="width:100%"><button class="btn btn-success btn-sm" onclick="saveSSL(\''+siteName+'\')">Keep</button></div></div>'
+					+ '<ul class="help-info-text c7 pull-left"><li>Paste your *.key and *.pem content and save it.</li>\
+					<li>If the browser prompts that the certificate chain is incomplete, please check whether the PEM certificate is correctly spliced.</li><li>PEM format certificate = domain name certificate.crt + root certificate (root_bundle).crt</li>\
+					<li>When the SSL default site is not specified, the site that does not have SSL enabled will use HTTPS to directly access the site that has enabled SSL.</li></ul>';
 	switch(type){
 		case 'lets':
+			if(getCookie('letssl') == 1){
+				$.post('/site/get_ssl','siteName='+siteName,function(data){
+					var rdata = data['data'];
+					if(rdata.csr === false){
+						setCookie('letssl',0);
+						opSSL(type,id,siteName);
+						return;
+					}
+					var lets = '<div class="myKeyCon ptb15"><div class="ssl-con-key pull-left mr20">KEY<br><textarea id="key" class="bt-input-text" readonly="" style="background-color:#f6f6f6">'+rdata.key+'</textarea></div>'
+						+ '<div class="ssl-con-key pull-left">Certificate (PEM format)<br><textarea id="csr" class="bt-input-text" readonly="" style="background-color:#f6f6f6">'+rdata.csr+'</textarea></div>'
+						+ '</div>'
+						+ '<ul class="help-info-text c7 pull-left"><li>Let\'s Encrypt free certificate has been automatically generated for you</li>\
+						<li>If you need to use other SSL, please switch other certificates, paste your KEY and PEM content, and then save.</li></ul>';
+					$(".tab-con").html(lets);
+					$(".help-info-text").after("<div class='line mtb15'><button class='btn btn-default btn-sm' onclick=\"ocSSL('close_ssl_conf','"+siteName+"')\" style='margin-left:10px'>Disable SSL</button></div>");
+				},'json');
+				return;
+			}
 			$(".tab-con").html(lets);
-			$.post('/site/get_ssl',  'site_name='+siteName+'&ssl_type=lets', function(data){
-				var rdata = data['data'];
-				if(rdata.csr == false){
-					$.post('/site/get_site_domains','id='+id, function(rdata) {
-						var data = rdata['data'];
-						var opt='';
-						for(var i=0;i<data.domains.length;i++){
-							var isIP = isValidIP(data.domains[i].name);
-							var x = isContains(data.domains[i].name, '*');
-							if(!isIP && !x){
-								opt+='<li style="line-height:26px"><input type="checkbox" style="margin-right:5px; vertical-align:-2px" value="'+data.domains[i].name+'">'+data.domains[i].name+'</li>'
-							}
-						}
-						$("input[name='admin_email']").val(data.email);
-						$("#ymlist").html(opt);
-						$("#ymlist li input").click(function(e){
-							e.stopPropagation();
-						})
-						$("#ymlist li").click(function(){
-							var o = $(this).find("input");
-							if(o.prop("checked")){
-								o.prop("checked",false)
-							}
-							else{
-								o.prop("checked",true);
-							}
-						})
-						$(".letsApply").click(function(){
-							var c = $("#ymlist input[type='checkbox']");
-							var str = [];
-							var domains = '';
-							for(var i=0; i<c.length; i++){
-								if(c[i].checked){
-									str.push(c[i].value);
-								}
-							}
-							domains = JSON.stringify(str);
-							newSSL(siteName, id, domains);
-						});
-
-						if (typeof (callback) != 'undefined'){
-							callback(rdata);
-						}
-					},'json');
-					return;
+			var opt='';
+			$.post('/site/get_site_domains',{id:id}, function(rdata) {
+				var data = rdata['data'];
+				for(var i=0;i<data.domains.length;i++){
+					var isIP = isValidIP(data.domains[i].name);
+					var x = isContains(data.domains[i].name, '*');
+					if(!isIP && !x){
+						opt+='<li style="line-height:26px"><input type="checkbox" style="margin-right:5px; vertical-align:-2px" value="'+data.domains[i].name+'">'+data.domains[i].name+'</li>'
+					}
 				}
-				var lets = '<div class="myKeyCon ptb15">\
-						<div class="ssl_state_info" style="display:none;"></div>\
-						<div class="custom_certificate_info">\
-							<div class="ssl-con-key pull-left mr20" readonly>Key (KEY)<br><textarea id="key" class="bt-input-text">'+rdata.key+'</textarea></div>\
-							<div class="ssl-con-key pull-left" readonly>Certificate (PEM format)<br><textarea id="csr" class="bt-input-text">'+rdata.csr+'</textarea></div>\
-						</div>\
-						<div class="ssl-btn pull-left mtb15" style="width:100%">\
-							<button class="btn btn-success btn-sm" onclick="deploySSL(\'lets\','+id+',\''+siteName+'\')">Deploy</button>\
-							<button class="btn btn-success btn-sm" onclick="renewSSL(\'lets\','+id+',\''+siteName+'\')">Renew</button>\
-							<button class="btn btn-success btn-sm" onclick="deleteSSL(\'lets\','+id+',\''+siteName+'\')">Delete</button>\
-						</div>\
-					</div>\
-					<ul class="help-info-text c7 pull-left">\
-						<li>A free Let\'s Encrypt certificate has been automatically generated for you</li>\
-						<li>Apply for a certificate from Let\'s Encrypt free of charge, valid for 3 months, and support multiple domain names. Automatically renew by default</li>\
-						<li>If you need to use other SSL, please switch to other certificates, paste your KEY and PEM content, and then save.</li>\
-					</ul>';
-				$(".tab-con").html(lets);
+				$("input[name='admin_email']").val(data.email);
+				$("#ymlist").html(opt);
+				$("#ymlist li input").click(function(e){
+					e.stopPropagation();
+				})
+				$("#ymlist li").click(function(){
+					var o = $(this).find("input");
+					if(o.prop("checked")){
+						o.prop("checked",false)
+					}
+					else{
+						o.prop("checked",true);
+					}
+				})
+				$(".letsApply").click(function(){
+					var c = $("#ymlist input[type='checkbox']");
+					var str = [];
+					var domains = '';
+					for(var i=0; i<c.length; i++){
+						if(c[i].checked){
+							str.push(c[i].value);
+						}
+					}
+					domains = JSON.stringify(str);
+					newSSL(siteName,domains);
 
-				if (rdata['cert_data']){
-					var issuer = rdata['cert_data']['issuer'].split(" ");
-					var domains = rdata['cert_data']['dns'].join("、");
-
-					var cert_data = "<div class='state_info_flex'>\
-						<div class='state_item'><span>Certificate brand：</span><span class='ellipsis_text'>"+issuer[0]+"</span></div>\
-						<div class='state_item'><span>Expire date：</span><span class='btlink'>Remaining "+rdata['cert_data']['endtime']+" days due</span></div>\
-					</div>\
-					<div class='state_info_flex'>\
-						<div class='state_item'><span>Certified domain name：</span><span class='ellipsis_text'>"+domains+"</span></div>\
-					</div>";
-					$(".ssl_state_info").html(cert_data);
-					$(".ssl_state_info").css('display','block');
-				}
+				})
 			},'json');
 			break;
-		case 'acme':
-			$(".tab-con").html(acme);
-			$.post('/site/get_ssl',  'site_name='+siteName+'&ssl_type=acme', function(data){
-				var rdata = data['data'];
-				if(rdata.csr == false){
-					$.post('/site/get_site_domains','id='+id, function(rdata) {
-						var data = rdata['data'];
-						var opt='';
-						for(var i=0;i<data.domains.length;i++){
-							var isIP = isValidIP(data.domains[i].name);
-							var x = isContains(data.domains[i].name, '*');
-							if(!isIP && !x){
-								opt += '<li style="line-height:26px">\
-									<input type="checkbox" style="margin-right:5px; vertical-align:-2px" value="'+data.domains[i].name+'">'+data.domains[i].name
-								+'</li>';
-							}
-						}
-						$("input[name='admin_email']").val(data.email);
-						$("#ymlist").html(opt);
-						$("#ymlist li input").click(function(e){
-							e.stopPropagation();
-						})
-						$("#ymlist li").click(function(){
-							var o = $(this).find("input");
-							if(o.prop("checked")){
-								o.prop("checked",false)
-							}
-							else{
-								o.prop("checked",true);
-							}
-						})
-						$(".letsApply").click(function(){
-							var c = $("#ymlist input[type='checkbox']");
-							var str = [];
-							var domains = '';
-							for(var i=0; i<c.length; i++){
-								if(c[i].checked){
-									str.push(c[i].value);
-								}
-							}
-							domains = JSON.stringify(str);
-							newAcmeSSL(siteName, id, domains);
-						});
-
-						if (typeof (callback) != 'undefined'){
-							callback(rdata);
-						}
-					},'json');
-					return;
-				}
-				var acme = '<div class="myKeyCon ptb15">\
-						<div class="ssl_state_info" style="display:none;"></div>\
-						<div class="custom_certificate_info">\
-							<div class="ssl-con-key pull-left mr20" readonly>Key (KEY)<br><textarea id="key" class="bt-input-text">'+rdata.key+'</textarea></div>\
-							<div class="ssl-con-key pull-left" readonly>Certificate (PEM format)<br><textarea id="csr" class="bt-input-text">'+rdata.csr+'</textarea></div>\
-						</div>\
-						<div class="ssl-btn pull-left mtb15" style="width:100%">\
-							<button class="btn btn-success btn-sm" onclick="deploySSL(\'acme\','+id+',\''+siteName+'\')">Deploy</button>\
-							<button class="btn btn-success btn-sm" onclick="deleteSSL(\'acme\','+id+',\''+siteName+'\')">Delete</button>\
-						</div>\
-					</div>\
-					<ul class="help-info-text c7 pull-left">\
-						<li>ACME free certificate has been automatically generated for you</li>\
-						<li>ACME can apply for a certificate for free, valid for 3 months, and supports multiple domain names. Automatically renew by default</li>\
-						<li>If you need to use other SSL, please switch to other certificates, paste your KEY and PEM content, and then save.</li>\
-					</ul>';
-				$(".tab-con").html(acme);
-
-				if (rdata['cert_data']){
-					var issuer = rdata['cert_data']['issuer'].split(" ");
-					var domains = rdata['cert_data']['dns'].join("、");
-
-					var cert_data = "<div class='state_info_flex'>\
-						<div class='state_item'><span>Certificate brand：</span><span class='ellipsis_text'>"+issuer[0]+"</span></div>\
-						<div class='state_item'><span>Expire date：</span><span class='btlink'>Remaining "+rdata['cert_data']['endtime']+" days due</span></div>\
-					</div>\
-					<div class='state_info_flex'>\
-						<div class='state_item'><span>Certified domain name：</span><span class='ellipsis_text'>"+domains+"</span></div>\
-					</div>";
-					$(".ssl_state_info").html(cert_data);
-					$(".ssl_state_info").css('display','block');
-				}
-			},'json');
-			break;
-		case 'now':
-			$(".tab-con").html(now);
+		case 'other':
+			$(".tab-con").html(other);
 			var key = '';
 			var csr = '';
 			var loadT = layer.msg('Submitting task...',{icon:16,time:0,shade: [0.3, '#000']});
-			$.post('site/get_ssl','site_name='+siteName,function(data){
+			$.post('site/get_ssl','siteName='+siteName,function(data){
 				layer.close(loadT);
 				var rdata = data['data'];
-
-				if (rdata['cert_data']){
-					var issuer = rdata['cert_data']['issuer'].split(" ");
-					var domains = rdata['cert_data']['dns'].join("、");
-
-					var cert_data = "<div class='state_info_flex'>\
-						<div class='state_item'><span>Certificate brand：</span><span class='ellipsis_text'>"+issuer[0]+"</span></div>\
-						<div class='state_item'><span>Expire date：</span><span class='btlink'>Remaining "+rdata['cert_data']['endtime']+" days due</span></div>\
-					</div>\
-					<div class='state_info_flex'>\
-						<div class='state_item'><span>Certified domain name：</span><span class='ellipsis_text'>"+domains+"</span></div>\
-						<div class='state_item'><span>Force HTTPS：</span><span class='switch'>\
-							<input class='btswitch btswitch-ios' id='toHttps' type='checkbox'>\
-		                    <label class='btswitch-btn' for='toHttps' onclick=\"httpToHttps('" + siteName + "')\">\
-						</span></div>\
-					</div>";
-					$(".ssl_state_info").html(cert_data);
-					$(".ssl_state_info").css('display','block');
+				if (rdata.type == 0){
+					setCookie('letssl', 1);
 				}
-
-				if(rdata.key == false){
-					rdata.key = '';
-				} else {
-					$(".ssl-btn").append('<button style=\'margin-left:3px;\' class="btn btn-success btn-sm" onclick="deleteSSL(\'now\','+id+',\''+siteName+'\')">Delete</button>');
+				if(rdata.status){
+					$(".ssl-btn").append("<button class='btn btn-default btn-sm' onclick=\"ocSSL('close_ssl_conf','"+siteName+"')\" style='margin-left:10px'>Disable SSL</button>");
 				}
-
-				if(rdata.csr == false){
-					rdata.csr = '';
-				}
+				if(rdata.key == false) rdata.key = '';
+				if(rdata.csr == false) rdata.csr = '';
 				$("#key").val(rdata.key);
 				$("#csr").val(rdata.csr);
-
-				$("#toHttps").attr('checked',rdata.httpTohttps);
-				if(rdata.status){
-					$('.warning_info').css('display','none');
-
-					$(".ssl-btn").append("<button class='btn btn-success btn-sm' onclick=\"ocSSL('close_ssl_conf','"+siteName+"')\" style='margin-left:3px;'>Close SSL</button>");
-					$('#now_ssl').html('Current certificate - <i style="color:#20a53a;">[SSL deployed]</i>');
-				} else{
-					$('.warning_info').css('display','block');
-					$('#now_ssl').html('Current certificate - <i style="color:red;">[SSL is not deployed]</i>');
-				}
-
-
-				if (typeof (callback) != 'undefined'){
-					callback(rdata);
-				}
 			},'json');
-			break;
-		default:
-			layer.msg("Error type", {icon:5});
 			break;
 	}
 }
 
+function onekeySSl(partnerOrderId,siteName){
+	var loadT = layer.msg(lan.site.ssl_apply_3,{icon:16,time:0,shade:0.3});
+	$.post("/ssl?action=GetSSLInfo","partnerOrderId="+partnerOrderId+"&siteName="+siteName,function(zdata){
+		layer.close(loadT);
+		layer.msg(zdata.msg,{icon:zdata.status?1:2});
+		getSSLlist(siteName);
+	})
+}
+
+function verifyDomain(partnerOrderId,siteName){
+	var loadT = layer.msg(lan.site.ssl_apply_2,{icon:16,time:0,shade:0.3});
+	$.post("/ssl?action=Completed","partnerOrderId="+partnerOrderId+'&siteName='+siteName,function(ydata){
+		layer.close(loadT);
+		if(!ydata.status){
+			layer.msg(ydata.msg,{icon:2});
+			return;
+		}
+
+		var loadT = layer.msg(lan.site.ssl_apply_3,{icon:16,time:0,shade:0.3});
+		$.post("/ssl?action=GetSSLInfo","partnerOrderId="+partnerOrderId+"&siteName="+siteName,function(zdata){
+			layer.close(loadT);
+			if(zdata.status) getSSLlist();
+			layer.msg(zdata.msg,{icon:zdata.status?1:2});
+		});
+	});
+}
 
 function ocSSL(action,siteName){
 	var loadT = layer.msg('Getting certificate list, please wait..',{icon:16,time:0,shade: [0.3, '#000']});
@@ -2247,9 +1986,9 @@ function ocSSL(action,siteName){
 				setSSL(siteName);
 				return;
 			}
-			data = "<p>Certificate acquisition failed：</p><hr />"
+			data = "<p>Certificate acquisition failed: </p><hr />"
 			for(var i=0;i<rdata.out.length;i++){
-				data += "<p>Domain name: "+rdata.out[i].Domain+"</p>"
+				data += "<p>Domain: "+rdata.out[i].Domain+"</p>"
 					  + "<p>Error type: "+rdata.out[i].Type+"</p>"
 					  + "<p>Details: "+rdata.out[i].Detail+"</p>"
 					  + "<hr />";
@@ -2257,52 +1996,39 @@ function ocSSL(action,siteName){
 			layer.msg(data,{icon:2,time:0,shade:0.3,shadeClose:true});
 			return;
 		}
+
+		setCookie('letssl',0);
 		layer.msg(rdata.msg,{icon:rdata.status?1:2});
 		if(action == 'close_ssl_conf'){
-			layer.msg('SSL has been closed, please be sure to clear the browser cache before accessing the site!',{icon:1,time:5000});
+			layer.msg('SSL is turned off, please be sure to clear the browser cache before visiting the site!',{icon:1,time:5000});
 		}
 		$(".tab-nav .on").click();
 	},'json');
 }
 
-function newSSL(siteName, id, domains){
-	showSpeedWindow('Currently applying...', 'site.get_let_logs', function(layers,index){
-		var force = '';
-		if ($("#checkDomain").prop("checked")){
-			force = '&force=true';
+function newSSL(siteName,domains){
+	var loadT = layer.msg('Verifying domain name, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
+	var force = '';
+	if($("#checkDomain").prop("checked")) force = '&force=true';
+	var email = $("input[name='admin_email']").val();
+	$.post('/site/create_let','siteName='+siteName+'&domains='+domains+'&updateOf=1&email='+email + force,function(rdata){
+		layer.close(loadT);
+		if(rdata.status){
+			var mykeyhtml = '<div class="myKeyCon ptb15"><div class="ssl-con-key pull-left mr20">KEY<br><textarea id="key" class="bt-input-text" readonly="" style="background-color:#f6f6f6">'+rdata.data.key+'</textarea></div>'
+					+ '<div class="ssl-con-key pull-left">Certificate (PEM format)<br><textarea id="csr" class="bt-input-text" readonly="" style="background-color:#f6f6f6">'+rdata.data.csr+'</textarea></div>'
+					+ '</div>'
+					+ '<ul class="help-info-text c7 pull-left"><li>Let\'s Encrypt free certificate has been automatically generated for you;</li>\
+						<li>If you need to use other SSL, please switch other certificates, paste your KEY and PEM content, and then save.</li></ul>';
+			$(".btssl").html(mykeyhtml);
+			layer.msg(rdata.data.msg,{icon:rdata.status?1:2});
+			setCookie('letssl',1);
+			return;
 		}
-		var email = $("input[name='admin_email']").val();
-		$.post('/site/create_let','siteName='+siteName+'&domains='+domains+'&email='+email + force,function(rdata){
-			layer.close(index);
-			if(rdata.status){
-				showMsg(rdata.msg, function(){
-					$(".tab-nav span:first-child").click();
-				},{icon:1}, 2000);
-				return;
-			}
-			layer.msg(rdata.msg,{icon:2,area:'500px',time:0,shade:0.3,shadeClose:true});
-		},'json');
-	});
-}
 
-function newAcmeSSL(siteName, id, domains){
-	showSpeedWindow('Applying by ACME...', 'site.get_acme_logs', function(layers,index){
-		var force = '';
-		if($("#checkDomain").prop("checked")){
-			force = '&force=true';
-		}
-		var email = $("input[name='admin_email']").val();
-		$.post('/site/create_acme','siteName='+siteName+'&domains='+domains+'&email='+email + force,function(rdata){
-			layer.close(index);
-			if(rdata.status){
-				showMsg(rdata.msg, function(){
-					$(".tab-nav span:first-child").click();
-				},{icon:1}, 2000);
-				return;
-			}
-			layer.msg(rdata.msg,{icon:2,area:'500px',time:0,shade:0.3,shadeClose:true});
-		},'json');
-	});
+		setCookie('letssl',0);
+		layer.msg(rdata.msg,{icon:2,area:'500px',time:0,shade:0.3,shadeClose:true});
+
+	},'json');
 }
 
 function saveSSL(siteName){
@@ -2314,7 +2040,7 @@ function saveSSL(siteName){
 			layer.msg(rdata.msg,{icon:1});
 			$(".ssl-btn").find(".btn-default").remove();
 			$(".ssl-btn").append("<button class='btn btn-default btn-sm' onclick=\"ocSSL('close_ssl_conf','"+siteName+"')\" style='margin-left:10px'>"+lan.site.ssl_close+"</button>");
-		} else {
+		}else{
 			layer.msg(rdata.msg,{icon:2,time:0,shade:0.3,shadeClose:true});
 		}
 	},'json');
@@ -2330,7 +2056,7 @@ function phpVersion(siteName){
 		$.post('/site/get_php_version',function(rdata){
 			var versionSelect = "<div class='webEdit-box'>\
 									<div class='line'>\
-										<span class='tname' style='width:100px'>PHP version</span>\
+										<span class='tname' style='width:100px'>Versi PHP</span>\
 										<div class='info-r'>\
 											<select id='phpVersion' class='bt-input-text mr5' name='phpVersion' style='width:110px'>";
 			var optionSelect = '';
@@ -2346,14 +2072,15 @@ function phpVersion(siteName){
 							<ul class='help-info-text c7 ptb10'>\
 								<li>Please select the version according to your program needs</li>\
 								<li>If it is not necessary, please try not to use PHP5.2, which will reduce the security of your server;</li>\
-								<li>PHP7 does not support mysql extension, mysqli and mysql-pdo are installed by default.</li>\
+								<li>PHP7 does not support the mysql extension, and mysqli and mysql-pdo are installed by default.</li>\
 							</ul>\
 						</div>\
 					</div>";
 			$("#webedit-con").html(versionSelect);
+
 			$("select[name='phpVersion']").change(function(){
 				if($(this).val() == '52'){
-					var msgerr = 'PHP5.2 has cross-site risk when your site has vulnerabilities, please try to use PHP5.3 or above!';
+					var msgerr = 'PHP5.2 has cross-site risk when your site has loopholes, please try to use PHP5.3 or above!';
 					$('#php_w').text(msgerr);
 				}else{
 					$('#php_w').text('');
@@ -2362,6 +2089,7 @@ function phpVersion(siteName){
 		},'json');
 	},'json');
 }
+
 
 function setPHPVersion(siteName){
 	var data = 'version='+$("#phpVersion").val()+'&siteName='+siteName;
@@ -2378,9 +2106,9 @@ function configFile(webSite){
 		var mBody = "<div class='webEdit-box padding-10'>\
 		<textarea style='height: 320px; width: 445px; margin-left: 20px;line-height:18px' id='configBody'>"+rdata.data.data+"</textarea>\
 			<div class='info-r'>\
-				<button id='SaveConfigFileBtn' class='btn btn-success btn-sm' style='margin-top:15px;'>Save</button>\
+				<button id='SaveConfigFileBtn' class='btn btn-success btn-sm' style='margin-top:15px;'>Keep</button>\
 				<ul class='help-info-text c7 ptb10'>\
-					<li>This is the main configuration file of the site, if you do not understand the configuration rules, please do not modify it at will.</li>\
+					<li>This is the main configuration file of the site. If you do not understand the configuration rules, please do not modify it at will.</li>\
 				</ul>\
 			</div>\
 		</div>";
@@ -2402,7 +2130,7 @@ function configFile(webSite){
 function saveConfigFile(webSite,encoding,path){
 	var data = 'encoding='+encoding+'&data='+encodeURIComponent($("#configBody").val())+'&path='+path;
 	var loadT = layer.msg('Saving...',{icon:16,time:0,shade: [0.3, '#000']});
-	$.post('/site/save_host_conf',data,function(rdata){
+	$.post('/files/save_body',data,function(rdata){
 		layer.close(loadT);
 		if(rdata.status){
 			layer.msg(rdata.msg,{icon:1});
@@ -2430,10 +2158,10 @@ function rewrite(siteName){
 						<div class='line'>\
 						<select id='myRewrite' class='bt-input-text mr20' name='rewrite' style='width:30%;'>"+rList+"</select>\
 						<textarea class='bt-input-text' style='height: 260px; width: 480px; line-height:18px;margin-top:10px;padding:5px;' id='rewriteBody'>"+centent+"</textarea></div>\
-						<button id='SetRewriteBtn' class='btn btn-success btn-sm'>Save</button>\
-						<button id='SetRewriteBtnTel' class='btn btn-success btn-sm'>Save as template</button>\
+						<button id='SetRewriteBtn' class='btn btn-success btn-sm'>Keep</button>\
+						<button id='SetRewriteBtnTel' class='btn btn-success btn-sm'>Save Template</button>\
 						<ul class='help-info-text c7 ptb15'>\
-							<li>Please select your application. If the website cannot be accessed normally after setting rewrite rule, please try to set it back to default</li>\
+							<li>Please select your application, if the website cannot be accessed normally after setting pseudo-static, please try to set it back to default</li>\
 							<li>You can modify the pseudo-static rules and save them after modification.</li>\
 						</ul>\
 						</div>";
@@ -2449,7 +2177,7 @@ function rewrite(siteName){
 			$("#SetRewriteBtn").click(function(){
 				$("#rewriteBody").empty();
 				$("#rewriteBody").text(editor.getValue());
-				setRewrite(filename, encodeURIComponent(editor.getValue()));
+				setRewrite(filename);
 			});
 			$("#SetRewriteBtnTel").click(function(){
 				$("#rewriteBody").empty();
@@ -2479,10 +2207,10 @@ function rewrite(siteName){
 	},'json');
 }
 
-function setRewrite(filename,data){
-	var data = 'data='+data+'&path='+filename+'&encoding=utf-8';
+function setRewrite(filename){
+	var data = 'data='+encodeURIComponent($("#rewriteBody").val())+'&path='+filename+'&encoding=utf-8';
 	var loadT = layer.msg(lan.site.saving_txt,{icon:16,time:0,shade: [0.3, '#000']});
-	$.post('/site/set_rewrite',data,function(rdata){
+	$.post('/files/save_body',data,function(rdata){
 		layer.close(loadT);
 		if(rdata.status){
 			layer.msg(rdata.msg,{icon:1});
@@ -2494,38 +2222,44 @@ function setRewrite(filename,data){
 var aindex = null;
 
 function setRewriteTel(act){
+	if(act != undefined){
+		name = $("#rewriteName").val();
+		if(name == ''){
+			layer.msg(lan.site.template_empty,{icon:5});
+			return;
+		}
+		var data = 'data='+encodeURIComponent($("#rewriteBody").val())+'&name='+name;
+		var loadT = layer.msg(lan.site.saving_txt,{icon:16,time:0,shade: [0.3, '#000']});
+		$.post('/site?action=SetRewriteTel',data,function(rdata){
+			layer.close(loadT);
+			layer.close(aindex);
+
+			layer.msg(rdata.msg,{icon:rdata.status?1:5});
+		});
+		return;
+	}
+
 	aindex = layer.open({
 		type: 1,
 		shift: 5,
 		closeBtn: 1,
-		area: '320px',
-		title: 'Save as Rewrite template',
-		btn:[lan.public.ok,lan.public.cancel],
-		content: '<div class="bt-form pd20">\
+		area: '320px', //宽高
+		title: 'Save as Rewrite Template',
+		content: '<div class="bt-form pd20 pb70">\
 					<div class="line">\
 						<input type="text" class="bt-input-text" name="rewriteName" id="rewriteName" value="" placeholder="'+lan.site.template_name+'" style="width:100%" />\
 					</div>\
-				</div>',
-		success:function(index){
-			$("#rewriteName").focus().keyup(function(e){
-				if(e.keyCode == 13) $("#rewriteNameBtn").click();
-			});
-		},
-		yes:function(index){
-			name = $("#rewriteName").val();
-			if(name == ''){
-				layer.msg(lan.site.template_empty,{icon:5});
-				return;
-			}
-			var data = 'data='+encodeURIComponent($("#rewriteBody").val())+'&name='+name;
-			var loadT = layer.msg(lan.site.saving_txt,{icon:16,time:0,shade: [0.3, '#000']});
-			$.post('/site/set_rewrite_tpl',data,function(rdata){
-				layer.close(loadT);
-				layer.close(index);
-				layer.msg(rdata.msg, {icon:rdata.status?1:5});
-			},'json');
-			return;
-		}
+					<div class="bt-form-submit-btn">\
+					<button type="button" class="btn btn-danger btn-sm">'+lan.public.cancel+'</button>\
+					<button type="button" id="rewriteNameBtn" class="btn btn-success btn-sm" onclick="SetRewriteTel(1)">'+lan.public.ok+'</button>\
+					</div>\
+				</div>'
+	});
+	$(".btn-danger").click(function(){
+		layer.close(aindex);
+	});
+	$("#rewriteName").focus().keyup(function(e){
+		if(e.keyCode == 13) $("#rewriteNameBtn").click();
 	});
 }
 
@@ -2541,7 +2275,7 @@ function siteDefaultPage(){
 						<button class="btn btn-default btn-sm mg10" style="width:188px" onclick="changeDefault(1)">Default document</button>\
 						<button class="btn btn-default btn-sm mg10" style="width:188px" onclick="changeDefault(2)">404 error page</button>\
 						<button class="btn btn-default btn-sm mg10" style="width:188px" onclick="changeDefault(3)">Blank page</button>\
-						<button class="btn btn-default btn-sm mg10" style="width:188px" onclick="changeDefault(4)">Default Site Stop Page</button>\
+						<button class="btn btn-default btn-sm mg10" style="width:188px" onclick="changeDefault(4)">Default stop page</button>\
 				</div>'
 	});
 }
@@ -2557,11 +2291,12 @@ function changeDefault(type){
 	},'json');
 }
 
+
 function getClassType(){
 	var select = $('.site_type > select');
 	$.post('/site/get_site_types',function(rdata){
 		$(select).html('');
-		$(select).append('<option value="-1">All Categories</option>');
+		$(select).append('<option value="-1">Kategori</option>');
 		for (var i = 0; i<rdata.length; i++) {
 			$(select).append('<option value="'+rdata[i]['id']+'">'+rdata[i]['name']+'</option>');
 		}
@@ -2575,6 +2310,9 @@ function getClassType(){
 }
 getClassType();
 
+
+
+
 function setClassType(){
 	$.post('/site/get_site_types',function(rdata){
 		var list = '';
@@ -2587,7 +2325,7 @@ function setClassType(){
 		layer.open({
 			type: 1,
 			area: '350px',
-			title: 'Website category management',
+			title: 'Website classification management',
 			closeBtn: 1,
 			shift: 0,
 			content: '<div class="bt-form edit_site_type">\
@@ -2596,7 +2334,7 @@ function setClassType(){
 							<input name="type_name" class="bt-input-text mr5 type_name" placeholder="Please fill in the category name" type="text" style="width:50%" value=""><button name="btn_submit" class="btn btn-success btn-sm mr5 ml5 btn_submit" onclick="addClassType();">Add</button></div>\
 						</div>\
 						<table id="type_table" class="table table-hover" width="100%">\
-							<thead><tr><th>Name</th><th width="80px">Action</th></tr></thead>\
+							<thead><tr><th>Nama</th><th width="80px">Aksi</th></tr></thead>\
 							<tbody>'+list+'</tbody>\
 						</table>\
 					</div>\
@@ -2623,7 +2361,7 @@ function removeClassType(id,name){
 		layer.msg('Default categories cannot be deleted/edited!',{icon:2});
 		return;
 	}
-	layer.confirm('Are you sure to delete the category？',{title: 'Delete category ['+ name +']' }, function(){
+	layer.confirm('Are you sure you want to delete the classification?',{title: 'Delete category ['+ name +']' }, function(){
 		$.post('/site/remove_site_type','id='+id, function(rdata){
 			showMsg(rdata.msg,function(){
 				if (rdata.status){
@@ -2645,7 +2383,7 @@ function editClassType(id,name){
 	layer.open({
 		type: 1,
 		area: '350px',
-		title: 'Modify category management [' + name + ']',
+		title: 'Modify classification management [' + name + ']',
 		closeBtn: 1,
 		shift: 0,
 		content: "<form class='bt-form bt-form pd20 pb70' id='mod_pwd'>\
@@ -2726,13 +2464,13 @@ function setSizeClassType(){
 
 function tryRestartPHP(siteName){
 	$.post('/site/get_site_php_version','siteName='+siteName,function(data){
-		var phpversion = data.phpversion;
+    var phpversion = data.phpversion;
 
 		if (phpversion == "00"){
 			return
 		}
 
-		var php_sign = 'php';
+    var php_sign = 'php';
 		if (phpversion.indexOf('yum') > -1){
 			php_sign = 'php-yum';
 			phpversion = phpversion.replace('yum','');
@@ -2747,7 +2485,7 @@ function tryRestartPHP(siteName){
 		reqData['version'] = phpversion;
 
 		// console.log(reqData);
-		var loadT = layer.msg('Attempt to automatically restart PHP['+phpversion+']...', { icon: 16, time: 0, shade: 0.3 });
+		var loadT = layer.msg('Try to restart PHP automatically['+data.phpversion+']...', { icon: 16, time: 0, shade: 0.3 });
 		$.post('/plugins/run', reqData, function(data) {
 			layer.close(loadT);
 	        layer.msg(data.msg,{icon:data.status?1:2,time:3000,shade: [0.3, '#000']});

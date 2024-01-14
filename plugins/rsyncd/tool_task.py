@@ -57,7 +57,7 @@ def createBgTask(data):
 
 def createBgTaskByName(name, args):
     cfg = getConfigTpl()
-    _name = "[Do not delete] Synchronization plug-in timing task [" + name + "]"
+    _name = "[勿删]同步插件定时任务[" + name + "]"
     res = slemp.M("crontab").field("id, name").where("name=?", (_name,)).find()
     if res:
         return True
@@ -66,7 +66,7 @@ def createBgTaskByName(name, args):
         res = slemp.M("crontab").field("id, name").where(
             "id=?", (cfg["task_id"],)).find()
         if res and res["id"] == cfg["task_id"]:
-            print("Scheduled task already exists!")
+            print("计划任务已经存在!")
             return True
     import crontab_api
     api = crontab_api.crontab_api()
@@ -90,10 +90,10 @@ rname=%s
 plugin_path=%s
 logs_file=$plugin_path/send/${rname}/run.log
 ''' % (name, getServerDir())
-    cmd += 'echo "★ [`date +"%Y-%m-%d %H:%M:%S"`] STSRT" >> $logs_file' + "\n"
+    cmd += 'echo "★【`date +"%Y-%m-%d %H:%M:%S"`】 STSRT" >> $logs_file' + "\n"
     cmd += 'echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" >> $logs_file' + "\n"
     cmd += 'bash $plugin_path/send/${rname}/cmd >> $logs_file 2>&1' + "\n"
-    cmd += 'echo " [`date +"%Y-%m-%d %H:%M:%S"`] END★" >> $logs_file' + "\n"
+    cmd += 'echo "【`date +"%Y-%m-%d %H:%M:%S"`】 END★" >> $logs_file' + "\n"
     cmd += 'echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" >> $logs_file' + "\n"
 
     params = {

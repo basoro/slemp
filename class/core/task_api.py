@@ -59,7 +59,7 @@ class task_api:
         find = slemp.M('tasks').where('status=? OR status=?',
                                    ('-1', '0')).field('id,type,name,execstr').find()
         if not len(find):
-            return slemp.returnJson(False, 'No task queue is currently executing -2!')
+            return slemp.returnJson(False, 'Tidak ada antrian yang sedang dijalankan -2!')
 
         slemp.triggerTask()
 
@@ -79,7 +79,7 @@ class task_api:
                     if i == 2:
                         slemp.M('tasks').where("id=?", (find['id'],)).save(
                             'status', ('0',))
-                        return slemp.returnJson(False, 'No task queue is currently executing -4:' + str(e))
+                        return slemp.returnJson(False, 'Tidak ada antrian yang sedang dijalankan-4:' + str(e))
                 time.sleep(0.5)
         else:
             data['msg'] = slemp.getLastLine(tempFile, 10)

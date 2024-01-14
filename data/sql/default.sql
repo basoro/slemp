@@ -45,9 +45,10 @@ CREATE TABLE IF NOT EXISTS `firewall` (
 );
 
 INSERT INTO `firewall` (`id`, `port`, `ps`, `addtime`) VALUES
-(1, '80', 'Website default port', '0000-00-00 00:00:00'),
-(2, '443', 'HTTPS', '0000-00-00 00:00:00'),
-(3, '888', 'phpMyAdmin default port', '0000-00-00 00:00:00');
+(1, '80', 'Port utama situs web', '0000-00-00 00:00:00'),
+(2, '22', 'Akses SSH', '0000-00-00 00:00:00'),
+(3, '443', 'HTTPS', '0000-00-00 00:00:00'),
+(4, '888', 'Port phpMyAdmin', '0000-00-00 00:00:00');
 
 
 
@@ -55,10 +56,8 @@ CREATE TABLE IF NOT EXISTS `logs` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `type` TEXT,
   `log` TEXT,
-  `uid` TEXT,
   `addtime` TEXT
 );
-ALTER TABLE `logs` ADD COLUMN `uid` INTEGER DEFAULT '1';
 
 CREATE TABLE IF NOT EXISTS `sites` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -108,18 +107,6 @@ CREATE TABLE IF NOT EXISTS `tasks` (
   `start` 	  INTEGER,
   `end` 	    INTEGER,
   `execstr` 	TEXT
-);
-
-CREATE TABLE IF NOT EXISTS `temp_login` (
-  `id`  INTEGER PRIMARY KEY AUTOINCREMENT,
-  `token` REAL,
-  `salt`  REAL,
-  `state` INTEGER,
-  `login_time`  INTEGER,
-  `login_addr`  REAL,
-  `logout_time` INTEGER,
-  `expire`  INTEGER,
-  `addtime` INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS `panel` (

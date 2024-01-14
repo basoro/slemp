@@ -48,7 +48,7 @@ app_status()
 case "$1" in
     'start') app_start;;
     'stop') app_stop;;
-    'restart'|'reload') 
+    'restart'|'reload')
         app_stop
         app_start;;
     'status') app_status;;

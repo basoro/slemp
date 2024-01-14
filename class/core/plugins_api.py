@@ -8,13 +8,11 @@ import re
 import json
 
 import sys
-# reload(sys)
-# sys.setdefaultencoding('utf8')
 
 import threading
 import multiprocessing
 
-from flask import render_template
+
 from flask import request
 
 
@@ -47,7 +45,6 @@ class plugins_api:
         self.__type = slemp.getRunDir() + '/data/json/type.json'
         self.__index = slemp.getRunDir() + '/data/json/index.json'
 
-    ##### ----- start ----- ###
     def listApi(self):
         sType = request.args.get('type', '0')
         sPage = request.args.get('p', '1')
@@ -58,32 +55,8 @@ class plugins_api:
         if not slemp.isNumber(sType):
             sType = 0
 
-        # print sPage
-        search = request.args.get('search', '').lower()
-        data = self.getPluginList(sType, search, int(sPage))
+        data = self.getPluginList(sType, int(sPage))
         return slemp.getJson(data)
-
-    def menuGetAbsPath(self, tag, path):
-        if path[0:1] == '/':
-            return path
-        else:
-            return slemp.getPluginDir() + '/' + tag + '/' + path
-
-    def menuApi(self):
-        import config_api
-        data = config_api.config_api().get()
-        tag = request.args.get('tag', '')
-        menu_file = 'data/hook_menu.json'
-        content = ''
-        if os.path.exists(menu_file):
-            t = slemp.readFile(menu_file)
-            tlist = json.loads(t)
-            for menu_data in tlist:
-                if tag == menu_data['name'] and 'path' in menu_data:
-                    tpath = self.menuGetAbsPath(tag, menu_data['path'])
-                    content = slemp.readFile(tpath)
-        data['plugin_content'] = content
-        return render_template('plugin_menu.html', data=data)
 
     def fileApi(self):
         name = request.args.get('name', '')
@@ -91,7 +64,6 @@ class plugins_api:
             return ''
 
         f = request.args.get('f', '')
-
         if f.strip() == '':
             return ''
 
@@ -99,16 +71,8 @@ class plugins_api:
         if not os.path.exists(file):
             return ''
 
-        suffix = slemp.getPathSuffix(file)
-        if suffix == '.css':
-            content = slemp.readFile(file)
-            from flask import Response
-            from flask import make_response
-            v = Response(content, headers={
-                         'Content-Type': 'text/css; charset="utf-8"'})
-            return make_response(v)
-        content = open(file, 'rb').read()
-        return content
+        c = open(file, 'rb').read()
+        return c
 
     def indexListApi(self):
         data = self.getIndexList()
@@ -117,106 +81,51 @@ class plugins_api:
     def indexSortApi(self):
         sort = request.form.get('ssort', '')
         if sort.strip() == '':
-            return slemp.returnJson(False, 'Sort data cannot be empty!')
+            return slemp.returnJson(False, 'Sortir data tidak boleh kosong!')
         data = self.setIndexSort(sort)
         if data:
-            return slemp.returnJson(True, 'Success!')
-        return slemp.returnJson(False, 'Fail!')
-
-    def initApi(self):
-
-        plugin_names = {
-            'openresty': '1.21.4.2',
-            'php': '73',
-            'swap': '1.1',
-            'mysql': '5.7',
-            'phpmyadmin': '4.4.15',
-        }
-
-        pn_dir = slemp.getPluginDir()
-        pn_server_dir = slemp.getServerDir()
-        pn_list = []
-        for pn in plugin_names:
-            info = {}
-            pn_json = pn_dir + '/' + pn + '/info.json'
-            pn_server = pn_server_dir + '/' + pn
-            if not os.path.exists(pn_server):
-
-                tmp = slemp.readFile(pn_json)
-                tmp = json.loads(tmp)
-
-                info['title'] = tmp['title']
-                info['name'] = tmp['name']
-                info['versions'] = tmp['versions']
-                info['default_ver'] = plugin_names[pn]
-                pn_list.append(info)
-            else:
-                return slemp.returnJson(False, 'ok')
-
-        return slemp.returnJson(True, 'ok', pn_list)
-
-    def initInstallApi(self):
-        pn_list = request.form.get('list', '')
-        try:
-            pn_list = json.loads(pn_list)
-
-            for pn in pn_list:
-                name = pn['name']
-                version = pn['version']
-                infoJsonPos = self.__plugin_dir + '/' + name + '/' + 'info.json'
-                pluginInfo = json.loads(slemp.readFile(infoJsonPos))
-                self.hookInstall(pluginInfo)
-                execstr = 'cd ' + slemp.getPluginDir() + '/' + name + ' && bash ' + \
-                    pluginInfo['shell'] + ' install ' + version
-
-                taskAdd = ('Install [' + name + '-' + version + ']',
-                           'execshell', '0', time.strftime('%Y-%m-%d %H:%M:%S'), execstr)
-
-                slemp.M('tasks').add('name,type,status,addtime, execstr', taskAdd)
-            os.mkdir(slemp.getServerDir() + '/php')
-            slemp.triggerTask()
-            return slemp.returnJson(True, 'Added successfully')
-        except Exception as e:
-            return slemp.returnJson(False, slemp.getTracebackInfo())
+            return slemp.returnJson(True, 'Sukses!')
+        return slemp.returnJson(False, 'Gagal!')
 
     def installApi(self):
         rundir = slemp.getRunDir()
         name = request.form.get('name', '')
         version = request.form.get('version', '')
 
-        mmsg = 'Install'
+        mmsg = 'Instal'
         if hasattr(request.form, 'upgrade'):
             mtype = 'update'
             mmsg = 'upgrade'
 
         if name.strip() == '':
-            return slemp.returnJson(False, 'Missing plugin name!', ())
+            return slemp.returnJson(False, 'Nama plugin tidak ada!', ())
 
         if version.strip() == '':
-            return slemp.returnJson(False, 'Missing version information!', ())
+            return slemp.returnJson(False, 'Informasi versi tidak ada!', ())
 
         infoJsonPos = self.__plugin_dir + '/' + name + '/' + 'info.json'
         # print infoJsonPos
 
         if not os.path.exists(infoJsonPos):
-            return slemp.returnJson(False, 'Config file does not exist!', ())
+            return slemp.returnJson(False, 'File konfigurasi tidak ada!', ())
 
         pluginInfo = json.loads(slemp.readFile(infoJsonPos))
         self.hookInstall(pluginInfo)
 
-        execstr = 'cd ' + slemp.getPluginDir() + '/' + name + ' && bash ' + \
-            pluginInfo['shell'] + ' install ' + version
+        execstr = "cd " + os.getcwd() + "/plugins/" + \
+            name + " && /bin/bash " + pluginInfo["shell"] \
+            + " install " + version
 
         if slemp.isAppleSystem():
             print(execstr)
 
-        taskAdd = (mmsg + '[' + name + '-' + version + ']',
+        taskAdd = (None, mmsg + '[' + name + '-' + version + ']',
                    'execshell', '0', time.strftime('%Y-%m-%d %H:%M:%S'), execstr)
 
-        slemp.M('tasks').add('name,type,status,addtime, execstr', taskAdd)
+        slemp.M('tasks').add('id,name,type,status,addtime, execstr', taskAdd)
 
         slemp.triggerTask()
-        return slemp.returnJson(True, 'Added installation task to queue!')
+        return slemp.returnJson(True, 'Penginstallan ditambahkan ke antrian!')
 
     def hookInstallFile(self, hook_name, info):
         hookPath = slemp.getPanelDataDir() + "/hook_" + hook_name + ".json"
@@ -231,7 +140,10 @@ class plugins_api:
                 isNeedAdd = False
 
         if isNeedAdd:
-            data.append(info)
+            tmp = {}
+            tmp['title'] = info['title']
+            tmp['name'] = info['name']
+            data.append(tmp)
         slemp.writeFile(hookPath, json.dumps(data))
 
     def hookUninstallFile(self, hook_name, info):
@@ -242,45 +154,26 @@ class plugins_api:
             data = json.loads(t)
 
         for idx in range(len(data)):
-            if data[idx]['name'] == info['name']:
+            if data[idx]['title'] == info['title'] and data[idx]['name'] == info['name']:
                 data.remove(data[idx])
-                break
         slemp.writeFile(hookPath, json.dumps(data))
 
     def hookInstall(self, info):
-        valid_hook = ['backup', 'database']
-        valid_list_hook = ['menu', 'global_static', 'site_cb']
         if 'hook' in info:
             hooks = info['hook']
-            for h in hooks:
-                hooks_type = type(h)
-                if hooks_type == dict:
-                    tag = h['tag']
-                    if tag in valid_list_hook:
-                        self.hookInstallFile(tag, h[tag])
-                elif hooks_type == str:
-                    for x in hooks:
-                        if x in valid_hook:
-                            self.hookInstallFile(x, info)
-                            return True
+            for x in hooks:
+                if x in ['backup']:
+                    self.hookInstallFile(x, info)
+                    return True
         return False
 
     def hookUninstall(self, info):
-        valid_hook = ['backup', 'database']
-        valid_list_hook = ['menu', 'global_static', 'site_cb']
         if 'hook' in info:
             hooks = info['hook']
-            for h in hooks:
-                hooks_type = type(h)
-                if hooks_type == dict:
-                    tag = h['tag']
-                    if tag in valid_list_hook:
-                        self.hookUninstallFile(tag, h[tag])
-                elif hooks_type == str:
-                    for x in hooks:
-                        if x in valid_hook:
-                            self.hookUninstallFile(x, info)
-                            return True
+            for x in hooks:
+                if x in ['backup']:
+                    self.hookUninstallFile(x, info)
+                    return True
         return False
 
     def uninstallOldApi(self):
@@ -288,44 +181,46 @@ class plugins_api:
         name = request.form.get('name', '')
         version = request.form.get('version', '')
         if name.strip() == '':
-            return slemp.returnJson(False, "Missing plugin name!", ())
+            return slemp.returnJson(False, "Nama plugin tidak ada!", ())
 
         if version.strip() == '':
-            return slemp.returnJson(False, "Missing version information!", ())
+            return slemp.returnJson(False, "Informasi versi tidak ada!", ())
 
         infoJsonPos = self.__plugin_dir + '/' + name + '/' + 'info.json'
 
         if not os.path.exists(infoJsonPos):
-            return slemp.returnJson(False, "Config file does not exist!", ())
+            return slemp.returnJson(False, "File konfigurasi tidak ada!", ())
 
         pluginInfo = json.loads(slemp.readFile(infoJsonPos))
+
         execstr = "cd " + os.getcwd() + "/plugins/" + \
             name + " && /bin/bash " + pluginInfo["shell"] \
             + " uninstall " + version
 
-        taskAdd = (None, 'Uninstall [' + name + '-' + version + ']',
+        taskAdd = (None, '卸载[' + name + '-' + version + ']',
                    'execshell', '0', time.strftime('%Y-%m-%d %H:%M:%S'), execstr)
 
         slemp.M('tasks').add('id,name,type,status,addtime, execstr', taskAdd)
-        return slemp.returnJson(True, 'Added uninstall task to queue!')
+        return slemp.returnJson(True, 'Penghapusan tugas ditambahkan ke antrian!')
 
     def uninstallApi(self):
         rundir = slemp.getRunDir()
         name = request.form.get('name', '')
         version = request.form.get('version', '')
         if name.strip() == '':
-            return slemp.returnJson(False, "Missing plugin name!", ())
+            return slemp.returnJson(False, "Nama plugin tidak ada!", ())
 
         if version.strip() == '':
-            return slemp.returnJson(False, "Missing version information!", ())
+            return slemp.returnJson(False, "Informasi versi tidak ada!", ())
 
         infoJsonPos = self.__plugin_dir + '/' + name + '/' + 'info.json'
 
         if not os.path.exists(infoJsonPos):
-            return slemp.returnJson(False, "Config file does not exist!", ())
+            return slemp.returnJson(False, "File konfigurasi tidak ada!", ())
 
         pluginInfo = json.loads(slemp.readFile(infoJsonPos))
         self.hookUninstall(pluginInfo)
+
         execstr = "cd " + os.getcwd() + "/plugins/" + \
             name + " && /bin/bash " + pluginInfo["shell"] \
             + " uninstall " + version
@@ -335,21 +230,17 @@ class plugins_api:
             print(execstr)
             print(data[0], data[1])
         self.removeIndex(name, version)
-        return slemp.returnJson(True, 'Uninstallation performed successfully!')
-        # if data[1] == '':
-        #     return slemp.returnJson(True, 'Uninstalled successfully!')
-        # else:
-        #     return slemp.returnJson(False, 'Uninstall error message!' + data[1])
+        return slemp.returnJson(True, 'Penghapusan instalasi berhasil dijalankan!')
 
     def checkApi(self):
         name = request.form.get('name', '')
         if name.strip() == '':
-            return slemp.returnJson(False, "Missing plugin name!", ())
+            return slemp.returnJson(False, "Nama plugin tidak ada!", ())
 
         infoJsonPos = self.__plugin_dir + '/' + name + '/' + 'info.json'
         if not os.path.exists(infoJsonPos):
-            return slemp.returnJson(False, "Config file does not exist!", ())
-        return slemp.returnJson(True, "Plugin exists!", ())
+            return slemp.returnJson(False, "File konfigurasi tidak ada!", ())
+        return slemp.returnJson(True, "Plugin ada!", ())
 
     def setIndexApi(self):
         name = request.form.get('name', '')
@@ -400,7 +291,7 @@ class plugins_api:
         from flask import request
         f = request.files['plugin_zip']
         if f.filename[-4:] != '.zip':
-            return slemp.returnJson(False, 'Only zip files are supported!')
+            return slemp.returnJson(False, 'Hanya file zip yang didukung!')
         f.save(tmp_file)
         slemp.execShell('cd ' + tmp_path + ' && unzip ' + tmp_file)
         os.remove(tmp_file)
@@ -425,7 +316,7 @@ class plugins_api:
             data = json.loads(slemp.readFile(p_info))
             data['size'] = slemp.getPathSize(tmp_path)
             if not 'author' in data:
-                data['author'] = 'Unknown'
+                data['author'] = 'Tidak dikenal'
             if not 'home' in data:
                 data['home'] = 'https://github.com/basoro/slemp'
             plugin_path = slemp.getPluginDir() + data['name'] + '/info.json'
@@ -439,11 +330,10 @@ class plugins_api:
                     pass
         except:
             slemp.execShell("rm -rf " + tmp_path)
-            return slemp.returnJson(False, 'No plug-in information found in the compressed package, please check the plug-in package!')
-        protectPlist = ('openresty', 'mysql', 'php', 'redis', 'memcached'
-                        'swap', 'gogs', 'pureftp')
+            return slemp.returnJson(False, 'Informasi plugin tidak ditemukan dalam paket terkompresi, silakan periksa paket plugin!')
+        protectPlist = ('openresty', 'mysql', 'php', 'swap')
         if data['name'] in protectPlist:
-            return slemp.returnJson(False, '[' + data['name'] + '], Important plugins cannot be modified!')
+            return slemp.returnJson(False, '[' + data['name'] + '], plugin penting tidak dapat dimodifikasi!')
         return slemp.getJson(data)
 
     def inputZipApi(self):
@@ -451,7 +341,7 @@ class plugins_api:
         tmp_path = request.form.get('tmp_path', '')
 
         if not os.path.exists(tmp_path):
-            return slemp.returnJson(False, 'Temporary file does not exist, please upload again!')
+            return slemp.returnJson(False, 'File sementara tidak ada, silakan unggah lagi!')
         plugin_path = slemp.getPluginDir() + '/' + plugin_name
         if not os.path.exists(plugin_path):
             print(slemp.execShell('mkdir -p ' + plugin_path))
@@ -459,12 +349,11 @@ class plugins_api:
         slemp.execShell('chmod -R 755 ' + plugin_path)
         p_info = slemp.readFile(plugin_path + '/info.json')
         if p_info:
-            slemp.writeLog('Software management', 'Install third-party plug-in [%s]' %
+            slemp.writeLog('Manajemen perangkat lunak', 'Instal plugin pihak ketiga [%s]' %
                         json.loads(p_info)['title'])
-            return slemp.returnJson(True, 'Successful installation!')
+            return slemp.returnJson(True, 'Instalasi berhasil!')
         slemp.execShell("rm -rf " + plugin_path)
-        return slemp.returnJson(False, 'Installation failed!')
-    ##### ----- end ----- ###
+        return slemp.returnJson(False, 'Instalasi gagal!')
 
     def processExists(self, pname, exe=None):
         try:
@@ -646,7 +535,6 @@ class plugins_api:
             "ps": info['ps'],
             "dependnet": "",
             "mutex": "",
-            "icon": "",
             "path": path,
             "install_checks": checks,
             "uninsatll_checks": checks,
@@ -660,9 +548,6 @@ class plugins_api:
             "install_pre_inspection": False,
             "uninstall_pre_inspection": False,
         }
-
-        if 'icon' in info:
-            pInfo['icon'] = info['icon']
 
         if checks.find('VERSION') > -1:
             pInfo['install_checks'] = checks.replace(
@@ -728,17 +613,6 @@ class plugins_api:
                 pg = self.getPluginInfo(data)
                 plugins_info.append(pg)
 
-        if sType == '-1':
-            if type(data['versions']) == list and 'coexist' in data and data['coexist']:
-                tmp_data = self.makeCoexist(data)
-                for index in range(len(tmp_data)):
-                    if tmp_data[index]['setup']:
-                        plugins_info.append(tmp_data[index])
-            else:
-                pg = self.getPluginInfo(data)
-                if pg['setup']:
-                    plugins_info.append(pg)
-
         # print plugins_info, data
         return plugins_info
 
@@ -759,18 +633,7 @@ class plugins_api:
                     print(e)
         return plugins_info
 
-    def searchKey(self, info, kw):
-        try:
-            if info['title'].lower().find(kw) > -1:
-                return True
-            if info['ps'].lower().find(kw) > -1:
-                return True
-            if info['name'].lower().find(kw) > -1:
-                return True
-        except Exception as e:
-            return False
-
-    def getAllListPage(self, sType='0', kw='', page=1, pageSize=10):
+    def getAllListPage(self, sType='0', page=1, pageSize=50):
         plugins_info = []
         for dirinfo in os.listdir(self.__plugin_dir):
             if dirinfo[0:1] == '.':
@@ -781,13 +644,11 @@ class plugins_api:
                 if os.path.exists(json_file):
                     try:
                         data = json.loads(slemp.readFile(json_file))
-                        if kw != '' and not self.searchKey(data, kw):
-                            continue
                         tmp_data = self.makeList(data, sType)
                         for index in range(len(tmp_data)):
                             plugins_info.append(tmp_data[index])
                     except Exception as e:
-                        print(slemp.getTracebackInfo())
+                        print(e)
 
         start = (page - 1) * pageSize
         end = start + pageSize
@@ -917,14 +778,14 @@ class plugins_api:
 
         return plugins_info
 
-    def getPluginList(self, sType, kw='', sPage=1, sPageSize=10):
+    def getPluginList(self, sType, sPage=1, sPageSize=50):
         # print sType, sPage, sPageSize
 
         ret = {}
         ret['type'] = json.loads(slemp.readFile(self.__type))
         # plugins_info = self.getAllListThread(sType)
         # plugins_info = self.getAllListProcess(sType)
-        data = self.getAllListPage(sType, kw, sPage, sPageSize)
+        data = self.getAllListPage(sType, sPage, sPageSize)
         ret['data'] = data[0]
 
         args = {}
@@ -966,7 +827,6 @@ class plugins_api:
                 except Exception as e:
                     print('getIndexList:', e)
 
-        # plist = self.checkStatusMProcess(plist)
         plist = self.checkStatusMThreads(plist)
         return plist
 
@@ -983,13 +843,13 @@ class plugins_api:
         vname = name + '-' + version
 
         if vname in indexList:
-            return slemp.returnJson(False, 'Please do not add repeatedly!')
+            return slemp.returnJson(False, 'Tolong jangan tambahkan!')
         if len(indexList) > 12:
-            return slemp.returnJson(False, 'The home page can only display up to 12 software!')
+            return slemp.returnJson(False, 'Beranda hanya dapat menampilkan hingga 12 perangkat lunak!')
 
         indexList.append(vname)
         slemp.writeFile(self.__index, json.dumps(indexList))
-        return slemp.returnJson(True, 'Added successfully!')
+        return slemp.returnJson(True, 'Berhasil ditambahkan!')
 
     def removeIndex(self, name, version):
         if not os.path.exists(self.__index):
@@ -998,17 +858,14 @@ class plugins_api:
         indexList = json.loads(slemp.readFile(self.__index))
         vname = name + '-' + version
         if not vname in indexList:
-            return slemp.returnJson(True, 'Successfully deleted!')
+            return slemp.returnJson(True, 'Berhasil dihapus!')
         indexList.remove(vname)
         slemp.writeFile(self.__index, json.dumps(indexList))
-        return slemp.returnJson(True, 'Successfully deleted!')
+        return slemp.returnJson(True, 'Berhasil dihapus!')
 
     def run(self, name, func, version='', args='', script='index'):
-
-        path = self.__plugin_dir + '/' + name + '/' + script + '.py'
-        if not os.path.exists(path):
-            path = self.__plugin_dir + '/' + name + '/' + name + '.py'
-
+        path = self.__plugin_dir + \
+            '/' + name + '/' + script + '.py'
         py = 'python3 ' + path
 
         if args == '':
@@ -1030,7 +887,7 @@ class plugins_api:
     def callback(self, name, func, args='', script='index'):
         package = self.__plugin_dir + '/' + name
         if not os.path.exists(package):
-            return (False, "Plugin does not exist!")
+            return (False, "Plugin tidak ada!")
 
         sys.path.append(package)
         eval_str = "__import__('" + script + "')." + func + '(' + args + ')'

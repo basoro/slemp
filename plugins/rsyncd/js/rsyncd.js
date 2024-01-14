@@ -1,8 +1,18 @@
+function str2Obj(str){
+    var data = {};
+    kv = str.split('&');
+    for(i in kv){
+        v = kv[i].split('=');
+        data[v[0]] = v[1];
+    }
+    return data;
+}
+
 function rsPost(method,args,callback, title){
 
     var _args = null;
     if (typeof(args) == 'string'){
-        _args = JSON.stringify(toArrayObject(args));
+        _args = JSON.stringify(str2Obj(args));
     } else {
         _args = JSON.stringify(args);
     }
@@ -34,9 +44,9 @@ function createSendTask(name = ''){
         var data = rdata.data;
         console.log(data);
 
-        var layerName = 'Create';
+        var layerName = 'create';
         if (name!=''){
-            layerName = 'Edit';
+            layerName = 'edit';
         }
 
         var compress_true = "";
@@ -90,7 +100,7 @@ function createSendTask(name = ''){
             closeBtn: 1,
             shift: 0,
             shadeClose: false,
-            btn: ['Submit','Cancel'],
+            btn: ['Yes','No'],
             content:"<form class='bt-form pd20' id='fromServerPath' accept-charset='utf-8'>\
                 <div class='line'>\
                     <span class='tname'>Server IP</span>\
@@ -102,7 +112,7 @@ function createSendTask(name = ''){
                     <span class='tname'>Sync directory</span>\
                     <div class='info-r c4'>\
                         <input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='"+data["path"]+"' placeholder='Please select a sync directory' style='width:310px' /><span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span>\
-                        <span data-toggle='tooltip' data-placement='top' title='[Synchronization directory] If it does not end with /, it means that the data will be synchronized to the secondary directory. In general, the directory path should end with /' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
+                        <span data-toggle='tooltip' data-placement='top' title='[Sync directory] If it does not end with /, it means that the data will be synchronized to the secondary directory. In general, the directory path should end with /' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
                     </div>\
                 </div>\
                 <div class='line'>\
@@ -110,21 +120,21 @@ function createSendTask(name = ''){
                     <div class='info-r c4'>\
                         <select class='bt-input-text' name='delete' style='width:100px'>\
                             <option value='false' "+delete_true+">Incremental</option>\
-                            <option value='true' "+delete_false+">Total</option>\
+                            <option value='true' "+delete_false+">Completely</option>\
                         </select>\
-                        <span data-toggle='tooltip' data-placement='top' title='[Synchronization method] Incremental: Synchronize when data is changed/increased, and only append and replace files' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
-                        <span style='margin-left: 20px;margin-right: 10px;'>Sync cycle</span>\
+                        <span data-toggle='tooltip' data-placement='top' title='[Synchronization method] Incremental: Synchronize when data is changed/added, and only append and replace files\n[Synchronization method] Complete: Keep the consistency of the data and directory structure at both ends, and delete, append and replace files and directories synchronously' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
+                        <span style='margin-left: 20px;margin-right: 10px;'>Synchronization period</span>\
                         <select class='bt-input-text synchronization' name='realtime' style='width:100px'>\
-                            <option value='true' "+realtime_true+">Real time</option>\
-                            <option value='false' "+realtime_false+">Scheduled</option>\
+                            <option value='true' "+realtime_true+">real-time synchronization</option>\
+                            <option value='false' "+realtime_false+">timing synchronization</option>\
                         </select>\
                     </div>\
                 </div>\
                 <div class='line' id='period' style='height:45px;display:none;'>\
-                    <span class='tname'>Timing cycle</span>\
+                    <span class='tname'>Timing period</span>\
                     <div class='info-r c4'>\
                         <select class='bt-input-text pull-left mr20' name='period' style='width:100px;'>\
-                            <option value='day' "+period_day+">Every day</option>\
+                            <option value='day' "+period_day+">every day</option>\
                             <option value='minute-n' "+period_minute_n+">N minutes</option>\
                         </select>\
                         <div class='plan_hms pull-left mr20 bt-input-text hour'>\
@@ -133,21 +143,21 @@ function createSendTask(name = ''){
                         </div>\
                         <div class='plan_hms pull-left mr20 bt-input-text minute'>\
                             <span><input class='bt-input-text' type='number' name='minute' value='"+data["minute"]+"' maxlength='2' max='59' min='0'></span>\
-                            <span class='name'>Minutes</span>\
+                            <span class='name'>minute</span>\
                         </div>\
                         <div class='plan_hms pull-left mr20 bt-input-text minute-n' style='display:none;'>\
                             <span><input class='bt-input-text' type='number' name='minute-n' value='"+data["minute-n"]+"' maxlength='2' max='59' min='0'></span>\
-                            <span class='name'>Minutes</span>\
+                            <span class='name'>minute</span>\
                         </div>\
                     </div>\
                 </div>\
                 <div class='line'>\
-                    <span class='tname'>Speed limit</span>\
+                    <span class='tname'>speed limit</span>\
                     <div class='info-r c4'>\
                         <input class='bt-input-text' type='number' name='bwlimit' min='0'  value='1024' style='width:100px' /> KB\
-                        <span data-toggle='tooltip' data-placement='top' title='[Speed limit] Limit the speed of data synchronization tasks to prevent high bandwidth caused by synchronous data' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
-                        <span style='margin-left: 29px;margin-right: 10px;'>Delay</span><input class='bt-input-text' min='0' type='number' name='delay'  value='3' style='width:100px' /> Second\
-                        <span data-toggle='tooltip' data-placement='top' title='[Delay] Only record out-of-sync during the delay time period, and synchronize the data at one time after reaching the period to save overhead' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
+                        <span data-toggle='tooltip' data-placement='top' title='[Speed Limit] Limit the speed of data synchronization tasks to prevent bandwidth from running high due to data synchronization' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
+                        <span style='margin-left: 29px;margin-right: 10px;'>Delay</span><input class='bt-input-text' min='0' type='number' name='delay'  value='3' style='width:100px' /> second\
+                        <span data-toggle='tooltip' data-placement='top' title='[Delay] Only record out-of-sync data during the delay time period, and synchronize data once after the period is reached to save overhead' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
                     </div>\
                 </div>\
                 <div class='line'>\
@@ -159,16 +169,16 @@ function createSendTask(name = ''){
                         </select>\
                         <span style='margin-left: 45px;margin-right: 10px;'>Compressed transmission</span>\
                         <select class='bt-input-text' name='compress' style='width:100px'>\
-                            <option value='true' "+compress_true+">Compressed</option>\
-                            <option value='false' "+compress_false+">Uncompressed</option>\
+                            <option value='true' "+compress_true+">Compress</option>\
+                            <option value='false' "+compress_false+">Uncompress</option>\
                         </select>\
-                        <span data-toggle='tooltip' data-placement='top' title='[Compressed Transmission] Enabled to reduce bandwidth overhead, but will increase CPU overhead, if the bandwidth is sufficient, it is recommended to turn off this option' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
+                        <span data-toggle='tooltip' data-placement='top' title='[Compressed transmission] When enabled, the bandwidth overhead can be reduced, but the CPU overhead will be increased. If the bandwidth is sufficient, it is recommended to disable this option.' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
                     </div>\
                 </div>\
                 <div class='line conn-key'>\
                     <span class='tname'>Receive key</span>\
                     <div class='info-r c4'>\
-                        <textarea id='mainDomain' class='bt-input-text' name='secret_key' style='width:310px;height:75px;line-height:22px' placeholder='This key is the key of receiving configuration [receiving account number]'>"+data['secret_key']+"</textarea>\
+                        <textarea id='mainDomain' class='bt-input-text' name='secret_key' style='width:310px;height:75px;line-height:22px' placeholder='This key is the key for receiving the configuration [receiving account]'>"+data['secret_key']+"</textarea>\
                     </div>\
                 </div>\
                 <div class='line conn-user'>\
@@ -229,12 +239,12 @@ function createSendTask(name = ''){
                 $("select[name='delete']").change(function(){
                     if($(this).val() == 'true'){
                         var mpath = $('input[name="path"]').val();
-                        var msg = '<div><span style="color:orangered;">Warning: You have selected full synchronization, which will make the local synchronization consistent with the files in the specified directory of the target machine，'
-                            +'<br />Please confirm whether the directory setting is correct. Once the setting is wrong, the directory file of the target machine may be deleted!</span>'
-                            +'<br /><br /> <span style="color:red;">Note: The sync program will copy the local directory：'
-                            +mpath+'All data in the target server will be synchronized to the target server. If there are other files in the target server\'s synchronization directory, they will be deleted!</span> <br /><br /> Know the risks, please press OK to continue</div>';
+                        var msg = '<div><span style="color:orangered;">Warning: You have selected full synchronization, which will make the local synchronization consistent with the files in the specified directory of the target machine.'
+                            +'<br />Please confirm whether the directory settings are correct. Once the settings are incorrect, the directory files of the target machine may be deleted.!</span>'
+                            +'<br /><br /> <span style="color:red;">NOTE: The synchronization program will local directory: '
+                            +mpath+' all data is synchronized to the target server. If there are other files in the synchronization directory of the target server, they will be deleted.!</span> <br /><br /> Risks are understood, please press OK to continue</div>';
 
-                        layer.confirm(msg,{title:'Data Security Risk Warning',icon:2,closeBtn: 1,shift: 5,
+                        layer.confirm(msg,{title:'Data Security Risk Warning',icon:2,closeBtn: 1,btn:['Yes','No'],shift: 5,
                         btn2:function(){
                             setTimeout(function(){$($("select[name='delete']").children("option")[0]).prop('selected',true);},100);
                         }
@@ -282,7 +292,7 @@ function createSendTask(name = ''){
                     if ( $('textarea[name="secret_key"]').val() != ''){
                         args['secret_key'] = $('textarea[name="secret_key"]').val();
                     } else {
-                        layer.msg('Please enter the receive key!');
+                        layer.msg('Please enter the receiving key!');
                         return false;
                     }
                 } else {
@@ -328,8 +338,8 @@ function createSendTask(name = ''){
 
                     if (rdata.status){
                          setTimeout(function(){
-                            layer.close(index);
-                            lsyncdSend();
+                           layer.close(index);
+                           lsyncdSend();
                          },2000);
                         return;
                     }
@@ -341,7 +351,7 @@ function createSendTask(name = ''){
 }
 
 function lsyncdDelete(name){
-    safeMessage('Delete ['+name+']', 'Do you really want to delete ['+name+']？', function(){
+    safeMessage('Delete ['+name+']', 'Do you really want to delete ['+name+']?', function(){
         var args = {};
         args['name'] = name;
         rsPost('lsyncd_delete', args, function(rdata){
@@ -380,7 +390,7 @@ function lsyncdExclude(name){
                 <div style="overflow:hidden;">\
                     <fieldset>\
                         <legend>Excluded files and directories</legend>\
-                        <input type="text" class="bt-input-text mr5" data-type="exclude" title="For example：/home/www/" placeholder="For example：*.log" style="width:305px;">\
+                        <input type="text" class="bt-input-text mr5" data-type="exclude" title="Example：/home/www/" placeholder="Example：*.log" style="width:305px;">\
                         <button data-type="exclude" class=" addList btn btn-default btn-sm">Add</button>\
                         <div class="table-overflow">\
                             <table class="table table-hover BlockList"><tbody></tbody></table>\
@@ -389,19 +399,19 @@ function lsyncdExclude(name){
                 </div>\
                 <div>\
                     <ul class="help-info-text c7" style="list-style-type:decimal;">\
-                        <li>Excluded files and directories refer to directories or files that do not need to be synchronized in the current directory</li>\
-                        <li>If the rule starts with a slash <code>/</code>, it will match all from the beginning</li>\
-                        <li>If the rule ends with <code>/</code>, it matches the end of the monitoring path</li>\
-                        <li><code>?</code> matches any character but does not include <code>/</code></li>\
-                        <li><code>*</code> matches 0 or more characters, but does not include <code>/</code></li>\
-                        <li><code>**</code> matches 0 or more characters, can be <code>/</code></li>\
+                        <li>Excluded files and directories refer to directories or files in the current directory that do not need to be synchronized</li>\
+                        <li>If the rule starts with a slash <code>/</code>, start from the beginning to match all</li>\
+                        <li>If the rule ends with <code>/</code>, match the end of the monitored path</li>\
+                        <li><code>?</code> Matches any character, but not including<code>/</code></li>\
+                        <li><code>*</code> Match 0 or more characters, but not including<code>/</code></li>\
+                        <li><code>**</code> Matches 0 or more characters, which can be<code>/</code></li>\
                     </ul>\
                 </div>\
             </div>'
     });
 
     function getIncludeExclude(mName){
-        loadT = layer.msg('Fetching data...',{icon:16,time:0,shade: [0.3, '#000']});
+        loadT = layer.msg('Getting data...',{icon:16,time:0,shade: [0.3, '#000']});
         rsPost('lsyncd_get_exclude',{"name":mName}, function(rdata) {
             layer.close(loadT);
 
@@ -437,7 +447,7 @@ function lsyncdExclude(name){
     $('.addList').click(function(event) {
         var val = $(this).prev().val();
         if(val == ''){
-            layer.msg('The current input content is empty, please enter');
+            layer.msg('The current input is empty, please enter');
             return false;
         }
         addArgs(name,val);
@@ -446,7 +456,7 @@ function lsyncdExclude(name){
         if (event.which == 13){
             var val = $(this).val();
             if(val == ''){
-                layer.msg('The current input content is empty, please enter');
+                layer.msg('The current input is empty, please enter');
                 return false;
             }
             addArgs(name,val);
@@ -474,7 +484,7 @@ function lsyncdExclude(name){
 }
 
 function lsyncdConfLog(){
-    pluginRollingLogs("rsyncd","","lsyncd_conf_log");
+    pluginStandAloneLogs("rsyncd","","lsyncd_conf_log");;
 }
 
 function lsyncdSend(){
@@ -489,16 +499,16 @@ function lsyncdSend(){
         var con = '';
 
         con += '<div style="padding-top:1px;">\
-                <button class="btn btn-success btn-sm" onclick="createSendTask();">Create send task</button>\
+                <button class="btn btn-success btn-sm" onclick="createSendTask();">Create a send task</button>\
                 <button class="btn btn-success btn-sm" onclick="lsyncdConfLog();">Log</button>\
             </div>';
 
         con += '<div class="divtable" style="margin-top:5px;"><table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">';
         con += '<thead><tr>';
-        con += '<th>Name (identification)</th>';
+        con += '<th>Name (identity)</th>';
         con += '<th>Source directory</th>';
         con += '<th>Sync to</th>';
-        con += '<th>Model</th>';
+        con += '<th>Methode</th>';
         con += '<th>Cycle</th>';
         con += '<th>Action</th>';
         con += '</tr></thead>';
@@ -508,30 +518,30 @@ function lsyncdSend(){
 
 
         for (var i = 0; i < list.length; i++) {
-            var mode = 'Incremental';
+            var mode = 'incremental';
             if (list[i]['delete'] == 'true'){
-                mode = 'Total';
+                mode = 'completely';
             } else {
-                mode = 'Incremental';
+                mode = 'incremental';
             }
 
-            var period = "Real time";
+            var period = "realtime";
             if (list[i]['realtime'] == 'true'){
-                period = 'Real time';
+                period = 'realtime';
             } else {
-                period = 'Scheduled';
+                period = 'timing';
             }
 
             con += '<tr>'+
                 '<td>' + list[i]['name']+'</td>' +
                 '<td><a class="btlink overflow_hide" style="width:40px;" onclick="openPath(\''+list[i]['path']+'\')">' + list[i]['path']+'</a></td>' +
-                '<td>' + list[i]['ip']+":"+list[i]['name']+'</td>' +
+                '<td>' + list[i]['ip']+":"+"cc"+'</td>' +
                 '<td>' + mode+'</td>' +
                 '<td>' + period +'</td>' +
                 '<td>\
                     <a class="btlink" onclick="lsyncdRun(\''+list[i]['name']+'\')">Synchronize</a>\
                     | <a class="btlink" onclick="lsyncdLog(\''+list[i]['name']+'\')">Log</a>\
-                    | <a class="btlink" onclick="lsyncdExclude(\''+list[i]['name']+'\')">Filter</a>\
+                    | <a class="btlink" onclick="lsyncdExclude(\''+list[i]['name']+'\')">Exclude</a>\
                     | <a class="btlink" onclick="createSendTask(\''+list[i]['name']+'\')">Edit</a>\
                     | <a class="btlink" onclick="lsyncdDelete(\''+list[i]['name']+'\')">Delete</a>\
                 </td>\
@@ -545,7 +555,6 @@ function lsyncdSend(){
     });
 }
 
-
 function rsyncdConf(){
     rsPost('conf', {}, function(rdata){
         rpath = rdata['data'];
@@ -558,7 +567,7 @@ function rsyncdConf(){
 }
 
 function rsyncdLog(){
-    pluginRollingLogs("rsyncd","","run_log");
+    pluginStandAloneLogs("rsyncd","","run_log");
 }
 
 
@@ -574,7 +583,7 @@ function rsyncdReceive(){
 		var con = '';
 
         con += '<div style="padding-top:1px;">\
-                <button class="btn btn-success btn-sm" onclick="rsyncdConf();">Config</button>\
+                <button class="btn btn-success btn-sm" onclick="rsyncdConf();">Configure</button>\
                 <button class="btn btn-success btn-sm" onclick="rsyncdLog();">Log</button>\
             </div>';
 
@@ -582,13 +591,12 @@ function rsyncdReceive(){
         con += '<thead><tr>';
         con += '<th>Service Name</th>';
         con += '<th>Path</th>';
-        con += '<th>Description</th>';
+        con += '<th>Caption</th>';
         con += '<th>Action (<a class="btlink" onclick="addReceive()">Add</a>)</th>';
         con += '</tr></thead>';
 
         con += '<tbody>';
 
-        //<a class="btlink" onclick="modReceive(\''+list[i]['name']+'\')">Edit</a>
         for (var i = 0; i < list.length; i++) {
             con += '<tr>'+
                 '<td>' + list[i]['name']+'</td>' +
@@ -597,7 +605,7 @@ function rsyncdReceive(){
                 '<td>\
                     <a class="btlink" onclick="cmdRecCmd(\''+list[i]['name']+'\')">Order</a>\
                 	| <a class="btlink" onclick="cmdRecSecretKey(\''+list[i]['name']+'\')">Key</a>\
-                    | <a class="btlink" onclick="addReceive(\''+list[i]['name']+'\')">Edit</a>\
+                    | <a class="btlink" onclick="addReceive(\''+list[i]['name']+'\')">Edir</a>\
                 	| <a class="btlink" onclick="delReceive(\''+list[i]['name']+'\')">Delete</a></td>\
                 </tr>';
         }
@@ -622,14 +630,14 @@ function addReceive(name = ""){
 
         var loadOpen = layer.open({
             type: 1,
-            title: 'Create receive',
+            title: 'Create a receipt',
             area: '400px',
-            btn:['Submit','Cancel'],
+            btn:['Yes','No'],
             content:"<div class='bt-form pd20 c6'>\
                 <div class='line'>\
-                    <span class='tname'>Item name</span>\
+                    <span class='tname'>Title</span>\
                     <div class='info-r c4'>\
-                        <input id='name' value='"+data["name"]+"' class='bt-input-text' type='text' name='name' placeholder='Item name' style='width:200px' "+readonly+"/>\
+                        <input id='name' value='"+data["name"]+"' class='bt-input-text' type='text' name='name' placeholder='Title' style='width:200px' "+readonly+"/>\
                     </div>\
                 </div>\
                 <div class='line'>\
@@ -647,7 +655,7 @@ function addReceive(name = ""){
                     </div>\
                 </div>\
                 <div class='line'>\
-                    <span class='tname'>Description</span>\
+                    <span class='tname'>Caption</span>\
                     <div class='info-r c4'>\
                         <input id='ps' class='bt-input-text' type='text' name='ps' value='"+data["comment"]+"' placeholder='Description' style='width:200px'/>\
                     </div>\
@@ -716,8 +724,8 @@ function cmdRecCmd(name){
 
 function rsRead(){
 	var readme = '<ul class="help-info-text c7">';
-    readme += '<li>To synchronize data from other servers to the local server, please "create a receive task" in the receive configuration</li>';
-    readme += '<li>If the firewall is enabled, port 873 needs to be released</li>';
+    readme += '<li>To synchronize other server data to the local server, please "create a receive task" in the receive configuration</li>';
+    readme += '<li>If you open the firewall, you need to release port 873</li>';
     readme += '</ul>';
 
     $('.soft-man-con').html(readme);

@@ -5,11 +5,6 @@
 		"ps":""
 	},
 	{
-		"title":"Installed",
-		"type":-1,
-		"ps":""
-	},
-	{
 		"title":"Operating environment",
 		"type":1,
 		"ps":""
@@ -25,7 +20,7 @@
 		"ps":""
 	},
 	{
-		"title":"System tool",
+		"title":"System Tools",
 		"type":4,
 		"ps":""
 	},
@@ -35,7 +30,7 @@
 		"ps":""
 	},
 	{
-		"title":"Third Party plugin",
+		"title":"Auxiliary plugin",
 		"type":6,
 		"ps":""
 	}

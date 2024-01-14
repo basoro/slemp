@@ -31,7 +31,7 @@ $(function() {
 });
 
 function getLoad(data) {
-    $("#LoadList .mask").html("<span id='Load' style='font-size:14px'>Getting information..</span>");
+    $("#LoadList .mask").html("<span id='Load' style='font-size:14px'>获取中..</span>");
     setCookie('one', data.one);
     setCookie('five', data.five);
     setCookie('fifteen', data.fifteen);
@@ -43,16 +43,16 @@ function getLoad(data) {
     if (Occupy > 100) Occupy = 100;
     if (Occupy <= 30) {
         LoadColor = '#20a53a';
-        AverageText = 'Run smoothly';
+        AverageText = 'Lancar';
     } else if (Occupy <= 70) {
         LoadColor = '#6ea520';
-        AverageText = 'Operating normally';
+        AverageText = 'Normal';
     } else if (Occupy <= 90) {
         LoadColor = '#ff9900';
-        AverageText = 'Sun slowly';
+        AverageText = 'Pelan';
     } else {
         LoadColor = '#dd2f00';
-        AverageText = 'Running jam';
+        AverageText = 'Macet';
     }
     index.find('.circle').css("background", LoadColor);
     index.find('.mask').css({ "color": LoadColor });
@@ -65,19 +65,17 @@ function getLoad(data) {
 $('#LoadList .circle').click(function() {
     getNet();
 });
-
 $('#LoadList .mask').hover(function() {
     var one, five, fifteen;
     var that = this;
     one = getCookie('one');
     five = getCookie('five');
     fifteen = getCookie('fifteen');
-    var text = 'Average load in the last 1 minute: ' + one + '</br> Average load in the last 5 minutes: ' + five + '</br> Average load in the last 15 minutes: ' + fifteen + '';
+    var text = 'Beban 1 menit terakhir:' + one + '</br>Beban 5 menit terakhir:' + five + '</br>Beban 15 menit terakhir:' + fifteen + '';
     layer.tips(text, that, { time: 0, tips: [1, '#999'] });
 }, function() {
     layer.closeAll('tips');
 });
-
 
 function showCpuTips(rdata){
     $('#cpuChart .mask').unbind();
@@ -98,12 +96,11 @@ function showCpuTips(rdata){
               }
             }
         }
-        layer.tips(rdata.cpu[3] + "</br>" + rdata.cpu[5] + " physical CPU, " + (rdata.cpu[4]) + " physical core, " + rdata.cpu[1] + " logical core</br>" + cpuText, this, { time: 0, tips: [1, '#999'] });
+        layer.tips(rdata.cpu[3] + "</br>" + rdata.cpu[5] + "Physical CPUs，" + (rdata.cpu[4]) + "Physical core，" + rdata.cpu[1] + "Logical core</br>" + cpuText, this, { time: 0, tips: [1, '#999'] });
     }, function() {
         layer.closeAll('tips');
     });
 }
-
 
 function rocket(sum, m) {
     var n = sum - m;
@@ -155,19 +152,19 @@ function getDiskInfo() {
 
             var inodes = '';
             if ( typeof(rdata[i]['inodes']) !=='undefined' ){
-                inodes = '<div class="mask" style="color:' + LoadColor + '" data="Inode Information<br>Total：' + rdata[i].inodes[0] + '<br>Used：' + rdata[i].inodes[1] + '<br>Available：' + rdata[i].inodes[2] + '<br>Inode usage：' + rdata[i].inodes[3] + '"><span>' + rdata[i].size[3].replace('%', '') + '</span>%</div>';
+                inodes = '<div class="mask" style="color:' + LoadColor + '" data="Informasi inode<br>total：' + rdata[i].inodes[0] + '<br>Digunakan：' + rdata[i].inodes[1] + '<br>Tersedia：' + rdata[i].inodes[2] + '<br>Penggunaan inode：' + rdata[i].inodes[3] + '"><span>' + rdata[i].size[3].replace('%', '') + '</span>%</div>';
 
                 var ipre = parseInt(rdata[i].inodes[3].replace('%', ''));
                 if (ipre > 95) {
                     $("#messageError").show();
-                    $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span>Partition [' + rdata[i].path + '] current Inode usage exceeds ' + ipre + '%. When the usage is 100%, files cannot be created in this partition. Please clean it up in time! <a class="btlink" href="javascript:ClearSystem();">[Clean up trash]</a></p>');
+                    $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span>Partisi [' + rdata[i].path + '] Penggunaan Inode saat ini melebihi ' + ipre + '%, ketika penggunaan mencapai 100%, file tidak dapat dibuat di partisi ini, harap bersihkan tepat waktu!<a class="btlink" href="javascript:ClearSystem();">[Bersihkan]</a></p>');
                 }
             }
 
             if (rdata[i].path == '/' || rdata[i].path == '/www') {
                 if (rdata[i].size[2].indexOf('M') != -1) {
                     $("#messageError").show();
-                    $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span> ' + lan.get('diskinfo_span_1', [rdata[i].path]) + ' <a class="btlink" href="javascript:ClearSystem();">[Clean up trash]</a></p>');
+                    $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span> ' + lan.get('diskinfo_span_1', [rdata[i].path]) + '<a class="btlink" href="javascript:ClearSystem();">[Bersihkan]</a></p>');
                 }
             }
 
@@ -189,10 +186,10 @@ function getDiskInfo() {
 }
 
 function clearSystem() {
-    var loadT = layer.msg('Cleaning up system junk <img src="/static/img/ing.gif">', { icon: 16, time: 0, shade: [0.3, "#000"] });
+    var loadT = layer.msg('Membersihkan sampah sistem <img src="/static/img/ing.gif">', { icon: 16, time: 0, shade: [0.3, "#000"] });
     $.get('/system?action=ClearSystem', function(rdata) {
         layer.close(loadT);
-        layer.msg('Cleanup is complete, a total of [' + rdata[0] + '] files will be cleaned up, and [' + toSize(rdata[1]) + '] disk space will be released!', { icon: 1 });
+        layer.msg('Pembersihan selesai, total file [' + rdata[0] + '] akan dibersihkan dan ruang disk [' + toSize(rdata[1]) + '] akan dibebaskan!', { icon: 1 });
     });
 }
 
@@ -270,7 +267,6 @@ function setcolor(pre, s, s1, s2, s3) {
     co.parent('.circle').css("background", LoadColor);
 }
 
-
 function getNet() {
     var up, down;
     $.get("/system/network", function(net) {
@@ -295,8 +291,8 @@ function getNet() {
     },'json');
 }
 
-function netImg() {
-    var myChartNetwork = echarts.init(document.getElementById('netImg'));
+function NetImg() {
+    var myChartNetwork = echarts.init(document.getElementById('NetImg'));
     var xData = [];
     var yData = [];
     var zData = [];
@@ -460,13 +456,12 @@ function netImg() {
             }]
         });
     }, 3000);
-
     myChartNetwork.setOption(option);
     window.addEventListener("resize", function() {
         myChartNetwork.resize();
     });
 }
-
+NetImg();
 
 function setImg() {
     $('.circle').each(function(index, el) {
@@ -479,7 +474,6 @@ function setImg() {
             $(this).find('.left').css('transform', "rotate(" + (num - 180) + "deg)");
         };
     });
-
     $('.diskbox .mask').unbind();
     $('.diskbox .mask').hover(function() {
         layer.closeAll('tips');
@@ -490,13 +484,14 @@ function setImg() {
         layer.closeAll('tips');
     });
 }
+setImg();
 
 setTimeout(function() {
     $.get('/system/update_server?type=check', function(rdata) {
         if (rdata.status == false) return;
         if (rdata.data != undefined) {
-            $("#toUpdate").html('<a class="btlink" href="javascript:updateMsg();">Renew</a>');
-            $('#toUpdate a').html('Renew<i style="display: inline-block; color: red; font-size: 40px;position: absolute;top: -35px; font-style: normal; right: -8px;">.</i>');
+            $("#toUpdate").html('<a class="btlink" href="javascript:updateMsg();">Memperbarui</a>');
+            $('#toUpdate a').html('Memperbarui <i style="display: inline-block; color: red; font-size: 40px;position: absolute;top: -35px; font-style: normal; right: -8px;">.</i>');
             $('#toUpdate a').css("position","relative");
             return;
         }
@@ -514,7 +509,7 @@ function checkUpdate() {
         }
 
         if (rdata.status === false) {
-            layer.confirm(rdata.msg, { title: lan.index.update_check, icon: 1, closeBtn: 1, btn: [lan.public.ok, lan.public.close] });
+            layer.confirm(rdata.msg, { title: lan.index.update_check, icon: 1, closeBtn: 1, btn: [lan.public.know, lan.public.close] });
             return;
         }
         layer.msg(rdata.msg, { icon: 1 });
@@ -532,31 +527,30 @@ function updateMsg(){
         var v = rdata.data.version;
         var v_info = '';
         if (v.split('.').length>3){
-            v_info = "<span class='label label-warning'>Test version</span>";
+            v_info = "<span class='label label-warning'>Versi uji</span>";
         } else {
-            v_info = "<span class='label label-success arrowed'>Official version</span>";
+            v_info = "<span class='label label-success arrowed'>Versi resmi</span>";
         }
 
         layer.open({
             type:1,
-            title:v_info + '<span class="badge badge-inverse">Upgrade to ['+rdata.data.version+']</span>',
+            title:v_info + '<span class="badge badge-inverse">Tingkatkan ke ['+rdata.data.version+']</span>',
             area: '400px',
             shadeClose:false,
             closeBtn:2,
             content:'<div class="setchmod bt-form pd20 pb70">'
                     +'<p style="padding: 0 0 10px;line-height: 24px;">'+rdata.data.content+'</p>'
                     +'<div class="bt-form-submit-btn">'
-                    +'<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Cancel</button>'
-                    +'<button type="button" class="btn btn-success btn-sm btn-title" onclick="updateVersion(\''+rdata.data.version+'\')" >Update</button>'
+                    +'<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Batal</button>'
+                    +'<button type="button" class="btn btn-success btn-sm btn-title" onclick="updateVersion(\''+rdata.data.version+'\')" >Perbarui</button>'
                     +'</div>'
                     +'</div>'
         });
     },'json');
 }
 
-
 function updateVersion(version) {
-    var loadT = layer.msg('SLEMP Panel is being upgraded..', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    var loadT = layer.msg('Mengupgrade panel..', { icon: 16, time: 0, shade: [0.3, '#000'] });
     $.get('/system/update_server?type=update&version='+version, function(rdata) {
 
         layer.closeAll();
@@ -570,7 +564,7 @@ function updateVersion(version) {
             $("#toUpdate").html('');
         }
     },'json').error(function() {
-        layer.msg('Update failed, please try again!', { icon: 2 });
+        layer.msg('Pembaruan gagal, coba lagi!', { icon: 2 });
         setTimeout(function() {
             window.location.reload();
         }, 3000);
@@ -593,11 +587,11 @@ function pluginIndexService(pname,pfunc, callback){
 function reBoot() {
     layer.open({
         type: 1,
-        title: 'Restart the server or panel',
+        title: 'Mulai ulang server atau panel',
         area: '330px',
         closeBtn: 1,
         shadeClose: false,
-        content: '<div class="rebt-con"><div class="rebt-li"><a data-id="server" href="javascript:;">Restart server</a></div><div class="rebt-li"><a data-id="panel" href="javascript:;">Restart panel</a></div></div>'
+        content: '<div class="rebt-con"><div class="rebt-li"><a data-id="server" href="javascript:;">Restart servernya</a></div><div class="rebt-li"><a data-id="panel" href="javascript:;">Mulai ulang panel</a></div></div>'
     });
 
 
@@ -605,7 +599,7 @@ function reBoot() {
         var type = $(this).attr('data-id');
         switch (type) {
             case 'panel':
-                layer.confirm('SLEMP Panel service will be restarted soon, continue?', { title: 'Restart panel service', closeBtn: 1, icon: 3 }, function () {
+                layer.confirm('Akan memulai ulang layanan panel, lanjutkan？', { title: 'Mulai ulang layanan panel', closeBtn: 1, icon: 3, btn: ['Yes','No'] }, function () {
                     var loadT = layer.load();
                     $.post('/system/restart','',function (rdata) {
                         layer.close(loadT);
@@ -617,24 +611,24 @@ function reBoot() {
             case 'server':
                 var rebootbox = layer.open({
                     type: 1,
-                    title: 'Restart the server safely',
+                    title: 'Mulai ulang server dengan aman',
                     area: ['500px', '280px'],
                     closeBtn: 1,
                     shadeClose: false,
                     content: "<div class='bt-form bt-window-restart'>\
                             <div class='pd15'>\
-                            <p style='color:red; margin-bottom:10px; font-size:15px;'>Note, if your server is a container, please cancel.</p>\
+                            <p style='color:red; margin-bottom:10px; font-size:15px;'>Catatan, harap batalkan jika server anda adalah kontainer.</p>\
                             <div class='SafeRestart' style='line-height:26px'>\
-                                <p>Safe Reboot helps keep your files safe and will do the following:</p>\
-                                <p>1. Stop the web service</p>\
-                                <p>2. Stop the MySQL service</p>\
-                                <p>3. Start restarting the server</p>\
-                                <p>4. Wait for the server to start</p>\
+                                <p>Restart aman baik untuk menjaga file tetap aman dan akan melakukan hal berikut:</p>\
+                                <p>1.Hentikan layanan web</p>\
+                                <p>2.Hentikan layanan MySQL</p>\
+                                <p>3.Mulai restart server</p>\
+                                <p>4.Tunggu server untuk memulai</p>\
                             </div>\
                             </div>\
                             <div class='bt-form-submit-btn'>\
-                                <button type='button' class='btn btn-danger btn-sm btn-reboot'>Cancel</button>\
-                                <button type='button' class='btn btn-success btn-sm WSafeRestart' >Restart</button>\
+                                <button type='button' class='btn btn-danger btn-sm btn-reboot'>Batal</button>\
+                                <button type='button' class='btn btn-success btn-sm WSafeRestart' >Ok</button>\
                             </div>\
                         </div>"
                 });
@@ -645,21 +639,21 @@ function reBoot() {
                     $(".WSafeRestart").click(function () {
                         var body = '<div class="SafeRestartCode pd15" style="line-height:26px"></div>';
                         $(".bt-window-restart").html(body);
-                        $(".SafeRestartCode").append("<p>Stopping web service</p>");
+                        $(".SafeRestartCode").append("<p>Menghentikan layanan web</p>");
                         pluginIndexService('openresty', 'stop', function (r1) {
                             $(".SafeRestartCode p").addClass('c9');
-                            $(".SafeRestartCode").append("<p>Stopping the MySQL service...</p>");
+                            $(".SafeRestartCode").append("<p>Menghentikan layanan MySQL...</p>");
                             pluginIndexService('mysql','stop', function (r2) {
                                 $(".SafeRestartCode p").addClass('c9');
-                                $(".SafeRestartCode").append("<p>Start restarting the server...</p>");
+                                $(".SafeRestartCode").append("<p>Mulai restart server...</p>");
                                 $.post('/system/restart_server', '',function (rdata) {
                                     $(".SafeRestartCode p").addClass('c9');
-                                    $(".SafeRestartCode").append("<p>Wait for the server to start...</p>");
+                                    $(".SafeRestartCode").append("<p>Tunggu server untuk memulai...</p>");
                                     var sEver = setInterval(function () {
                                        $.get("/system/system_total", function(info) {
                                             clearInterval(sEver);
                                             $(".SafeRestartCode p").addClass('c9');
-                                            $(".SafeRestartCode").append("<p>The server restarted successfully!...</p>");
+                                            $(".SafeRestartCode").append("<p>Server berhasil dihidupkan ulang!...</p>");
                                             setTimeout(function () {
                                                 layer.closeAll();
                                             }, 3000);
@@ -676,7 +670,7 @@ function reBoot() {
 }
 
 function repPanel() {
-    layer.confirm(lan.index.rep_panel_msg, { title: lan.index.rep_panel_title, closeBtn: 1, icon: 3 }, function() {
+    layer.confirm(lan.index.rep_panel_msg, { title: lan.index.rep_panel_title, closeBtn: 1, icon: 3, btn: ['Yes','No'] }, function() {
         var loadT = layer.msg(lan.index.rep_panel_the, { icon: 16, time: 0, shade: [0.3, '#000'] });
         $.get('/system?action=RepPanel', function(rdata) {
             layer.close(loadT);
@@ -715,7 +709,7 @@ function warningTo(to_url, def) {
         layer.close(loadT);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status && def) setTimeout(function() { location.reload(); }, 1000);
-    },'json');
+    });
 }
 
 function setSafeHide() {
@@ -724,128 +718,33 @@ function setSafeHide() {
 }
 
 function showDanger(num, port) {
-    var atxt = "Because the security isolation login is not used, all IPs can try to connect, and there is a high risk, please deal with it immediately.";
+    var atxt = "Karena tidak ada isolasi keamanan yang digunakan untuk login, semua IP dapat mencoba terhubung, ada risiko tinggi, harap segera atasi.";
     if (port == "22") {
-        atxt = "Since the default port 22 of SSH has not been modified, and security isolation is not used to log in, all IPs can try to connect, and there is a high risk, please deal with it immediately.";
+        atxt = "Karena port default 22 SSH belum dimodifikasi, dan isolasi keamanan tidak digunakan untuk login, semua IP dapat mencoba terhubung, ada risiko tinggi, harap segera atasi.";
     }
     layer.open({
         type: 1,
         area: ['720px', '410px'],
-        title: 'Security reminder (if you want to give up any security reminder notification, please delete the security login plugin)',
+        title: 'Pengingat keamanan (jika Anda ingin menghentikan pemberitahuan pengingat keamanan, harap hapus plugin login keamanan panel)',
         closeBtn: 1,
         shift: 5,
         content: '<div class="pd20">\
 				<table class="f14 showDanger"><tbody>\
-				<tr><td class="text-right" width="150">Risk type：</td><td class="f16" style="color:red">brute force <a href="https://github.com/basoro/slemp/wiki/Interpretasi-dan-pertahanan-cracking-serangan-arak-pada-SSH" class="btlink f14" style="margin-left:10px" target="_blank">explain</a></td></tr>\
-				<tr><td class="text-right">The cumulative total number of attacks encountered：</td><td class="f16" style="color:red">' + num + ' <a href="javascript:showDangerIP();" class="btlink f14" style="margin-left:10px">detailed</a><span class="c9 f12" style="margin-left:10px">（The data comes directly from this server log）</span></td></tr>\
+				<tr><td class="text-right" width="150">Jenis Risiko: </td><td class="f16" style="color:red">Brute force <a href="https://www.bt.cn/bbs/thread-9562-1-1.html" class="btlink f14" style="margin-left:10px" target="_blank">Gambaran</a></td></tr>\
+				<tr><td class="text-right">Cumulative total number of attacks encountered: </td><td class="f16" style="color:red">' + num + ' <a href="javascript:showDangerIP();" class="btlink f14" style="margin-left:10px">Detail</a><span class="c9 f12" style="margin-left:10px">（The data comes directly from this server log）</span></td></tr>\
 				<tr><td class="text-right">Risk level：</td><td class="f16" style="color:red">higher risk</td></tr>\
 				<tr><td class="text-right" style="vertical-align:top">Risk description：</td><td style="line-height:20px">' + atxt + '</td></tr>\
-				<tr><td class="text-right" style="vertical-align:top">Solutions available：</td><td><p style="margin-bottom:8px">Solution: Modify the SSH default port, modify the SSH authentication method to digital certificate, and clear recent login logs. </p></td></tr>\
+				<tr><td class="text-right" style="vertical-align:top">Reference solutions：</td><td><p style="margin-bottom:8px">Solution 1: Modify the default port of SSH, modify the SSH authentication method to digital certificate, and clear the recent login log.</p><p>Option 2: Purchase Enterprise Operation and Maintenance Edition, and deploy the security isolation service with one click, which is efficient and convenient.</p></td></tr>\
 				</tbody></table>\
-				<div class="mtb20 text-center"><a href="https://www.bt.cn/admin/index.html" target="_blank" class="btn btn-success">Deploy isolation protection now</a></div>\
+				<div class="mtb20 text-center"><a href="https://www.bt.cn/admin/index.html" target="_blank" class="btn btn-success">Deploy quarantine protection now</a></div>\
 				</div>'
     });
     $(".showDanger td").css("padding", "8px")
 }
 
-function pluginInit(){
-    $.post('/plugins/init', function(data){
-        if (!data.status){
-            return false;
-        }
-
-        var rdata = data.data;
-        var plugin_list = '';
-
-        for (var i = 0; i < rdata.length; i++) {
-            var ver = rdata[i]['versions'];
-            var select_list = '';
-            if (typeof(ver)=='string'){
-                select_list = '<option value="' + ver +'">' + rdata[i]['title'] + ' - ' + ver + '</option>';
-            } else {
-                for (var vi = 0; vi < ver.length; vi++) {
-
-                    if (ver[vi] == rdata[i]['default_ver']){
-                        select_list += '<option value="'+ver[vi]+'" selected="selected">'+ rdata[i]['title'] + ' - '+ ver[vi] + '</option>';
-                    } else {
-                        select_list += '<option value="'+ver[vi]+'">'+ rdata[i]['title'] + ' - '+ ver[vi] + '</option>';
-                    }
-                }
-            }
-
-            var pn_checked = '<input id="data_'+rdata[i]['name']+'" type="checkbox" checked>';
-            if (rdata[i]['name'] == 'swap'){
-                var pn_checked = '<input id="data_'+rdata[i]['name']+'" type="checkbox" disabled="disabled" checked>';
-            }
-
-            plugin_list += '<li><span class="ico"><img src="/plugins/file?name='+rdata[i]['name']+'&f=ico.png"></span>\
-            <span class="name">\
-                <select id="select_'+rdata[i]['name']+'" class="sl-s-info">'+select_list+'</select>\
-            </span>\
-            <span class="pull-right">'+pn_checked+'</span></li>';
-        }
-
-        layer.open({
-            type: 1,
-            title: 'Recommended installation',
-            area: ["337px", "403px"],
-            closeBtn: 2,
-            shadeClose: false,
-            content:"\
-        <div class='rec-install'>\
-            <div class='important-title'>\
-                <p><span class='glyphicon glyphicon-alert' style='color: #f39c12; margin-right: 10px;'></span>The following are recommended <a href='javascript:jump()' style='color:#20a53a'>application</a>.</p>\
-            </div>\
-            <div class='rec-box'>\
-                <h3 style='text-align: center'>Classic LNMP</h3>\
-                <div class='rec-box-con'>\
-                    <ul class='rec-list'>" + plugin_list + "</ul>\
-                    <div class='onekey'>Install</div>\
-                </div>\
-            </div>\
-        </div>",
-            success:function(l,index){
-                $('.rec-box-con .onekey').click(function(){
-                    var post_data = [];
-                    for (var i = 0; i < rdata.length; i++) {
-                        var key_ver = '#select_'+rdata[i]['name'];
-                        var key_checked = '#data_'+rdata[i]['name'];
-
-                        var val_checked = $(key_checked).prop("checked");
-                        if (val_checked){
-
-                            var tmp = {};
-                            var val_key = $(key_ver).val();
-
-                            tmp['version'] = val_key;
-                            tmp['name'] = rdata[i]['name'];
-                            post_data.push(tmp);
-                        }
-                    }
-
-                    $.post('/plugins/init_install', 'list='+JSON.stringify(post_data), function(data){
-                        showMsg(data.msg, function(){
-                            if (data.status){
-                                layer.closeAll();
-                                messageBox();
-                            }
-                        },{ icon: data.status ? 1 : 2 },2000);
-                    },'json');
-                });
-            },
-            cancel:function(){
-                layer.confirm('Whether to no longer show recommended installation kits?', {btn : ['Yes', 'Cancel'],title: "Do not show recommendations again?"}, function() {
-                    $.post('/files/create_dir', 'path=/home/slemp/server/php', function(rdata) {
-                        layer.closeAll();
-                    },'json');
-                });
-            }
-        });
-    },'json');
-}
-
+loadKeyDataCount();
 function loadKeyDataCount(){
-    var plist = ['mysql', 'gogs', 'gitea'];
+    var plist = ['mysql', 'gogs','gitea'];
     for (var i = 0; i < plist.length; i++) {
         pname = plist[i];
         function call(pname){
@@ -859,9 +758,8 @@ function loadKeyDataCount(){
                     return;
                 }
                 var html = '<li class="sys-li-box col-xs-3 col-sm-3 col-md-3 col-lg-3">\
-                        <p class="name f15 c9">'+pname+'</p>\
-                        <div class="val"><a class="btlink" onclick="softMain(\''+pname+'\',\''+pname+'\',\''+rdata['data']['ver']+'\')">'+rdata['data']['count']+'</a></div>\
-                    </li>';
+                            <p class="name f15 c9">'+pname+'</p>\
+                            <div class="val"><a class="btlink" onclick="softMain(\''+pname+'\',\''+pname+'\',\''+rdata['data']['ver']+'\')">'+rdata['data']['count']+'</a></div></li>';
                 $('#index_overview').append(html);
             },'json');
         }

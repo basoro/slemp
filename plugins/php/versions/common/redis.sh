@@ -12,7 +12,7 @@ serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
 
 LIBNAME=redis
-LIBV=5.3.7
+LIBV=5.3.6
 sysName=`uname`
 actionType=$1
 version=$2
@@ -21,8 +21,6 @@ if [ "$version" == "52" ];then
 	LIBV=2.2.7
 elif [ "$version" -lt "70" ];then
 	LIBV=4.2.0
-elif [ "$version" -gt "74" ];then
-	LIBV=5.3.7
 else
 	echo 'ok'
 fi
@@ -46,7 +44,7 @@ Install_lib()
 {
 	isInstall=`cat $serverPath/php/${version}/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
+		echo "php-$version ${LIBNAME} is installed, please select another version!"
 		return
 	fi
 
@@ -84,12 +82,12 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php-$version is not installed, please choose another version!"
+		echo "php-$version is not installed, please select another version!"
 		return
 	fi
 
 	if [ ! -f "$extFile" ];then
-		echo "php-$version ${LIBNAME} is not installed, please choose another version"
+		echo "php-$version ${LIBNAME} is not installed, please select another version!"
 		echo "php-$version not install memcache, Plese select other version!"
 		return
 	fi

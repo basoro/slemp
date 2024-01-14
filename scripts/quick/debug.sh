@@ -2,18 +2,12 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-if [ ! -d /home/slemp/server/panel/logs ]; then
-	mkdir -p /home/slemp/server/panel/logs
-fi
-
-{
-
-echo "Welcome to SLEMP Panel"
+echo "welcome to SLEMP panel"
 
 startTime=`date +%s`
 
 if [ ! -d /home/slemp/server/panel ];then
-	echo "slemp not exist!"
+	echo "SLEMP not exist!"
 	exit 1
 fi
 
@@ -29,7 +23,8 @@ fi
 # fi
 
 
-PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81 82)
+
+PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81)
 # PHP_VER_LIST=(81)
 for PHP_VER in ${PHP_VER_LIST[@]}; do
 	echo "php${PHP_VER} -- start"
@@ -38,9 +33,6 @@ for PHP_VER in ${PHP_VER_LIST[@]}; do
 	fi
 	echo "php${PHP_VER} -- end"
 done
-
-
-# cd /home/slemp/server/panel/plugins/php-yum && bash install.sh install 74
 
 
 # mysql
@@ -56,4 +48,3 @@ endTime=`date +%s`
 ((outTime=(${endTime}-${startTime})/60))
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
 
-} 1> >(tee /home/slemp/server/panel/logs/slemp-debug.log) 2>&1

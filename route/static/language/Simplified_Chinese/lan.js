@@ -973,7 +973,7 @@ var lan = {
 		"edit":"Edit",
 		"edit_ok":"Modified successfully!",
 		"edit_err":"Edit failed!",
-		"know":"Ok",
+		"know":"know",
 		"close":"Close",
 		"cancel":"Cancel",
 		"ok":"OK",

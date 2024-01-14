@@ -23,7 +23,6 @@ class files_api:
     def __init__(self):
         self.rPath = slemp.getRootDir() + '/recycle_bin/'
 
-    ##### ----- start ----- ###
     def getBodyApi(self):
         path = request.form.get('path', '')
         return self.getBody(path)
@@ -33,13 +32,13 @@ class files_api:
         line = request.form.get('line', '100')
 
         if not os.path.exists(path):
-            return slemp.returnJson(False, 'File does not exist', (path,))
+            return slemp.returnJson(False, 'File tidak ada', (path,))
 
         try:
             data = slemp.getLastLine(path, int(line))
             return slemp.returnJson(True, 'OK', data)
         except Exception as ex:
-            return slemp.returnJson(False, 'Could not read the file correctly!' + str(ex))
+            return slemp.returnJson(False, u'Tidak dapat membaca file dengan benar!' + str(ex))
 
     def saveBodyApi(self):
         path = request.form.get('path', '')
@@ -73,21 +72,21 @@ class files_api:
         sfile = request.form.get('sfile', '')
         dfile = request.form.get('dfile', '')
         if not self.checkFileName(dfile):
-            return slemp.returnJson(False, 'Filenames cannot contain special characters!')
+            return slemp.returnJson(False, 'Nama file tidak boleh berisi karakter khusus!')
         if not os.path.exists(sfile):
-            return slemp.returnJson(False, 'The specified file does not exist!')
+            return slemp.returnJson(False, 'File yang ditentukan tidak ada!')
 
         if not self.checkDir(sfile):
-            return slemp.returnJson(False, 'FILE_DANGER')
+            return slemp.returnJson(False, 'Eittsss... Jangan coba-coba..!!')
 
         import shutil
         try:
             shutil.move(sfile, dfile)
-            msg = slemp.getInfo('Move or rename file [{1}] to [{2}] successfully!', (sfile, dfile,))
-            slemp.writeLog('File management', msg)
-            return slemp.returnJson(True, 'File moved or renamed successfully!')
+            msg = slemp.getInfo('Pindahkan file atau direktori [{1}] ke [{2}] berhasil!', (sfile, dfile,))
+            slemp.writeLog('Manajemen file', msg)
+            return slemp.returnJson(True, 'Pemindahan file atau direktori berhasil!')
         except:
-            return slemp.returnJson(False, 'Failed to move or rename file!')
+            return slemp.returnJson(False, 'Gagal memindahkan file atau direktori!')
 
     def deleteApi(self):
         path = request.form.get('path', '')
@@ -101,7 +100,7 @@ class files_api:
     def setFileAccessApi(self):
 
         if slemp.isAppleSystem():
-            return slemp.returnJson(True, 'The development machine does not set!')
+            return slemp.returnJson(True, 'Tidak support untuk MacOS!')
 
         filename = request.form.get('filename', '')
         user = request.form.get('user', '')
@@ -109,20 +108,20 @@ class files_api:
         sall = '-R'
         try:
             if not self.checkDir(filename):
-                return slemp.returnJson(False, 'Please don\'t play tricks')
+                return slemp.returnJson(False, 'Eittss.. Jangan coba-coba..!!')
 
             if not os.path.exists(filename):
-                return slemp.returnJson(False, 'The specified file does not exist!')
+                return slemp.returnJson(False, 'File yang ditentukan tidak ada!')
 
             os.system('chmod ' + sall + ' ' + access + " '" + filename + "'")
             os.system('chown ' + sall + ' ' + user +
                       ':' + user + " '" + filename + "'")
             msg = slemp.getInfo(
-                'Set [{1}] permission to [{2}] owner to [{3}]', (filename, access, user,))
-            slemp.writeLog('File management', msg)
-            return slemp.returnJson(True, 'Successfully set!')
+                'Setel izin [{1}] ke [{2}] pemilik ke [{3}]', (filename, access, user,))
+            slemp.writeLog('Manajemen file', msg)
+            return slemp.returnJson(True, 'Pengaturan berhasil!')
         except:
-            return slemp.returnJson(False, 'Setup failed!')
+            return slemp.returnJson(False, 'Gagal!')
 
     def getDirSizeApi(self):
         path = request.form.get('path', '')
@@ -134,50 +133,46 @@ class files_api:
         if not os.path.exists(path):
             path = slemp.getRootDir() + "/wwwroot"
         search = request.args.get('search', '').strip().lower()
-        search_all = request.args.get('all', '').strip().lower()
         page = request.args.get('p', '1').strip().lower()
         row = request.args.get('showRow', '10')
         disk = request.form.get('disk', '')
         if disk == 'True':
             row = 1000
 
-        # return self.getAllDir(path, int(page), int(row), "wp-inlcude")
-        if search_all == 'yes' and search != '':
-            return self.getAllDir(path, int(page), int(row), search)
         return self.getDir(path, int(page), int(row), search)
 
     def createFileApi(self):
         file = request.form.get('path', '')
         try:
             if not self.checkFileName(file):
-                return slemp.returnJson(False, 'Filenames cannot contain special characters!')
+                return slemp.returnJson(False, 'Nama file tidak boleh berisi karakter khusus!')
             if os.path.exists(file):
-                return slemp.returnJson(False, 'The specified file already exists!')
+                return slemp.returnJson(False, 'File yang ditentukan sudah ada!')
             _path = os.path.dirname(file)
             if not os.path.exists(_path):
                 os.makedirs(_path)
             open(file, 'w+').close()
             self.setFileAccept(file)
-            msg = slemp.getInfo('File [{1}] created successfully!', (file,))
-            slemp.writeLog('File management', msg)
-            return slemp.returnJson(True, 'File created successfully!')
+            msg = slemp.getInfo('Buat file [{1}] berhasil!', (file,))
+            slemp.writeLog('Manajemen file', msg)
+            return slemp.returnJson(True, 'File berhasil dibuat!')
         except Exception as e:
-            return slemp.returnJson(True, 'File creation failed!')
+            return slemp.returnJson(True, 'File gagal dibuat!')
 
     def createDirApi(self):
         path = request.form.get('path', '')
         try:
             if not self.checkFileName(path):
-                return slemp.returnJson(False, 'Directory names cannot contain special characters!')
+                return slemp.returnJson(False, 'Nama direktori tidak boleh berisi karakter khusus!')
             if os.path.exists(path):
-                return slemp.returnJson(False, 'The specified directory already exists!')
+                return slemp.returnJson(False, 'Direktori yang ditentukan sudah ada!')
             os.makedirs(path)
             self.setFileAccept(path)
-            msg = slemp.getInfo('Creating directory [{1}] succeeded!', (path,))
-            slemp.writeLog('File management', msg)
-            return slemp.returnJson(True, 'Directory created successfully!')
+            msg = slemp.getInfo('Buat direktori [{1}] berhasil!', (path,))
+            slemp.writeLog('Manajemen file', msg)
+            return slemp.returnJson(True, 'Direktori berhasil dibuat!')
         except Exception as e:
-            return slemp.returnJson(False, 'Directory creation failed!')
+            return slemp.returnJson(False, 'Direktori gagal dibuat!')
 
     def downloadFileApi(self):
         import db
@@ -188,11 +183,10 @@ class files_api:
         execstr = url + '|slemp|' + path + '/' + filename
         execstr = execstr.strip()
         slemp.M('tasks').add('name,type,status,addtime,execstr',
-                          ('Download file [' + filename + ']', 'download', '-1', time.strftime('%Y-%m-%d %H:%M:%S'), execstr))
+                          ('Unduh berkas [' + filename + ']', 'download', '-1', time.strftime('%Y-%m-%d %H:%M:%S'), execstr))
 
-        # self.setFileAccept(path + '/' + filename)
         slemp.triggerTask()
-        return slemp.returnJson(True, 'Added download task to queue!')
+        return slemp.returnJson(True, 'Menambahkan unduhan ke antrian!')
 
     def removeTaskRecursion(self, pid):
         cmd = "ps -ef|grep " + pid + \
@@ -225,11 +219,7 @@ class files_api:
                 system_api.system_api().restartTask()
         except:
             system_api.system_api().restartTask()
-
-        task_log = slemp.getRunDir() + "/tmp/panelTask.pl"
-        if os.path.exists(task_log):
-            os.remove(task_log)
-        return slemp.returnJson(True, 'Task deleted!')
+        return slemp.returnJson(True, 'Task dihapus!')
 
     def uploadFileApi(self):
         from werkzeug.utils import secure_filename
@@ -246,93 +236,13 @@ class files_api:
         if os.path.exists(filename):
             s_path = filename
         p_stat = os.stat(s_path)
-
-        # print(filename)
         f.save(filename)
         os.chown(filename, p_stat.st_uid, p_stat.st_gid)
         os.chmod(filename, p_stat.st_mode)
 
-        msg = slemp.getInfo('Upload file [{1}] to [{2}] successfully!', (filename, path))
-        slemp.writeLog('File management', msg)
-        return slemp.returnMsg(True, 'Uploaded successfully!')
-
-    def setMode(self, path):
-        s_path = os.path.dirname(path)
-        p_stat = os.stat(s_path)
-        os.chown(path, p_stat.st_uid, p_stat.st_gid)
-        os.chmod(path, p_stat.st_mode)
-
-    def uploadSegmentApi(self):
-        path = request.form.get('path', '')
-        name = request.form.get('name', '')
-        size = request.form.get('size')
-        start = request.form.get('start')
-        dir_mode = request.form.get('dir_mode', '')
-        file_mode = request.form.get('file_mode', '')
-
-        if not slemp.fileNameCheck(name):
-            return slemp.returnJson(False, 'Filenames cannot contain special characters!')
-
-        if path == '/':
-            return slemp.returnJson(False, 'Cannot upload files directly to the system root directory!')
-
-        if name.find('./') != -1 or path.find('./') != -1:
-            return slemp.returnJson(False, 'Wrong parameter')
-
-        if not os.path.exists(path):
-            os.makedirs(path, 493)
-            if not dir_mode != '' or not file_mode != '':
-                slemp.setMode(path)
-
-        save_path = os.path.join(
-            path, name + '.' + str(int(size)) + '.upload.tmp')
-        d_size = 0
-        if os.path.exists(save_path):
-            d_size = os.path.getsize(save_path)
-
-        if d_size != int(start):
-            return str(d_size)
-
-        f = open(save_path, 'ab')
-        b64_data = request.form.get('b64_data', '0')
-        if b64_data == '1':
-            import base64
-            b64_data = base64.b64decode(args.b64_data)
-            f.write(b64_data)
-        else:
-            upload_files = request.files.getlist("blob")
-            for tmp_f in upload_files:
-                f.write(tmp_f.read())
-
-        f.close()
-        f_size = os.path.getsize(save_path)
-        if f_size != int(size):
-            return str(f_size)
-
-        new_name = os.path.join(path, name)
-        if os.path.exists(new_name):
-            if new_name.find('.user.ini') != -1:
-                slemp.execShell("chattr -i " + new_name)
-            try:
-                os.remove(new_name)
-            except:
-                slemp.execShell("rm -f %s" % new_name)
-
-        os.renames(save_path, new_name)
-
-        if dir_mode != '' and dir_mode != '':
-            mode_tmp1 = dir_mode.split(',')
-            slemp.setMode(path, mode_tmp1[0])
-            slemp.setOwn(path, mode_tmp1[1])
-            mode_tmp2 = file_mode.split(',')
-            slemp.setMode(new_name, mode_tmp2[0])
-            slemp.setOwn(new_name, mode_tmp2[1])
-        else:
-            self.setMode(new_name)
-
-        msg = slemp.getInfo('Upload file [{1}] to [{2}] successfully!', (new_name, path))
-        slemp.writeLog('File management', msg)
-        return slemp.returnMsg(True, 'Uploaded successfully!')
+        msg = slemp.getInfo('Mengunggah file [{1}] ke [{2}] berhasil!', (filename, path))
+        slemp.writeLog('Manajemen file', msg)
+        return slemp.returnMsg(True, 'Berhasil diunggah!')
 
     def getRecycleBinApi(self):
         rPath = self.rPath
@@ -377,12 +287,12 @@ class files_api:
             c = 'data/recycle_bin_db.pl'
         if os.path.exists(c):
             os.remove(c)
-            slemp.writeLog('File management', 'Trash is turned off!')
-            return slemp.returnJson(True, 'Trash is turned off!')
+            slemp.writeLog('Manajemen file', 'Tempat sampah dimatikan!')
+            return slemp.returnJson(True, 'Tempat sampah dimatikan!')
         else:
             slemp.writeFile(c, 'True')
-            slemp.writeLog('File management', 'Trash feature is turned on!')
-            return slemp.returnJson(True, 'Trash feature is turned on!')
+            slemp.writeLog('Manajemen file', 'Tempat sampah dihidupkan!')
+            return slemp.returnJson(True, 'Tempat sampah dihidupkan!')
 
     def reRecycleBinApi(self):
         rPath = self.rPath
@@ -391,13 +301,13 @@ class files_api:
         try:
             import shutil
             shutil.move(rPath + path, dFile)
-            msg = slemp.getInfo('Moved file [{1}] to the recycle bin successfully!', (dFile,))
-            slemp.writeLog('File management', msg)
-            return slemp.returnJson(True, 'Recovery succeeded!')
+            msg = slemp.getInfo('Berhasil memindahkan file [{1}] ke recycle bin!', (dFile,))
+            slemp.writeLog('Manajemen file', msg)
+            return slemp.returnJson(True, 'Pemulihan berhasil!')
         except Exception as e:
-            msg = slemp.getInfo('Restoring [{1}] from recycle bin failed!', (dFile,))
-            slemp.writeLog('File management', msg)
-            return slemp.returnJson(False, 'Recovery failed!')
+            msg = slemp.getInfo('Gagal memulihkan [{1}] dari recycle bin!', (dFile,))
+            slemp.writeLog('Manajemen file', msg)
+            return slemp.returnJson(False, 'Pemulihan gagal!')
 
     def delRecycleBinApi(self):
         rPath = self.rPath
@@ -406,9 +316,9 @@ class files_api:
         dFile = path.split('_t_')[0]
 
         if not self.checkDir(path):
-            return slemp.returnJson(False, 'Sensitive directory, please don\'t play tricks!')
+            return slemp.returnJson(False, 'Direktori sensitif, tolong jangan main-main!')
 
-        slemp.execShell('which chattr && chattr -R -i ' + rPath + path)
+        os.system('which chattr && chattr -R -i ' + rPath + path)
         if os.path.isdir(rPath + path):
             import shutil
             shutil.rmtree(rPath + path)
@@ -416,17 +326,17 @@ class files_api:
             os.remove(rPath + path)
 
         tfile = path.replace('_slemp_', '/').split('_t_')[0]
-        msg = slemp.getInfo('{1} has been completely deleted from the recycle bin!', (tfile,))
-        slemp.writeLog('File management', msg)
+        msg = slemp.getInfo('{1} benar-benar dihapus dari sampah!', (tfile,))
+        slemp.writeLog('Manajemen file', msg)
         return slemp.returnJson(True, msg)
 
     def getSpeedApi(self):
         data = slemp.getSpeed()
-        return slemp.returnJson(True, 'Trash emptied!', data)
+        return slemp.returnJson(True, 'Sampah dikosongkan!', data)
 
     def closeRecycleBinApi(self):
         rPath = self.rPath
-        slemp.execShell('which chattr && chattr -R -i ' + rPath)
+        os.system('which chattr && chattr -R -i ' + rPath)
         rlist = os.listdir(rPath)
         i = 0
         l = len(rlist)
@@ -439,32 +349,32 @@ class files_api:
             else:
                 os.remove(path)
         slemp.writeSpeed(None, 0, 0)
-        slemp.writeLog('File management', 'Trash emptied!')
-        return slemp.returnJson(True, 'Trash emptied!')
+        slemp.writeLog('Manajemen file', 'Sampah dikosongkan!')
+        return slemp.returnJson(True, 'Sampah dikosongkan!')
 
     def deleteDirApi(self):
         path = request.form.get('path', '')
         if not os.path.exists(path):
-            return slemp.returnJson(False, 'The specified file does not exist!')
+            return slemp.returnJson(False, 'File yang ditentukan tidak ada!')
 
         if path.find('.user.ini'):
             os.system("which chattr && chattr -i '" + path + "'")
         try:
             if os.path.exists('data/recycle_bin.pl'):
                 if self.mvRecycleBin(path):
-                    return slemp.returnJson(True, 'File moved to trash!')
+                    return slemp.returnJson(True, 'Memindahkan file ke recycle bin!')
             slemp.execShell('rm -rf ' + path)
-            slemp.writeLog('File management', 'File deleted successfully!', (path,))
-            return slemp.returnJson(True, 'File deleted successfully!')
+            slemp.writeLog('Manajemen file', 'Hapus file berhasil!', (path,))
+            return slemp.returnJson(True, 'Hapus file berhasil!')
         except:
-            return slemp.returnJson(False, 'Failed to delete file!')
+            return slemp.returnJson(False, 'Gagal menghapus file!')
 
     def closeLogsApi(self):
         logPath = slemp.getLogsDir()
         os.system('rm -f ' + logPath + '/*')
         os.system('kill -USR1 `cat ' + slemp.getServerDir() +
                   'openresty/nginx/logs/nginx.pid`')
-        slemp.writeLog('File management', 'Website logs have been cleared!')
+        slemp.writeLog('Manajemen file', 'Log situs telah dihapus!')
         tmp = self.getDirSize(logPath)
         return slemp.returnJson(True, tmp[0].split()[0])
 
@@ -482,20 +392,20 @@ class files_api:
                 'user': user,
                 'data': data
             }
-            return slemp.returnJson(True, 'The mark is successful, please click the paste all button in the target directory!')
+            return slemp.returnJson(True, 'Penandaan berhasil, silakan klik tombol Paste All di direktori target!')
         elif stype == '3':
             for key in json.loads(data):
                 try:
                     filename = path + '/' + key
                     if not self.checkDir(filename):
-                        return slemp.returnJson(False, 'FILE_DANGER')
+                        return slemp.returnJson(False, 'Eittss... Jangan coba-coba...!!')
                     os.system('chmod -R ' + access + " '" + filename + "'")
                     os.system('chown -R ' + user + ':' +
                               user + " '" + filename + "'")
                 except:
                     continue
-            slemp.writeLog('File management', 'Successfully set permissions in batches!')
-            return slemp.returnJson(True, 'Successfully set permissions in batches!')
+            slemp.writeLog('Manajemen file', 'Berhasil mengatur izin dalam batch!')
+            return slemp.returnJson(True, 'Berhasil mengatur izin dalam batch!')
         else:
             import shutil
             isRecyle = os.path.exists('data/recycle_bin.pl')
@@ -513,7 +423,7 @@ class files_api:
                     slemp.writeSpeed(key, i, l)
                     if os.path.isdir(filename):
                         if not self.checkDir(filename):
-                            return slemp.returnJson(False, 'Please don\'t play tricks!')
+                            return slemp.returnJson(False, 'Eittss... jangan coba-coba...!')
                         if isRecyle:
                             self.mvRecycleBin(topath)
                         else:
@@ -528,8 +438,8 @@ class files_api:
                 except:
                     continue
                 slemp.writeSpeed(None, 0, 0)
-            slemp.writeLog('File management', 'Bulk deletion succeeded!')
-            return slemp.returnJson(True, 'Batch deletion succeeded!')
+            slemp.writeLog('Manajemen file', 'Batch dihapus dengan sukses!')
+            return slemp.returnJson(True, 'Penghapusan batch berhasil!')
 
     def checkExistsFilesApi(self):
         dfile = request.form.get('dfile', '')
@@ -557,10 +467,9 @@ class files_api:
     def batchPasteApi(self):
         path = request.form.get('path', '')
         stype = request.form.get('type', '')
-        # filename = request.form.get('filename', '')
         import shutil
         if not self.checkDir(path):
-            return slemp.returnJson(False, 'Please don\'t play tricks!')
+            return slemp.returnJson(False, 'Eittss... Jangan coba-coba...!')
         i = 0
         myfiles = json.loads(session['selected']['data'])
         l = len(myfiles)
@@ -582,9 +491,9 @@ class files_api:
                     os.chown(dfile, stat.st_uid, stat.st_gid)
                 except:
                     continue
-            msg = slemp.getInfo('Batch copy from [{1}] to [{2}] succeeded',
+            msg = slemp.getInfo('Salinan batch dari [{1}] ke [{2}] berhasil',
                              (session['selected']['path'], path,))
-            slemp.writeLog('File management', msg)
+            slemp.writeLog('Manajemen file', msg)
         else:
             for key in myfiles:
                 try:
@@ -598,13 +507,13 @@ class files_api:
                     shutil.move(sfile, dfile)
                 except:
                     continue
-            msg = slemp.getInfo('Batch move from [{1}] to [{2}] succeeded',
+            msg = slemp.getInfo('Pemindahan batch dari [{1}] ke [{2}] berhasil',
                              (session['selected']['path'], path,))
-            slemp.writeLog('File management', msg)
+            slemp.writeLog('Manajemen file', msg)
         slemp.writeSpeed(None, 0, 0)
         errorCount = len(myfiles) - i
         del(session['selected'])
-        msg = slemp.getInfo('Batch operation succeeded [{1}], failed [{2}]', (str(i), str(errorCount)))
+        msg = slemp.getInfo('Operasi batch berhasil [{1}], gagal [{2}]', (str(i), str(errorCount)))
         return slemp.returnJson(True, msg)
 
     def copyFileApi(self):
@@ -612,10 +521,10 @@ class files_api:
         dfile = request.form.get('dfile', '')
 
         if sfile == dfile:
-            return slemp.returnJson(False, 'Source meets purpose!')
+            return slemp.returnJson(False, 'Sumber dan tujuan!')
 
         if not os.path.exists(sfile):
-            return slemp.returnJson(False, 'The specified file does not exist!')
+            return slemp.returnJson(False, 'File yang ditentukan tidak ada!')
 
         if os.path.isdir(sfile):
             return self.copyDir(sfile, dfile)
@@ -623,36 +532,33 @@ class files_api:
         try:
             import shutil
             shutil.copyfile(sfile, dfile)
-            msg = slemp.getInfo('Copy file [{1}] to [{2}] successfully!', (sfile, dfile,))
-            slemp.writeLog('File management', msg)
+            msg = slemp.getInfo('Salin file [{1}] ke [{2}] berhasil!', (sfile, dfile,))
+            slemp.writeLog('Manajemen file', msg)
             stat = os.stat(sfile)
             os.chown(dfile, stat.st_uid, stat.st_gid)
-            return slemp.returnJson(True, 'File copied successfully!')
+            return slemp.returnJson(True, 'File berhasil disalin!')
         except:
-            return slemp.returnJson(False, 'File copy failed!')
-
-    ##### ----- end ----- ###
+            return slemp.returnJson(False, 'Penyalinan file gagal!')
 
     def copyDir(self, sfile, dfile):
 
         if not os.path.exists(sfile):
-            return slemp.returnJson(False, 'The specified directory does not exist!')
+            return slemp.returnJson(False, 'Direktori yang ditentukan tidak ada!')
 
         if os.path.exists(dfile):
-            return slemp.returnJson(False, 'The specified directory already exists!')
+            return slemp.returnJson(False, 'Direktori yang ditentukan sudah ada!')
         import shutil
         try:
             shutil.copytree(sfile, dfile)
             stat = os.stat(sfile)
             os.chown(dfile, stat.st_uid, stat.st_gid)
-            msg = slemp.getInfo('Copy directory [{1}] to [{2}] successfully!', (sfile, dfile))
-            slemp.writeLog('File management', msg)
-            return slemp.returnJson(True, 'Directory copied successfully!')
+            msg = slemp.getInfo('Salin direktori [{1}] ke [{2}] berhasil!', (sfile, dfile))
+            slemp.writeLog('Manajemen file', msg)
+            return slemp.returnJson(True, 'Copy direktori berhasil!')
         except:
-            return slemp.returnJson(False, 'Directory copy failed!')
+            return slemp.returnJson(False, 'Salinan direktori gagal!')
 
     def checkDir(self, path):
-        # path = str(path, encoding='utf-8')
         path = path.replace('//', '/')
         if path[-1:] == '/':
             path = path[:-1]
@@ -660,7 +566,6 @@ class files_api:
         nDirs = ('',
                  '/',
                  '/*',
-                 '/www',
                  '/root',
                  '/boot',
                  '/bin',
@@ -685,7 +590,7 @@ class files_api:
         return not path in nDirs
 
     def getDirSize(self, path):
-        if slemp.isAppleSystem():
+        if slemp.getOs() == 'darwin':
             tmp = slemp.execShell('du -sh ' + path)
         else:
             tmp = slemp.execShell('du -sbh ' + path)
@@ -706,7 +611,6 @@ class files_api:
             user = slemp.execShell(
                 "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
             auth = user + ':staff'
-
         os.system('chown -R ' + auth + ' ' + filename)
         os.system('chmod -R 755 ' + filename)
 
@@ -719,133 +623,159 @@ class files_api:
         try:
             import shutil
             shutil.move(path, rFile)
-            slemp.writeLog('File management', slemp.getInfo(
-                'Moved file [{1}] to the recycle bin successfully!', (path)))
+            slemp.writeLog('Manajemen file', slemp.getInfo(
+                'Pindahkan file [{1}] ke recycle bin berhasil!', (path)))
             return True
         except:
-            slemp.writeLog('File management', slemp.getInfo(
-                'Failed to move file [{1}] to recycle bin!', (path)))
+            slemp.writeLog('Manajemen file', slemp.getInfo(
+                'Gagal memindahkan file [{1}] ke recycle bin!', (path)))
             return False
 
     def getBody(self, path):
         if not os.path.exists(path):
-            return slemp.returnJson(False, 'File does not exist', (path,))
+            return slemp.returnJson(False, 'File tidak ada', (path,))
 
         if os.path.getsize(path) > 2097152:
-            return slemp.returnJson(False, 'Files larger than 2MB cannot be edited online!')
-
-        if os.path.isdir(path):
-            return slemp.returnJson(False, 'This is not a file!')
+            return slemp.returnJson(False, u'File yang lebih besar dari 2MB tidak dapat diedit secara online!')
 
         fp = open(path, 'rb')
         data = {}
         data['status'] = True
-        if fp:
-            srcBody = fp.read()
-            fp.close()
-
-            encoding_list = ['utf-8', 'GBK', 'BIG5']
-            for el in encoding_list:
+        try:
+            if fp:
+                from chardet.universaldetector import UniversalDetector
+                detector = UniversalDetector()
+                srcBody = b""
+                for line in fp.readlines():
+                    detector.feed(line)
+                    srcBody += line
+                detector.close()
+                char = detector.result
+                data['encoding'] = char['encoding']
+                if char['encoding'] == 'GB2312' or not char['encoding'] or char[
+                        'encoding'] == 'TIS-620' or char['encoding'] == 'ISO-8859-9':
+                    data['encoding'] = 'GBK'
+                if char['encoding'] == 'ascii' or char[
+                        'encoding'] == 'ISO-8859-1':
+                    data['encoding'] = 'utf-8'
+                if char['encoding'] == 'Big5':
+                    data['encoding'] = 'BIG5'
+                if not char['encoding'] in ['GBK', 'utf-8', 'BIG5']:
+                    data['encoding'] = 'utf-8'
                 try:
-                    data['encoding'] = el
-                    data['data'] = srcBody.decode(data['encoding'])
-                    break
-                except Exception as ex:
-                    if el == 'BIG5':
-                        return slemp.returnJson(False, 'The file encoding is not compatible, and the file cannot be read correctly!' + str(ex))
-        else:
-            return slemp.returnJson(False, 'File not opening normally!')
+                    if sys.version_info[0] == 2:
+                        data['data'] = srcBody.decode(
+                            data['encoding']).encode('utf-8', errors='ignore')
+                    else:
+                        data['data'] = srcBody.decode(data['encoding'])
+                except:
+                    data['encoding'] = char['encoding']
+                    if sys.version_info[0] == 2:
+                        data['data'] = srcBody.decode(
+                            data['encoding']).encode('utf-8', errors='ignore')
+                    else:
+                        data['data'] = srcBody.decode(data['encoding'])
+            else:
+                if sys.version_info[0] == 2:
+                    data['data'] = srcBody.decode('utf-8').encode('utf-8')
+                else:
+                    data['data'] = srcBody.decode('utf-8')
+                data['encoding'] = u'utf-8'
 
-        return slemp.returnJson(True, 'OK', data)
+            return slemp.returnJson(True, 'OK', data)
+        except Exception as ex:
+            return slemp.returnJson(False, u'Pengkodean file tidak kompatibel, file tidak dapat dibaca dengan benar!' + str(ex))
 
     def saveBody(self, path, data, encoding='utf-8'):
         if not os.path.exists(path):
-            return slemp.returnJson(False, 'File does not exist')
+            return slemp.returnJson(False, 'File tidak ada')
         try:
             if encoding == 'ascii':
                 encoding = 'utf-8'
-
-            data = data.encode(
-                encoding, errors='ignore').decode(encoding)
-            fp = open(path, 'w+', encoding=encoding)
+            if sys.version_info[0] == 2:
+                data = data.encode(encoding, errors='ignore')
+                fp = open(path, 'w+')
+            else:
+                data = data.encode(
+                    encoding, errors='ignore').decode(encoding)
+                fp = open(path, 'w+', encoding=encoding)
             fp.write(data)
             fp.close()
 
             if path.find("web_conf") > 0:
                 slemp.restartWeb()
 
-            slemp.writeLog('File management', 'File saved successfully', (path,))
-            return slemp.returnJson(True, 'File saved successfully')
+            slemp.writeLog('Manajemen file', 'File berhasil disimpan', (path,))
+            return slemp.returnJson(True, 'File berhasil disimpan')
         except Exception as ex:
-            return slemp.returnJson(False, 'File save error: ' + str(ex))
+            return slemp.returnJson(False, 'File gagal disimpan:' + str(ex))
 
     def zip(self, sfile, dfile, stype, path):
         if sfile.find(',') == -1:
             if not os.path.exists(path + '/' + sfile):
-                return slemp.returnMsg(False, 'The specified file does not exist!')
+                return slemp.returnMsg(False, 'File yang ditentukan tidak ada!')
 
         try:
             tmps = slemp.getRunDir() + '/tmp/panelExec.log'
             if stype == 'zip':
-                slemp.execShell("cd '" + path + "' && zip '" + dfile +
-                             "' -r '" + sfile + "' > " + tmps + " 2>&1")
+                os.system("cd '" + path + "' && zip '" + dfile +
+                          "' -r '" + sfile + "' > " + tmps + " 2>&1")
             else:
                 sfiles = ''
                 for sfile in sfile.split(','):
                     if not sfile:
                         continue
                     sfiles += " '" + sfile + "'"
-                slemp.execShell("cd '" + path + "' && tar -zcvf '" +
-                             dfile + "' " + sfiles + " > " + tmps + " 2>&1")
+                os.system("cd '" + path + "' && tar -zcvf '" +
+                          dfile + "' " + sfiles + " > " + tmps + " 2>&1")
             self.setFileAccept(dfile)
-            slemp.writeLog("File management", 'File compressed successfully!', (sfile, dfile))
-            return slemp.returnJson(True, 'File compressed successfully!')
+            slemp.writeLog("Manajemen file", 'Kompresi file berhasil!', (sfile, dfile))
+            return slemp.returnJson(True, 'Kompresi file berhasil!')
         except:
-            return slemp.returnJson(False, 'File compression failed!')
+            return slemp.returnJson(False, 'Kompresi file gagal!')
 
     def unzip(self, sfile, dfile, stype, path):
 
         if not os.path.exists(sfile):
-            return slemp.returnMsg(False, 'The specified file does not exist!')
+            return slemp.returnMsg(False, 'File yang ditentukan tidak ada!')
 
         try:
             tmps = slemp.getRunDir() + '/tmp/panelExec.log'
             if stype == 'zip':
-                slemp.execShell("cd " + path + " && unzip -o -d '" + dfile +
-                             "' '" + sfile + "' > " + tmps + " 2>&1 &")
+                os.system("cd " + path + " && unzip -d '" + dfile +
+                          "' '" + sfile + "' > " + tmps + " 2>&1 &")
             else:
                 sfiles = ''
                 for sfile in sfile.split(','):
                     if not sfile:
                         continue
                     sfiles += " '" + sfile + "'"
-                slemp.execShell("cd " + path + " && tar -zxvf " + sfiles +
-                             " -C " + dfile + " > " + tmps + " 2>&1 &")
-
+                os.system("cd " + path + " && tar -zxvf " + sfiles +
+                          " -C " + dfile + " > " + tmps + " 2>&1 &")
             self.setFileAccept(dfile)
-            slemp.writeLog("File management", 'The file was decompressed successfully!', (sfile, dfile))
-            return slemp.returnJson(True, 'The file was decompressed successfully!')
+            slemp.writeLog("Manajemen file", 'File berhasil didekompresi!', (sfile, dfile))
+            return slemp.returnJson(True, 'File berhasil didekompresi!')
         except:
-            return slemp.returnJson(False, 'File decompression failed!')
+            return slemp.returnJson(False, 'Dekompresi file gagal!')
 
     def delete(self, path):
 
         if not os.path.exists(path):
-            return slemp.returnJson(False, 'The specified file does not exist!')
+            return slemp.returnJson(False, 'File yang ditentukan tidak ada!')
 
         if path.find('.user.ini') >= 0:
-            slemp.execShell("which chattr && chattr -i '" + path + "'")
+            os.system("which chattr && chattr -i '" + path + "'")
 
         try:
             if os.path.exists('data/recycle_bin.pl'):
                 if self.mvRecycleBin(path):
-                    return slemp.returnJson(True, 'File moved to trash!')
+                    return slemp.returnJson(True, 'Memindahkan file ke recycle bin!')
             os.remove(path)
-            slemp.writeLog('File management', slemp.getInfo(
-                'File [{1}] deleted successfully!', (path)))
-            return slemp.returnJson(True, 'File deleted successfully!')
+            slemp.writeLog('Manajemen file', slemp.getInfo(
+                'Hapus file [{1}] berhasil!', (path)))
+            return slemp.returnJson(True, 'Hapus file berhasil!')
         except:
-            return slemp.returnJson(False, 'Failed to delete file!')
+            return slemp.returnJson(False, 'Gagal menghapus file!')
 
     def getAccess(self, filename):
         data = {}
@@ -864,58 +794,8 @@ class files_api:
             if search:
                 if name.lower().find(search) == -1:
                     continue
-            if name == '.':
-                continue
             i += 1
         return i
-
-    def getAllDir(self, path, page=1, page_size=10, search=None):
-        # print("search:", search)
-        data = {}
-        dirnames = []
-        filenames = []
-
-        count = 0
-        max_limit = 3000
-
-        for d_list in os.walk(path):
-            if count >= max_limit:
-                break
-
-            for d in d_list[1]:
-                if count >= max_limit:
-                    break
-                if d.lower().find(search) != -1:
-                    filename = d_list[0] + '/' + d
-                    if not os.path.exists(filename):
-                        continue
-                    dirnames.append(self.__get_stats(filename, path))
-                    count += 1
-
-            for f in d_list[2]:
-                if count >= max_limit:
-                    break
-
-                if f.lower().find(search) != -1:
-                    filename = d_list[0] + '/' + f
-                    if not os.path.exists(filename):
-                        continue
-                    filenames.append(self.__get_stats(filename, path))
-                    count += 1
-
-        data['DIR'] = sorted(dirnames)
-        data['FILES'] = sorted(filenames)
-        data['PATH'] = path.replace('//', '/')
-
-        info = {}
-        info['count'] = len(dirnames) + len(filenames)
-        info['row'] = page_size
-        info['p'] = page
-        info['tojs'] = 'getFiles'
-        pageObj = slemp.getPageObject(info, '1,2,3,4,5,6,7,8')
-        data['PAGE'] = pageObj[0]
-
-        return slemp.getJson(data)
 
     def getDir(self, path, page=1, page_size=10, search=None):
         data = {}
@@ -943,14 +823,31 @@ class files_api:
                 continue
             try:
                 filePath = path + '/' + filename
-                if not os.path.exists(filePath):
-                    continue
+                link = ''
+                if os.path.islink(filePath):
+                    filePath = os.readlink(filePath)
+                    link = ' -> ' + filePath
+                    if not os.path.exists(filePath):
+                        filePath = path + '/' + filePath
+                    if not os.path.exists(filePath):
+                        continue
 
-                file_stats = self.__get_stats(filePath, path)
+                stat = os.stat(filePath)
+                accept = str(oct(stat.st_mode)[-3:])
+                mtime = str(int(stat.st_mtime))
+                user = ''
+                try:
+                    user = pwd.getpwuid(stat.st_uid).pw_name
+                except Exception as ee:
+                    user = str(stat.st_uid)
+
+                size = str(stat.st_size)
                 if os.path.isdir(filePath):
-                    dirnames.append(file_stats)
+                    dirnames.append(filename + ';' + size + ';' +
+                                    mtime + ';' + accept + ';' + user + ';' + link)
                 else:
-                    filenames.append(file_stats)
+                    filenames.append(filename + ';' + size + ';' +
+                                     mtime + ';' + accept + ';' + user + ';' + link)
                 n += 1
             except Exception as e:
                 continue
@@ -959,53 +856,3 @@ class files_api:
         data['PATH'] = path.replace('//', '/')
 
         return slemp.getJson(data)
-
-    def execShellApi(self):
-        shell = request.form.get('shell', '').strip()
-        path = request.form.get('path', '').strip()
-        disabled = ['vi', 'vim', 'top', 'passwd', 'su']
-        tmp = shell.split(' ')
-        if tmp[0] in disabled:
-            return slemp.returnJson(False, 'Do not execute [{}]'.format(tmp[0]))
-        shellStr = '''#!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
-export PATH
-cd %s
-%s
-''' % (path, shell)
-        slemp.writeFile('/tmp/panelShell.sh', shellStr)
-        slemp.execShell(
-            'nohup bash /tmp/panelShell.sh > /tmp/panelShell.pl 2>&1 &')
-        return slemp.returnJson(True, 'ok')
-
-    def getExecShellMsgApi(self):
-        fileName = '/tmp/panelShell.pl'
-        if not os.path.exists(fileName):
-            return ''
-        status = not slemp.processExists('bash', None, '/tmp/panelShell.sh')
-        return slemp.returnJson(status, slemp.getNumLines(fileName, 200))
-
-    def __get_stats(self, filename, path=None):
-        filename = filename.replace('//', '/')
-        try:
-            stat = os.stat(filename)
-            accept = str(oct(stat.st_mode)[-3:])
-            mtime = str(int(stat.st_mtime))
-            user = ''
-            try:
-                user = str(pwd.getpwuid(stat.st_uid).pw_name)
-            except:
-                user = str(stat.st_uid)
-            size = str(stat.st_size)
-            link = ''
-            if os.path.islink(filename):
-                link = ' -> ' + os.readlink(filename)
-
-            if path:
-                tmp_path = (path + '/').replace('//', '/')
-                filename = filename.replace(tmp_path, '', 1)
-
-            return filename + ';' + size + ';' + mtime + ';' + accept + ';' + user + ';' + link
-        except Exception as e:
-            # print(e)
-            return ';;;;;'

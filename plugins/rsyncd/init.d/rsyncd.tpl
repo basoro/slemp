@@ -21,7 +21,7 @@ p_start(){
         if [ -f /var/run/rsyncd.pid ]; then
 			rm -rf /var/run/rsyncd.pid
 		fi
-        /usr/bin/rsync --daemon --config=/etc/rsyncd.conf
+        /usr/bin/rsync --daemon --config={$SERVER_PATH}/rsyncd/rsyncd.conf
         sleep 0.3
         isStart=$(ps -ef | grep rsync | grep 'daemon' | grep -v grep | grep -v python | awk '{print $2}')
         if [ "$isStart" == '' ];then
@@ -67,4 +67,3 @@ case "$1" in
         echo "Please use start or stop as first argument"
         ;;
 esac
-

@@ -8,20 +8,18 @@ rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 
-opensslVersion="3.0.10"
 # echo $rootPath
 
 SERVER_ROOT=$rootPath/lib
 SOURCE_ROOT=$rootPath/source/lib
-mkdir -p $SOURCE_ROOT
 
 if [ ! -d ${SERVER_ROOT}/openssl ];then
     cd ${SOURCE_ROOT}
-    if [ ! -f ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz ];then
-        wget --no-check-certificate -O ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz https://www.openssl.org/source/openssl-${opensslVersion}.tar.gz
+    if [ ! -f ${SOURCE_ROOT}/openssl-1.1.1p.tar.gz ];then
+        wget -O ${SOURCE_ROOT}/openssl-1.1.1p.tar.gz https://www.openssl.org/source/openssl-1.1.1p.tar.gz
     fi
-    tar -zxvf openssl-${opensslVersion}.tar.gz
-    cd openssl-${opensslVersion}
+    tar -zxvf openssl-1.1.1p.tar.gz
+    cd openssl-1.1.1p
     ./config --prefix=${SERVER_ROOT}/openssl zlib-dynamic shared
     make && make install
 fi

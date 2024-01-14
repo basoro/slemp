@@ -446,7 +446,7 @@ html {
 .webDelete .options label span {
     float: left;
     margin: 0;
-    line-height: 16px;
+    line-height: 16px
 }
 
 .webDelete .vcode {
@@ -1709,7 +1709,7 @@ html .menu .menu_exit:hover {
 
 .view1,
 .view2 {
-    margin-bottom: 15px;
+    margin-bottom: 15px
 }
 
 .searcTime {
@@ -1729,7 +1729,7 @@ html .menu .menu_exit:hover {
     margin-right: -1px;
     cursor: pointer;
     float: left;
-    line-height: 16px;
+    line-height: 16px
 }
 
 .searcTime .gt.on,
@@ -1744,7 +1744,7 @@ html .menu .menu_exit:hover {
     display: inline-block;
     position: relative;
     float: left;
-    line-height: 16px;
+    line-height: 16px
 }
 
 .searcTime .ss .st {
@@ -1752,7 +1752,7 @@ html .menu .menu_exit:hover {
     border: #ddd 1px solid;
     margin-right: -1px;
     cursor: pointer;
-    float: left;
+    float: left
 }
 
 .searcTime .ss .time {
@@ -1763,27 +1763,26 @@ html .menu .menu_exit:hover {
     position: absolute;
     right: -1px;
     top: 27px;
-    width: 306px;
-    z-index: 99;
+    width: 217px;
+    z-index: 99
 }
 
 .searcTime .ss .time span {
     margin-bottom: 10px;
-    display: block;
+    display: block
 }
 
 .searcTime .ss .time input {
     border: 1px solid #ddd;
     height: 22px;
     padding: 0 5px;
-    margin-left:5px;
-    width: 227px;
+    width: 132px
 }
 
 .searcTime .ss .time input:focus {
     border: #66afe9 1px solid;
     -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6)
 }
 
 .searcTime .ss .sbtn {
@@ -4387,7 +4386,8 @@ html .menu .menu_exit:hover {
     font-size: 12px;
     margin-right: 3px;
 }
-.boxConter {
+/*微信二维码*/
+ .boxConter {
     height: 458px;
     position: relative;
     overflow: auto;
@@ -4530,25 +4530,6 @@ html .menu .menu_exit:hover {
 }
 .red{
     color: red;
-}
-
-#form_proxy .sub-groud .bt-input-text{
-    margin-right: 10px;
-}
-#form_proxy .sub-groud {
-    margin-bottom: 15px;
-}
-#form_proxy .btswitch-btn{
-    display:inline-block;
-}
-#form_proxy .add-replace-prosy {
-    position: relative;
-    top: -10px;
-}
-#form_proxy .disabled{
-    background-color: #eee !important;
-    cursor: default;
-    border: 1px solid #dbdbea;
 }
 
 select[disabled]{

@@ -19,14 +19,17 @@ LIBV=4.8.10
 
 if [ "$version" -lt "70" ];then
 	LIBV=1.10.1
-elif [ "$version" == "70" ];then
-	LIBV=4.3.0
 elif [ "$version" == "71" ];then
 	LIBV=4.5.2
-elif [ "$version" -gt "74" ];then
-	LIBV=5.0.3
+elif [ "$version" == "70" ];then
+	LIBV=4.3.0
 else
-	echo 'other?'
+	echo '72+'
+fi
+
+if [ "$version" -eq "82" ];then
+	echo "not need"
+	exit 1
 fi
 
 LIB_PATH_NAME=lib/php
@@ -48,10 +51,10 @@ Install_lib()
 {
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
+		echo "php-$version ${LIBNAME} is installed, please select another version!"
 		return
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
 
 		php_lib=$sourcePath/php_lib
@@ -63,7 +66,7 @@ Install_lib()
 			tar xvf ${LIBNAME}-${LIBV}.tgz
 		fi
 		cd $php_lib/${LIBNAME}-${LIBV}
-
+		
 		$serverPath/php/$version/bin/phpize
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config \
 		--enable-openssl \
@@ -71,7 +74,7 @@ Install_lib()
 		--enable-sockets
 		make clean && make && make install && make clean
 	fi
-
+	
 	while [[ ! -f "$extFile" ]];
     do
         echo -e ".\c"
@@ -89,7 +92,7 @@ Install_lib()
     echo "" >> $serverPath/php/$version/etc/php.ini
 	echo "[${LIBNAME}]" >> $serverPath/php/$version/etc/php.ini
 	echo "extension=${LIBNAME}.so" >> $serverPath/php/$version/etc/php.ini
-
+	
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==========================================================='
 	echo 'successful!'
@@ -99,19 +102,19 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php-$version is not installed, please choose another version!"
+		echo "php-$version is not installed, please select another version!"
 		return
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
-		echo "php-$version ${LIBNAME} is not installed, please choose another version"
+		echo "php-$version ${LIBNAME} is not installed, please select another version!"
 		return
 	fi
-
+	
 	echo $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
-
+		
 	rm -f $extFile
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='

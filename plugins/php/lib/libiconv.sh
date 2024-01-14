@@ -13,11 +13,9 @@ rootPath=$(dirname "$rootPath")
 SERVER_ROOT=$rootPath/lib
 SOURCE_ROOT=$rootPath/source/lib
 
-HTTP_PREFIX="https://"
-
 if [ ! -d ${SERVER_ROOT}/libiconv ];then
     cd $SOURCE_ROOT
-	wget --no-check-certificate -O libiconv-1.15.tar.gz  ${HTTP_PREFIX}ftp.gnu.org/gnu/libiconv/libiconv-1.15.tar.gz  -T 5
+	wget -O libiconv-1.15.tar.gz  https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.15.tar.gz  -T 5
     tar zxvf libiconv-1.15.tar.gz
     cd libiconv-1.15
     ./configure --prefix=${SERVER_ROOT}/libiconv --enable-static && make && make install

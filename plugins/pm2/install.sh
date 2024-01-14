@@ -8,28 +8,15 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
-bash ${rootPath}/scripts/getos.sh
-OSNAME=`cat ${rootPath}/data/osname.pl`
 
-echo $OSNAME
 install_tmp=${rootPath}/tmp/slemp_install.pl
 
 Install_pm2()
 {
 	echo 'Installing script file...' > $install_tmp
-
-	if [ "$OSNAME" == "debian" ] || [ "$OSNAME" == "ubuntu" ];then
-		apt install -y nodejs npm
-	elif [[ "$OSNAME" == "macos" ]]; then
-		# brew install nodejs
-		# brew install npm
-		echo "ok"
-	else
-		yum install -y nodejs
-		curl -fsLS http://npmjs.org/install.sh | sh
-	fi
-
+	yum install -y nodejs
 	#curl -o- http://npmjs.org/install.sh | bash
+	curl -fsLS http://npmjs.org/install.sh | sh
 	npm install pm2 -g
 	#curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
 	curl -fsLS https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | sh

@@ -21,7 +21,7 @@ mysqlDir=${serverPath}/source/mysql
 Install_mysql()
 {
 	mkdir -p ${mysqlDir}
-	echo 'Installing script file...' > $install_tmp
+	echo 'installing script file...' > $install_tmp
 
 	if id mysql &> /dev/null ;then
 	    echo "mysql UID is `id -u www`"
@@ -54,16 +54,14 @@ Install_mysql()
 	    cpuCore="1"
 	fi
 
-	if [ "$cpuCore" -gt "2" ];then
+	if [ "$cpuCore" -gt "1" ];then
 		cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
-	else
-		cpuCore="1"
 	fi
 	# ----- cpu end ------
 
 
 	if [ ! -f ${mysqlDir}/mysql-5.6.50.tar.gz ];then
-		wget --no-check-certificate -O ${mysqlDir}/mysql-5.6.50.tar.gz --tries=3 https://cdn.mysql.com/Downloads/MySQL-5.6/mysql-5.6.50.tar.gz
+		wget -O ${mysqlDir}/mysql-5.6.50.tar.gz --tries=3 https://cdn.mysql.com/Downloads/MySQL-5.6/mysql-5.6.50.tar.gz
 	fi
 
 	if [ ! -d ${mysqlDir}/mysql-5.6.50 ];then
@@ -76,9 +74,9 @@ Install_mysql()
 	OPENSSL_VERSION=`openssl version|awk '{print $2}'|awk -F '.' '{print $1}'`
 	if [ "${OPENSSL_VERSION}" -ge "3" ];then
 		#openssl version to high
-		cd ${rootPath}/plugins/php/lib && /bin/bash openssl10.sh
-		export PKG_CONFIG_PATH=$serverPath/lib/openssl10/lib/pkgconfig
-		OPTIONS="-DWITH_SSL=${serverPath}/lib/openssl10"
+		cd ${rootPath}/plugins/php/lib && /bin/bash openssl.sh
+		export PKG_CONFIG_PATH=$serverPath/lib/openssl/lib/pkgconfig
+		OPTIONS="-DWITH_SSL=${serverPath}/lib/openssl"
 	fi
 
 	if [ ! -d $serverPath/mysql ];then
@@ -109,7 +107,7 @@ Install_mysql()
 			echo 'The installation is complete' > $install_tmp
 		else
 			# rm -rf ${mysqlDir}/mysql-5.6.50
-			echo 'installation failed' > $install_tmp
+			echo 'Installation failed' > $install_tmp
 			echo 'install fail'>&2
 			exit 1
 		fi
@@ -119,7 +117,7 @@ Install_mysql()
 Uninstall_mysql()
 {
 	rm -rf $serverPath/mysql
-	echo 'uninstall complete' > $install_tmp
+	echo 'Uninstall complete' > $install_tmp
 }
 
 action=$1

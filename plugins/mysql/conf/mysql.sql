@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS `master_replication_user` (
   `addtime` TEXT
 );
 
+-- Configure the master library from the library[ssh private key]
 -- drop table `slave_id_rsa`;
 CREATE TABLE IF NOT EXISTS `slave_id_rsa` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,17 +37,5 @@ CREATE TABLE IF NOT EXISTS `slave_id_rsa` (
   `db_user` TEXT,
   `id_rsa` TEXT,
   `ps` TEXT,
-  `addtime` TEXT
-);
-
--- drop table `slave_user`;
-CREATE TABLE IF NOT EXISTS `slave_sync_user` (
-  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `ip` TEXT,
-  `port` TEXT,
-  `user` TEXT,
-  `pass` TEXT,
-  `mode` TEXT,
-  `cmd` TEXT,
   `addtime` TEXT
 );

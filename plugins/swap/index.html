@@ -2,7 +2,7 @@
 	<div class="bt-w-main">
 		<div class="bt-w-menu">
 			<p class="bgw" onclick="pluginService('swap');">Service</p>
-			<p onclick="pluginInitD('swap');">Install Service</p>
+			<p onclick="pluginInitD('swap');">Init</p>
 			<p onclick="swapStatus();">Status</p>
 			<p onclick="readme();">Readme</p>
 		</div>
@@ -11,9 +11,7 @@
 		</div>
 	</div>
 </div>
-
 <script type="text/javascript">
-resetPluginWinHeight(480);
 $.getScript( "/plugins/file?name=swap&f=js/swap.js", function(){
 	pluginService('swap');
 });

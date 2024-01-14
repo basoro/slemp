@@ -66,26 +66,24 @@ function phpSetConfig(version) {
                 case 0:
                     var selected_1 = (rdata[i].value == 1) ? 'selected' : '';
                     var selected_0 = (rdata[i].value == 0) ? 'selected' : '';
-                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="1" ' + selected_1 + '>Select</option><option value="0" ' + selected_0 + '>Close</option></select>'
+                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="1" ' + selected_1 + '>Start</option><option value="0" ' + selected_0 + '>Stop</option></select>'
                     break;
                 case 1:
                     var selected_1 = (rdata[i].value == 'On') ? 'selected' : '';
                     var selected_0 = (rdata[i].value == 'Off') ? 'selected' : '';
-                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="On" ' + selected_1 + '>Select</option><option value="Off" ' + selected_0 + '>Close</option></select>'
+                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="On" ' + selected_1 + '>Start</option><option value="Off" ' + selected_0 + '>Stop</option></select>'
                     break;
             }
             mlist += '<p><span>' + rdata[i].name + '</span>' + ibody + ', <font>' + rdata[i].ps + '</font></p>'
         }
         var phpCon = '<style>.conf_p p{margin-bottom: 2px}</style><div class="conf_p" style="margin-bottom:0">\
                         ' + mlist + '\
-                        <div style="margin-top:10px; padding-right:15px" class="text-right">\
-                            <button class="btn btn-success btn-sm mr5" onclick="phpSetConfig(' + version + ')">Refresh</button>\
-                            <button class="btn btn-success btn-sm" onclick="submitConf(' + version + ')">Save</button>\
-                        </div>\
+                        <div style="margin-top:10px; padding-right:15px" class="text-right"><button class="btn btn-success btn-sm mr5" onclick="phpSetConfig(' + version + ')">Refresh</button><button class="btn btn-success btn-sm" onclick="submitConf(' + version + ')">Save</button></div>\
                     </div>'
         $(".soft-man-con").html(phpCon);
     });
 }
+
 
 function submitConf(version) {
     var data = {
@@ -137,7 +135,7 @@ function phpTimeLimitReq(version){
 }
 
 function phpTimeLimit(version, max) {
-    var LimitCon = '<p class="conf_p"><input class="phpTimeLimit bt-input-text mr5" type="number" value="' + max + '">Second<button class="btn btn-success btn-sm" onclick="setPHPMaxTime(\'' + version + '\')" style="margin-left:20px">Save</button></p>';
+    var LimitCon = '<p class="conf_p"><input class="phpTimeLimit bt-input-text mr5" type="number" value="' + max + '">second<button class="btn btn-success btn-sm" onclick="setPHPMaxTime(\'' + version + '\')" style="margin-left:20px">Save</button></p>';
     $(".soft-man-con").html(LimitCon);
 }
 
@@ -153,7 +151,7 @@ function setPHPMaxSize(version) {
     max = $(".phpUploadLimit").val();
     if (max < 2) {
         alert(max);
-        layer.msg('The upload size limit cannot be less than 2M', { icon: 2 });
+        layer.msg('Upload size limit cannot be less than 2M', { icon: 2 });
         return;
     }
 
@@ -162,7 +160,6 @@ function setPHPMaxSize(version) {
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
-
 
 function getFpmConfig(version){
     phpPost('get_fpm_conf', version, {}, function(data){
@@ -182,11 +179,11 @@ function getFpmConfig(version){
             pmList += '<option value="' + pms[i].name + '" ' + ((pms[i].name == rdata.pm) ? 'selected' : '') + '>' + pms[i].title + '</option>';
         }
         var body = "<div class='bingfa'>" +
-            "<p class='line'><span class='span_tit'>Concurrent scheme：</span><select class='bt-input-text' name='limit' style='width:100px;'>" + limitList + "</select></p>" +
-            "<p class='line'><span class='span_tit'>Operating mode：</span><select class='bt-input-text' name='pm' style='width:100px;'>" + pmList + "</select><span class='c9'>*PHP-FPM running mode</span></p>" +
-            "<p class='line'><span class='span_tit'>max_children：</span><input class='bt-input-text' type='number' name='max_children' value='" + rdata.max_children + "' /><span class='c9'>*The maximum number of child processes allowed to be created</span></p>" +
-            "<p class='line'><span class='span_tit'>start_servers：</span><input class='bt-input-text' type='number' name='start_servers' value='" + rdata.start_servers + "' />  <span class='c9'>*The number of initial processes (the initial number of processes after the service starts)</span></p>" +
-            "<p class='line'><span class='span_tit'>min_spare_servers：</span><input class='bt-input-text' type='number' name='min_spare_servers' value='" + rdata.min_spare_servers + "' />   <span class='c9'>*Minimum number of idle processes (retained after cleaning up idle processes)</span></p>" +
+            "<p class='line'><span class='span_tit'>Concurrency scheme：</span><select class='bt-input-text' name='limit' style='width:100px;'>" + limitList + "</select></p>" +
+            "<p class='line'><span class='span_tit'>Operating mode：</span><select class='bt-input-text' name='pm' style='width:100px;'>" + pmList + "</select><span class='c9'>*PHP-FPM operating mode</span></p>" +
+            "<p class='line'><span class='span_tit'>max_children：</span><input class='bt-input-text' type='number' name='max_children' value='" + rdata.max_children + "' /><span class='c9'>*Maximum number of child processes allowed to be created</span></p>" +
+            "<p class='line'><span class='span_tit'>start_servers：</span><input class='bt-input-text' type='number' name='start_servers' value='" + rdata.start_servers + "' />  <span class='c9'>*Number of starting processes (initial number of processes after the service starts)</span></p>" +
+            "<p class='line'><span class='span_tit'>min_spare_servers：</span><input class='bt-input-text' type='number' name='min_spare_servers' value='" + rdata.min_spare_servers + "' />   <span class='c9'>*Minimum number of idle processes (number to keep after cleaning up idle processes)</span></p>" +
             "<p class='line'><span class='span_tit'>max_spare_servers：</span><input class='bt-input-text' type='number' name='max_spare_servers' value='" + rdata.max_spare_servers + "' />   <span class='c9'>*Maximum number of idle processes (clean up when idle processes reach this value)</span></p>" +
             "<div class='mtb15'><button class='btn btn-success btn-sm' onclick='setFpmConfig(\"" + version + "\",1)'>Save</button></div>" +
             "</div>";
@@ -302,25 +299,24 @@ function getFpmStatus(version){
 
         var rdata = tmp_data.data;
         var con = "<div style='height:420px;overflow:hidden;'><table class='table table-hover table-bordered GetPHPStatus' style='margin:0;padding:0'>\
-                        <tr><th>application pool(pool)</th><td>" + rdata.pool + "</td></tr>\
-                        <tr><th>Process management(process manager)</th><td>" + ((rdata['process manager'] == 'dynamic') ? 'Dynamic' : 'Static') + "</td></tr>\
-                        <tr><th>Start date(start time)</th><td>" + rdata['start time'] + "</td></tr>\
-                        <tr><th>Number of requests(accepted conn)</th><td>" + rdata['accepted conn'] + "</td></tr>\
-                        <tr><th>Request queue(listen queue)</th><td>" + rdata['listen queue'] + "</td></tr>\
-                        <tr><th>Maximum Waiting Queue(max listen queue)</th><td>" + rdata['max listen queue'] + "</td></tr>\
-                        <tr><th>Socket queue length(listen queue len)</th><td>" + rdata['listen queue len'] + "</td></tr>\
-                        <tr><th>Number of idle processes(idle processes)</th><td>" + rdata['idle processes'] + "</td></tr>\
-                        <tr><th>Number of active processes(active processes)</th><td>" + rdata['active processes'] + "</td></tr>\
-                        <tr><th>Total number of processes(total processes)</th><td>" + rdata['total processes'] + "</td></tr>\
-                        <tr><th>Maximum number of active processes(max active processes)</th><td>" + rdata['max active processes'] + "</td></tr>\
-                        <tr><th>The number of times the upper limit of the process has been reached(max children reached)</th><td>" + rdata['max children reached'] + "</td></tr>\
-                        <tr><th>Number of slow requests(slow requests)</th><td>" + rdata['slow requests'] + "</td></tr>\
+                        <tr><th>Pool</th><td>" + rdata.pool + "</td></tr>\
+                        <tr><th>Process manager</th><td>" + ((rdata['process manager'] == 'dynamic') ? 'dynamic' : 'static') + "</td></tr>\
+                        <tr><th>Start time</th><td>" + rdata['start time'] + "</td></tr>\
+                        <tr><th>Accepted conn</th><td>" + rdata['accepted conn'] + "</td></tr>\
+                        <tr><th>Listen queue</th><td>" + rdata['listen queue'] + "</td></tr>\
+                        <tr><th>Max listen queue</th><td>" + rdata['max listen queue'] + "</td></tr>\
+                        <tr><th>Listen queue len</th><td>" + rdata['listen queue len'] + "</td></tr>\
+                        <tr><th>Idle processes</th><td>" + rdata['idle processes'] + "</td></tr>\
+                        <tr><th>Active processes</th><td>" + rdata['active processes'] + "</td></tr>\
+                        <tr><th>Total processes</th><td>" + rdata['total processes'] + "</td></tr>\
+                        <tr><th>Max active processes</th><td>" + rdata['max active processes'] + "</td></tr>\
+                        <tr><th>Max children reached</th><td>" + rdata['max children reached'] + "</td></tr>\
+                        <tr><th>Slow requests</th><td>" + rdata['slow requests'] + "</td></tr>\
                      </table></div>";
         $(".soft-man-con").html(con);
         $(".GetPHPStatus td,.GetPHPStatus th").css("padding", "7px");
     });
 }
-
 
 function getSessionConfig(version){
     phpPost('get_session_conf', version, '', function(ret_data){
@@ -331,7 +327,7 @@ function getSessionConfig(version){
         }
         var rdata = rdata.data;
 
-         var cacheList = "<option value='files' " + (rdata.save_handler == "files" ? 'selected' : '') + ">files</option>" +
+         var cacheList = "<option value='file' " + (rdata.save_handler == "file" ? 'selected' : '') + ">file</option>" +
             "<option value='redis' " + (rdata.save_handler == "redis" ? 'selected' : '') + ">redis</option>" +
             "<option value='memcache' " + (rdata.save_handler == "memcache" ? 'selected' : '') + ">memcache</option>" +
             "<option value='memcached' " + (rdata.save_handler == "memcached" ? 'selected' : '') + ">memcached</option>";
@@ -347,8 +343,8 @@ function getSessionConfig(version){
             "</div>\
             <ul class='help-info-text c7'>\
                 <li>If your site has high concurrency, using Redis and Memcache can effectively improve PHP concurrency</li>\
-                <li>If the website access is abnormal after adjusting the Session mode, please switch back to the original mode</li>\
-                <li>Switching the Session mode will cause the loss of online user sessions, please switch when the traffic is small</li>\
+                <li>If the website access is abnormal after adjusting the session mode, please switch back to the original mode</li>\
+                <li>Switching the session mode will cause the online user session to be lost, please switch it when the traffic is small</li>\
             </ul>\
             <div id='session_clear' class='session_clear' style='border-top: #ccc 1px dashed;padding-top: 15px;margin-top: 15px;'>\
             </div>\
@@ -356,10 +352,10 @@ function getSessionConfig(version){
 
         $(".soft-man-con").html(con);
 
-        if (rdata.save_handler == 'files'){
+        if (rdata.save_handler == 'file'){
             $('input[name="ip"]').attr('disabled','disabled');
             $('input[name="port"]').attr('disabled','disabled');
-            $('input[name="passwd"]').attr('placeholder','If no password leave blank');
+            $('input[name="passwd"]').attr('placeholder','Leave blank if no password');
             $('input[name="passwd"]').attr('disabled','disabled');
         }
 
@@ -369,7 +365,7 @@ function getSessionConfig(version){
 
             var passwd = $('input[name="passwd"]').val();
             if (passwd == ""){
-                $('input[name="passwd"]').attr('placeholder','If no password leave blank');
+                $('input[name="passwd"]').attr('placeholder','Leave blank if no password');
             }
 
             var ip = $('input[name="ip"]').val();
@@ -387,7 +383,7 @@ function getSessionConfig(version){
                     $('input[name="port"]').removeAttr('disabled');
                     $('input[name="passwd"]').removeAttr('disabled');
                     break;
-                case 'files':
+                case 'file':
                     $('input[name="ip"]').val("").attr('disabled','disabled');
                     $('input[name="port"]').val("").attr('disabled','disabled');
                     $('input[name="passwd"]').val("").attr('disabled','disabled');
@@ -422,11 +418,11 @@ function getSessionConfig(version){
             }
             var rdata = rdata.data;
 
-            var html_var = "<div class='clear_title' style='padding-bottom:15px;'>Clean up Session files</div>\
+            var html_var = "<div class='clear_title' style='padding-bottom:15px;'>Clean up the Session file</div>\
                 <div class='clear_conter'>\
                     <div class='session_clear_list'>\
-                        <div class='line'><span>Total number of Session files</span><span>"+rdata.total+"</span></div>\
-                        <div class='line'><span>The number of session files that can be cleaned up</span><span>"+rdata.oldfile+"</span></div>\
+                        <div class='line'><span>Total number of session files</span><span>"+rdata.total+"</span></div>\
+                        <div class='line'><span>Number of cleanable session files</span><span>"+rdata.oldfile+"</span></div>\
                     </div>\
                 <button id='clean_func' class='btn btn-success btn-sm clear_session_file'>Clean up session files</button>";
 
@@ -463,7 +459,6 @@ function setSessionConfig(version){
     });
 }
 
-
 function disableFunc(version) {
     phpPost('get_disable_func', version,'',function(data){
         var rdata = $.parseJSON(data.data);
@@ -475,8 +470,8 @@ function disableFunc(version) {
         }
 
         var con = "<div class='dirBinding'>" +
-            "<input class='bt-input-text mr5' type='text' placeholder='Add the function name to be banned, such as: exec' id='disable_function_val' style='height: 28px; border-radius: 3px;width: 410px;' />" +
-            "<button class='btn btn-success btn-sm' onclick=\"setDisableFunc('" + version + "',1,'" + rdata.disable_functions + "')\">Add</button>" +
+            "<input class='bt-input-text mr5' type='text' placeholder='Add the function name to be forbidden, like: exec' id='disable_function_val' style='height: 28px; border-radius: 3px;width: 410px;' />" +
+            "<button class='btn btn-success btn-sm' onclick=\"setDisableFunc('" + version + "',1,'" + rdata.disable_functions + "')\">Add to</button>" +
             "</div>" +
             "<div class='divtable mtb15' style='height:350px;overflow:auto'><table class='table table-hover' width='100%' style='margin-bottom:0'>" +
             "<thead><tr><th>Name</th><th width='100' class='text-right'>Action</th></tr></thead>" +
@@ -484,8 +479,8 @@ function disableFunc(version) {
             "</table></div>";
 
         con += '<ul class="help-info-text">\
-                    <li>Here you can disable the call of the specified function to enhance the security of the environment!</li>\
-                    <li>It is strongly recommended to disable dangerous functions such as exec and system!</li>\
+                    <li>Here you can disable the invocation of the specified function to enhance environment security!</li>\
+                    <li>It is strongly recommended to disable dangerous functions such as exec, system, etc.!</li>\
                 </ul>';
 
         $(".soft-man-con").html(con);
@@ -528,8 +523,6 @@ function setDisableFunc(version, act, fs) {
     });
 }
 
-
-//phpinfo
 function getPhpinfo(version) {
     var con = '<button class="btn btn-default btn-sm" onclick="getPHPInfo(\'' + version + '\')">View phpinfo()</button>';
     $(".soft-man-con").html(con);
@@ -622,10 +615,10 @@ function phpLibConfig(version){
             '</table>' +
             '</div>' +
             '<ul class="help-info-text c7 pull-left">\
-                <li>Please install extensions according to actual needs, do not install unnecessary PHP extensions, this will affect the efficiency of PHP execution, or even abnormal</li>\
-                <li>The Redis extension is only allowed to be used in one PHP version, please reinstall Redis in [Software Management] to install it to other PHP versions</li>\
-                <li>Opcache/xcache/apc and other script cache extensions, please only install one of them, otherwise it may cause your site program to be abnormal</li>\
-                <li>ioncube should be installed before ZendGuardLoader/opcache, otherwise it may cause your site program to be abnormal</li>\
+                <li>Please install extensions according to actual needs, do not install unnecessary PHP extensions, which will affect the efficiency of PHP execution and even cause exceptions</li>\
+                <li>The Redis extension is only allowed to be used in one PHP version. To install other PHP versions, please reinstall Redis in [Software Management]</li>\
+                <li>Script cache extensions such as opcache/xcache/apc, please install only one of them, otherwise it may cause your site program to be abnormal</li>\
+                <li>ioncube should be installed before ZendGuardLoader/opcache, otherwise it may cause abnormality in your site program</li>\
             </ul>';
         $('.soft-man-con').html(con);
     });
@@ -633,7 +626,7 @@ function phpLibConfig(version){
 }
 
 function installPHPLib(version, name, title, pathinfo) {
-    layer.confirm('Do you really want to install {1}?'.replace('{1}', name), { icon: 3, closeBtn: 2 }, function() {
+    layer.confirm('Do you really want to install {1}?'.replace('{1}', name), { title:'Notification', icon: 3, closeBtn: 2, btn: ['Yes','No'] }, function() {
         name = name.toLowerCase();
         var data = "name=" + name + "&version=" + version + "&type=1";
 
@@ -650,7 +643,7 @@ function installPHPLib(version, name, title, pathinfo) {
 }
 
 function uninstallPHPLib(version, name, title, pathinfo) {
-    layer.confirm('Do you really want to uninstall {1}?'.replace('{1}', name), { icon: 3, closeBtn: 2 }, function() {
+    layer.confirm('Do you really want to uninstall {1}?'.replace('{1}', name), { title:'Notification', icon: 3, closeBtn: 2, btn: ['Yes','No'] }, function() {
         name = name.toLowerCase();
         var data = 'name=' + name + '&version=' + version;
         phpPost('uninstall_lib', version, data, function(data){

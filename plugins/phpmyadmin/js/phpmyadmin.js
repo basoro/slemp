@@ -50,7 +50,7 @@ function homePage(){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
             return;
         }
-        var con = '<button class="btn btn-default btn-sm" onclick="window.open(\'' + rdata.data + '\')">Homepage</button>';
+        var con = '<button class="btn btn-default btn-sm" onclick="window.open(\'' + rdata.data + '\')">Home</button>';
         $(".soft-man-con").html(con);
     });
 }
@@ -79,13 +79,12 @@ function phpVerChange(type, msg) {
     var phpver = $("#phpver").val();
     pmaPost('set_php_ver', 'phpver='+phpver, function(data){
         if ( data.data == 'ok' ){
-            layer.msg('Successfully set!',{icon:1,time:2000,shade: [0.3, '#000']});
+            layer.msg('Set successfully!',{icon:1,time:2000,shade: [0.3, '#000']});
         } else {
             layer.msg('Setup failed!',{icon:2,time:2000,shade: [0.3, '#000']});
         }
     });
 }
-
 
 function safeConf() {
     pmaPost('get_pma_option', {}, function(rdata){
@@ -98,14 +97,14 @@ function safeConf() {
         var cfg = rdata.data;
         var con = '<div class="ver line">\
                     <span class="tname">Access port</span>\
-                    <input style="width:110px" class="bt-input-text phpmyadmindk mr20" name="Name" id="pmport" value="' + cfg['port'] + '" placeholder="Phpmyadmin access port" maxlength="5" type="number">\
+                    <input style="width:110px" class="bt-input-text phpmyadmindk mr20" name="Name" id="pmport" value="' + cfg['port'] + '" placeholder="phpmyadmin access port" maxlength="5" type="number">\
                     <button class="btn btn-success btn-sm" onclick="setPamPort()">Save</button>\
                 </div>\
                 <div class="ver line">\
-                    <span class="tname">Access switch</span>\
+                    <span class="tname">Access toggle</span>\
                     <select id="access_choose" class="bt-input-text mr20" name="choose" style="width:110px">\
                         <option value="mariadb" '+(cfg['choose']=="mariadb"?"selected='selected'":"")+'>MariaDB</option>\
-                        <option value="mysql" '+ (cfg['choose']=="mysql"?"selected='selected'":"")+'>MySQL</option>\
+                        <option value="mysql" '+ (cfg['choose']==""?"selected='selected'":"")+'>MySQL</option>\
                     </select>\
                     <button class="btn btn-success btn-sm" onclick="setPmaChoose()">Save</button>\
                 </div>\
@@ -118,12 +117,6 @@ function safeConf() {
                     <span class="tname">Password</span>\
                     <input style="width:110px" class="bt-input-text mr20" name="password" id="pmport" value="' + cfg['password'] + '" placeholder="Password" type="text">\
                     <button class="btn btn-success btn-sm" onclick="setPmaPassword()">Save</button>\
-                </div>\
-                <hr/>\
-                <div class="ver line">\
-                    <span class="tname">Path name</span>\
-                    <input style="width:180px" class="bt-input-text mr20" name="path" id="pmport" value="' + cfg['path'] + '" placeholder="" type="text">\
-                    <button class="btn btn-success btn-sm" onclick="setPmaPath()">Save</button>\
                 </div>';
         $(".soft-man-con").html(con);
     });
@@ -149,14 +142,6 @@ function setPmaUsername(){
 function setPmaPassword(){
     var password = $("input[name=password]").val();
     pmaPost('set_pma_password',{'password':password}, function(data){
-        var rdata = $.parseJSON(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
-    });
-}
-
-function setPmaPath(){
-    var path = $("input[name=path]").val();
-    pmaPost('set_pma_path',{'path':path}, function(data){
         var rdata = $.parseJSON(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });

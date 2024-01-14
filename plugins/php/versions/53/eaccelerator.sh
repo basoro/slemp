@@ -34,11 +34,11 @@ Install_lib()
 {
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
+		echo "php-$version ${LIBNAME} is installed, please select another version!"
 		return
 	fi
-
-
+	
+	
 	if [ ! -f "$extFile" ];then
 
 		php_lib=$sourcePath/php_lib
@@ -57,7 +57,7 @@ Install_lib()
 		make && make install && make clean
 
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
 		echo "ERROR!"
 		return
@@ -76,19 +76,19 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php$version is not installed, please choose another version!"
+		echo "php$version is not installed, please select another version!"
 		return
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
-		echo "php$version ${LIBNAME} is not installed, please choose another version!"
+		echo "php$version ${LIBNAME} is not installed, please select another version!"
 		echo "php-$vphp not install ${LIBNAME}, Plese select other version!"
 		return
 	fi
-
+	
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
-
+		
 	rm -f $extFile
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='

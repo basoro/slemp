@@ -19,17 +19,12 @@ sysName=`uname`
 actionType=$1
 version=$2
 IC_VERSION=${version:0:1}.${version:1:2}
-ARCH=`uname -m`
 
-if [ "$version" -gt "55" ];then
+if [ "$version" -gt "74" ];then
 	echo "not need"
 	exit 1
 fi
 
-DEFAULT_ARCH='x86-64'
-if [ "$ARCH" == "aarch64" ];then
-	DEFAULT_ARCH='aarch64'
-fi
 
 LIB_PATH_NAME=lib/php
 if [ -d $serverPath/php/${version}/lib64 ];then
@@ -50,24 +45,24 @@ Install_lib()
 {
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
+		echo "php-$version ${LIBNAME} is installed, please select another version!"
 		return
 	fi
-
-
+	
+	
 	if [ ! -f "$extFile" ];then
 
 		php_lib=$sourcePath/php_lib
 		mkdir -p $php_lib
 		if [ ! -f $php_lib/ioncube_loaders_lin.tar.gz ];then
-			wget -O $php_lib/ioncube_loaders_lin.tar.gz https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_${DEFAULT_ARCH}.tar.gz
+			wget -O $php_lib/ioncube_loaders_lin.tar.gz https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
 			cd $php_lib && tar -zxvf ioncube_loaders_lin.tar.gz
-		fi
+		fi 
 		cd $php_lib/ioncube
-
+		
 		cp -rf $php_lib/ioncube/ioncube_loader_lin_${IC_VERSION}.so $extFile
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
 		echo "ERROR!"
 		return
@@ -86,19 +81,19 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php$version is not installed, please choose another version!"
+		echo "php$version is not installed, please select another version!"
 		return
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
-		echo "php$version ${LIBNAME} is not installed, please choose another version!"
+		echo "php$version ${LIBNAME} is not installed, please select another version!"
 		echo "php-$vphp not install ${LIBNAME}, Plese select other version!"
 		return
 	fi
-
+	
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
-
+		
 	rm -f $extFile
 
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart

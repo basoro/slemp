@@ -22,6 +22,11 @@ else:
 
 
 def get_header_data(sock):
+    '''
+        @name Get header 32KB data
+        @param sock socketobject(fastcgi socket object)
+        @return bytes
+    '''
     headers_data = b''
     total_len = 0
     header_len = 1024 * 128
@@ -53,6 +58,11 @@ def get_header_data(sock):
 
 
 def format_header_data(headers_data):
+    '''
+        @name format the response header
+        @param headers_data bytes(fastcgi header 32KB data)
+        @return status int(response status), headers dict(response header), bdata bytes(Extra data after formatting response headers)
+    '''
     status = '200 OK'
     headers = {}
     pos = 0
@@ -85,6 +95,12 @@ def format_header_data(headers_data):
 
 
 def resp_sock(sock, bdata):
+    '''
+        @name Send remaining data as a stream
+        @param sock socketobject(fastcgi socket object)
+        @param bdata bytes(Extra data after formatting response headers)
+        @return yield bytes
+    '''
     yield bdata
     while True:
         fastcgi_header = sock.recv(8)
@@ -113,6 +129,12 @@ def resp_sock(sock, bdata):
 class fpm(object):
 
     def __init__(self, sock=None, document_root='', last_path=''):
+        '''
+            @name Instantiate the FPM object
+            @param sock string(unixsocket path)
+            @param document_root string(PHP document root)
+            @return FPM
+        '''
         if sock:
             self.fcgi_sock = sock
             if document_root[-1:] != '/':
@@ -121,6 +143,12 @@ class fpm(object):
             self.last_path = last_path
 
     def load_url_public(self, url, content=b'', method='GET', content_type='application/x-www-form-urlencoded'):
+        '''
+            @name Forward URL to PHP-FPM public
+            @param url string(URI location)
+            @param content stream(POST data io object)
+            @return fastcgi-socket
+        '''
         fcgi = fcgi_client.FCGIApp(connect=self.fcgi_sock)
         try:
             script_name, query_string = url.split('?')

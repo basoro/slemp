@@ -18,7 +18,7 @@ mysqlDir=${serverPath}/source/mysql
 Install_mysql()
 {
 	mkdir -p ${mysqlDir}
-	echo 'Installing script file...' > $install_tmp
+	echo 'installing script file...' > $install_tmp
 
 	if id mysql &> /dev/null ;then
 	    echo "mysql UID is `id -u www`"
@@ -51,15 +51,13 @@ Install_mysql()
 	    cpuCore="1"
 	fi
 
-	if [ "$cpuCore" -gt "2" ];then
+	if [ "$cpuCore" -gt "1" ];then
 		cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
-	else
-		cpuCore="1"
 	fi
 	# ----- cpu end ------
 
 	if [ ! -f ${mysqlDir}/mysql-5.5.62.tar.gz ];then
-		wget --no-check-certificate -O ${mysqlDir}/mysql-5.5.62.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-5.5/mysql-5.5.62.tar.gz
+		wget -O ${mysqlDir}/mysql-5.5.62.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-5.5/mysql-5.5.62.tar.gz
 	fi
 
 	if [ ! -d ${mysqlDir}/mysql-5.5.62 ];then
@@ -86,12 +84,11 @@ Install_mysql()
 		make -j${cpuCore} && make install && make clean
 
 		if [ -d $serverPath/mysql ];then
-			rm -rf ${mysqlDir}/mysql-${VERSION}
 			echo '5.5' > $serverPath/mysql/version.pl
 			echo 'The installation is complete' > $install_tmp
 		else
 			# rm -rf ${mysqlDir}/mysql-5.5.62
-			echo 'installation failed' > $install_tmp
+			echo 'Installation failed' > $install_tmp
 			echo 'install fail'>&2
 			exit 1
 		fi
@@ -101,7 +98,7 @@ Install_mysql()
 Uninstall_mysql()
 {
 	rm -rf $serverPath/mysql
-	echo 'uninstall complete' > $install_tmp
+	echo 'Uninstall complete' > $install_tmp
 }
 
 action=$1

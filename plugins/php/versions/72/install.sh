@@ -16,7 +16,7 @@ PHP_VER=72
 Install_php()
 {
 #------------------------ install start ------------------------------------#
-echo "install php -${version} ..." > $install_tmp
+echo "install php-${version} ..." > $install_tmp
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
@@ -64,10 +64,8 @@ else
     cpuCore="1"
 fi
 
-if [ "$cpuCore" -gt "2" ];then
+if [ "$cpuCore" -gt "1" ];then
 	cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
-else
-	cpuCore="1"
 fi
 # ----- cpu end ------
 

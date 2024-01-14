@@ -21,7 +21,7 @@ PHP_VER=74
 Install_php()
 {
 #------------------------ install start ------------------------------------#
-echo "install php -${version} ..." > $install_tmp
+echo "install php-${version} ..." > $install_tmp
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
@@ -39,11 +39,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
 fi
 
-if [ ! -d $sourcePath/php/php${PHP_VER} ];then
-	rm -rf $sourcePath/php/php-${version}.tar.xz
-	echo "reinstall php${version}"
-	exit 1
-fi
+
 
 cd $sourcePath/php/php${PHP_VER}
 
@@ -72,7 +68,6 @@ echo "$sourcePath/php/php${PHP_VER}"
 ZIP_OPTION='--with-zip'
 libzip_version=`pkg-config libzip --modversion`
 if version_lt "$libzip_version" "0.11.0" ;then
-	cd ${rootPath}/plugins/php/lib && /bin/bash libzip.sh
 	export PKG_CONFIG_PATH=$serverPath/lib/libzip/lib/pkgconfig
 	ZIP_OPTION="--with-zip=$serverPath/lib/libzip"
 fi
@@ -95,10 +90,8 @@ else
     cpuCore="1"
 fi
 
-if [ "$cpuCore" -gt "2" ];then
+if [ "$cpuCore" -gt "1" ];then
 	cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
-else
-	cpuCore="1"
 fi
 # ----- cpu end ------
 

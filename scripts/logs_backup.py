@@ -12,15 +12,14 @@ if sys.platform != 'darwin':
 
 chdir = os.getcwd()
 sys.path.append(chdir + '/class/core')
-
-# importlib.reload(sys)
+# reload(sys)
 # sys.setdefaultencoding('utf-8')
 
 import slemp
 print('==================================================================')
-print('★[' + time.strftime("%Y/%m/%d %H:%M:%S") + ']，cutting log')
+print('★[' + time.strftime("%Y/%m/%d %H:%M:%S") + ']，cut log')
 print('==================================================================')
-print('|--Currently keep the latest [' + sys.argv[2] + '] copies')
+print('|--Currently keep the latest [' + sys.argv[2] + '] copy')
 logsPath = slemp.getLogsDir()
 px = '.log'
 
@@ -39,11 +38,11 @@ def split_logs(oldFileName, num):
         if i > num:
             break
         os.remove(logs[i])
-        print('|---Redundant logs [' + logs[i] + '] removed!')
+        print('|---redundant log [' + logs[i] + '] deleted!')
 
     newFileName = oldFileName + '_' + time.strftime("%Y-%m-%d_%H%M%S") + '.log'
     shutil.move(oldFileName, newFileName)
-    print('|---Sliced logs to:' + newFileName)
+    print('|---Cut log to: ' + newFileName)
 
 
 def split_all(save):

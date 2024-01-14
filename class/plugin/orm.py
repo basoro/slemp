@@ -22,6 +22,7 @@ class ORM:
     __DB_CHARSET = "utf8"
 
     def __Conn(self):
+        '''Connect to the database'''
         try:
 
             if os.path.exists(self.__DB_SOCKET):
@@ -64,9 +65,6 @@ class ORM:
     def setCharset(self, charset):
         self.__DB_CHARSET = charset
 
-    def setHost(self, host):
-        self.__DB_HOST = host
-
     def setPort(self, port):
         self.__DB_PORT = port
 
@@ -99,8 +97,6 @@ class ORM:
         try:
             self.__DB_CUR.execute(sql)
             result = self.__DB_CUR.fetchall()
-            # print(result)
-            # data = map(list, result)
             self.__Close()
             return result
         except Exception as ex:
