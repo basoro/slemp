@@ -42,10 +42,10 @@ Install_Plugin()
 	cd $serverPath && unzip wagw.zip
 	mv wagw-master wagw
 	cd $serverPath/wagw
-	source /root/.nvm/nvm.sh
+	source ~/.nvm/nvm.sh
 	echo 'Installing WA Gateway module dependency...'
 	echo 'Please wait......'
-	npm install
+	#npm install
 	echo '0.1' > $serverPath/wagw/version.pl
 	rm -f $serverPath/wagw.zip
 	echo 'The installation is complete' > $install_tmp
