@@ -34,7 +34,10 @@ Install_pm2()
 	#curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
 	curl -fsLS https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | sh
 	nvm install 18.20.4
+	source ~/.nvm/nvm.sh
+	nvm alias default 18.20.4
 	nvm use 18.20.4
+ 
  
 	mkdir -p $serverPath/pm2
 	echo '1.0' > $serverPath/pm2/version.pl
