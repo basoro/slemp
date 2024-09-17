@@ -33,7 +33,9 @@ Install_pm2()
 	npm install pm2 -g
 	#curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
 	curl -fsLS https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | sh
-
+	nvm install 18.20.4
+	nvm use 18.20.4
+ 
 	mkdir -p $serverPath/pm2
 	echo '1.0' > $serverPath/pm2/version.pl
 	echo 'The installation is complete' > $install_tmp
