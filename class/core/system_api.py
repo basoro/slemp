@@ -375,6 +375,7 @@ class system_api:
         n = 0
         cuts = ['/mnt/cdrom', '/boot', '/boot/efi', '/dev',
                 '/dev/shm', '/zroot', '/run/lock', '/run', '/run/shm', '/run/user',
+                '/System/Volumes/iSCPreboot', '/System/Volumes/xarts', '/System/Volumes/Hardware',
                 '/System/Volumes/Preboot', '/System/Volumes/Update', '/System/Volumes/Data', '/System/Volumes/VM']
         for tmp in temp1:
             n += 1
