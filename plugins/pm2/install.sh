@@ -38,7 +38,6 @@ Install_pm2()
 	nvm alias default 18.20.4
 	nvm use 18.20.4
  
- 
 	mkdir -p $serverPath/pm2
 	echo '1.0' > $serverPath/pm2/version.pl
 	echo 'The installation is complete' > $install_tmp
