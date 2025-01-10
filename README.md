@@ -21,3 +21,6 @@ Simple Linux Engine-X (Openresty) MySQL PHP-FPM. Linux panel for VPS (or Dedicat
 - Rocky Linux
 - Arch Linux
 - Open SUSE
+
+### Install
+curl --insecure -fsSL https://basoro.id/slemp.sh | bash
