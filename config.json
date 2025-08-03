@@ -2,7 +2,7 @@
     "mysql": {
         "host": "localhost",
         "user": "root",
-        "password": "basoro",
+        "password": "",
         "raise_on_warnings": true,
         "buffered": true,
         "pool_name": "mypool",
