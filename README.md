@@ -1,4 +1,4 @@
-# Server Management Panel
+# Server Management SLEMP Panel
 
 Aplikasi web untuk manajemen server yang dibuat dengan Python Flask dan TailwindCSS. Aplikasi ini dapat memonitor:
 - Penggunaan CPU, Memory, dan Disk
