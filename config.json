@@ -1,0 +1,18 @@
+{
+    "mysql": {
+        "host": "localhost",
+        "user": "root",
+        "password": "basoro",
+        "raise_on_warnings": true,
+        "buffered": true,
+        "pool_name": "mypool",
+        "pool_size": 5,
+        "pool_reset_session": true
+    },
+    "users": {
+        "admin": {
+            "password_hash": "pbkdf2:sha256:1000000$T4UBjMbMDpk9hQjt$d6024b9ee326325960ff03812101c54a49c2e1967efbdd57a734acbf894ac0ff",
+            "username": "admin"
+        }
+    }
+}
