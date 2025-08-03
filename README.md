@@ -17,7 +17,7 @@ Aplikasi web untuk manajemen server yang dibuat dengan Python Flask dan Tailwind
 
 1. Clone repository ini:
 ```bash
-git clone [url-repository]
+git clone https://github.com/basoro/slemp.git
 cd slemp
 ```
 
@@ -40,9 +40,10 @@ python app.py
 5. Buka browser dan akses:
 ```
 http://localhost:5000
+```
+
 Username: admin
 Password: admin
-```
 
 ## Fitur
 
