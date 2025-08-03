@@ -42,7 +42,7 @@ python app.py
 http://localhost:5000
 ```
 
-Username: admin
+Username: admin  
 Password: admin
 
 ## Fitur
