@@ -11,6 +11,8 @@ import json
 from werkzeug.utils import secure_filename
 import shutil
 import configparser
+import zipfile
+import tarfile
 import re
 import logging
 from logging.handlers import RotatingFileHandler
@@ -1013,6 +1015,122 @@ def rename_file():
         return jsonify({'message': 'File/directory renamed successfully'})
     except Exception as e:
         return jsonify({'error': f'Could not rename: {str(e)}'}), 400
+
+@app.route('/api/files/download', methods=['GET'])
+@login_required
+def download_file():
+    logger.info('File download attempt')
+    path = request.args.get('path')
+    if not path:
+        return jsonify({'error': 'No path specified'}), 400
+    
+    path = os.path.normpath(path)
+    if path.startswith('..'):
+        return jsonify({'error': 'Invalid path'}), 400
+    
+    try:
+        if not os.path.exists(path):
+            return jsonify({'error': 'File not found'}), 404
+        
+        if os.path.isdir(path):
+            return jsonify({'error': 'Cannot download directory directly. Use compress first.'}), 400
+        
+        logger.info(f'File downloaded: {path}')
+        return send_file(path, as_attachment=True)
+    except Exception as e:
+        return jsonify({'error': f'Could not download file: {str(e)}'}), 400
+
+@app.route('/api/files/compress', methods=['POST'])
+@login_required
+def compress_files():
+    logger.info('File compression attempt')
+    data = request.json
+    paths = data.get('paths', [])
+    archive_name = data.get('archive_name', 'archive.zip')
+    
+    if not paths:
+        return jsonify({'error': 'No files specified'}), 400
+    
+    # Validate paths
+    for path in paths:
+        path = os.path.normpath(path)
+        if path.startswith('..'):
+            return jsonify({'error': 'Invalid path'}), 400
+        if not os.path.exists(path):
+            return jsonify({'error': f'File not found: {path}'}), 404
+    
+    try:
+        # Get the directory of the first file to save the archive
+        first_path = os.path.normpath(paths[0])
+        if os.path.isfile(first_path):
+            archive_dir = os.path.dirname(first_path)
+        else:
+            archive_dir = os.path.dirname(first_path)
+        
+        archive_path = os.path.join(archive_dir, archive_name)
+        
+        # Ensure archive name ends with .zip
+        if not archive_name.endswith('.zip'):
+            archive_path += '.zip'
+        
+        with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for path in paths:
+                path = os.path.normpath(path)
+                if os.path.isfile(path):
+                    zipf.write(path, os.path.basename(path))
+                elif os.path.isdir(path):
+                    for root, dirs, files in os.walk(path):
+                        for file in files:
+                            file_path = os.path.join(root, file)
+                            arcname = os.path.relpath(file_path, os.path.dirname(path))
+                            zipf.write(file_path, arcname)
+        
+        logger.info(f'Files compressed to: {archive_path}')
+        return jsonify({'message': 'Files compressed successfully', 'archive_path': archive_path})
+    except Exception as e:
+        return jsonify({'error': f'Could not compress files: {str(e)}'}), 400
+
+@app.route('/api/files/uncompress', methods=['POST'])
+@login_required
+def uncompress_file():
+    logger.info('File uncompression attempt')
+    data = request.json
+    archive_path = data.get('path')
+    extract_to = data.get('extract_to')
+    
+    if not archive_path:
+        return jsonify({'error': 'No archive path specified'}), 400
+    
+    archive_path = os.path.normpath(archive_path)
+    if archive_path.startswith('..'):
+        return jsonify({'error': 'Invalid path'}), 400
+    
+    if not os.path.exists(archive_path):
+        return jsonify({'error': 'Archive file not found'}), 404
+    
+    # If extract_to is not specified, extract to the same directory as the archive
+    if not extract_to:
+        extract_to = os.path.dirname(archive_path)
+    else:
+        extract_to = os.path.normpath(extract_to)
+        if extract_to.startswith('..'):
+            return jsonify({'error': 'Invalid extraction path'}), 400
+    
+    try:
+        # Determine archive type and extract
+        if archive_path.endswith('.zip'):
+            with zipfile.ZipFile(archive_path, 'r') as zipf:
+                zipf.extractall(extract_to)
+        elif archive_path.endswith(('.tar', '.tar.gz', '.tgz', '.tar.bz2')):
+            with tarfile.open(archive_path, 'r:*') as tarf:
+                tarf.extractall(extract_to)
+        else:
+            return jsonify({'error': 'Unsupported archive format. Supported: .zip, .tar, .tar.gz, .tgz, .tar.bz2'}), 400
+        
+        logger.info(f'Archive extracted: {archive_path} to {extract_to}')
+        return jsonify({'message': 'Archive extracted successfully', 'extract_path': extract_to})
+    except Exception as e:
+        return jsonify({'error': f'Could not extract archive: {str(e)}'}), 400
 
 @app.route('/api/files/create-directory', methods=['POST'])
 @login_required
@@ -2341,7 +2459,9 @@ def nginx_config():
             'message': f'Terjadi kesalahan: {str(e)}'
         }), 500
 
-def generate_vhost_config(domain, root_dir, ssl=False, ssl_cert='', ssl_key='', force_https=False, php_version='8.1'):
+def generate_vhost_config(domain, root_dir, ssl=False, ssl_cert='', ssl_key='', force_https=False, php_version='8.1', 
+                          proxy_enabled=False, proxy_pass='', proxy_headers='', rewrite_rules='', 
+                          index_files='index.html index.htm index.php', error_404='', error_500=''):
     """Generate nginx virtual host configuration"""
     config = f"""server {{
     listen 80;"""
@@ -2362,7 +2482,7 @@ def generate_vhost_config(domain, root_dir, ssl=False, ssl_cert='', ssl_key='', 
     server_name {domain};
     root {root_dir};
 
-    index index.html index.htm index.php;
+    index {index_files};
 """
     
     # Add HTTPS redirect if force_https is enabled
@@ -2374,7 +2494,54 @@ def generate_vhost_config(domain, root_dir, ssl=False, ssl_cert='', ssl_key='', 
     }}
 """
     
-    config += f"""
+    # Add custom error pages if specified
+    if error_404:
+        config += f"""
+    error_page 404 {error_404};
+"""
+    
+    if error_500:
+        config += f"""
+    error_page 500 502 503 504 {error_500};
+"""
+    
+    # Add rewrite rules if specified
+    if rewrite_rules:
+        config += f"""
+    # Custom rewrite rules
+{rewrite_rules}
+"""
+    
+    # Add proxy configuration if enabled
+    if proxy_enabled and proxy_pass:
+        config += f"""
+    location / {{
+        proxy_pass {proxy_pass};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+"""
+        
+        # Add custom proxy headers if specified
+        if proxy_headers:
+            # Split proxy headers by newlines and add them
+            for header in proxy_headers.strip().split('\n'):
+                if header.strip():
+                    # Check if header already ends with semicolon
+                    header_clean = header.strip()
+                    if not header_clean.endswith(';'):
+                        header_clean += ';'
+                    config += f"""
+        {header_clean}
+"""
+        
+        config += f"""
+    }}
+"""
+    else:
+        # Standard location block for non-proxy setup
+        config += f"""
     location / {{
         try_files $uri $uri/ /index.php?$query_string;
     }}
@@ -2387,7 +2554,9 @@ def generate_vhost_config(domain, root_dir, ssl=False, ssl_cert='', ssl_key='', 
     location ~ /\.ht {{
         deny all;
     }}
-}}"""
+"""
+    
+    config += "}"
     
     return config
 
@@ -2407,6 +2576,19 @@ def update_vhost():
         php_version = data.get('php_version', '8.1')
         custom_config = data.get('custom_config', '')
         
+        # Get proxy settings
+        proxy_enabled = data.get('proxy_enabled', False)
+        proxy_pass = data.get('proxy_pass', '')
+        proxy_headers = data.get('proxy_headers', '')
+        
+        # Get rewrite settings
+        rewrite_rules = data.get('rewrite_rules', '')
+        
+        # Get default settings
+        index_files = data.get('index_files', 'index.html index.htm index.php')
+        error_404 = data.get('error_404', '')
+        error_500 = data.get('error_500', '')
+        
         if not domain:
             return jsonify({'error': 'Domain is required'}), 400
         
@@ -2421,7 +2603,22 @@ def update_vhost():
             logger.info(f'Virtual host config updated for {domain} by user {current_user.username}')
         else:
             # Generate configuration based on settings
-            config = generate_vhost_config(domain, root_dir, ssl, ssl_cert, ssl_key, force_https, php_version)
+            config = generate_vhost_config(
+                domain=domain, 
+                root_dir=root_dir, 
+                ssl=ssl, 
+                ssl_cert=ssl_cert, 
+                ssl_key=ssl_key, 
+                force_https=force_https, 
+                php_version=php_version,
+                proxy_enabled=proxy_enabled,
+                proxy_pass=proxy_pass,
+                proxy_headers=proxy_headers,
+                rewrite_rules=rewrite_rules,
+                index_files=index_files,
+                error_404=error_404,
+                error_500=error_500
+            )
             
             # Write new configuration
             with open(config_file, 'w') as f:
