@@ -1205,13 +1205,80 @@ def create_vhost():
         # Create root directory if it doesn't exist
         logger.info(f'Creating root directory: {root_dir}')
         os.makedirs(root_dir, exist_ok=True)
+        
+        # Create default index.html file
+        index_file_path = os.path.join(root_dir, 'index.html')
+        if not os.path.exists(index_file_path):
+            default_html_content = f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to {domain}</title>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }}
+        .container {{
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }}
+        h1 {{
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }}
+        p {{
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }}
+        .domain {{
+            color: #ffd700;
+            font-weight: bold;
+        }}
+        .footer {{
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Welcome!</h1>
+        <p>Your virtual host <span class="domain">{domain}</span> is now active!</p>
+        <p>This is the default index.html file. You can replace this content with your own website.</p>
+        <div class="footer">
+            <p>Powered by SLEMP Panel</p>
+        </div>
+    </div>
+</body>
+</html>'''
+            
+            with open(index_file_path, 'w') as f:
+                f.write(default_html_content)
+            logger.info(f'Created default index.html file: {index_file_path}')
 
-        # Reload nginx
-        logger.info('Restarting nginx via supervisorctl')
-        result = subprocess.run(['supervisorctl', 'restart', 'nginx'], capture_output=True, text=True)
+        # Reload nginx configuration
+        logger.info('Reloading nginx configuration')
+        result = subprocess.run(['nginx', '-s', 'reload'], capture_output=True, text=True)
         if result.returncode != 0:
-            logger.error(f'Failed to restart nginx: {result.stderr}')
-            return jsonify({'error': f'Failed to restart nginx: {result.stderr}'}), 500
+            logger.error(f'Failed to reload nginx: {result.stderr}')
+            return jsonify({'error': f'Failed to reload nginx: {result.stderr}'}), 500
 
         logger.info(f'Virtual host {domain} created successfully')
         return jsonify({'message': 'Virtual host created successfully'})
@@ -1241,12 +1308,12 @@ def delete_vhost():
             os.remove(config_path)
             logger.info(f'Removed config file: {config_path}')
 
-        # Restart nginx
-        logger.info('Restarting nginx via supervisorctl')
-        result = subprocess.run(['supervisorctl', 'restart', 'nginx'], capture_output=True, text=True)
+        # Reload nginx configuration
+        logger.info('Reloading nginx configuration')
+        result = subprocess.run(['nginx', '-s', 'reload'], capture_output=True, text=True)
         if result.returncode != 0:
-            logger.error(f'Failed to restart nginx: {result.stderr}')
-            return jsonify({'error': f'Failed to restart nginx: {result.stderr}'}), 500
+            logger.error(f'Failed to reload nginx: {result.stderr}')
+            return jsonify({'error': f'Failed to reload nginx: {result.stderr}'}), 500
 
         logger.info(f'Virtual host {domain} deleted successfully')
         return jsonify({'message': 'Virtual host deleted successfully'})
@@ -1285,12 +1352,12 @@ def toggle_vhost():
                 os.remove(link_path)
                 logger.info(f'Removed symbolic link: {link_path}')
 
-        # Restart nginx
-        logger.info('Restarting nginx via supervisorctl')
-        result = subprocess.run(['supervisorctl', 'restart', 'nginx'], capture_output=True, text=True)
+        # Reload nginx configuration
+        logger.info('Reloading nginx configuration')
+        result = subprocess.run(['nginx', '-s', 'reload'], capture_output=True, text=True)
         if result.returncode != 0:
-            logger.error(f'Failed to restart nginx: {result.stderr}')
-            return jsonify({'error': f'Failed to restart nginx: {result.stderr}'}), 500
+            logger.error(f'Failed to reload nginx: {result.stderr}')
+            return jsonify({'error': f'Failed to reload nginx: {result.stderr}'}), 500
 
         logger.info(f'Virtual host {domain} {"enabled" if enable else "disabled"} successfully')
         return jsonify({'message': f'Virtual host {"enabled" if enable else "disabled"} successfully'})
@@ -2247,9 +2314,18 @@ def nginx_config():
             
             logger.info(f'Nginx configuration updated by user {current_user.username}')
             
+            # Reload nginx configuration to apply changes
+            result = subprocess.run(['nginx', '-s', 'reload'], capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f'Failed to reload nginx: {result.stderr}')
+                return jsonify({
+                    'success': False,
+                    'message': f'Konfigurasi disimpan tetapi gagal reload nginx: {result.stderr}'
+                }), 500
+            
             return jsonify({
                 'success': True,
-                'message': 'Konfigurasi berhasil disimpan'
+                'message': 'Konfigurasi berhasil disimpan dan nginx direload'
             })
             
     except PermissionError:
@@ -2366,11 +2442,11 @@ def update_vhost():
                 os.remove(enabled_path)
                 logger.info(f'Disabled virtual host: {domain}')
         
-        # Restart nginx to apply changes
-        result = subprocess.run(['supervisorctl', 'restart', 'nginx'], capture_output=True, text=True)
+        # Reload nginx configuration to apply changes
+        result = subprocess.run(['nginx', '-s', 'reload'], capture_output=True, text=True)
         if result.returncode != 0:
-            logger.error(f'Failed to restart nginx: {result.stderr}')
-            return jsonify({'error': f'Failed to restart nginx: {result.stderr}'}), 500
+            logger.error(f'Failed to reload nginx: {result.stderr}')
+            return jsonify({'error': f'Failed to reload nginx: {result.stderr}'}), 500
         
         return jsonify({
             'success': True,
