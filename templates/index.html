@@ -296,6 +296,12 @@
                             <button onclick="editNginxConfig()" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                 Nginx Config
                             </button>
+                            <button onclick="installCertbot()" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                                Install Certbot
+                            </button>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -1098,6 +1104,7 @@
             
             socket.on('connect_error', (error) => {
                 console.error('SocketIO connection error:', error);
+                showNotification('Koneksi WebSocket gagal. Progress bar mungkin tidak berfungsi.', 'error');
             });
             
             socket.on('network_data', (data) => {
@@ -1106,18 +1113,37 @@
             
             socket.on('error', (error) => {
                 console.error('SocketIO error:', error);
+                showNotification('Terjadi kesalahan WebSocket.', 'error');
+            });
+            
+            socket.on('install_error', (data) => {
+                console.log('Received install_error:', data);
+                addInstallOutput(`❌ Error: ${data.message}`, 'error');
+                
+                // Re-enable close buttons
+                const closeBtn = document.getElementById('install-close-btn');
+                const cancelBtn = document.getElementById('install-cancel-btn');
+                if (closeBtn) closeBtn.style.display = 'block';
+                if (cancelBtn) {
+                    cancelBtn.textContent = 'Close';
+                    cancelBtn.disabled = false;
+                    cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
             });
             
             // Installation progress events
             socket.on('install_progress', (data) => {
+                console.log('Received install_progress:', data);
                 updateInstallProgress(data.step, data.total, data.status, data.percentage);
             });
             
             socket.on('install_output', (data) => {
+                console.log('Received install_output:', data);
                 addInstallOutput(data.output, data.type || 'info');
             });
             
             socket.on('install_complete', (data) => {
+                console.log('Received install_complete:', data);
                 addInstallOutput(`✅ ${data.service} berhasil diinstall!`, 'success');
                 updateInstallProgress(4, 4, 'Instalasi selesai', 100);
                 
@@ -2372,7 +2398,7 @@
             const domain = await showPrompt('Enter domain name:', '', 'Add Virtual Host');
             if (!domain) return;
 
-            const rootDir = await showPrompt('Enter root directory:', '/var/www/html', 'Root Directory');
+            const rootDir = await showPrompt('Enter root directory:', '/var/www/html/' + domain, 'Root Directory');
             if (!rootDir) return;
 
             try {
@@ -2443,6 +2469,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${vhost.root_dir}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${vhost.enabled ? 'Enabled' : 'Disabled'}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                    <button onclick="openVHostSettings('${vhost.domain}', '${vhost.root_dir}', ${vhost.enabled})" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-2">Settings</button>
                                     <button onclick="toggleVHost('${vhost.domain}', ${!vhost.enabled})" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-2">${vhost.enabled ? 'Disable' : 'Enable'}</button>
                                     <button onclick="deleteVHost('${vhost.domain}')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
                                 </td>
@@ -2511,6 +2538,277 @@
             } catch (error) {
                 console.error('Error toggling virtual host:', error);
                 showAlert('Error toggling virtual host', 'Error');
+            }
+        }
+
+        // Virtual Host Settings Management
+        function openVHostSettings(domain, rootDir, enabled) {
+            document.getElementById('vhost-domain').value = domain;
+            document.getElementById('vhost-root-dir').value = rootDir;
+            document.getElementById('vhost-status').value = enabled.toString();
+            
+            // Set config filename
+            document.getElementById('config-filename').textContent = domain;
+            
+            // Reset to first tab
+            switchVHostTab('domain');
+            
+            document.getElementById('vhost-settings-modal').classList.remove('hidden');
+        }
+
+        function closeVHostSettingsModal() {
+            document.getElementById('vhost-settings-modal').classList.add('hidden');
+        }
+
+        function switchVHostTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.vhost-tab-content');
+            tabContents.forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // Reset all tab buttons
+            const tabButtons = document.querySelectorAll('.vhost-tab-btn');
+            tabButtons.forEach(button => {
+                button.classList.remove('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+                button.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+            });
+
+            // Show selected tab content
+            const selectedContent = document.getElementById(`content-${tabName}`);
+            if (selectedContent) {
+                selectedContent.classList.remove('hidden');
+            }
+
+            // Activate selected tab button
+            const selectedButton = document.getElementById(`tab-${tabName}`);
+            if (selectedButton) {
+                selectedButton.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+                selectedButton.classList.add('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+            }
+
+            // Auto-load config when Config tab is clicked
+            if (tabName === 'config') {
+                loadVHostConfig();
+            }
+            
+            // Auto-check SSL certificates when SSL tab is clicked
+            if (tabName === 'ssl') {
+                checkExistingSSLCertificates();
+            }
+        }
+
+        async function loadVHostConfig() {
+            const domain = document.getElementById('vhost-domain').value;
+            if (!domain) {
+                showAlert('Please select a virtual host first.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/nginx/config/${domain}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('vhost-custom-config').value = data.config || '';
+                    showAlert('Configuration loaded successfully!', 'Success');
+                } else {
+                    const error = await response.json();
+                    showAlert(`Failed to load configuration: ${error.message}`, 'Error');
+                }
+            } catch (error) {
+                console.error('Error loading config:', error);
+                showAlert('Failed to load configuration. Please try again.', 'Error');
+            }
+        }
+
+        async function checkExistingSSLCertificates() {
+            const domain = document.getElementById('vhost-domain').value;
+            if (!domain) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/ssl/check/${domain}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.cert_exists && data.key_exists) {
+                        // Auto-fill SSL certificate paths
+                        document.getElementById('vhost-ssl-cert').value = data.cert_path;
+                        document.getElementById('vhost-ssl-key').value = data.key_path;
+                        
+                        // Show notification
+                        showNotification(`SSL certificate found for ${domain}`, 'success');
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking SSL certificates:', error);
+            }
+        }
+
+        async function saveVHostSettings() {
+            const domain = document.getElementById('vhost-domain').value;
+            const rootDir = document.getElementById('vhost-root-dir').value;
+            const enabled = document.getElementById('vhost-status').value === 'true';
+            const ssl = document.getElementById('vhost-ssl').checked;
+            const sslCert = document.getElementById('vhost-ssl-cert').value;
+            const sslKey = document.getElementById('vhost-ssl-key').value;
+            const forceHttps = document.getElementById('vhost-force-https').checked;
+            const phpVersion = document.getElementById('vhost-php-version').value;
+            const customConfig = document.getElementById('vhost-custom-config').value;
+
+            try {
+                const response = await fetch('/api/nginx/update-vhost', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        domain: domain,
+                        root_dir: rootDir,
+                        enabled: enabled,
+                        ssl: ssl,
+                        ssl_cert: sslCert,
+                        ssl_key: sslKey,
+                        force_https: forceHttps,
+                        php_version: phpVersion,
+                        custom_config: customConfig
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        showAlert('Virtual host settings updated successfully!', 'Success');
+                        closeVHostSettingsModal();
+                        loadVirtualHosts(); // Refresh the list
+                    } else {
+                        showAlert(result.error || 'Error updating virtual host settings', 'Error');
+                    }
+                } else {
+                    const error = await response.json();
+                    showAlert(error.error || 'Error updating virtual host settings', 'Error');
+                }
+            } catch (error) {
+                console.error('Error updating virtual host settings:', error);
+                showAlert('Error updating virtual host settings', 'Error');
+            }
+        }
+
+        async function generateLetsEncryptSSL() {
+            const domain = document.getElementById('vhost-domain').value;
+            const email = document.getElementById('vhost-letsencrypt-email').value;
+
+            if (!domain) {
+                showAlert('Domain is required', 'Error');
+                return;
+            }
+
+            if (!email) {
+                showAlert('Email address is required for Let\'s Encrypt', 'Error');
+                return;
+            }
+
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showAlert('Please enter a valid email address', 'Error');
+                return;
+            }
+
+            // Show installation modal
+            showInstallModal('Let\'s Encrypt SSL');
+            
+            // Update progress
+            updateInstallProgress('Memulai proses generate SSL certificate...', '1/4', 10);
+            addInstallOutput('Starting Let\'s Encrypt SSL certificate generation...', 'info');
+            addInstallOutput(`Domain: ${domain}`, 'info');
+            addInstallOutput(`Email: ${email}`, 'info');
+
+            try {
+                // Connect to WebSocket for real-time output
+                const socket = io();
+                
+                socket.on('ssl_generate_output', function(data) {
+                    addInstallOutput(data.message, data.type || 'info');
+                });
+                
+                socket.on('ssl_generate_progress', function(data) {
+                    updateInstallProgress(data.status, data.step, data.progress);
+                });
+                
+                socket.on('ssl_generate_complete', function(data) {
+                    if (data.success) {
+                        addInstallOutput('SSL certificate generated successfully!', 'success');
+                        updateInstallProgress('SSL certificate generated', '4/4', 100);
+                        
+                        // Update SSL certificate paths if provided
+                        if (data.cert_path) {
+                            document.getElementById('vhost-ssl-cert').value = data.cert_path;
+                        }
+                        if (data.key_path) {
+                            document.getElementById('vhost-ssl-key').value = data.key_path;
+                        }
+                        
+                        // Enable SSL checkbox
+                        document.getElementById('vhost-ssl').checked = true;
+                        
+                        showNotification('SSL certificate generated successfully!', 'success');
+                    } else {
+                        addInstallOutput(`SSL generation failed: ${data.error}`, 'error');
+                        updateInstallProgress('SSL generation failed', '4/4', 100);
+                        showNotification(data.error || 'Failed to generate SSL certificate', 'error');
+                    }
+                    
+                    // Re-enable close button
+                    const closeBtn = document.getElementById('install-close-btn');
+                    const cancelBtn = document.getElementById('install-cancel-btn');
+                    closeBtn.style.display = 'block';
+                    cancelBtn.textContent = 'Close';
+                    cancelBtn.disabled = false;
+                    cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    
+                    socket.disconnect();
+                });
+                
+                const response = await fetch('/api/ssl/letsencrypt', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        domain: domain,
+                        email: email
+                    })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    addInstallOutput(`SSL generation failed: ${data.error}`, 'error');
+                    updateInstallProgress('SSL generation failed', '4/4', 100);
+                    showNotification(data.error || 'Failed to generate SSL certificate', 'error');
+                    
+                    // Re-enable close button
+                    const closeBtn = document.getElementById('install-close-btn');
+                    const cancelBtn = document.getElementById('install-cancel-btn');
+                    closeBtn.style.display = 'block';
+                    cancelBtn.textContent = 'Close';
+                    cancelBtn.disabled = false;
+                    cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                
+            } catch (error) {
+                console.error('Error generating SSL certificate:', error);
+                addInstallOutput(`SSL generation error: ${error.message}`, 'error');
+                updateInstallProgress('SSL generation failed', '4/4', 100);
+                showNotification('Failed to generate SSL certificate. Please try again.', 'error');
+                
+                // Re-enable close button
+                const closeBtn = document.getElementById('install-close-btn');
+                const cancelBtn = document.getElementById('install-cancel-btn');
+                closeBtn.style.display = 'block';
+                cancelBtn.textContent = 'Close';
+                cancelBtn.disabled = false;
+                cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
 
@@ -3162,13 +3460,31 @@
         
         // Update installation progress
         function updateInstallProgress(step, total, status, percentage) {
+            console.log('updateInstallProgress called with:', { step, total, status, percentage });
             const statusElement = document.getElementById('install-status');
             const stepElement = document.getElementById('install-step');
             const progressBar = document.getElementById('install-progress-bar');
             
-            statusElement.textContent = status;
-            stepElement.textContent = `${step}/${total}`;
-            progressBar.style.width = `${percentage}%`;
+            if (statusElement) {
+                statusElement.textContent = status;
+                console.log('Updated status to:', status);
+            } else {
+                console.error('install-status element not found');
+            }
+            
+            if (stepElement) {
+                stepElement.textContent = `${step}/${total}`;
+                console.log('Updated step to:', `${step}/${total}`);
+            } else {
+                console.error('install-step element not found');
+            }
+            
+            if (progressBar) {
+                progressBar.style.width = `${percentage}%`;
+                console.log('Updated progress bar to:', `${percentage}%`);
+            } else {
+                console.error('install-progress-bar element not found');
+            }
         }
 
         // Fungsi untuk menguninstall layanan
@@ -3410,6 +3726,101 @@
                 showNotification('Terjadi kesalahan saat menyimpan konfigurasi Nginx', 'error');
             }
         }
+
+        // Install Certbot Function
+        async function installCertbot() {
+            if (!(await showConfirm('Are you sure you want to install Certbot? This will run: apt install certbot python3-certbot-nginx -y', 'Install Certbot'))) return;
+
+            // Show installation modal
+            showInstallModal('Certbot');
+            
+            // Update progress
+            updateInstallProgress('Memulai instalasi Certbot...', '1/3', 10);
+            addInstallOutput('Starting Certbot installation...', 'info');
+            addInstallOutput('apt update && apt install certbot python3-certbot-nginx -y', 'command');
+
+            try {
+                // Connect to WebSocket for real-time output
+                const socket = io();
+                
+                socket.on('certbot_install_output', function(data) {
+                    addInstallOutput(data.message, data.type || 'info');
+                });
+                
+                socket.on('certbot_install_progress', function(data) {
+                    updateCertbotProgress(data.status, data.step, data.progress);
+                });
+                
+                socket.on('certbot_install_complete', function(data) {
+                    if (data.success) {
+                        addInstallOutput('Certbot installation completed successfully!', 'success');
+                        updateCertbotProgress('Installation completed', '3/3', 100);
+                        showNotification('Certbot installed successfully!', 'success');
+                    } else {
+                        addInstallOutput(`Installation failed: ${data.error}`, 'error');
+                        updateCertbotProgress('Installation failed', '3/3', 100);
+                        showNotification(data.error || 'Failed to install Certbot', 'error');
+                    }
+                    
+                    // Re-enable close button
+                    const closeBtn = document.getElementById('install-close-btn');
+                    const cancelBtn = document.getElementById('install-cancel-btn');
+                    closeBtn.style.display = 'block';
+                    cancelBtn.textContent = 'Close';
+                    cancelBtn.disabled = false;
+                    cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    
+                    socket.disconnect();
+                });
+                
+                const response = await fetch('/api/certbot/install', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    addInstallOutput(`Installation failed: ${data.error}`, 'error');
+                    updateInstallProgress('Installation failed', '3/3', 100);
+                    showNotification(data.error || 'Failed to install Certbot', 'error');
+                    
+                    // Re-enable close button
+                    const closeBtn = document.getElementById('install-close-btn');
+                    const cancelBtn = document.getElementById('install-cancel-btn');
+                    closeBtn.style.display = 'block';
+                    cancelBtn.textContent = 'Close';
+                    cancelBtn.disabled = false;
+                    cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                
+            } catch (error) {
+                console.error('Error installing Certbot:', error);
+                addInstallOutput(`Installation error: ${error.message}`, 'error');
+                updateCertbotProgress('Installation failed', '3/3', 100);
+                showNotification('Failed to install Certbot. Please try again.', 'error');
+                
+                // Re-enable close button
+                const closeBtn = document.getElementById('install-close-btn');
+                const cancelBtn = document.getElementById('install-cancel-btn');
+                closeBtn.style.display = 'block';
+                cancelBtn.textContent = 'Close';
+                cancelBtn.disabled = false;
+                cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+        
+        // Update installation progress for certbot (different parameter order)
+        function updateCertbotProgress(status, step, progress) {
+            const statusElement = document.getElementById('install-status');
+            const stepElement = document.getElementById('install-step');
+            const progressBar = document.getElementById('install-progress-bar');
+            
+            if (statusElement) statusElement.textContent = status;
+            if (stepElement) stepElement.textContent = step;
+            if (progressBar) progressBar.style.width = `${progress}%`;
+        }
     </script>
 
     <!-- MariaDB Config Modal -->
@@ -3441,7 +3852,7 @@
     </div>
 
     <!-- Installation Progress Modal -->
-    <div id="install-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div id="install-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-[60]">
         <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800">
             <div class="mt-3">
                 <div class="flex justify-between items-center mb-4">
@@ -3504,6 +3915,209 @@
                     </button>
                     <button onclick="saveNginxConfig()" class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                         Save Configuration
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Virtual Host Settings Modal -->
+    <div id="vhost-settings-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Virtual Host Settings</h3>
+                    <button onclick="closeVHostSettingsModal()" class="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Tab Navigation -->
+                <div class="border-b border-gray-200 dark:border-gray-600 mb-4">
+                    <nav class="-mb-px flex space-x-8">
+                        <button onclick="switchVHostTab('domain')" id="tab-domain" class="vhost-tab-btn py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                            Domain
+                        </button>
+                        <button onclick="switchVHostTab('rewrite')" id="tab-rewrite" class="vhost-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                            Rewrite
+                        </button>
+                        <button onclick="switchVHostTab('default')" id="tab-default" class="vhost-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                            Default
+                        </button>
+                        <button onclick="switchVHostTab('config')" id="tab-config" class="vhost-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                            Config
+                        </button>
+                        <button onclick="switchVHostTab('ssl')" id="tab-ssl" class="vhost-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                            SSL
+                        </button>
+                        <button onclick="switchVHostTab('php')" id="tab-php" class="vhost-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                            PHP Version
+                        </button>
+                        <button onclick="switchVHostTab('proxy')" id="tab-proxy" class="vhost-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                            Proxy
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- Domain Tab -->
+                    <div id="content-domain" class="vhost-tab-content space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Domain</label>
+                            <input type="text" id="vhost-domain" readonly class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm bg-gray-100 dark:bg-gray-600">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Root Directory</label>
+                            <input type="text" id="vhost-root-dir" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                            <select id="vhost-status" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="true">Enabled</option>
+                                <option value="false">Disabled</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Rewrite Tab -->
+                    <div id="content-rewrite" class="vhost-tab-content space-y-4 hidden">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rewrite Rules</label>
+                            <textarea id="vhost-rewrite-rules" rows="8" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm" placeholder="# Add rewrite rules here...\n# Example:\n# rewrite ^/old-url$ /new-url permanent;"></textarea>
+                        </div>
+                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-4">
+                            <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">Common Rewrite Examples:</h4>
+                            <ul class="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                                <li>• WordPress: <code>try_files $uri $uri/ /index.php?$args;</code></li>
+                                <li>• Laravel: <code>try_files $uri $uri/ /index.php?$query_string;</code></li>
+                                <li>• Redirect: <code>rewrite ^/old$ /new permanent;</code></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Default Tab -->
+                    <div id="content-default" class="vhost-tab-content space-y-4 hidden">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Default Index Files</label>
+                            <input type="text" id="vhost-index-files" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="index.php index.html index.htm" value="index.php index.html index.htm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Error Pages</label>
+                            <div class="space-y-2">
+                                <input type="text" id="vhost-error-404" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="404 Error Page (e.g., /404.html)">
+                                <input type="text" id="vhost-error-500" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="500 Error Page (e.g., /500.html)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Config Tab -->
+                    <div id="content-config" class="vhost-tab-content space-y-4 hidden">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nginx Configuration</label>
+                            <div class="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                                Config file: /etc/nginx/sites-available/<span id="config-filename"></span>
+                            </div>
+                            <textarea id="vhost-custom-config" rows="12" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm" placeholder="Loading configuration..."></textarea>
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                            <strong>Note:</strong> Changes will be saved to the configuration file when you click "Save Settings".
+                        </div>
+                    </div>
+
+                    <!-- SSL Tab -->
+                    <div id="content-ssl" class="vhost-tab-content space-y-4 hidden">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <input type="checkbox" id="vhost-ssl" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="vhost-ssl" class="text-sm font-medium text-gray-700 dark:text-gray-300">Enable SSL/HTTPS</label>
+                        </div>
+                        
+                        <!-- Let's Encrypt Section -->
+                        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
+                            <h4 class="text-sm font-medium text-green-800 dark:text-green-200 mb-3">Let's Encrypt SSL Certificate</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
+                                    <input type="email" id="vhost-letsencrypt-email" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" placeholder="your-email@example.com">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Required for Let's Encrypt certificate registration and renewal notifications</p>
+                                </div>
+                                <button type="button" onclick="generateLetsEncryptSSL()" class="w-full px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                    <span class="flex items-center justify-center">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                        </svg>
+                                        Generate Let's Encrypt SSL
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Manual SSL Section -->
+                        <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Manual SSL Certificate</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SSL Certificate Path</label>
+                                    <input type="text" id="vhost-ssl-cert" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="/path/to/certificate.crt">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SSL Private Key Path</label>
+                                    <input type="text" id="vhost-ssl-key" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="/path/to/private.key">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="vhost-force-https" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="vhost-force-https" class="text-sm text-gray-700 dark:text-gray-300">Force HTTPS (Redirect HTTP to HTTPS)</label>
+                        </div>
+                    </div>
+
+                    <!-- PHP Version Tab -->
+                    <div id="content-php" class="vhost-tab-content space-y-4 hidden">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">PHP Version</label>
+                            <select id="vhost-php-version" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="8.1">PHP 8.1</option>
+                                <option value="8.0">PHP 8.0</option>
+                                <option value="7.4">PHP 7.4</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">PHP-FPM Socket</label>
+                            <input type="text" id="vhost-php-socket" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="unix:/var/run/php/php8.1-fpm.sock" value="unix:/var/run/php/php8.1-fpm.sock">
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="vhost-php-enabled" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" checked>
+                            <label for="vhost-php-enabled" class="text-sm text-gray-700 dark:text-gray-300">Enable PHP Processing</label>
+                        </div>
+                    </div>
+
+                    <!-- Proxy Tab -->
+                    <div id="content-proxy" class="vhost-tab-content space-y-4 hidden">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <input type="checkbox" id="vhost-proxy-enabled" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="vhost-proxy-enabled" class="text-sm font-medium text-gray-700 dark:text-gray-300">Enable Reverse Proxy</label>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Proxy Pass URL</label>
+                            <input type="text" id="vhost-proxy-pass" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="http://localhost:3000">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Proxy Headers</label>
+                            <textarea id="vhost-proxy-headers" rows="6" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm" placeholder="proxy_set_header Host $host;\nproxy_set_header X-Real-IP $remote_addr;\nproxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\nproxy_set_header X-Forwarded-Proto $scheme;"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button onclick="closeVHostSettingsModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancel
+                    </button>
+                    <button onclick="saveVHostSettings()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Save Settings
                     </button>
                 </div>
             </div>

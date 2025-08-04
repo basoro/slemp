@@ -15,6 +15,8 @@ import re
 import logging
 from logging.handlers import RotatingFileHandler
 import datetime
+import threading
+import time
 
 # Konfigurasi logging 
 if not os.path.exists('logs'):
@@ -419,32 +421,46 @@ def handle_install_service(data):
             service_name = service_map[service]
             logger.info(f'Starting real-time installation of {service_name} via WebSocket')
             
-            socketio.emit('install_progress', {'message': f'Memulai instalasi {service_name}...', 'step': 1, 'total': 4, 'status': f'Memulai instalasi {service_name}...', 'percentage': 25})
+            progress_data = {'message': f'Memulai instalasi {service_name}...', 'step': 1, 'total': 4, 'status': f'Memulai instalasi {service_name}...', 'percentage': 25}
+            logger.info(f'Emitting install_progress: {progress_data}')
+            socketio.emit('install_progress', progress_data)
             
             # Update package list first
-            socketio.emit('install_progress', {'message': 'Memperbarui daftar paket...', 'step': 2, 'total': 4, 'status': 'Memperbarui daftar paket...', 'percentage': 50})
+            progress_data = {'message': 'Memperbarui daftar paket...', 'step': 2, 'total': 4, 'status': 'Memperbarui daftar paket...', 'percentage': 50}
+            logger.info(f'Emitting install_progress: {progress_data}')
+            socketio.emit('install_progress', progress_data)
             socketio.emit('install_output', {'output': '$ apt-get update', 'type': 'command'})
             
             update_code, update_output = run_command_with_realtime_output(['apt-get', 'update'], 300)
             
             if update_code != 0:
                 logger.warning(f'Package update failed with code {update_code}')
-                socketio.emit('install_progress', {'message': 'Peringatan: Gagal memperbarui daftar paket', 'step': 2, 'total': 4, 'status': 'Peringatan: Gagal memperbarui daftar paket', 'percentage': 50})
+                progress_data = {'message': 'Peringatan: Gagal memperbarui daftar paket', 'step': 2, 'total': 4, 'status': 'Peringatan: Gagal memperbarui daftar paket', 'percentage': 50}
+                logger.info(f'Emitting install_progress: {progress_data}')
+                socketio.emit('install_progress', progress_data)
             else:
-                socketio.emit('install_progress', {'message': 'Daftar paket berhasil diperbarui', 'step': 2, 'total': 4, 'status': 'Daftar paket berhasil diperbarui', 'percentage': 50})
+                progress_data = {'message': 'Daftar paket berhasil diperbarui', 'step': 2, 'total': 4, 'status': 'Daftar paket berhasil diperbarui', 'percentage': 50}
+                logger.info(f'Emitting install_progress: {progress_data}')
+                socketio.emit('install_progress', progress_data)
             
             # Install the service
-            socketio.emit('install_progress', {'message': f'Menginstall {service_name}...', 'step': 3, 'total': 4, 'status': f'Menginstall {service_name}...', 'percentage': 75})
+            progress_data = {'message': f'Menginstall {service_name}...', 'step': 3, 'total': 4, 'status': f'Menginstall {service_name}...', 'percentage': 75}
+            logger.info(f'Emitting install_progress: {progress_data}')
+            socketio.emit('install_progress', progress_data)
             socketio.emit('install_output', {'output': f'$ apt-get install -y {service_name}', 'type': 'command'})
             
             install_code, install_output = run_command_with_realtime_output(['apt-get', 'install', '-y', service_name], 600)
             
             if install_code == 0:
                 logger.info(f'Service {service_name} installed successfully via WebSocket')
-                socketio.emit('install_progress', {'message': f'{service_name} berhasil diinstall', 'step': 3, 'total': 4, 'status': f'{service_name} berhasil diinstall', 'percentage': 75})
+                progress_data = {'message': f'{service_name} berhasil diinstall', 'step': 3, 'total': 4, 'status': f'{service_name} berhasil diinstall', 'percentage': 75}
+                logger.info(f'Emitting install_progress: {progress_data}')
+                socketio.emit('install_progress', progress_data)
                 
                 # Start the service using supervisorctl
-                socketio.emit('install_progress', {'message': f'Memulai layanan {service_name}...', 'step': 4, 'total': 4, 'status': f'Memulai layanan {service_name}...', 'percentage': 100})
+                progress_data = {'message': f'Memulai layanan {service_name}...', 'step': 4, 'total': 4, 'status': f'Memulai layanan {service_name}...', 'percentage': 100}
+                logger.info(f'Emitting install_progress: {progress_data}')
+                socketio.emit('install_progress', progress_data)
                 if service_name != 'mariadb-server':
                     socketio.emit('install_output', {'output': f'$ supervisorctl start {service}', 'type': 'command'})
                     start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', service], 30)
@@ -517,7 +533,9 @@ def handle_install_service(data):
     thread.start()
     
     # Immediately return to prevent blocking
-    emit('install_progress', {'message': 'Instalasi dimulai...', 'step': 1, 'total': 4, 'status': 'Instalasi dimulai...', 'percentage': 25})
+    progress_data = {'message': 'Instalasi dimulai...', 'step': 1, 'total': 4, 'status': 'Instalasi dimulai...', 'percentage': 25}
+    logger.info(f'Emitting initial install_progress: {progress_data}')
+    emit('install_progress', progress_data)
 
 @app.route('/api/services/status')
 @login_required
@@ -704,6 +722,17 @@ def install_service(service):
         
         if install_result.returncode == 0:
             logger.info(f'Service {service_name} installed successfully')
+            
+            # Stop and disable the newly installed system service
+            system_service_name = service_name
+            if service == 'php-fpm':
+                system_service_name = 'php8.1-fpm'  # Adjust for PHP-FPM service name
+            elif service == 'mysql':
+                system_service_name = 'mariadb'  # Adjust for MariaDB service name
+                
+            logger.info(f'Stopping and disabling newly installed system service: {system_service_name}')
+            subprocess.run(['systemctl', 'stop', system_service_name], capture_output=True, text=True)
+            subprocess.run(['systemctl', 'disable', system_service_name], capture_output=True, text=True)
             
             # Start the service using supervisorctl
             if service_name != 'mariadb-server':
@@ -1810,6 +1839,510 @@ def nginx_config():
         return jsonify({
             'success': False,
             'message': f'Terjadi kesalahan: {str(e)}'
+        }), 500
+
+def generate_vhost_config(domain, root_dir, ssl=False, ssl_cert='', ssl_key='', force_https=False, php_version='8.1'):
+    """Generate nginx virtual host configuration"""
+    config = f"""server {{
+    listen 80;"""
+    
+    # Add SSL configuration if enabled
+    if ssl and ssl_cert and ssl_key:
+        config += f"""
+    listen 443 ssl;
+    ssl_certificate {ssl_cert};
+    ssl_certificate_key {ssl_key};
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;"""
+    
+    config += f"""
+    server_name {domain};
+    root {root_dir};
+
+    index index.html index.htm index.php;
+"""
+    
+    # Add HTTPS redirect if force_https is enabled
+    if ssl and force_https:
+        config += f"""
+    # Redirect HTTP to HTTPS
+    if ($scheme != "https") {{
+        return 301 https://$server_name$request_uri;
+    }}
+"""
+    
+    config += f"""
+    location / {{
+        try_files $uri $uri/ /index.php?$query_string;
+    }}
+
+    location ~ \.php$ {{
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php{php_version}-fpm.sock;
+    }}
+
+    location ~ /\.ht {{
+        deny all;
+    }}
+}}"""
+    
+    return config
+
+@app.route('/api/nginx/update-vhost', methods=['POST'])
+@login_required
+def update_vhost():
+    """Update virtual host settings including custom configuration"""
+    try:
+        data = request.get_json()
+        domain = data.get('domain')
+        root_dir = data.get('root_dir')
+        enabled = data.get('enabled', True)
+        ssl = data.get('ssl', False)
+        ssl_cert = data.get('ssl_cert', '')
+        ssl_key = data.get('ssl_key', '')
+        force_https = data.get('force_https', False)
+        php_version = data.get('php_version', '8.1')
+        custom_config = data.get('custom_config', '')
+        
+        if not domain:
+            return jsonify({'error': 'Domain is required'}), 400
+        
+        config_file = f'/etc/nginx/sites-available/{domain}'
+        
+        # If custom config is provided, save it to the config file
+        if custom_config:
+            # Write new configuration
+            with open(config_file, 'w') as f:
+                f.write(custom_config)
+            
+            logger.info(f'Virtual host config updated for {domain} by user {current_user.username}')
+        else:
+            # Generate configuration based on settings
+            config = generate_vhost_config(domain, root_dir, ssl, ssl_cert, ssl_key, force_https, php_version)
+            
+            # Write new configuration
+            with open(config_file, 'w') as f:
+                f.write(config)
+            
+            logger.info(f'Virtual host config generated for {domain} by user {current_user.username}')
+        
+        # Handle enabled/disabled state
+        enabled_path = f'/etc/nginx/sites-enabled/{domain}'
+        if enabled:
+            # Enable: create symbolic link if it doesn't exist
+            if not os.path.exists(enabled_path):
+                os.symlink(config_file, enabled_path)
+                logger.info(f'Enabled virtual host: {domain}')
+        else:
+            # Disable: remove symbolic link if it exists
+            if os.path.exists(enabled_path):
+                os.remove(enabled_path)
+                logger.info(f'Disabled virtual host: {domain}')
+        
+        # Restart nginx to apply changes
+        result = subprocess.run(['supervisorctl', 'restart', 'nginx'], capture_output=True, text=True)
+        if result.returncode != 0:
+            logger.error(f'Failed to restart nginx: {result.stderr}')
+            return jsonify({'error': f'Failed to restart nginx: {result.stderr}'}), 500
+        
+        return jsonify({
+            'success': True,
+            'message': 'Virtual host settings updated successfully'
+        })
+        
+    except PermissionError:
+        logger.error(f'Permission denied updating vhost config for {domain}')
+        return jsonify({
+            'success': False,
+            'error': 'Tidak memiliki izin untuk mengupdate konfigurasi'
+        }), 403
+    except Exception as e:
+        logger.error(f'Error updating vhost settings: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': f'Error updating settings: {str(e)}'
+        }), 500
+
+@app.route('/api/nginx/config/<domain>', methods=['GET'])
+@login_required
+def get_vhost_config(domain):
+    """Read virtual host configuration file from /etc/nginx/sites-available"""
+    config_file = f'/etc/nginx/sites-available/{domain}'
+    
+    try:
+        if os.path.exists(config_file):
+            with open(config_file, 'r') as f:
+                content = f.read()
+            return jsonify({
+                'success': True,
+                'config': content,
+                'file_path': config_file
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f'Configuration file for {domain} not found'
+            }), 404
+            
+    except PermissionError:
+        logger.error(f'Permission denied accessing {config_file}')
+        return jsonify({
+            'success': False,
+            'message': 'Tidak memiliki izin untuk mengakses file konfigurasi'
+        }), 403
+    except Exception as e:
+        logger.error(f'Error reading vhost config for {domain}: {str(e)}')
+        return jsonify({
+            'success': False,
+            'message': f'Error reading configuration: {str(e)}'
+        }), 500
+
+def run_ssl_generation(domain, email):
+    """Run SSL certificate generation in background with real-time output"""
+    try:
+        # Emit progress update
+        socketio.emit('ssl_generate_progress', {
+            'status': 'Checking domain accessibility...',
+            'step': '1/4',
+            'progress': 15
+        })
+        
+        # Check if domain is accessible (basic validation)
+        socketio.emit('ssl_generate_output', {
+            'message': f'Checking domain accessibility for {domain}...',
+            'type': 'info'
+        })
+        
+        try:
+            import socket
+            socket.gethostbyname(domain)
+            socketio.emit('ssl_generate_output', {
+                'message': f'Domain {domain} is accessible',
+                'type': 'success'
+            })
+        except socket.gaierror:
+            socketio.emit('ssl_generate_complete', {
+                'success': False,
+                'error': f'Domain {domain} is not accessible. Please ensure the domain points to this server.'
+            })
+            return
+        
+        # Emit progress update
+        socketio.emit('ssl_generate_progress', {
+            'status': 'Checking Certbot installation...',
+            'step': '2/4',
+            'progress': 30
+        })
+        
+        # Check if certbot is installed
+        socketio.emit('ssl_generate_output', {
+            'message': 'Checking if Certbot is installed...',
+            'type': 'info'
+        })
+        
+        certbot_check = subprocess.run(['which', 'certbot'], capture_output=True, text=True)
+        if certbot_check.returncode != 0:
+            socketio.emit('ssl_generate_complete', {
+                'success': False,
+                'error': 'Certbot is not installed. Please install certbot first.'
+            })
+            return
+        
+        socketio.emit('ssl_generate_output', {
+            'message': 'Certbot is installed and ready',
+            'type': 'success'
+        })
+        
+        # Emit progress update
+        socketio.emit('ssl_generate_progress', {
+            'status': 'Generating SSL certificate...',
+            'step': '3/4',
+            'progress': 50
+        })
+        
+        # Generate SSL certificate using certbot
+        socketio.emit('ssl_generate_output', {
+            'message': f'Running certbot for domain {domain}...',
+            'type': 'info'
+        })
+        
+        certbot_cmd = [
+            'certbot', 'certonly',
+            '--nginx',
+            '--non-interactive',
+            '--agree-tos',
+            '--email', email,
+            '-d', domain
+        ]
+        
+        socketio.emit('ssl_generate_output', {
+            'message': f'Command: {" ".join(certbot_cmd)}',
+            'type': 'command'
+        })
+        
+        certbot_process = subprocess.Popen(
+            certbot_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+            bufsize=1
+        )
+        
+        # Stream certbot output
+        for line in iter(certbot_process.stdout.readline, ''):
+            if line.strip():
+                socketio.emit('ssl_generate_output', {
+                    'message': line.strip(),
+                    'type': 'info'
+                })
+        
+        certbot_process.wait()
+        
+        # Emit progress update
+        socketio.emit('ssl_generate_progress', {
+            'status': 'Verifying certificate files...',
+            'step': '4/4',
+            'progress': 90
+        })
+        
+        if certbot_process.returncode == 0:
+            # Certificate generated successfully
+            cert_path = f'/etc/letsencrypt/live/{domain}/fullchain.pem'
+            key_path = f'/etc/letsencrypt/live/{domain}/privkey.pem'
+            
+            socketio.emit('ssl_generate_output', {
+                'message': f'Checking certificate files at {cert_path}...',
+                'type': 'info'
+            })
+            
+            # Verify certificate files exist
+            if os.path.exists(cert_path) and os.path.exists(key_path):
+                logger.info(f'SSL certificate generated successfully for {domain}')
+                socketio.emit('ssl_generate_output', {
+                    'message': f'Certificate files found: {cert_path}',
+                    'type': 'success'
+                })
+                socketio.emit('ssl_generate_output', {
+                    'message': f'Private key found: {key_path}',
+                    'type': 'success'
+                })
+                socketio.emit('ssl_generate_complete', {
+                    'success': True,
+                    'message': f'SSL certificate generated successfully for {domain}',
+                    'cert_path': cert_path,
+                    'key_path': key_path
+                })
+            else:
+                logger.error(f'Certificate files not found after generation for {domain}')
+                socketio.emit('ssl_generate_complete', {
+                    'success': False,
+                    'error': 'Certificate generated but files not found'
+                })
+        else:
+            # Certificate generation failed
+            logger.error(f'Failed to generate SSL certificate for {domain}')
+            socketio.emit('ssl_generate_complete', {
+                'success': False,
+                'error': 'Failed to generate SSL certificate. Please check the output above for details.'
+            })
+        
+    except Exception as e:
+        logger.error(f'Error generating Let\'s Encrypt SSL certificate: {str(e)}')
+        socketio.emit('ssl_generate_complete', {
+            'success': False,
+            'error': f'Internal server error: {str(e)}'
+        })
+
+@app.route('/api/ssl/check/<domain>', methods=['GET'])
+@login_required
+def check_ssl_certificates(domain):
+    """Check if SSL certificates exist for a domain"""
+    try:
+        cert_path = f'/etc/letsencrypt/live/{domain}/fullchain.pem'
+        key_path = f'/etc/letsencrypt/live/{domain}/privkey.pem'
+        
+        cert_exists = os.path.exists(cert_path)
+        key_exists = os.path.exists(key_path)
+        
+        logger.info(f'SSL certificate check for {domain}: cert={cert_exists}, key={key_exists}')
+        
+        return jsonify({
+            'success': True,
+            'domain': domain,
+            'cert_exists': cert_exists,
+            'key_exists': key_exists,
+            'cert_path': cert_path if cert_exists else '',
+            'key_path': key_path if key_exists else ''
+        })
+        
+    except Exception as e:
+        logger.error(f'Error checking SSL certificates for {domain}: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': f'Error checking SSL certificates: {str(e)}'
+        }), 500
+
+@app.route('/api/ssl/letsencrypt', methods=['POST'])
+@login_required
+def generate_letsencrypt_ssl():
+    """Generate Let's Encrypt SSL certificate for a domain with real-time output"""
+    try:
+        data = request.get_json()
+        domain = data.get('domain')
+        email = data.get('email')
+        
+        if not domain:
+            return jsonify({'error': 'Domain is required'}), 400
+        
+        if not email:
+            return jsonify({'error': 'Email is required'}), 400
+        
+        # Validate email format
+        email_regex = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        if not re.match(email_regex, email):
+            return jsonify({'error': 'Invalid email format'}), 400
+        
+        logger.info(f'Generating Let\'s Encrypt SSL certificate for {domain} with email {email} by user {current_user.username}')
+        
+        # Start SSL generation in background thread
+        ssl_thread = threading.Thread(target=run_ssl_generation, args=(domain, email))
+        ssl_thread.daemon = True
+        ssl_thread.start()
+        
+        return jsonify({
+            'success': True,
+            'message': 'SSL generation started'
+        })
+        
+    except Exception as e:
+        logger.error(f'Error starting SSL generation: {str(e)}')
+        return jsonify({
+            'error': f'Internal server error: {str(e)}'
+        }), 500
+
+def run_certbot_installation():
+    """Run Certbot installation in background with real-time output"""
+    try:
+        # Emit progress update
+        socketio.emit('certbot_install_progress', {
+            'status': 'Updating package list...',
+            'step': '1/3',
+            'progress': 20
+        })
+        
+        # Update package list first
+        socketio.emit('certbot_install_output', {
+            'message': 'Running apt update...',
+            'type': 'info'
+        })
+        
+        update_process = subprocess.Popen(
+            ['apt', 'update'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+            bufsize=1
+        )
+        
+        # Stream update output
+        for line in iter(update_process.stdout.readline, ''):
+            if line.strip():
+                socketio.emit('certbot_install_output', {
+                    'message': line.strip(),
+                    'type': 'info'
+                })
+        
+        update_process.wait()
+        
+        if update_process.returncode != 0:
+            socketio.emit('certbot_install_complete', {
+                'success': False,
+                'error': 'Failed to update package list'
+            })
+            return
+        
+        # Emit progress update
+        socketio.emit('certbot_install_progress', {
+            'status': 'Installing Certbot...',
+            'step': '2/3',
+            'progress': 50
+        })
+        
+        # Install certbot and python3-certbot-nginx
+        socketio.emit('certbot_install_output', {
+            'message': 'Installing certbot python3-certbot-nginx...',
+            'type': 'info'
+        })
+        
+        install_process = subprocess.Popen(
+            ['apt', 'install', 'certbot', 'python3-certbot-nginx', '-y'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+            bufsize=1
+        )
+        
+        # Stream installation output
+        for line in iter(install_process.stdout.readline, ''):
+            if line.strip():
+                socketio.emit('certbot_install_output', {
+                    'message': line.strip(),
+                    'type': 'info'
+                })
+        
+        install_process.wait()
+        
+        # Emit progress update
+        socketio.emit('certbot_install_progress', {
+            'status': 'Finalizing installation...',
+            'step': '3/3',
+            'progress': 90
+        })
+        
+        if install_process.returncode == 0:
+            logger.info('Certbot installed successfully')
+            socketio.emit('certbot_install_complete', {
+                'success': True,
+                'message': 'Certbot installed successfully'
+            })
+        else:
+            logger.error('Failed to install Certbot')
+            socketio.emit('certbot_install_complete', {
+                'success': False,
+                'error': 'Failed to install Certbot'
+            })
+        
+    except Exception as e:
+        logger.error(f'Error installing Certbot: {str(e)}')
+        socketio.emit('certbot_install_complete', {
+            'success': False,
+            'error': f'Internal server error: {str(e)}'
+        })
+
+@app.route('/api/certbot/install', methods=['POST'])
+@login_required
+def install_certbot():
+    """Install Certbot and python3-certbot-nginx with real-time output"""
+    try:
+        logger.info(f'Installing Certbot by user {current_user.username}')
+        
+        # Start installation in background thread
+        install_thread = threading.Thread(target=run_certbot_installation)
+        install_thread.daemon = True
+        install_thread.start()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Installation started'
+        })
+        
+    except Exception as e:
+        logger.error(f'Error starting Certbot installation: {str(e)}')
+        return jsonify({
+            'error': f'Internal server error: {str(e)}'
         }), 500
 
 if __name__ == '__main__':

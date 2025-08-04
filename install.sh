@@ -43,7 +43,7 @@ autorestart=true
 killasgroup=true
 stopasgroup=true
 
-[program:gunicorn]
+[program:slemp]
 command=/opt/venv/bin/gunicorn app:app --chdir /var/www/panel --bind 0.0.0.0:5000 --worker-class eventlet --workers 1 --timeout 300
 autostart=true
 autorestart=true
@@ -51,6 +51,6 @@ EOF
 
 supervisorctl reread
 supervisorctl update
-supervisorctl start gunicorn
+supervisorctl start slemp
 
 echo "===> Setup complete!"
