@@ -272,7 +272,7 @@ def get_network_data():
                 interface_info = {
                     'name': interface_name,
                     'is_up': stats.isup,
-                    'speed': stats.speed if stats.speed > 0 else 'Unknown',
+                    'speed': f'{stats.speed} Mbps' if stats.speed > 0 else 'Auto-negotiate',
                     'mtu': stats.mtu
                 }
                 
@@ -502,10 +502,10 @@ def handle_install_service(data):
                         socketio.emit('install_output', {'output': '$ pkill mysqld', 'type': 'command'})
                         subprocess.run(['pkill', 'mysqld'], capture_output=True, text=True, timeout=10)
                         
-                        # Restart gunicorn to reload database configuration
+                        # Restart SLEMP to reload database configuration
                         socketio.emit('install_output', {'output': 'Merestart aplikasi untuk memuat konfigurasi database baru...', 'type': 'info'})
-                        socketio.emit('install_output', {'output': '$ supervisorctl restart gunicorn', 'type': 'command'})
-                        subprocess.run(['supervisorctl', 'restart', 'gunicorn'], capture_output=True, text=True, timeout=30)
+                        socketio.emit('install_output', {'output': '$ supervisorctl restart slemp', 'type': 'command'})
+                        subprocess.run(['supervisorctl', 'restart', 'slemp'], capture_output=True, text=True, timeout=30)
                         
                         # Restart MariaDB with supervisor
                         socketio.emit('install_output', {'output': '$ supervisorctl restart mariadb', 'type': 'command'})
@@ -565,7 +565,7 @@ def get_services_status():
             # Cek status proses hanya jika terinstall
             running = False
             pid = None
-            version = 'Not Installed' if not installed else 'N/A'
+            version = 'Not Installed' if not installed else 'Checking...'
             
             if installed:
                 status_cmd = subprocess.run(['pgrep', process_name], capture_output=True, text=True)
@@ -638,20 +638,13 @@ def start_service(service):
             subprocess.run(['chmod', '755', '/run/mysqld'], capture_output=True, text=True)
             result = subprocess.run(['supervisorctl', 'start', service_name], capture_output=True, text=True)
         else:
-            # For nginx and php-fpm, try supervisorctl first, then systemctl as fallback
+            # For nginx and php-fpm, use supervisorctl
             result = subprocess.run(['supervisorctl', 'start', service_name], capture_output=True, text=True)
         
         if result.returncode == 0:
             logger.info(f'Service {service_name} started successfully')
             return jsonify({'success': True, 'message': f'{service_name} berhasil dimulai'})
         else:
-            if service_name != 'mariadb':
-                # Fallback to systemctl for non-mariadb services
-                result = subprocess.run(['systemctl', 'start', service_name], capture_output=True, text=True)
-                if result.returncode == 0:
-                    logger.info(f'Service {service_name} started successfully via systemctl')
-                    return jsonify({'success': True, 'message': f'{service_name} berhasil dimulai'})
-            
             logger.error(f'Failed to start {service_name}: {result.stderr}')
             return jsonify({'success': False, 'message': f'Gagal memulai {service_name}: {result.stderr}'})
     except Exception as e:
@@ -676,20 +669,13 @@ def stop_service(service):
         if service_name == 'mariadb':
             result = subprocess.run(['supervisorctl', 'stop', service_name], capture_output=True, text=True)
         else:
-            # For nginx and php-fpm, try supervisorctl first, then systemctl as fallback
+            # For nginx and php-fpm, use supervisorctl
             result = subprocess.run(['supervisorctl', 'stop', service_name], capture_output=True, text=True)
         
         if result.returncode == 0:
             logger.info(f'Service {service_name} stopped successfully')
             return jsonify({'success': True, 'message': f'{service_name} berhasil dihentikan'})
         else:
-            if service_name != 'mariadb':
-                # Fallback to systemctl for non-mariadb services
-                result = subprocess.run(['systemctl', 'stop', service_name], capture_output=True, text=True)
-                if result.returncode == 0:
-                    logger.info(f'Service {service_name} stopped successfully via systemctl')
-                    return jsonify({'success': True, 'message': f'{service_name} berhasil dihentikan'})
-            
             logger.error(f'Failed to stop {service_name}: {result.stderr}')
             return jsonify({'success': False, 'message': f'Gagal menghentikan {service_name}: {result.stderr}'})
     except Exception as e:
@@ -730,9 +716,8 @@ def install_service(service):
             elif service == 'mysql':
                 system_service_name = 'mariadb'  # Adjust for MariaDB service name
                 
-            logger.info(f'Stopping and disabling newly installed system service: {system_service_name}')
-            subprocess.run(['systemctl', 'stop', system_service_name], capture_output=True, text=True)
-            subprocess.run(['systemctl', 'disable', system_service_name], capture_output=True, text=True)
+            logger.info(f'Stopping newly installed system service: {system_service_name}')
+            # Note: In containerized environment with supervisor, we don't need to stop/disable system services
             
             # Start the service using supervisorctl
             if service_name != 'mariadb-server':
@@ -1270,10 +1255,380 @@ def update_php_config():
             config.write(f)
 
         # Restart PHP-FPM
-        subprocess.run(['sudo', 'systemctl', 'restart', 'php-fpm'])
+        subprocess.run(['supervisorctl', 'restart', 'php-fpm'])
 
         return jsonify({'message': 'PHP configuration updated successfully'})
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/php/toggle-module', methods=['POST'])
+@login_required
+def toggle_php_module():
+    """Toggle PHP module - install if not installed, then enable/disable"""
+    try:
+        data = request.get_json()
+        module_name = data.get('module')
+        action = data.get('action')  # 'enable' or 'disable'
+        
+        if not module_name or not action:
+            return jsonify({'error': 'Module name and action are required'}), 400
+            
+        # Check if module is installed or available
+        # For core modules like OpenSSL, check if they're available in PHP
+        if module_name.lower() == 'openssl':
+            check_cmd = "php -m | grep -i openssl"
+            result = subprocess.run(check_cmd, shell=True, capture_output=True, text=True)
+            module_installed = result.returncode == 0
+        else:
+            check_cmd = f"dpkg -l | grep -E 'php.*{module_name}'"
+            result = subprocess.run(check_cmd, shell=True, capture_output=True, text=True)
+            module_installed = result.returncode == 0
+        
+        if action == 'enable':
+            # If module is not installed, install it first
+            if not module_installed:
+                # Special handling for OpenSSL - it's usually built into PHP core
+                if module_name.lower() == 'openssl':
+                    # Check if OpenSSL is already available in PHP
+                    check_openssl_cmd = "php -m | grep -i openssl"
+                    openssl_result = subprocess.run(check_openssl_cmd, shell=True, capture_output=True, text=True)
+                    if openssl_result.returncode == 0:
+                        # OpenSSL is already available, just enable it
+                        pass
+                    else:
+                        return jsonify({
+                            'error': 'OpenSSL module is not available. It should be compiled into PHP core. Please check your PHP installation.'
+                        }), 500
+                else:
+                    # Special module name mappings
+                    module_mappings = {
+                        'pdo_mysql': 'mysql',
+                        'pdo_pgsql': 'pgsql',
+                        'pdo_sqlite': 'sqlite3',
+                        'mysqli': 'mysql'
+                    }
+                    
+                    # Get the actual package name
+                    actual_module = module_mappings.get(module_name, module_name)
+                    
+                    # Try different naming conventions for PHP modules
+                    module_variants = [
+                        f"php-{actual_module}",
+                        f"php8.1-{actual_module}",
+                        f"php8.2-{actual_module}",
+                        f"php8.3-{actual_module}"
+                    ]
+                    
+                    installed = False
+                    last_error = ""
+                    for variant in module_variants:
+                        try:
+                            install_cmd = f"apt-get update && apt-get install {variant} -y"
+                            install_result = subprocess.run(install_cmd, shell=True, capture_output=True, text=True)
+                            if install_result.returncode == 0:
+                                installed = True
+                                break
+                            else:
+                                last_error = install_result.stderr or install_result.stdout
+                        except Exception as e:
+                            last_error = str(e)
+                            continue
+                    
+                    if not installed:
+                        return jsonify({
+                            'error': f'Failed to install module {module_name}. Last error: {last_error}'
+                        }), 500
+            
+            # Enable the module in php.ini
+            php_ini_path = '/etc/php/8.1/fpm/php.ini'  # Adjust path as needed
+            if os.path.exists(php_ini_path):
+                with open(php_ini_path, 'r') as f:
+                    content = f.read()
+                
+                extension_line = f"extension={module_name}"
+                if extension_line not in content:
+                    # Add extension to php.ini
+                    with open(php_ini_path, 'a') as f:
+                        f.write(f"\n{extension_line}\n")
+                
+                # Restart PHP-FPM
+                subprocess.run(['supervisorctl', 'restart', 'php-fpm'])
+                
+                return jsonify({
+                    'message': f'Module {module_name} enabled successfully',
+                    'installed': not module_installed,
+                    'enabled': True
+                })
+        
+        elif action == 'disable':
+            # Disable the module in php.ini
+            php_ini_path = '/etc/php/8.1/fpm/php.ini'  # Adjust path as needed
+            if os.path.exists(php_ini_path):
+                with open(php_ini_path, 'r') as f:
+                    lines = f.readlines()
+                
+                # Comment out or remove the extension line
+                with open(php_ini_path, 'w') as f:
+                    for line in lines:
+                        if f"extension={module_name}" in line and not line.strip().startswith(';'):
+                            f.write(f";{line}")
+                        else:
+                            f.write(line)
+                
+                # Restart PHP-FPM
+                subprocess.run(['supervisorctl', 'restart', 'php-fpm'])
+                
+                return jsonify({
+                    'message': f'Module {module_name} disabled successfully',
+                    'enabled': False
+                })
+        
+        return jsonify({'error': 'Invalid action'}), 400
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/php/modules', methods=['GET'])
+@login_required
+def get_php_modules():
+    """Get PHP modules status from system"""
+    try:
+        logger.info('Loading PHP modules information...')
+        
+        # First check if PHP is available
+        try:
+            php_check = subprocess.run(['php', '--version'], capture_output=True, text=True, timeout=5)
+            if php_check.returncode != 0:
+                logger.error('PHP is not available or not working properly')
+                return jsonify({'error': 'PHP is not available on this system'}), 500
+        except subprocess.TimeoutExpired:
+            logger.error('PHP version check timed out')
+            return jsonify({'error': 'PHP is not responding'}), 500
+        except FileNotFoundError:
+            logger.error('PHP command not found')
+            return jsonify({'error': 'PHP is not installed on this system'}), 500
+        except Exception as e:
+            logger.error(f'Error checking PHP availability: {str(e)}')
+            return jsonify({'error': f'Error checking PHP: {str(e)}'}), 500
+        
+        # Define common PHP modules
+        modules = [
+            {'name': 'bcmath', 'description': 'Arbitrary Precision Mathematics'},
+            {'name': 'calendar', 'description': 'Calendar conversion functions'},
+            {'name': 'curl', 'description': 'Client URL library'},
+            {'name': 'dom', 'description': 'Document Object Model'},
+            {'name': 'exif', 'description': 'Exchangeable image information'},
+            {'name': 'fileinfo', 'description': 'File information'},
+            {'name': 'ftp', 'description': 'File Transfer Protocol'},
+            {'name': 'gd', 'description': 'Image processing'},
+            {'name': 'gettext', 'description': 'GNU gettext'},
+            {'name': 'iconv', 'description': 'Character set conversion'},
+            {'name': 'intl', 'description': 'Internationalization'},
+            {'name': 'json', 'description': 'JavaScript Object Notation'},
+            {'name': 'mbstring', 'description': 'Multibyte string'},
+            {'name': 'mysqli', 'description': 'MySQL Improved'},
+            {'name': 'mysqlnd', 'description': 'MySQL Native Driver'},
+            {'name': 'opcache', 'description': 'Zend OPcache'},
+            {'name': 'openssl', 'description': 'OpenSSL'},
+            {'name': 'pcre', 'description': 'Perl Compatible Regular Expressions'},
+            {'name': 'pdo', 'description': 'PHP Data Objects'},
+            {'name': 'pdo_mysql', 'description': 'PDO MySQL driver'},
+            {'name': 'phar', 'description': 'PHP Archive'},
+            {'name': 'posix', 'description': 'POSIX functions'},
+            {'name': 'readline', 'description': 'GNU Readline'},
+            {'name': 'session', 'description': 'Session handling'},
+            {'name': 'simplexml', 'description': 'SimpleXML'},
+            {'name': 'soap', 'description': 'SOAP'},
+            {'name': 'sockets', 'description': 'Socket functions'},
+            {'name': 'sodium', 'description': 'Sodium cryptography'},
+            {'name': 'sqlite3', 'description': 'SQLite3'},
+            {'name': 'tokenizer', 'description': 'Tokenizer'},
+            {'name': 'xml', 'description': 'XML Parser'},
+            {'name': 'xmlreader', 'description': 'XMLReader'},
+            {'name': 'xmlwriter', 'description': 'XMLWriter'},
+            {'name': 'xsl', 'description': 'XSL'},
+            {'name': 'zip', 'description': 'Zip'},
+            {'name': 'zlib', 'description': 'Zlib compression'}
+        ]
+        
+        # Core modules that are typically compiled into PHP and don't need separate installation
+        core_modules = ['openssl', 'json', 'pcre', 'session', 'tokenizer', 'zlib', 'phar', 'posix', 'sodium']
+        
+        # Check which modules are actually enabled
+        result = []
+        for module in modules:
+            module_name = module['name']
+            
+            # For core modules, check if they're enabled in PHP (they're usually compiled in)
+            if module_name in core_modules:
+                # Core modules are typically always "installed" if PHP is installed
+                installed = True
+            else:
+                # Check if module is installed (package exists)
+                check_installed_cmd = f"dpkg -l | grep -E 'php.*{module_name}'"
+                installed_result = subprocess.run(check_installed_cmd, shell=True, capture_output=True, text=True)
+                installed = installed_result.returncode == 0
+            
+            # Check if module is enabled in PHP
+            enabled = False
+            if installed:
+                try:
+                    # Check if extension is loaded in PHP
+                    check_enabled_cmd = f"php -m | grep -i '^{module_name}$'"
+                    enabled_result = subprocess.run(check_enabled_cmd, shell=True, capture_output=True, text=True, timeout=10)
+                    enabled = enabled_result.returncode == 0
+                except subprocess.TimeoutExpired:
+                    logger.warning(f'Timeout checking PHP module {module_name}')
+                    enabled = False
+                except Exception as e:
+                    logger.warning(f'Error checking PHP module {module_name}: {str(e)}')
+                    enabled = False
+            
+            result.append({
+                'name': module_name,
+                'description': module['description'],
+                'installed': installed,
+                'enabled': enabled
+            })
+        
+        logger.info(f'Successfully loaded {len(result)} PHP modules')
+        return jsonify({'modules': result})
+        
+    except Exception as e:
+        logger.error(f'Error in get_php_modules: {str(e)}')
+        return jsonify({'error': f'Failed to load PHP modules: {str(e)}'}), 500
+
+@app.route('/api/php/info', methods=['GET'])
+@login_required
+def get_php_info():
+    """Get PHP information including version, configuration, and loaded extensions"""
+    try:
+        logger.info('Loading PHP information...')
+        
+        # Check if PHP is available
+        try:
+            php_check = subprocess.run(['php', '--version'], capture_output=True, text=True, timeout=10)
+            if php_check.returncode != 0:
+                return jsonify({'error': 'PHP is not available or not working properly'}), 500
+        except subprocess.TimeoutExpired:
+            logger.warning('Timeout checking PHP availability')
+            return jsonify({'error': 'PHP check timed out'}), 500
+        except FileNotFoundError:
+            logger.error('PHP not found')
+            return jsonify({'error': 'PHP is not installed'}), 500
+        except Exception as e:
+            logger.error(f'Error checking PHP availability: {str(e)}')
+            return jsonify({'error': f'Error checking PHP: {str(e)}'}), 500
+        
+        php_info = {}
+        
+        # Get PHP version
+        try:
+            version_result = subprocess.run(['php', '--version'], capture_output=True, text=True, timeout=10)
+            if version_result.returncode == 0:
+                version_line = version_result.stdout.split('\n')[0]
+                php_info['version'] = version_line.split(' ')[1] if len(version_line.split(' ')) > 1 else 'Unable to detect'
+            else:
+                php_info['version'] = 'Unable to detect'
+        except Exception as e:
+            logger.warning(f'Error getting PHP version: {str(e)}')
+            php_info['version'] = 'Unable to detect'
+        
+        # Get system information
+        try:
+            import platform
+            php_info['system'] = f"{platform.system()} {platform.machine()}"
+        except Exception:
+            php_info['system'] = 'Unable to detect'
+        
+        # Get build date from PHP
+        try:
+            build_date_result = subprocess.run(['php', '-r', 'echo "Build Date: " . phpversion();'], capture_output=True, text=True, timeout=10)
+            if build_date_result.returncode == 0:
+                # Try to get actual build date from phpinfo
+                phpinfo_result = subprocess.run(['php', '-r', 'ob_start(); phpinfo(); $info = ob_get_contents(); ob_end_clean(); if (preg_match("/Build Date => (.+)/", $info, $matches)) { echo $matches[1]; } else { echo date("M d Y H:i:s"); }'], capture_output=True, text=True, timeout=10)
+                if phpinfo_result.returncode == 0 and phpinfo_result.stdout.strip():
+                    php_info['build_date'] = phpinfo_result.stdout.strip()
+                else:
+                    php_info['build_date'] = 'Unable to detect'
+            else:
+                php_info['build_date'] = 'Unable to detect'
+        except Exception as e:
+            logger.warning(f'Error getting PHP build date: {str(e)}')
+            php_info['build_date'] = 'Unable to detect'
+        
+        # Get configuration file path
+        try:
+            config_result = subprocess.run(['php', '--ini'], capture_output=True, text=True, timeout=10)
+            if config_result.returncode == 0:
+                for line in config_result.stdout.split('\n'):
+                    if 'Loaded Configuration File:' in line:
+                        php_info['config_file'] = line.split(':', 1)[1].strip()
+                        break
+                else:
+                    php_info['config_file'] = '/etc/php/8.1/fpm/php.ini'
+            else:
+                php_info['config_file'] = '/etc/php/8.1/fpm/php.ini'
+        except Exception as e:
+            logger.warning(f'Error getting PHP config file: {str(e)}')
+            php_info['config_file'] = '/etc/php/8.1/fpm/php.ini'
+        
+        # Get server API
+        php_info['server_api'] = 'FPM/FastCGI'
+        
+        # Get PHP configuration values
+        try:
+            # Get memory limit
+            memory_result = subprocess.run(['php', '-r', 'echo ini_get("memory_limit");'], capture_output=True, text=True, timeout=10)
+            php_info['memory_limit'] = memory_result.stdout.strip() if memory_result.returncode == 0 else '128M'
+            
+            # Get max execution time
+            exec_time_result = subprocess.run(['php', '-r', 'echo ini_get("max_execution_time");'], capture_output=True, text=True, timeout=10)
+            exec_time = exec_time_result.stdout.strip() if exec_time_result.returncode == 0 else '30'
+            php_info['max_execution_time'] = f"{exec_time} seconds"
+            
+            # Get upload max filesize
+            upload_result = subprocess.run(['php', '-r', 'echo ini_get("upload_max_filesize");'], capture_output=True, text=True, timeout=10)
+            php_info['upload_max_filesize'] = upload_result.stdout.strip() if upload_result.returncode == 0 else '2M'
+            
+            # Get post max size
+            post_result = subprocess.run(['php', '-r', 'echo ini_get("post_max_size");'], capture_output=True, text=True, timeout=10)
+            php_info['post_max_size'] = post_result.stdout.strip() if post_result.returncode == 0 else '8M'
+            
+        except Exception as e:
+            logger.warning(f'Error getting PHP configuration values: {str(e)}')
+            php_info.update({
+                'memory_limit': '128M',
+                'max_execution_time': '30 seconds',
+                'upload_max_filesize': '2M',
+                'post_max_size': '8M'
+            })
+        
+        # Check OPcache status
+        try:
+            opcache_result = subprocess.run(['php', '-r', 'echo extension_loaded("opcache") ? "Enabled" : "Disabled";'], capture_output=True, text=True, timeout=10)
+            php_info['opcache'] = opcache_result.stdout.strip() if opcache_result.returncode == 0 else 'Unable to detect'
+        except Exception as e:
+            logger.warning(f'Error checking OPcache status: {str(e)}')
+            php_info['opcache'] = 'Unable to detect'
+        
+        # Get loaded extensions
+        try:
+            extensions_result = subprocess.run(['php', '-m'], capture_output=True, text=True, timeout=10)
+            if extensions_result.returncode == 0:
+                extensions = [ext.strip() for ext in extensions_result.stdout.split('\n') if ext.strip() and not ext.startswith('[')]
+                php_info['extensions'] = extensions
+            else:
+                php_info['extensions'] = []
+        except Exception as e:
+            logger.warning(f'Error getting PHP extensions: {str(e)}')
+            php_info['extensions'] = []
+        
+        logger.info('Successfully loaded PHP information')
+        return jsonify(php_info)
+        
+    except Exception as e:
+        logger.error(f'Error getting PHP info: {str(e)}')
         return jsonify({'error': str(e)}), 500
 
 # MySQL Database Management
@@ -1661,16 +2016,16 @@ def set_root_password():
             logger.warning(f'Failed to reinitialize connection pool: {str(e)}')
             connection_pool = None
         
-        # Restart gunicorn to reload database configuration
+        # Restart SLEMP to reload database configuration
         try:
-            logger.info('Restarting gunicorn to reload database configuration')
-            restart_result = subprocess.run(['supervisorctl', 'restart', 'gunicorn'], capture_output=True, text=True, timeout=30)
+            logger.info('Restarting SLEMP to reload database configuration')
+            restart_result = subprocess.run(['supervisorctl', 'restart', 'slemp'], capture_output=True, text=True, timeout=30)
             if restart_result.returncode == 0:
-                logger.info('Gunicorn restarted successfully')
+                logger.info('SLEMP restarted successfully')
             else:
-                logger.warning(f'Failed to restart gunicorn: {restart_result.stderr}')
+                logger.warning(f'Failed to restart SLEMP: {restart_result.stderr}')
         except Exception as e:
-            logger.warning(f'Error restarting gunicorn: {str(e)}')
+            logger.warning(f'Error restarting SLEMP: {str(e)}')
         
         logger.info('Root password changed successfully')
         return jsonify({'message': 'Password root MySQL berhasil diubah'})
@@ -1688,34 +2043,34 @@ def set_root_password():
 @app.route('/api/app/restart', methods=['POST'])
 @login_required
 def restart_app():
-    """Restart aplikasi Flask (gunicorn)"""
+    """Restart aplikasi Flask (SLEMP via gunicorn)"""
     
     try:
         app.logger.info(f"App restart initiated")
         
-        # Restart gunicorn menggunakan supervisorctl
+        # Restart SLEMP menggunakan supervisorctl
         result = subprocess.run(
-            ['supervisorctl', 'restart', 'gunicorn'],
+            ['supervisorctl', 'restart', 'slemp'],
             capture_output=True,
             text=True,
             timeout=15
         )
         
         if result.returncode == 0:
-            app.logger.info("Gunicorn restarted successfully")
+            app.logger.info("SLEMP restarted successfully")
             return jsonify({
                 'success': True,
                 'message': 'Aplikasi berhasil direstart'
             })
         else:
-            app.logger.error(f"Failed to restart gunicorn: {result.stderr}")
+            app.logger.error(f"Failed to restart SLEMP: {result.stderr}")
             return jsonify({
                 'success': False,
                 'message': f'Gagal restart aplikasi: {result.stderr}'
             }), 500
             
     except subprocess.TimeoutExpired:
-        app.logger.error("Timeout restarting gunicorn")
+        app.logger.error("Timeout restarting SLEMP")
         return jsonify({
             'success': False,
             'message': 'Timeout saat restart aplikasi'
@@ -2345,6 +2700,37 @@ def install_certbot():
             'error': f'Internal server error: {str(e)}'
         }), 500
 
+@app.route('/api/certbot/status', methods=['GET'])
+@login_required
+def check_certbot_status():
+    """Check if Certbot is installed"""
+    try:
+        # Check if certbot is installed
+        certbot_check = subprocess.run(['which', 'certbot'], capture_output=True, text=True)
+        certbot_installed = certbot_check.returncode == 0
+        
+        certbot_version = 'Not installed'
+        if certbot_installed:
+            try:
+                version_result = subprocess.run(['certbot', '--version'], capture_output=True, text=True)
+                if version_result.returncode == 0:
+                    certbot_version = version_result.stdout.strip()
+            except:
+                certbot_version = 'Installed (version unknown)'
+        
+        return jsonify({
+            'success': True,
+            'installed': certbot_installed,
+            'version': certbot_version
+        })
+        
+    except Exception as e:
+        logger.error(f'Error checking Certbot status: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': f'Internal server error: {str(e)}'
+        }), 500
+
 @app.route('/api/nginx/status')
 @login_required
 def nginx_status():
@@ -2367,7 +2753,7 @@ def nginx_status():
                 'total_requests': 0,
                 'server_load': '0%',
                 'uptime': 'Not running',
-                'version': 'Unknown',
+                'version': 'Unable to detect',
                 'worker_processes': 0,
                 'reading': 0,
                 'writing': 0,
@@ -2375,14 +2761,16 @@ def nginx_status():
             })
         
         # Get nginx version
-        nginx_version = 'Unknown'
+        nginx_version = 'Unable to detect'
         try:
-            result = subprocess.run(['nginx', '-v'], capture_output=True, text=True, stderr=subprocess.STDOUT)
+            result = subprocess.run(['nginx', '-v'], capture_output=True, text=True)
             if result.returncode == 0:
-                version_line = result.stdout.strip()
-                if 'nginx version:' in version_line:
-                    nginx_version = version_line.split('nginx version: ')[1].split()[0]
-        except:
+                # nginx -v outputs to stderr, not stdout
+                version_output = result.stderr.strip() if result.stderr else result.stdout.strip()
+                if 'nginx version:' in version_output:
+                    nginx_version = version_output.split('nginx version: ')[1].split()[0]
+        except Exception as e:
+            logger.warning(f'Failed to get nginx version: {str(e)}')
             pass
         
         # Get nginx status from stub_status if available
@@ -2421,7 +2809,7 @@ def nginx_status():
             pass
         
         # Get nginx uptime (approximate from process start time)
-        uptime = 'Unknown'
+        uptime = 'Unable to detect'
         try:
             result = subprocess.run(['pgrep', '-o', 'nginx'], capture_output=True, text=True)
             if result.returncode == 0:
@@ -2445,7 +2833,7 @@ def nginx_status():
         
         # Calculate requests per second (approximate)
         requests_per_sec = 0
-        if uptime != 'Unknown' and total_requests > 0:
+        if uptime != 'Unable to detect' and total_requests > 0:
             try:
                 # Parse uptime to get total seconds
                 uptime_parts = uptime.split()
@@ -2505,6 +2893,359 @@ def nginx_status():
             'writing': 0,
             'waiting': 0
         }), 500
+
+@socketio.on('install_php_module')
+def handle_install_php_module(data):
+    """Handle real-time PHP module installation via SocketIO"""
+    # Check if user is authenticated
+    if not current_user.is_authenticated:
+        emit('error', {'message': 'Authentication required'})
+        return
+    
+    module_name = data.get('module')
+    
+    if not module_name:
+        emit('php_module_install_error', {'message': 'Module name is required'})
+        return
+    
+    # Validate module name (basic security check)
+    if not re.match(r'^[a-zA-Z0-9_-]+$', module_name):
+        emit('php_module_install_error', {'message': 'Invalid module name'})
+        return
+    
+    def install_module_background():
+        try:
+            # Emit initial progress
+            socketio.emit('php_module_install_progress', {
+                'step': 1,
+                'total': 3,
+                'status': f'Memulai instalasi modul {module_name}...',
+                'percentage': 10
+            })
+            
+            socketio.emit('php_module_install_output', {
+                'output': f'Starting installation of PHP module: {module_name}',
+                'type': 'info'
+            })
+            
+            time.sleep(1)
+            
+            # Step 1: Update package list
+            socketio.emit('php_module_install_progress', {
+                'step': 1,
+                'total': 3,
+                'status': 'Updating package list...',
+                'percentage': 20
+            })
+            
+            socketio.emit('php_module_install_output', {
+                'output': 'Updating package repositories...',
+                'type': 'command'
+            })
+            
+            result = subprocess.run(['apt', 'update'], capture_output=True, text=True)
+            if result.returncode != 0:
+                socketio.emit('php_module_install_error', {
+                    'message': f'Failed to update package list: {result.stderr}'
+                })
+                return
+            
+            socketio.emit('php_module_install_output', {
+                'output': 'Package list updated successfully',
+                'type': 'success'
+            })
+            
+            time.sleep(1)
+            
+            # Step 2: Install the PHP module
+            socketio.emit('php_module_install_progress', {
+                'step': 2,
+                'total': 3,
+                'status': f'Installing php-{module_name}...',
+                'percentage': 50
+            })
+            
+            socketio.emit('php_module_install_output', {
+                'output': f'Installing php-{module_name}...',
+                'type': 'command'
+            })
+            
+            # Special module name mappings
+            module_mappings = {
+                'pdo_mysql': 'mysql',
+                'pdo_pgsql': 'pgsql',
+                'pdo_sqlite': 'sqlite3',
+                'mysqli': 'mysql'
+            }
+            
+            # Get the actual package name
+            actual_module = module_mappings.get(module_name, module_name)
+            
+            # Try different package naming conventions
+            package_names = [f'php-{actual_module}', f'php8.1-{actual_module}', f'php8.2-{actual_module}', f'php8.3-{actual_module}']
+            installed = False
+            
+            for package_name in package_names:
+                socketio.emit('php_module_install_output', {
+                    'output': f'Trying to install {package_name}...',
+                    'type': 'info'
+                })
+                
+                result = subprocess.run(['apt', 'install', '-y', package_name], capture_output=True, text=True)
+                if result.returncode == 0:
+                    socketio.emit('php_module_install_output', {
+                        'output': f'Successfully installed {package_name}',
+                        'type': 'success'
+                    })
+                    installed = True
+                    break
+                else:
+                    socketio.emit('php_module_install_output', {
+                        'output': f'Package {package_name} not found or failed to install',
+                        'type': 'warning'
+                    })
+            
+            if not installed:
+                socketio.emit('php_module_install_error', {
+                    'message': f'Failed to install PHP module {module_name}. Package not found.'
+                })
+                return
+            
+            time.sleep(1)
+            
+            # Step 3: Restart PHP-FPM
+            socketio.emit('php_module_install_progress', {
+                'step': 3,
+                'total': 3,
+                'status': 'Restarting PHP-FPM...',
+                'percentage': 80
+            })
+            
+            socketio.emit('php_module_install_output', {
+                'output': 'Restarting PHP-FPM service...',
+                'type': 'command'
+            })
+            
+            # Try to restart PHP-FPM using supervisorctl
+            result = subprocess.run(['supervisorctl', 'restart', 'php-fpm'], capture_output=True, text=True)
+            if result.returncode == 0:
+                socketio.emit('php_module_install_output', {
+                    'output': 'Successfully restarted php-fpm',
+                    'type': 'success'
+                })
+                restarted = True
+            else:
+                restarted = False
+            
+            if not restarted:
+                socketio.emit('php_module_install_output', {
+                    'output': 'Warning: Could not restart PHP-FPM automatically',
+                    'type': 'warning'
+                })
+            
+            # Complete
+            socketio.emit('php_module_install_progress', {
+                'step': 3,
+                'total': 3,
+                'status': 'Installation completed',
+                'percentage': 100
+            })
+            
+            socketio.emit('php_module_install_complete', {
+                'module': module_name,
+                'success': True
+            })
+            
+        except Exception as e:
+            logger.error(f'Error installing PHP module {module_name}: {str(e)}')
+            socketio.emit('php_module_install_error', {
+                'message': f'Installation failed: {str(e)}'
+            })
+    
+    # Start background thread
+    thread = threading.Thread(target=install_module_background)
+    thread.daemon = True
+    thread.start()
+    
+    # Immediately return to prevent blocking
+    progress_data = {'message': 'Instalasi modul PHP dimulai...', 'step': 1, 'total': 3, 'status': 'Instalasi dimulai...', 'percentage': 10}
+    logger.info(f'Emitting initial php_module_install_progress: {progress_data}')
+    emit('php_module_install_progress', progress_data)
+
+@app.route('/api/php/install-module', methods=['POST'])
+@login_required
+def install_php_module():
+    """Install PHP module with real-time progress via WebSocket"""
+    try:
+        data = request.get_json()
+        module_name = data.get('module')
+        
+        if not module_name:
+            return jsonify({'success': False, 'error': 'Module name is required'}), 400
+        
+        # Validate module name (basic security check)
+        if not re.match(r'^[a-zA-Z0-9_-]+$', module_name):
+            return jsonify({'success': False, 'error': 'Invalid module name'}), 400
+        
+        def install_module_background():
+            try:
+                # Emit initial progress
+                socketio.emit('php_module_install_progress', {
+                    'step': 1,
+                    'total': 3,
+                    'status': f'Memulai instalasi modul {module_name}...',
+                    'percentage': 10
+                })
+                
+                socketio.emit('php_module_install_output', {
+                    'output': f'Starting installation of PHP module: {module_name}',
+                    'type': 'info'
+                })
+                
+                time.sleep(1)
+                
+                # Step 1: Update package list
+                socketio.emit('php_module_install_progress', {
+                    'step': 1,
+                    'total': 3,
+                    'status': 'Updating package list...',
+                    'percentage': 20
+                })
+                
+                socketio.emit('php_module_install_output', {
+                    'output': 'Updating package repositories...',
+                    'type': 'command'
+                })
+                
+                result = subprocess.run(['apt', 'update'], capture_output=True, text=True)
+                if result.returncode != 0:
+                    socketio.emit('php_module_install_error', {
+                        'message': f'Failed to update package list: {result.stderr}'
+                    })
+                    return
+                
+                socketio.emit('php_module_install_output', {
+                    'output': 'Package list updated successfully',
+                    'type': 'success'
+                })
+                
+                time.sleep(1)
+                
+                # Step 2: Install the PHP module
+                socketio.emit('php_module_install_progress', {
+                    'step': 2,
+                    'total': 3,
+                    'status': f'Installing php-{module_name}...',
+                    'percentage': 50
+                })
+                
+                socketio.emit('php_module_install_output', {
+                    'output': f'Installing php-{module_name}...',
+                    'type': 'command'
+                })
+                
+                # Special module name mappings
+                module_mappings = {
+                    'pdo_mysql': 'mysql',
+                    'pdo_pgsql': 'pgsql',
+                    'pdo_sqlite': 'sqlite3',
+                    'mysqli': 'mysql'
+                }
+                
+                # Get the actual package name
+                actual_module = module_mappings.get(module_name, module_name)
+                
+                # Try different package naming conventions
+                package_names = [f'php-{actual_module}', f'php8.1-{actual_module}', f'php8.2-{actual_module}', f'php8.3-{actual_module}']
+                installed = False
+                
+                for package_name in package_names:
+                    socketio.emit('php_module_install_output', {
+                        'output': f'Trying to install {package_name}...',
+                        'type': 'info'
+                    })
+                    
+                    result = subprocess.run(['apt', 'install', '-y', package_name], capture_output=True, text=True)
+                    if result.returncode == 0:
+                        socketio.emit('php_module_install_output', {
+                            'output': f'Successfully installed {package_name}',
+                            'type': 'success'
+                        })
+                        installed = True
+                        break
+                    else:
+                        socketio.emit('php_module_install_output', {
+                            'output': f'Package {package_name} not found or failed to install',
+                            'type': 'warning'
+                        })
+                
+                if not installed:
+                    socketio.emit('php_module_install_error', {
+                        'message': f'Failed to install PHP module {module_name}. Package not found.'
+                    })
+                    return
+                
+                time.sleep(1)
+                
+                # Step 3: Restart PHP-FPM
+                socketio.emit('php_module_install_progress', {
+                    'step': 3,
+                    'total': 3,
+                    'status': 'Restarting PHP-FPM...',
+                    'percentage': 80
+                })
+                
+                socketio.emit('php_module_install_output', {
+                    'output': 'Restarting PHP-FPM service...',
+                    'type': 'command'
+                })
+                
+                # Try to restart PHP-FPM using supervisorctl
+                result = subprocess.run(['supervisorctl', 'restart', 'php-fpm'], capture_output=True, text=True)
+                if result.returncode == 0:
+                    socketio.emit('php_module_install_output', {
+                        'output': 'Successfully restarted php-fpm',
+                        'type': 'success'
+                    })
+                    restarted = True
+                else:
+                    restarted = False
+                
+                if not restarted:
+                    socketio.emit('php_module_install_output', {
+                        'output': 'Warning: Could not restart PHP-FPM automatically',
+                        'type': 'warning'
+                    })
+                
+                # Complete
+                socketio.emit('php_module_install_progress', {
+                    'step': 3,
+                    'total': 3,
+                    'status': 'Installation completed',
+                    'percentage': 100
+                })
+                
+                socketio.emit('php_module_install_complete', {
+                    'module': module_name,
+                    'success': True
+                })
+                
+            except Exception as e:
+                logger.error(f'Error installing PHP module {module_name}: {str(e)}')
+                socketio.emit('php_module_install_error', {
+                    'message': f'Installation failed: {str(e)}'
+                })
+        
+        # Start background thread
+        thread = threading.Thread(target=install_module_background)
+        thread.daemon = True
+        thread.start()
+        
+        return jsonify({'success': True, 'message': 'Installation started'})
+        
+    except Exception as e:
+        logger.error(f'Error starting PHP module installation: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)

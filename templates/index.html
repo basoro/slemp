@@ -335,7 +335,7 @@
                             <button onclick="editNginxConfig()" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                 Nginx Config
                             </button>
-                            <button onclick="installCertbot()" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                            <button id="certbot-install-btn" onclick="installCertbot()" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                                 </svg>
@@ -542,258 +542,16 @@
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700" id="php-modules-list">
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">bcmath</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">Arbitrary Precision Mathematics</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2">Enabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" checked onchange="togglePhpModule('bcmath', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">calendar</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">Calendar conversion functions</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2">Enabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" checked onchange="togglePhpModule('calendar', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">curl</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">Client URL library</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2">Enabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" checked onchange="togglePhpModule('curl', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">exif</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">Exchangeable image information</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 mr-2">Disabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" onchange="togglePhpModule('exif', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">fileinfo</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">File Information</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2">Enabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" checked onchange="togglePhpModule('fileinfo', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">ftp</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">FTP client</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 mr-2">Disabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" onchange="togglePhpModule('ftp', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">gd</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">Image Processing and GD</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2">Enabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" checked onchange="togglePhpModule('gd', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">gettext</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">Gettext</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 mr-2">Disabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" onchange="togglePhpModule('gettext', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">gmp</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">GNU Multiple Precision</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 mr-2">Disabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" onchange="togglePhpModule('gmp', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">iconv</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">iconv character set conversion</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2">Enabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" checked onchange="togglePhpModule('iconv', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">intl</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">Internationalization</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2">Enabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" checked onchange="togglePhpModule('intl', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">mbstring</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">Multibyte string</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2">Enabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" checked onchange="togglePhpModule('mbstring', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">mysqli</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">MySQL Improved Extension</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2">Enabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" checked onchange="togglePhpModule('mysqli', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">opcache</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">OPcache</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2">Enabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" checked onchange="togglePhpModule('opcache', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">openssl</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">OpenSSL</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2">Enabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" checked onchange="togglePhpModule('openssl', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">pdo_mysql</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">MySQL driver for PDO</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2">Enabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" checked onchange="togglePhpModule('pdo_mysql', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">redis</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">Redis PHP extension</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 mr-2">Disabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" onchange="togglePhpModule('redis', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">zip</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">Zip archive</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-                                                <div class="flex items-center justify-end">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2">Enabled</span>
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" class="sr-only peer" checked onchange="togglePhpModule('zip', this.checked)">
-                                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        <!-- Modules will be loaded dynamically -->
+
+
+
+
                                     </tbody>
                                 </table>
                             </div>
                             
-                            <div class="mt-4 flex justify-between items-center">
-                                <button onclick="installModule()" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                    </svg>
-                                    Install Module
-                                </button>
-                                <button onclick="applyModuleChanges()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                    Apply Changes
-                                </button>
-                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -1627,6 +1385,93 @@
                 cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 
                 showNotification(`Instalasi gagal: ${data.message}`, 'error');
+            });
+            
+            // PHP Module Installation Events
+            socket.on('php_module_install_progress', (data) => {
+                console.log('Received php_module_install_progress:', data);
+                updatePhpModuleInstallProgress(data.step, data.total, data.status, data.percentage);
+            });
+            
+            socket.on('php_module_install_output', (data) => {
+                console.log('Received php_module_install_output:', data);
+                addPhpModuleInstallOutput(data.output, data.type || 'info');
+            });
+            
+            socket.on('php_module_install_complete', (data) => {
+                console.log('Received php_module_install_complete:', data);
+                addPhpModuleInstallOutput(`✅ Modul ${data.module} berhasil diinstall!`, 'success');
+                updatePhpModuleInstallProgress(3, 3, 'Instalasi selesai', 100);
+                
+                // Re-enable close buttons
+                const closeBtn = document.getElementById('php-module-install-cancel-btn');
+                if (closeBtn) {
+                    closeBtn.textContent = 'Close';
+                    closeBtn.disabled = false;
+                    closeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                
+                showNotification(`Modul PHP ${data.module} berhasil diinstall!`, 'success');
+            });
+            
+            socket.on('php_module_install_error', (data) => {
+                console.log('Received php_module_install_error:', data);
+                addPhpModuleInstallOutput(`❌ Error: ${data.message}`, 'error');
+                
+                // Re-enable close buttons
+                const closeBtn = document.getElementById('php-module-install-cancel-btn');
+                if (closeBtn) {
+                    closeBtn.textContent = 'Close';
+                    closeBtn.disabled = false;
+                    closeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                
+                showNotification(`Instalasi modul PHP gagal: ${data.message}`, 'error');
+            });
+            
+            socket.on('php_module_install_output', (data) => {
+                console.log('Received php_module_install_output:', data);
+                addPhpModuleInstallOutput(data.output, data.type || 'info');
+            });
+            
+            socket.on('php_module_install_complete', (data) => {
+                console.log('Received php_module_install_complete:', data);
+                addPhpModuleInstallOutput(`✅ Modul PHP ${data.module} berhasil diinstall!`, 'success');
+                updatePhpModuleInstallProgress({
+                    step: 3,
+                    total: 3,
+                    status: 'Instalasi selesai',
+                    percentage: 100
+                });
+                
+                // Re-enable close buttons
+                const closeBtn = document.getElementById('php-module-install-close-btn');
+                const cancelBtn = document.getElementById('php-module-install-cancel-btn');
+                if (closeBtn) closeBtn.style.display = 'block';
+                if (cancelBtn) {
+                    cancelBtn.textContent = 'Close';
+                    cancelBtn.disabled = false;
+                    cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                
+                showNotification(`Modul PHP ${data.module} berhasil diinstall!`, 'success');
+            });
+            
+            socket.on('php_module_install_error', (data) => {
+                console.log('Received php_module_install_error:', data);
+                addPhpModuleInstallOutput(`❌ Error: ${data.message}`, 'error');
+                
+                // Re-enable close buttons
+                const closeBtn = document.getElementById('php-module-install-close-btn');
+                const cancelBtn = document.getElementById('php-module-install-cancel-btn');
+                if (closeBtn) closeBtn.style.display = 'block';
+                if (cancelBtn) {
+                    cancelBtn.textContent = 'Close';
+                    cancelBtn.disabled = false;
+                    cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                
+                showNotification('Instalasi modul PHP gagal', 'error');
             });
             
             // Request network data every 2 seconds
@@ -2679,6 +2524,7 @@
                 document.getElementById('nginx-section').classList.remove('hidden');
             } else if (sectionName === 'php') {
                 document.getElementById('php-section').classList.remove('hidden');
+                loadPhpModules();
             } else if (sectionName === 'mysql') {
                 document.getElementById('mysql-section').classList.remove('hidden');
                 document.getElementById('query-section').classList.remove('hidden');
@@ -4208,6 +4054,9 @@
                         addInstallOutput('Certbot installation completed successfully!', 'success');
                         updateCertbotProgress('Installation completed', '3/3', 100);
                         showNotification('Certbot installed successfully!', 'success');
+                        
+                        // Update the Certbot button status
+                        checkCertbotStatus();
                     } else {
                         addInstallOutput(`Installation failed: ${data.error}`, 'error');
                         updateCertbotProgress('Installation failed', '3/3', 100);
@@ -4338,6 +4187,48 @@
                 
                 <div class="flex justify-end space-x-3">
                     <button onclick="closeInstallModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" id="install-cancel-btn">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PHP Module Installation Progress Modal -->
+    <div id="php-module-install-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-[60]">
+        <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white" id="php-module-install-title">Installing PHP Module</h3>
+                    <button onclick="closePhpModuleInstallModal()" class="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100" id="php-module-install-close-btn">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Terminal-style output -->
+                <div class="mb-4">
+                    <div class="bg-black dark:bg-gray-900 rounded-lg p-4 h-80 overflow-y-auto font-mono text-sm" id="php-module-install-terminal">
+                        <div class="text-green-400" id="php-module-install-output">
+                            <!-- Installation output will appear here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progress indicator -->
+                <div class="mb-4">
+                    <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 mb-2">
+                        <span id="php-module-install-status">Memulai instalasi modul PHP...</span>
+                        <span id="php-module-install-step">0/3</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div class="bg-green-600 h-2 rounded-full transition-all duration-300" style="width: 0%" id="php-module-install-progress-bar"></div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button onclick="closePhpModuleInstallModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" id="php-module-install-cancel-btn">
                         Cancel
                     </button>
                 </div>
@@ -5470,74 +5361,132 @@ log_errors = On</textarea>
             }
         });
 
-        async function applyModuleChanges() {
-            if (!window.moduleChanges || Object.keys(window.moduleChanges).length === 0) {
-                showAlert('No changes to apply', 'Info');
-                return;
-            }
 
-            try {
-                const response = await fetch('/api/php/modules', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        modules: window.moduleChanges
-                    })
-                });
 
-                if (response.ok) {
-                    showAlert('PHP modules updated successfully', 'Sukses');
-                    window.moduleChanges = {};
-                } else {
-                    const error = await response.json();
-                    showAlert(error.error || 'Failed to update PHP modules', 'Error');
-                }
-            } catch (error) {
-                console.error('Error updating PHP modules:', error);
-                showAlert('Error updating PHP modules', 'Error');
-            }
-        }
-
-        async function installModule() {
+        // Function to install PHP module with real-time progress modal
+        async function installPhpModule() {
             const moduleName = await showModuleInstallDialog();
             if (!moduleName) return;
 
             // Show confirmation dialog
-            if (!(await showConfirm(`Apakah Anda yakin ingin menginstall modul PHP '${moduleName}'? Proses ini mungkin memakan waktu beberapa menit.`, 'Konfirmasi Install Modul'))) {
+            if (!(await showConfirm(`Apakah Anda yakin ingin menginstall modul PHP '${moduleName}'? Proses ini mungkin memakan waktu beberapa menit.`, 'Konfirmasi Install Modul PHP'))) {
                 return;
             }
 
             try {
-                // Show loading notification
-                showNotification(`Memulai instalasi modul ${moduleName}...`, 'info');
+                // Show PHP module installation modal
+                showPhpModuleInstallModal(moduleName);
                 
-                const response = await fetch('/api/php/install-module', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        module: moduleName
-                    })
-                });
-
-                if (response.ok) {
-                    showNotification(`Modul ${moduleName} berhasil diinstall!`, 'success');
-                    // Refresh the modules list
-                    setTimeout(() => {
-                        location.reload();
-                    }, 2000);
+                // Emit install_php_module event via WebSocket
+                if (socket && socket.connected) {
+                    socket.emit('install_php_module', { module: moduleName });
                 } else {
-                    const error = await response.json();
-                    showNotification(error.error || `Gagal menginstall modul ${moduleName}`, 'error');
+                    showNotification('WebSocket connection not available', 'error');
+                    closePhpModuleInstallModal();
                 }
             } catch (error) {
-                console.error('Error installing module:', error);
-                showNotification('Terjadi kesalahan saat menginstall modul', 'error');
+                console.error('Error starting PHP module installation:', error);
+                showNotification('PHP module installation failed to start', 'error');
+                closePhpModuleInstallModal();
             }
         }
+        
+        // Show PHP module installation modal
+        function showPhpModuleInstallModal(moduleName) {
+            const modal = document.getElementById('php-module-install-modal');
+            const title = document.getElementById('php-module-install-title');
+            const output = document.getElementById('php-module-install-output');
+            const status = document.getElementById('php-module-install-status');
+            const step = document.getElementById('php-module-install-step');
+            const progressBar = document.getElementById('php-module-install-progress-bar');
+            const closeBtn = document.getElementById('php-module-install-close-btn');
+            const cancelBtn = document.getElementById('php-module-install-cancel-btn');
+            
+            // Set modal title
+            title.textContent = `Installing PHP Module: ${moduleName}`;
+            
+            // Reset modal state
+            output.innerHTML = '';
+            status.textContent = 'Memulai instalasi modul PHP...';
+            step.textContent = '0/3';
+            progressBar.style.width = '0%';
+            
+            // Disable close buttons during installation
+            closeBtn.style.display = 'none';
+            cancelBtn.textContent = 'Installing...';
+            cancelBtn.disabled = true;
+            cancelBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            // Show modal
+            modal.classList.remove('hidden');
+        }
+        
+        // Close PHP module installation modal
+        function closePhpModuleInstallModal() {
+            const modal = document.getElementById('php-module-install-modal');
+            const closeBtn = document.getElementById('php-module-install-close-btn');
+            const cancelBtn = document.getElementById('php-module-install-cancel-btn');
+            
+            // Re-enable close buttons
+            closeBtn.style.display = 'block';
+            cancelBtn.textContent = 'Close';
+            cancelBtn.disabled = false;
+            cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            
+            // Hide modal
+            modal.classList.add('hidden');
+        }
+        
+        // Add PHP module installation output to terminal
+        function addPhpModuleInstallOutput(message, type = 'info') {
+            const output = document.getElementById('php-module-install-output');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let colorClass = 'text-green-400';
+            let prefix = '';
+            
+            if (type === 'error') {
+                colorClass = 'text-red-400';
+                prefix = '❌ ';
+            } else if (type === 'warning') {
+                colorClass = 'text-yellow-400';
+                prefix = '⚠️  ';
+            } else if (type === 'success') {
+                colorClass = 'text-blue-400';
+                prefix = '✅ ';
+            } else if (type === 'command') {
+                colorClass = 'text-cyan-400';
+                prefix = '$ ';
+            }
+            
+            const line = document.createElement('div');
+            line.className = `${colorClass} mb-1`;
+            line.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> ${prefix}${message}`;
+            
+            output.appendChild(line);
+            
+            // Auto-scroll to bottom
+            const terminal = document.getElementById('php-module-install-terminal');
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+        
+        // Update PHP module installation progress
+        function updatePhpModuleInstallProgress(data) {
+            const status = document.getElementById('php-module-install-status');
+            const step = document.getElementById('php-module-install-step');
+            const progressBar = document.getElementById('php-module-install-progress-bar');
+            
+            if (status) status.textContent = data.status || 'Processing...';
+            if (step) step.textContent = `${data.step || 0}/${data.total || 3}`;
+            if (progressBar) progressBar.style.width = `${data.percentage || 0}%`;
+            
+            // Add output message
+            if (data.message) {
+                addPhpModuleInstallOutput(data.message, data.type || 'info');
+            }
+        }
+        
+
          
         // Show module installation dialog
         function showModuleInstallDialog() {
@@ -5644,25 +5593,114 @@ log_errors = On</textarea>
             }
         }
 
+        // Load PHP modules from API
+        async function loadPhpModules() {
+            try {
+                const response = await fetch('/api/php/modules');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const modulesList = document.getElementById('php-modules-list');
+                    modulesList.innerHTML = '';
+                    
+                    data.modules.forEach(module => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${module.name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${module.description}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
+                                <div class="flex items-center justify-end">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                        module.enabled ? 
+                                        'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 
+                                        'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                                    } mr-2">${module.enabled ? 'Enabled' : 'Disabled'}</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" class="sr-only peer" ${module.enabled ? 'checked' : ''} onchange="togglePhpModule('${module.name}', this.checked)">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                    </label>
+                                </div>
+                            </td>
+                        `;
+                        modulesList.appendChild(row);
+                    });
+                    
+                    // Initialize search functionality after loading modules
+                    initializeModuleSearch();
+                } else {
+                    showNotification(data.error || 'Failed to load PHP modules', 'error');
+                }
+            } catch (error) {
+                showNotification('Network error occurred while loading modules', 'error');
+            }
+        }
+
         // PHP Module Management
-        function togglePhpModule(moduleName, isEnabled) {
+        async function togglePhpModule(moduleName, isEnabled) {
             const moduleRow = document.querySelector(`input[onchange*="togglePhpModule('${moduleName}'"]`).closest('tr');
             const statusSpan = moduleRow.querySelector('span');
+            const toggleSwitch = moduleRow.querySelector('input[type="checkbox"]');
             
-            // Update status display
-            if (isEnabled) {
-                statusSpan.textContent = 'Enabled';
-                statusSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2';
-            } else {
-                statusSpan.textContent = 'Disabled';
-                statusSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 mr-2';
+            // Disable the toggle switch during processing
+            toggleSwitch.disabled = true;
+            
+            // Show loading state
+            statusSpan.textContent = isEnabled ? 'Enabling...' : 'Disabling...';
+            statusSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100 mr-2';
+            
+            try {
+                const response = await fetch('/api/php/toggle-module', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        module: moduleName,
+                        action: isEnabled ? 'enable' : 'disable'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Update status display on success
+                    if (isEnabled) {
+                        statusSpan.textContent = 'Enabled';
+                        statusSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2';
+                    } else {
+                        statusSpan.textContent = 'Disabled';
+                        statusSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 mr-2';
+                    }
+                    
+                    // Show success notification
+                    let message = result.message;
+                    if (result.installed) {
+                        message += ' (Module was installed automatically)';
+                    }
+                    showNotification(message, 'success');
+                } else {
+                    // Revert toggle switch on error
+                    toggleSwitch.checked = !isEnabled;
+                    statusSpan.textContent = !isEnabled ? 'Enabled' : 'Disabled';
+                    statusSpan.className = !isEnabled ? 
+                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2' :
+                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 mr-2';
+                    
+                    showNotification(result.error || 'Failed to toggle module', 'error');
+                }
+            } catch (error) {
+                // Revert toggle switch on error
+                toggleSwitch.checked = !isEnabled;
+                statusSpan.textContent = !isEnabled ? 'Enabled' : 'Disabled';
+                statusSpan.className = !isEnabled ? 
+                    'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 mr-2' :
+                    'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 mr-2';
+                
+                showNotification('Network error occurred', 'error');
+            } finally {
+                // Re-enable the toggle switch
+                toggleSwitch.disabled = false;
             }
-
-            // Store the change for later application
-            if (!window.moduleChanges) {
-                window.moduleChanges = {};
-            }
-            window.moduleChanges[moduleName] = isEnabled;
         }
 
         // Search functionality for PHP modules
@@ -5750,10 +5788,42 @@ log_errors = On</textarea>
                 });
         }
 
+        // Function to check Certbot installation status
+        async function checkCertbotStatus() {
+            try {
+                const response = await fetch('/api/certbot/status');
+                const data = await response.json();
+                
+                const certbotBtn = document.getElementById('certbot-install-btn');
+                if (certbotBtn && data.success) {
+                    if (data.installed) {
+                        // Certbot is installed - disable button and change text
+                        certbotBtn.disabled = true;
+                        certbotBtn.onclick = null;
+                        certbotBtn.className = 'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-gray-400 cursor-not-allowed';
+                        certbotBtn.innerHTML = `
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Certbot Installed
+                        `;
+                        certbotBtn.title = `Certbot is already installed: ${data.version}`;
+                    } else {
+                        // Certbot is not installed - keep button enabled
+                        certbotBtn.disabled = false;
+                        certbotBtn.className = 'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500';
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking Certbot status:', error);
+            }
+        }
+
         // Initialize search when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             initializeModuleSearch();
             loadNginxStatus();
+            checkCertbotStatus();
         });
     </script>
 
