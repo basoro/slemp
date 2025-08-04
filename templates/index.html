@@ -711,6 +711,12 @@
                                 <button onclick="document.getElementById('fileInput').click()" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                     Upload File
                                 </button>
+                                <button onclick="openTerminal()" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-gray-800 dark:bg-gray-600 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    Terminal
+                                </button>
                                 <input type="file" id="fileInput" class="hidden" onchange="uploadFile(this.files[0])">
                             </div>
                             <div class="text-sm text-gray-500 dark:text-gray-400 hidden sm:block" id="current-path">/</div>
@@ -5816,6 +5822,18 @@ log_errors = On</textarea>
                 }
             } catch (error) {
                 console.error('Error checking Certbot status:', error);
+            }
+        }
+
+        // Function to open terminal
+        function openTerminal() {
+            // Open terminal in a new window/tab
+            const terminalUrl = '/terminal';
+            const terminalWindow = window.open(terminalUrl, 'terminal', 'width=1000,height=600,scrollbars=yes,resizable=yes');
+            
+            if (!terminalWindow) {
+                // If popup was blocked, show notification
+                showNotification('Please allow popups to open terminal', 'info');
             }
         }
 

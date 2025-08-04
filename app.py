@@ -1,6 +1,6 @@
 from flask import Flask, render_template, jsonify, request, redirect, url_for, flash, send_file
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit, Namespace
 from werkzeug.security import generate_password_hash, check_password_hash
 import psutil
 import os
@@ -17,6 +17,12 @@ from logging.handlers import RotatingFileHandler
 import datetime
 import threading
 import time
+import pty
+import select
+import termios
+import struct
+import fcntl
+import signal
 
 # Konfigurasi logging 
 if not os.path.exists('logs'):
@@ -204,6 +210,11 @@ def change_password():
 @login_required
 def index():
     return render_template('index.html')
+
+@app.route('/terminal')
+@login_required
+def terminal():
+    return render_template('terminal.html')
 
 def format_uptime(seconds):
     """Format uptime seconds into human readable format"""
@@ -718,6 +729,8 @@ def install_service(service):
                 
             logger.info(f'Stopping newly installed system service: {system_service_name}')
             # Note: In containerized environment with supervisor, we don't need to stop/disable system services
+            subprocess.run(['systemctl', 'stop', system_service_name], capture_output=True, text=True)
+            subprocess.run(['systemctl', 'disable', system_service_name], capture_output=True, text=True)
             
             # Start the service using supervisorctl
             if service_name != 'mariadb-server':
@@ -3246,6 +3259,114 @@ def install_php_module():
     except Exception as e:
         logger.error(f'Error starting PHP module installation: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# Terminal namespace for handling terminal connections
+class TerminalNamespace(Namespace):
+    def __init__(self, namespace=None):
+        super().__init__(namespace)
+        self.terminals = {}
+    
+    def on_connect(self, sid=None, environ=None):
+        if sid is None:
+            sid = request.sid
+        print(f'Terminal client connected: {sid}')
+        # Start a new terminal session
+        try:
+            master, slave = pty.openpty()
+            
+            # Start bash in the terminal
+            pid = os.fork()
+            if pid == 0:
+                # Child process
+                os.setsid()
+                os.dup2(slave, 0)
+                os.dup2(slave, 1)
+                os.dup2(slave, 2)
+                os.close(master)
+                os.close(slave)
+                
+                # Set environment variables
+                os.environ['TERM'] = 'xterm-256color'
+                os.environ['PS1'] = '\[\033[01;32m\]slemp@container\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$ '
+                
+                # Execute bash
+                os.execvp('/bin/bash', ['/bin/bash'])
+            else:
+                # Parent process
+                os.close(slave)
+                
+                # Store terminal info
+                self.terminals[sid] = {
+                    'master': master,
+                    'pid': pid,
+                    'thread': None
+                }
+                
+                # Start reading thread
+                thread = threading.Thread(target=self._read_terminal, args=(sid, master))
+                thread.daemon = True
+                thread.start()
+                self.terminals[sid]['thread'] = thread
+                
+        except Exception as e:
+            print(f'Error starting terminal: {e}')
+            self.emit('error', str(e), room=sid)
+    
+    def on_disconnect(self, sid=None):
+        if sid is None:
+            sid = request.sid
+        print(f'Terminal client disconnected: {sid}')
+        if sid in self.terminals:
+            terminal = self.terminals[sid]
+            try:
+                # Kill the process
+                os.kill(terminal['pid'], signal.SIGTERM)
+                os.close(terminal['master'])
+            except:
+                pass
+            del self.terminals[sid]
+    
+    def on_terminal_input(self, data, sid=None):
+        if sid is None:
+            sid = request.sid
+        if sid in self.terminals:
+            try:
+                os.write(self.terminals[sid]['master'], data.encode('utf-8'))
+            except Exception as e:
+                print(f'Error writing to terminal: {e}')
+    
+    def on_terminal_resize(self, data, sid=None):
+        if sid is None:
+            sid = request.sid
+        if sid in self.terminals:
+            try:
+                # Set terminal size
+                cols = data.get('cols', 80)
+                rows = data.get('rows', 24)
+                
+                # Pack the window size
+                winsize = struct.pack('HHHH', rows, cols, 0, 0)
+                fcntl.ioctl(self.terminals[sid]['master'], termios.TIOCSWINSZ, winsize)
+            except Exception as e:
+                print(f'Error resizing terminal: {e}')
+    
+    def _read_terminal(self, sid, master):
+        while sid in self.terminals:
+            try:
+                # Use select to check if data is available
+                ready, _, _ = select.select([master], [], [], 0.1)
+                if ready:
+                    data = os.read(master, 1024)
+                    if data:
+                        self.emit('terminal_output', data.decode('utf-8', errors='ignore'), room=sid)
+                    else:
+                        break
+            except Exception as e:
+                print(f'Error reading from terminal: {e}')
+                break
+
+# Register the terminal namespace
+socketio.on_namespace(TerminalNamespace('/terminal'))
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)

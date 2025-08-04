@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal - SLEMP</title>
+    <script src="https://unpkg.com/xterm@4.19.0/lib/xterm.js"></script>
+    <script src="https://unpkg.com/xterm-addon-fit@0.5.0/lib/xterm-addon-fit.js"></script>
+    <script src="https://unpkg.com/xterm-addon-web-links@0.6.0/lib/xterm-addon-web-links.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/xterm@4.19.0/css/xterm.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+        .terminal-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .terminal-header {
+            background-color: #2d2d2d;
+            color: #ffffff;
+            padding: 10px 15px;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .terminal-title {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .terminal-controls {
+            display: flex;
+            gap: 10px;
+        }
+        .control-btn {
+            background: #444;
+            border: none;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .control-btn:hover {
+            background: #555;
+        }
+        .terminal-body {
+            flex: 1;
+            padding: 10px;
+        }
+        #terminal {
+            width: 100%;
+            height: 100%;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-connected {
+            background-color: #4ade80;
+        }
+        .status-disconnected {
+            background-color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-container">
+        <div class="terminal-header">
+            <div class="terminal-title">
+                <span id="status-indicator" class="status-indicator status-disconnected"></span>
+                SLEMP Terminal
+            </div>
+            <div class="terminal-controls">
+                <button class="control-btn" onclick="clearTerminal()">Clear</button>
+                <button class="control-btn" onclick="reconnectTerminal()">Reconnect</button>
+                <button class="control-btn" onclick="window.close()">Close</button>
+            </div>
+        </div>
+        <div class="terminal-body">
+            <div id="terminal"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize xterm.js
+        const terminal = new Terminal({
+            cursorBlink: true,
+            theme: {
+                background: '#1e1e1e',
+                foreground: '#ffffff',
+                cursor: '#ffffff',
+                selection: '#3e3e3e'
+            },
+            fontSize: 14,
+            fontFamily: 'Courier New, monospace'
+        });
+
+        // Add addons
+        const fitAddon = new FitAddon.FitAddon();
+        const webLinksAddon = new WebLinksAddon.WebLinksAddon();
+        terminal.loadAddon(fitAddon);
+        terminal.loadAddon(webLinksAddon);
+
+        // Open terminal
+        terminal.open(document.getElementById('terminal'));
+        fitAddon.fit();
+
+        // Socket.IO connection
+        let socket = null;
+        let isConnected = false;
+
+        function connectTerminal() {
+            socket = io('/terminal');
+            
+            socket.on('connect', function() {
+                console.log('Connected to terminal');
+                isConnected = true;
+                updateStatus(true);
+                terminal.writeln('\r\n\x1b[32mConnected to SLEMP Terminal\x1b[0m\r\n');
+            });
+
+            socket.on('disconnect', function() {
+                console.log('Disconnected from terminal');
+                isConnected = false;
+                updateStatus(false);
+                terminal.writeln('\r\n\x1b[31mDisconnected from terminal\x1b[0m\r\n');
+            });
+
+            socket.on('terminal_output', function(data) {
+                terminal.write(data);
+            });
+
+            socket.on('error', function(error) {
+                console.error('Terminal error:', error);
+                terminal.writeln('\r\n\x1b[31mTerminal error: ' + error + '\x1b[0m\r\n');
+            });
+        }
+
+        // Handle terminal input
+        terminal.onData(function(data) {
+            if (socket && isConnected) {
+                socket.emit('terminal_input', data);
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            fitAddon.fit();
+            if (socket && isConnected) {
+                socket.emit('terminal_resize', {
+                    cols: terminal.cols,
+                    rows: terminal.rows
+                });
+            }
+        });
+
+        // Update connection status
+        function updateStatus(connected) {
+            const indicator = document.getElementById('status-indicator');
+            if (connected) {
+                indicator.className = 'status-indicator status-connected';
+            } else {
+                indicator.className = 'status-indicator status-disconnected';
+            }
+        }
+
+        // Control functions
+        function clearTerminal() {
+            terminal.clear();
+        }
+
+        function reconnectTerminal() {
+            if (socket) {
+                socket.disconnect();
+            }
+            setTimeout(connectTerminal, 1000);
+        }
+
+        // Initialize connection
+        connectTerminal();
+
+        // Send initial resize
+        setTimeout(function() {
+            if (socket && isConnected) {
+                socket.emit('terminal_resize', {
+                    cols: terminal.cols,
+                    rows: terminal.rows
+                });
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
