@@ -2345,5 +2345,166 @@ def install_certbot():
             'error': f'Internal server error: {str(e)}'
         }), 500
 
+@app.route('/api/nginx/status')
+@login_required
+def nginx_status():
+    """Get Nginx status information"""
+    try:
+        # Check if nginx is running
+        nginx_running = False
+        try:
+            result = subprocess.run(['pgrep', 'nginx'], capture_output=True, text=True)
+            nginx_running = result.returncode == 0
+        except:
+            pass
+        
+        if not nginx_running:
+            return jsonify({
+                'success': False,
+                'error': 'Nginx is not running',
+                'active_connections': 0,
+                'requests_per_sec': 0,
+                'total_requests': 0,
+                'server_load': '0%',
+                'uptime': 'Not running',
+                'version': 'Unknown',
+                'worker_processes': 0,
+                'reading': 0,
+                'writing': 0,
+                'waiting': 0
+            })
+        
+        # Get nginx version
+        nginx_version = 'Unknown'
+        try:
+            result = subprocess.run(['nginx', '-v'], capture_output=True, text=True, stderr=subprocess.STDOUT)
+            if result.returncode == 0:
+                version_line = result.stdout.strip()
+                if 'nginx version:' in version_line:
+                    nginx_version = version_line.split('nginx version: ')[1].split()[0]
+        except:
+            pass
+        
+        # Get nginx status from stub_status if available
+        active_connections = 0
+        total_requests = 0
+        reading = 0
+        writing = 0
+        waiting = 0
+        
+        try:
+            # Try to get status from nginx stub_status module
+            result = subprocess.run(['curl', '-s', 'http://localhost/nginx_status'], 
+                                  capture_output=True, text=True, timeout=5)
+            if result.returncode == 0 and result.stdout:
+                lines = result.stdout.strip().split('\n')
+                for line in lines:
+                    if 'Active connections:' in line:
+                        active_connections = int(line.split(':')[1].strip())
+                    elif line.strip().isdigit() or ' ' in line.strip():
+                        # Parse requests line
+                        parts = line.strip().split()
+                        if len(parts) >= 3:
+                            total_requests = int(parts[2])
+                    elif 'Reading:' in line:
+                        # Parse Reading: X Writing: Y Waiting: Z
+                        parts = line.split()
+                        for i, part in enumerate(parts):
+                            if part == 'Reading:' and i + 1 < len(parts):
+                                reading = int(parts[i + 1])
+                            elif part == 'Writing:' and i + 1 < len(parts):
+                                writing = int(parts[i + 1])
+                            elif part == 'Waiting:' and i + 1 < len(parts):
+                                waiting = int(parts[i + 1])
+        except:
+            # If stub_status is not available, use default values
+            pass
+        
+        # Get nginx uptime (approximate from process start time)
+        uptime = 'Unknown'
+        try:
+            result = subprocess.run(['pgrep', '-o', 'nginx'], capture_output=True, text=True)
+            if result.returncode == 0:
+                pid = result.stdout.strip()
+                if pid:
+                    process = psutil.Process(int(pid))
+                    start_time = process.create_time()
+                    uptime_seconds = time.time() - start_time
+                    uptime = format_uptime(int(uptime_seconds))
+        except:
+            pass
+        
+        # Get worker processes count
+        worker_processes = 0
+        try:
+            result = subprocess.run(['pgrep', 'nginx'], capture_output=True, text=True)
+            if result.returncode == 0:
+                worker_processes = len(result.stdout.strip().split('\n'))
+        except:
+            pass
+        
+        # Calculate requests per second (approximate)
+        requests_per_sec = 0
+        if uptime != 'Unknown' and total_requests > 0:
+            try:
+                # Parse uptime to get total seconds
+                uptime_parts = uptime.split()
+                total_seconds = 0
+                for i, part in enumerate(uptime_parts):
+                    if 'day' in part and i > 0:
+                        total_seconds += int(uptime_parts[i-1]) * 86400
+                    elif 'hour' in part and i > 0:
+                        total_seconds += int(uptime_parts[i-1]) * 3600
+                    elif 'minute' in part and i > 0:
+                        total_seconds += int(uptime_parts[i-1]) * 60
+                    elif 'second' in part and i > 0:
+                        total_seconds += int(uptime_parts[i-1])
+                
+                if total_seconds > 0:
+                    requests_per_sec = round(total_requests / total_seconds, 2)
+            except:
+                pass
+        
+        # Calculate server load (simplified)
+        server_load = '0%'
+        try:
+            load_avg = psutil.getloadavg()[0]  # 1-minute load average
+            cpu_count = psutil.cpu_count()
+            load_percentage = (load_avg / cpu_count) * 100
+            server_load = f'{load_percentage:.1f}%'
+        except:
+            pass
+        
+        return jsonify({
+            'success': True,
+            'active_connections': active_connections,
+            'requests_per_sec': requests_per_sec,
+            'total_requests': total_requests,
+            'server_load': server_load,
+            'uptime': uptime,
+            'version': nginx_version,
+            'worker_processes': worker_processes,
+            'reading': reading,
+            'writing': writing,
+            'waiting': waiting
+        })
+        
+    except Exception as e:
+        logger.error(f'Error getting nginx status: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': f'Internal server error: {str(e)}',
+            'active_connections': 0,
+            'requests_per_sec': 0,
+            'total_requests': 0,
+            'server_load': '0%',
+            'uptime': 'Error',
+            'version': 'Error',
+            'worker_processes': 0,
+            'reading': 0,
+            'writing': 0,
+            'waiting': 0
+        }), 500
+
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)
