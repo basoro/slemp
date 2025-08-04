@@ -790,15 +790,71 @@ def uninstall_service(service):
             
             # Additional cleanup for specific services
             if service == 'nginx':
-                # Remove nginx configuration directories if they exist
-                config_dirs = ['/etc/nginx/sites-available', '/etc/nginx/sites-enabled']
-                for config_dir in config_dirs:
-                    if os.path.exists(config_dir):
-                        try:
-                            shutil.rmtree(config_dir)
-                            logger.info(f'Removed directory: {config_dir}')
-                        except Exception as e:
-                            logger.warning(f'Could not remove {config_dir}: {str(e)}')
+                # Stop nginx from supervisor first
+                try:
+                    subprocess.run(['supervisorctl', 'stop', 'nginx'], capture_output=True, text=True)
+                    logger.info('Stopped nginx via supervisorctl')
+                except Exception as e:
+                    logger.warning(f'Could not stop nginx via supervisorctl: {str(e)}')
+                
+                # Remove all nginx packages including modules
+                nginx_packages = [
+                    'nginx', 'nginx-core', 'nginx-common',
+                    'libnginx-mod-http-geoip2', 'libnginx-mod-http-image-filter',
+                    'libnginx-mod-http-xslt-filter', 'libnginx-mod-mail',
+                    'libnginx-mod-stream-geoip2', 'libnginx-mod-stream'
+                ]
+                
+                for package in nginx_packages:
+                    try:
+                        remove_pkg_result = subprocess.run(['apt-get', 'remove', '-y', package], capture_output=True, text=True)
+                        purge_pkg_result = subprocess.run(['apt-get', 'purge', '-y', package], capture_output=True, text=True)
+                        logger.info(f'Removed and purged package: {package}')
+                    except Exception as e:
+                        logger.warning(f'Could not remove package {package}: {str(e)}')
+                
+                # Remove nginx configuration directory completely
+                nginx_config_dir = '/etc/nginx'
+                if os.path.exists(nginx_config_dir):
+                    try:
+                        shutil.rmtree(nginx_config_dir)
+                        logger.info(f'Removed nginx configuration directory: {nginx_config_dir}')
+                    except Exception as e:
+                        logger.warning(f'Could not remove nginx config directory: {str(e)}')
+                
+                # Remove nginx log directory
+                nginx_log_dir = '/var/log/nginx'
+                if os.path.exists(nginx_log_dir):
+                    try:
+                        shutil.rmtree(nginx_log_dir)
+                        logger.info(f'Removed nginx log directory: {nginx_log_dir}')
+                    except Exception as e:
+                        logger.warning(f'Could not remove nginx log directory: {str(e)}')
+                
+                # Remove nginx cache directory
+                nginx_cache_dir = '/var/cache/nginx'
+                if os.path.exists(nginx_cache_dir):
+                    try:
+                        shutil.rmtree(nginx_cache_dir)
+                        logger.info(f'Removed nginx cache directory: {nginx_cache_dir}')
+                    except Exception as e:
+                        logger.warning(f'Could not remove nginx cache directory: {str(e)}')
+                
+                # Remove nginx lib directory
+                nginx_lib_dir = '/var/lib/nginx'
+                if os.path.exists(nginx_lib_dir):
+                    try:
+                        shutil.rmtree(nginx_lib_dir)
+                        logger.info(f'Removed nginx lib directory: {nginx_lib_dir}')
+                    except Exception as e:
+                        logger.warning(f'Could not remove nginx lib directory: {str(e)}')
+                
+                # Clean up any remaining nginx processes
+                try:
+                    subprocess.run(['pkill', '-f', 'nginx'], capture_output=True, text=True)
+                    logger.info('Killed any remaining nginx processes')
+                except Exception as e:
+                    logger.warning(f'Could not kill nginx processes: {str(e)}')
             
             elif service == 'mysql':
                 # Remove MySQL data directory if requested
