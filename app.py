@@ -558,6 +558,26 @@ stopasgroup=true\n"""
                     socketio.emit('install_output', {'output': '$ supervisorctl start mariadb', 'type': 'command'})
                     start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', 'mariadb'], 30)
                     
+                    # Reset MySQL root password
+                    if start_code == 0:
+                        socketio.emit('install_output', {'output': 'Mengatur ulang kata sandi root MySQL...', 'type': 'info'})
+                        socketio.emit('install_output', {'output': '$ mysql -u root -e "ALTER USER \'root\'@\'localhost\' IDENTIFIED BY \'\';"', 'type': 'command'})
+                        subprocess.run(['mysql', '-u', 'root', '-e', "ALTER USER 'root'@'localhost' IDENTIFIED BY '';"], capture_output=True, text=True, timeout=30)
+                        socketio.emit('install_output', {'output': '$ mysql -u root -e "FLUSH PRIVILEGES;"', 'type': 'command'})
+                        subprocess.run(['mysql', '-u', 'root', '-e', 'FLUSH PRIVILEGES;'], capture_output=True, text=True, timeout=30)
+                        
+                        # Restart SLEMP to reload database configuration
+                        socketio.emit('install_output', {'output': 'Restart SLEMP untuk reload konfigurasi database...', 'type': 'info'})
+                        socketio.emit('install_output', {'output': '$ supervisorctl restart slemp', 'type': 'command'})
+                        try:
+                            restart_result = subprocess.run(['supervisorctl', 'restart', 'slemp'], capture_output=True, text=True, timeout=30)
+                            if restart_result.returncode == 0:
+                                socketio.emit('install_output', {'output': 'SLEMP berhasil direstart', 'type': 'success'})
+                            else:
+                                socketio.emit('install_output', {'output': f'Gagal restart SLEMP: {restart_result.stderr}', 'type': 'error'})
+                        except Exception as e:
+                            socketio.emit('install_output', {'output': f'Error saat restart SLEMP: {str(e)}', 'type': 'error'})
+                    
                 elif service_name == 'pdns-server':
                     # PowerDNS specific configuration
                     socketio.emit('install_output', {'output': 'Mengkonfigurasi PowerDNS...', 'type': 'info'})
@@ -619,56 +639,11 @@ startretries=0\n"""
                     # UFW doesn't use supervisorctl start, it's managed differently
                     socketio.emit('install_output', {'output': 'UFW berhasil dikonfigurasi untuk supervisord', 'type': 'info'})
                     start_code = 0  # Set success code for UFW
-                elif service_name != 'mariadb-server':
+                else:
+                    # This should not happen as all services are now handled specifically
+                    socketio.emit('install_output', {'output': f'Layanan {service_name} tidak memiliki konfigurasi khusus', 'type': 'warning'})
                     socketio.emit('install_output', {'output': f'$ supervisorctl start {service}', 'type': 'command'})
                     start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', service], 30)
-                else:
-                    # For MariaDB, create socket directory first
-                    socketio.emit('install_output', {'output': 'Menyiapkan direktori socket MariaDB...', 'type': 'info'})
-                    socketio.emit('install_output', {'output': '$ mkdir -p /run/mysqld', 'type': 'command'})
-                    subprocess.run(['mkdir', '-p', '/run/mysqld'], capture_output=True, text=True, timeout=10)
-                    socketio.emit('install_output', {'output': '$ chown mysql:mysql /run/mysqld', 'type': 'command'})
-                    subprocess.run(['chown', 'mysql:mysql', '/run/mysqld'], capture_output=True, text=True, timeout=10)
-                    socketio.emit('install_output', {'output': '$ chmod 755 /run/mysqld', 'type': 'command'})
-                    subprocess.run(['chmod', '755', '/run/mysqld'], capture_output=True, text=True, timeout=10)
-                    # For MariaDB, use 'mariadb' as service name in supervisor
-                    socketio.emit('install_output', {'output': '$ supervisorctl start mariadb', 'type': 'command'})
-                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', 'mariadb'], 30)
-                    
-                    # Reset MySQL root password after MariaDB starts
-                    if start_code == 0:
-                        socketio.emit('install_output', {'output': 'Mengatur password root MySQL...', 'type': 'info'})
-                        
-                        # Start mysqld_safe with skip-grant-tables
-                        socketio.emit('install_output', {'output': '$ mysqld_safe --skip-grant-tables --skip-networking &', 'type': 'command'})
-                        subprocess.run(['mysqld_safe', '--skip-grant-tables', '--skip-networking'], capture_output=True, text=True, timeout=10)
-                        
-                        # Wait for mysqld_safe to start
-                        socketio.emit('install_output', {'output': '$ sleep 5', 'type': 'command'})
-                        subprocess.run(['sleep', '5'], capture_output=True, text=True, timeout=10)
-                        
-                        # Reset root password
-                        mysql_commands = "FLUSH PRIVILEGES;\nALTER USER 'root'@'localhost' IDENTIFIED BY '';\nFLUSH PRIVILEGES;"
-                        socketio.emit('install_output', {'output': '$ mysql -u root <<EOF', 'type': 'command'})
-                        socketio.emit('install_output', {'output': mysql_commands, 'type': 'info'})
-                        socketio.emit('install_output', {'output': 'EOF', 'type': 'command'})
-                        
-                        mysql_process = subprocess.Popen(['mysql', '-u', 'root'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                        mysql_output, mysql_error = mysql_process.communicate(input=mysql_commands, timeout=30)
-                        
-                        # Stop mysqld_safe before starting with supervisor
-                        socketio.emit('install_output', {'output': '$ pkill mysqld', 'type': 'command'})
-                        subprocess.run(['pkill', 'mysqld'], capture_output=True, text=True, timeout=10)
-                        
-                        # Restart SLEMP to reload database configuration
-                        socketio.emit('install_output', {'output': 'Merestart aplikasi untuk memuat konfigurasi database baru...', 'type': 'info'})
-                        socketio.emit('install_output', {'output': '$ supervisorctl restart slemp', 'type': 'command'})
-                        subprocess.run(['supervisorctl', 'restart', 'slemp'], capture_output=True, text=True, timeout=30)
-                        
-                        # Restart MariaDB with supervisor
-                        socketio.emit('install_output', {'output': '$ supervisorctl restart mariadb', 'type': 'command'})
-                        restart_code, restart_output = run_command_with_realtime_output(['supervisorctl', 'restart', 'mariadb'], 30)
-                        start_code = restart_code  # Use restart result for final status
                 
                 if start_code == 0:
                     socketio.emit('install_complete', {'message': f'{service_name} berhasil diinstall dan diaktifkan!', 'service': service})
@@ -1007,6 +982,23 @@ stopasgroup=true\n"""
                 
                 # Start MariaDB with supervisor
                 start_result = subprocess.run(['supervisorctl', 'start', 'mariadb'], capture_output=True, text=True)
+                
+                # Reset MySQL root password
+                if start_result.returncode == 0:
+                    logger.info('Resetting MySQL root password')
+                    subprocess.run(['mysql', '-u', 'root', '-e', "ALTER USER 'root'@'localhost' IDENTIFIED BY '';"], capture_output=True, text=True, timeout=30)
+                    subprocess.run(['mysql', '-u', 'root', '-e', 'FLUSH PRIVILEGES;'], capture_output=True, text=True, timeout=30)
+                    
+                    # Restart SLEMP to reload database configuration
+                    try:
+                        logger.info('Restarting SLEMP to reload database configuration')
+                        restart_result = subprocess.run(['supervisorctl', 'restart', 'slemp'], capture_output=True, text=True, timeout=30)
+                        if restart_result.returncode == 0:
+                            logger.info('SLEMP restarted successfully')
+                        else:
+                            logger.warning(f'Failed to restart SLEMP: {restart_result.stderr}')
+                    except Exception as e:
+                        logger.warning(f'Error restarting SLEMP: {str(e)}')
             elif service_name == 'pdns-server':
                 # PowerDNS specific configuration after installation
                 logger.info('Configuring PowerDNS after installation')
