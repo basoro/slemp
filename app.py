@@ -26,6 +26,40 @@ import struct
 import fcntl
 import signal
 
+# Environment detection
+def is_docker_environment():
+    """Detect if running in Docker container"""
+    try:
+        # Check for .dockerenv file
+        if os.path.exists('/.dockerenv'):
+            return True
+        # Check for Docker in cgroup
+        with open('/proc/1/cgroup', 'r') as f:
+            return 'docker' in f.read()
+    except:
+        return False
+
+def is_systemctl_available():
+    """Check if systemctl is available and functional"""
+    try:
+        result = subprocess.run(['which', 'systemctl'], capture_output=True, text=True)
+        return result.returncode == 0
+    except:
+        return False
+
+def safe_systemctl_command(command, service_name, capture_output=True, text=True, timeout=30):
+    """Safely execute systemctl commands only in production environment"""
+    if is_docker_environment() or not is_systemctl_available():
+        logger.info(f'Skipping systemctl {command} {service_name} - running in containerized environment or systemctl not available')
+        return None
+    
+    try:
+        return subprocess.run(['systemctl', command, service_name], 
+                            capture_output=capture_output, text=text, timeout=timeout)
+    except Exception as e:
+        logger.warning(f'Failed to execute systemctl {command} {service_name}: {str(e)}')
+        return None
+
 # Konfigurasi logging 
 if not os.path.exists('logs'):
     os.makedirs('logs')
@@ -472,18 +506,17 @@ def handle_install_service(data):
                 logger.info(f'Emitting install_progress: {progress_data}')
                 socketio.emit('install_progress', progress_data)
                 
-                # Stop and disable the newly installed system service
+                # Stop and disable the newly installed system service (only in production)
                 system_service_name = service_name
                 if service == 'php-fpm':
                     system_service_name = 'php8.1-fpm'  # Adjust for PHP-FPM service name
                 elif service == 'mysql':
                     system_service_name = 'mariadb'  # Adjust for MariaDB service name
                     
-                logger.info(f'Stopping newly installed system service: {system_service_name}')
+                # Stop and disable system service (safe for both Docker and production)
                 socketio.emit('install_output', {'output': f'Menghentikan layanan sistem: {system_service_name}', 'type': 'info'})
-                # Note: In containerized environment with supervisor, we don't need to stop/disable system services
-                subprocess.run(['systemctl', 'stop', system_service_name], capture_output=True, text=True)
-                subprocess.run(['systemctl', 'disable', system_service_name], capture_output=True, text=True)
+                safe_systemctl_command('stop', system_service_name)
+                safe_systemctl_command('disable', system_service_name)
                 
                 # Start the service using supervisorctl
                 progress_data = {'message': f'Memulai layanan {service_name}...', 'step': 4, 'total': 4, 'status': f'Memulai layanan {service_name}...', 'percentage': 100}
@@ -510,6 +543,10 @@ autorestart=true\n"""
                     socketio.emit('install_output', {'output': '$ supervisorctl update', 'type': 'command'})
                     subprocess.run(['supervisorctl', 'update'], capture_output=True, text=True, timeout=30)
                     
+                    # Stop and disable system service (only in production environment)
+                    safe_systemctl_command('stop', service_name)
+                    safe_systemctl_command('disable', service_name)
+
                     # Start Nginx with supervisor
                     socketio.emit('install_output', {'output': '$ supervisorctl start nginx', 'type': 'command'})
                     start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', 'nginx'], 30)
@@ -533,6 +570,10 @@ autorestart=true\n"""
                     socketio.emit('install_output', {'output': '$ supervisorctl update', 'type': 'command'})
                     subprocess.run(['supervisorctl', 'update'], capture_output=True, text=True, timeout=30)
                     
+                    logger.info(f'Skipping system service management for: {service_name}')
+                    socketio.emit('install_output', {'output': f'Melewati manajemen layanan sistem untuk: {service_name} (environment containerized)', 'type': 'info'})
+                    # Note: In containerized environment with supervisor, we don't need to stop/disable system services
+
                     # Start PHP-FPM with supervisor
                     socketio.emit('install_output', {'output': '$ supervisorctl start php-fpm', 'type': 'command'})
                     start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', 'php-fpm'], 30)
@@ -595,20 +636,17 @@ stopasgroup=true\n"""
                     # PowerDNS specific configuration
                     socketio.emit('install_output', {'output': 'Mengkonfigurasi PowerDNS...', 'type': 'info'})
 
-                    # Stop and disable newly installed PowerDNS system service
-                    socketio.emit('install_output', {'output': 'Menghentikan layanan sistem PowerDNS yang baru diinstal...', 'type': 'info'})
-                    socketio.emit('install_output', {'output': '$ systemctl stop pdns', 'type': 'command'})
-                    subprocess.run(['systemctl', 'stop', 'pdns'], capture_output=True, text=True)
-                    socketio.emit('install_output', {'output': '$ systemctl disable pdns', 'type': 'command'})
-                    subprocess.run(['systemctl', 'disable', 'pdns'], capture_output=True, text=True)
+                    # Stop and disable system service (only in production environment)
+                    safe_systemctl_command('stop', 'pdns')
+                    safe_systemctl_command('disable', 'pdns')
+                    safe_systemctl_command('stop', 'systemd-resolved')
 
                     # Disable DNSStubListener in resolved.conf
                     socketio.emit('install_output', {'output': '$ sed -i "s/^#DNSStubListener=.*/DNSStubListener=no/" /etc/systemd/resolved.conf', 'type': 'command'})
                     subprocess.run(['sed', '-i', 's/^#DNSStubListener=.*/DNSStubListener=no/', '/etc/systemd/resolved.conf'], capture_output=True, text=True, timeout=10)
 
-                    # Restart systemd-resolved to release 127.0.0.53
-                    socketio.emit('install_output', {'output': '$ systemctl restart systemd-resolved', 'type': 'command'})
-                    subprocess.run(['systemctl', 'restart', 'systemd-resolved'], capture_output=True, text=True, timeout=30)
+                    # Restart systemd-resolved (only in production environment)
+                    safe_systemctl_command('restart', 'systemd-resolved')
 
                     # Change /etc/resolv.conf symlink to /run/systemd/resolve/resolv.conf
                     socketio.emit('install_output', {'output': '$ ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf', 'type': 'command'})
@@ -622,8 +660,8 @@ stopasgroup=true\n"""
                         socketio.emit('install_output', {'output': '$ echo -e "\\n[Resolve]\\nDNS=8.8.8.8" >> /etc/systemd/resolved.conf', 'type': 'command'})
                         with open('/etc/systemd/resolved.conf', 'a') as f:
                             f.write('\n[Resolve]\nDNS=8.8.8.8\n')
-                        # Restart systemd-resolved again
-                        subprocess.run(['systemctl', 'restart', 'systemd-resolved'], capture_output=True, text=True, timeout=10)
+                        # Skip systemd-resolved restart in containerized environment
+                        socketio.emit('install_output', {'output': 'Skipping systemd-resolved restart - running in containerized environment', 'type': 'info'})
 
                     # Create PowerDNS zones directory
                     socketio.emit('install_output', {'output': '$ mkdir -p /var/lib/powerdns/zones', 'type': 'command'})
@@ -932,10 +970,9 @@ def install_service(service):
             elif service == 'mysql':
                 system_service_name = 'mariadb'  # Adjust for MariaDB service name
                 
-            logger.info(f'Stopping newly installed system service: {system_service_name}')
-            # Note: In containerized environment with supervisor, we don't need to stop/disable system services
-            subprocess.run(['systemctl', 'stop', system_service_name], capture_output=True, text=True)
-            subprocess.run(['systemctl', 'disable', system_service_name], capture_output=True, text=True)
+            # Stop and disable system service (only in production environment)
+            safe_systemctl_command('stop', system_service_name)
+            safe_systemctl_command('disable', system_service_name)
             
             # Start the service using supervisorctl
             if service_name == 'nginx':
@@ -1043,15 +1080,11 @@ stopasgroup=true\n"""
                 # PowerDNS specific configuration after installation
                 logger.info('Configuring PowerDNS after installation')
                 
-                # Stop and disable the newly installed PowerDNS system service
-                logger.info(f'Stopping newly installed system service: pdns')
-                # Note: In containerized environment with supervisor, we don't need to stop/disable system services
-                subprocess.run(['systemctl', 'stop', 'pdns'], capture_output=True, text=True)
-                subprocess.run(['systemctl', 'disable', 'pdns'], capture_output=True, text=True)
-                
-                # Stop and disable systemd-resolved
-                subprocess.run(['systemctl', 'stop', 'systemd-resolved'], capture_output=True, text=True)
-                subprocess.run(['systemctl', 'disable', 'systemd-resolved'], capture_output=True, text=True)
+                # Stop and disable PowerDNS and systemd-resolved services (production only)
+                safe_systemctl_command('stop', 'pdns')
+                safe_systemctl_command('disable', 'pdns')
+                safe_systemctl_command('stop', 'systemd-resolved')
+                safe_systemctl_command('disable', 'systemd-resolved')
                 
                 # Set DNS resolver to Google DNS
                 with open('/etc/resolv.conf', 'w') as f:
