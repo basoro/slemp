@@ -4331,6 +4331,28 @@
                         `;
                     }
                 }
+
+                // Update status PowerDNS
+                const dnsStatus = document.getElementById('dns-status');
+                const dnsButtons = document.querySelector('#dns-buttons');
+                if (dnsStatus && dnsButtons && data.powerdns) {
+                    if (data.powerdns.installed) {
+                        dnsStatus.textContent = `Status: ${data.powerdns.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.powerdns.version} | PID: ${data.powerdns.pid || 'N/A'}`;
+                        dnsStatus.className = `text-sm ${data.powerdns.running ? 'text-green-600' : 'text-red-600'}`;
+                        dnsButtons.innerHTML = `
+                            <button onclick="startService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
+                            <button onclick="stopService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
+                            <button onclick="uninstallService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Uninstall</button>
+                            <button onclick="showDnsManagerModal()" class="px-3 py-1 text-sm font-medium text-white bg-purple-600 rounded hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Manage</button>
+                        `;
+                    } else {
+                        dnsStatus.textContent = 'Status: Tidak Terinstall';
+                        dnsStatus.className = 'text-sm text-gray-500';
+                        dnsButtons.innerHTML = `
+                            <button onclick="installService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install PowerDNS</button>
+                        `;
+                    }
+                }
             } catch (error) {
                 console.error('Error updating service status:', error);
                 // Set status to error state
@@ -4924,12 +4946,18 @@
             return new Promise((resolve) => {
                 const modal = document.createElement('div');
                 modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+                
+                // Determine modal width based on content
+                const isWideContent = message.includes('<table') || message.includes('DNS Records');
+                const modalWidth = isWideContent ? 'w-11/12 md:w-5/6 lg:w-4/5 xl:w-3/4 max-w-7xl' : 'w-96';
+                const textAlign = isWideContent ? 'text-left' : 'text-center';
+                
                 modal.innerHTML = `
-                    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
-                        <div class="mt-3 text-center">
+                    <div class="relative top-10 mx-auto p-5 border ${modalWidth} shadow-lg rounded-md bg-white dark:bg-gray-800">
+                        <div class="mt-3 ${textAlign}">
                             <h3 class="text-lg font-medium text-gray-900 dark:text-white">${title}</h3>
                             <div class="mt-4">
-                                <p class="text-sm text-gray-600 dark:text-gray-300">${message}</p>
+                                <div class="text-sm text-gray-600 dark:text-gray-300">${message}</div>
                             </div>
                             <div class="flex justify-center mt-6">
                                 <button id="alertOkBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">OK</button>
@@ -5066,6 +5094,7 @@
         function showDnsManagerModal() {
             document.getElementById('dns-manager-modal').classList.remove('hidden');
             loadDomainList();
+            loadDefaultNameServers();
         }
 
         function hideDnsManagerModal() {
@@ -5116,51 +5145,325 @@
             document.querySelector(`[onclick="showDnsSection('${section}')"]`).classList.add('bg-blue-100', 'dark:bg-blue-900', 'text-blue-700', 'dark:text-blue-300');
         }
 
-        function loadDomainList() {
-            // Simulate loading domain list
-            const domainList = document.getElementById('domain-list');
-            domainList.innerHTML = `
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">atila.co.id</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">SOA</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-4">Details</button>
-                        <button class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 mr-4">Recovery</button>
-                        <button class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">rs-grestelina.com</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">SOA</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-4">Details</button>
-                        <button class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 mr-4">Recovery</button>
-                        <button class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">rumah-sakit.online</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">SOA</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-4">Details</button>
-                        <button class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 mr-4">Recovery</button>
-                        <button class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
-                    </td>
-                </tr>
-            `;
+        async function loadDomainList() {
+            try {
+                const response = await fetch('/api/powerdns/domains');
+                const data = await response.json();
+                
+                const domainList = document.getElementById('domain-list');
+                
+                if (data.success && data.domains.length > 0) {
+                    domainList.innerHTML = data.domains.map(domain => `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${domain}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">SOA</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button onclick="viewDomainRecords('${domain}')" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-4">Records</button>
+                                <button onclick="addDnsRecord('${domain}')" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 mr-4">Add Record</button>
+                                <button onclick="deleteDomain('${domain}')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    domainList.innerHTML = `
+                        <tr>
+                            <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                ${data.message || 'No domains found. Add your first domain to get started.'}
+                            </td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading domains:', error);
+                const domainList = document.getElementById('domain-list');
+                domainList.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="px-6 py-4 text-center text-sm text-red-500 dark:text-red-400">
+                            Error loading domains. Please check if PowerDNS is installed and running.
+                        </td>
+                    </tr>
+                `;
+            }
         }
 
-        function addDomainName() {
-            showAlert('Add domain functionality will be implemented', 'Info');
+        async function addDomainName() {
+            const domain = await showPrompt('Enter domain name:', '', 'Add Domain');
+            if (!domain) return;
+
+            try {
+                const response = await fetch('/api/powerdns/domain', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ domain: domain })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showAlert(`Domain ${domain} added successfully!`, 'Success');
+                    loadDomainList();
+                } else {
+                    showAlert(data.message || 'Failed to add domain', 'Error');
+                }
+            } catch (error) {
+                console.error('Error adding domain:', error);
+                showAlert('Error adding domain', 'Error');
+            }
         }
-        
-        // Close dropdown when clicking outside
+
+        async function deleteDomain(domain) {
+            if (!confirm(`Are you sure you want to delete domain ${domain}?`)) return;
+
+            try {
+                const response = await fetch('/api/powerdns/delete-domain', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ domain: domain })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showAlert(`Domain ${domain} deleted successfully!`, 'Success');
+                    loadDomainList();
+                } else {
+                    showAlert(data.message || 'Failed to delete domain', 'Error');
+                }
+            } catch (error) {
+                console.error('Error deleting domain:', error);
+                showAlert('Error deleting domain', 'Error');
+            }
+        }
+
+        async function addDnsRecord(domain) {
+            const name = await showPrompt('Enter record name (e.g., www, mail):', '', 'Add DNS Record');
+            if (!name) return;
+
+            const type = await showPrompt('Enter record type (A, CNAME, MX, TXT):', 'A', 'Record Type');
+            if (!type) return;
+
+            const content = await showPrompt('Enter record content (e.g., IP address):', '', 'Record Content');
+            if (!content) return;
+
+            try {
+                const response = await fetch('/api/powerdns/record', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        domain: domain,
+                        name: name,
+                        type: type,
+                        content: content
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showAlert(`DNS record added successfully!`, 'Success');
+                } else {
+                    showAlert(data.message || 'Failed to add DNS record', 'Error');
+                }
+            } catch (error) {
+                console.error('Error adding DNS record:', error);
+                showAlert('Error adding DNS record', 'Error');
+            }
+        }
+
+        async function viewDomainRecords(domain) {
+            try {
+                const response = await fetch(`/api/powerdns/list-records/${domain}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    let recordsHtml = `
+                        <div class="p-4">
+                            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">DNS Records for ${domain}</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <thead class="bg-gray-50 dark:bg-gray-800">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">TTL</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Content</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                    `;
+                    
+                    data.records.forEach(record => {
+                        recordsHtml += `
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${record.name}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${record.ttl}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                        record.type === 'A' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
+                                        record.type === 'NS' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
+                                        record.type === 'SOA' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' :
+                                        record.type === 'CNAME' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
+                                        record.type === 'MX' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' :
+                                        'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+                                    }">${record.type}</span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 break-all">${record.content}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    recordsHtml += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    
+                    showAlert(recordsHtml, 'Info');
+                } else {
+                    showAlert(data.message || 'Failed to get domain records', 'Error');
+                }
+            } catch (error) {
+                console.error('Error getting domain records:', error);
+                showAlert('Error getting domain records', 'Error');
+            }
+         }
+
+         async function restartPowerDNS() {
+             try {
+                 const response = await fetch('/api/service/powerdns/restart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+                 });
+
+                 const data = await response.json();
+                 if (data.success) {
+                     showAlert('PowerDNS restarted successfully!', 'Success');
+                 } else {
+                     showAlert(data.message || 'Failed to restart PowerDNS', 'Error');
+                 }
+             } catch (error) {
+                 console.error('Error restarting PowerDNS:', error);
+                 showAlert('Error restarting PowerDNS', 'Error');
+             }
+         }
+
+         async function checkPowerDNSStatus() {
+             try {
+                 const response = await fetch('/api/services/status');
+                 const data = await response.json();
+                 
+                 const statusDiv = document.getElementById('powerdns-status');
+                 const powerdnsStatus = data.powerdns;
+                 
+                 if (powerdnsStatus) {
+                     const statusColor = powerdnsStatus.running ? 'text-green-600' : 'text-red-600';
+                     const statusText = powerdnsStatus.running ? 'Running' : 'Stopped';
+                     const installedText = powerdnsStatus.installed ? 'Installed' : 'Not Installed';
+                     
+                     statusDiv.innerHTML = `
+                         <div class="space-y-2">
+                             <p class="text-sm"><span class="font-medium">Status:</span> <span class="${statusColor}">${statusText}</span></p>
+                             <p class="text-sm"><span class="font-medium">Installation:</span> ${installedText}</p>
+                             ${powerdnsStatus.version ? `<p class="text-sm"><span class="font-medium">Version:</span> ${powerdnsStatus.version}</p>` : ''}
+                             ${powerdnsStatus.pid ? `<p class="text-sm"><span class="font-medium">PID:</span> ${powerdnsStatus.pid}</p>` : ''}
+                         </div>
+                     `;
+                 } else {
+                     statusDiv.innerHTML = '<p class="text-sm text-red-600">PowerDNS status not available</p>';
+                 }
+             } catch (error) {
+                 console.error('Error checking PowerDNS status:', error);
+                 document.getElementById('powerdns-status').innerHTML = '<p class="text-sm text-red-600">Error checking status</p>';
+             }
+         }
+
+         async function loadPowerDNSLogs() {
+             try {
+                 const response = await fetch('/api/service/powerdns/logs', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                 });
+
+                 const data = await response.json();
+                 const logsDiv = document.getElementById('powerdns-logs');
+                 
+                 if (data.success) {
+                     logsDiv.innerHTML = data.logs.split('\n').map(line => `<div>${line}</div>`).join('');
+                     logsDiv.scrollTop = logsDiv.scrollHeight;
+                 } else {
+                     logsDiv.innerHTML = `<div class="text-red-400">${data.message || 'Failed to load logs'}</div>`;
+                 }
+             } catch (error) {
+                 console.error('Error loading PowerDNS logs:', error);
+                 document.getElementById('powerdns-logs').innerHTML = '<div class="text-red-400">Error loading logs</div>';
+             }
+         }
+         
+         async function saveDefaultNameServers() {
+             const nameserver1 = document.getElementById('nameserver1').value;
+             const nameserver2 = document.getElementById('nameserver2').value;
+             
+             if (!nameserver1 || !nameserver2) {
+                 showAlert('Please fill in both nameservers', 'Error');
+                 return;
+             }
+             
+             try {
+                 const response = await fetch('/api/powerdns/default-ns', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify({
+                         nameserver1: nameserver1,
+                         nameserver2: nameserver2
+                     })
+                 });
+                 
+                 const data = await response.json();
+                 
+                 if (data.success) {
+                     showAlert('Default name servers saved successfully', 'Success');
+                 } else {
+                     showAlert(data.message || 'Failed to save default name servers', 'Error');
+                 }
+             } catch (error) {
+                 console.error('Error saving default name servers:', error);
+                 showAlert('Error saving default name servers', 'Error');
+             }
+         }
+         
+         async function loadDefaultNameServers() {
+             try {
+                 const response = await fetch('/api/powerdns/default-ns', {
+                     method: 'GET',
+                     headers: {
+                         'Content-Type': 'application/json'
+                     }
+                 });
+                 
+                 const data = await response.json();
+                 
+                 if (data.success) {
+                     document.getElementById('nameserver1').value = data.nameserver1 || 'ns1.atila.co.id.';
+                     document.getElementById('nameserver2').value = data.nameserver2 || 'ns2.atila.co.id.';
+                 }
+             } catch (error) {
+                 console.error('Error loading default name servers:', error);
+             }
+         }
+         
+         // Close dropdown when clicking outside
         document.addEventListener('click', (event) => {
             const themeDropdown = document.getElementById('theme-dropdown-menu');
             const themeButton = document.getElementById('theme-toggle');
@@ -5173,17 +5476,19 @@
 
     <!-- DNS Manager Modal -->
     <div id="dns-manager-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-        <div class="relative top-4 mx-auto p-5 border w-11/12 md:w-5/6 lg:w-4/5 xl:w-3/4 shadow-lg rounded-md bg-white dark:bg-gray-800 min-h-[90vh]">
+        <div class="relative top-8 mx-auto p-4 border w-10/12 md:w-4/5 lg:w-3/5 xl:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800 min-h-[80vh]">
+            <!-- Close Button -->
+            <button onclick="hideDnsManagerModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100 z-10">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
             <div class="flex h-full">
                 <!-- Sidebar -->
                 <div class="w-64 bg-gray-50 dark:bg-gray-700 rounded-l-md p-4">
-                    <div class="flex justify-between items-center mb-6">
+                    <div class="mb-6">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white">DNS Manager</h3>
-                        <button onclick="hideDnsManagerModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
                     </div>
                     
                     <nav class="space-y-2">
@@ -5215,7 +5520,6 @@
                                 <button onclick="addDomainName()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                     Add domain name
                                 </button>
-                                <a href="#" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm">[Help]</a>
                             </div>
                         </div>
                         
@@ -5247,8 +5551,26 @@
                     <div id="default-ns-section" class="dns-section hidden">
                         <h4 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Default Name Servers</h4>
                         <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6">
-                            <p class="text-gray-600 dark:text-gray-400">Configure default name servers for new domains.</p>
-                            <!-- Add default NS configuration form here -->
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">NameServer 1</label>
+                                    <input type="text" id="nameserver1" value="" 
+                                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" 
+                                           placeholder="ns1.example.com">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">NameServer 2</label>
+                                    <input type="text" id="nameserver2" value="" 
+                                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" 
+                                           placeholder="ns2.example.com">
+                                </div>
+                                <div class="pt-4">
+                                    <button onclick="saveDefaultNameServers()" 
+                                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        Save
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -5256,8 +5578,25 @@
                     <div id="service-section" class="dns-section hidden">
                         <h4 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">PowerDNS Service</h4>
                         <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6">
-                            <p class="text-gray-600 dark:text-gray-400">Manage PowerDNS service configuration and status.</p>
-                            <!-- Add service management controls here -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Service Control</h5>
+                                    <div class="space-y-3">
+                                        <button onclick="restartPowerDNS()" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            Restart PowerDNS
+                                        </button>
+                                        <button onclick="checkPowerDNSStatus()" class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                            Check Status
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Service Status</h5>
+                                    <div id="powerdns-status" class="p-4 bg-gray-50 dark:bg-gray-700 rounded-md">
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Click 'Check Status' to view current status</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -5265,8 +5604,14 @@
                     <div id="logs-section" class="dns-section hidden">
                         <h4 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">DNS Logs</h4>
                         <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6">
-                            <p class="text-gray-600 dark:text-gray-400">View PowerDNS logs and query history.</p>
-                            <!-- Add logs display here -->
+                            <div class="mb-4">
+                                <button onclick="loadPowerDNSLogs()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    Refresh Logs
+                                </button>
+                            </div>
+                            <div id="powerdns-logs" class="bg-black dark:bg-gray-900 text-green-400 p-4 rounded-md h-96 overflow-y-auto font-mono text-sm">
+                                <p>Click 'Refresh Logs' to view PowerDNS logs...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -5276,17 +5621,19 @@
 
     <!-- Firewall Modal -->
     <div id="firewall-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-        <div class="relative top-4 mx-auto p-5 border w-11/12 md:w-5/6 lg:w-4/5 xl:w-3/4 shadow-lg rounded-md bg-white dark:bg-gray-800 min-h-[90vh]">
+        <div class="relative top-8 mx-auto p-4 border w-10/12 md:w-4/5 lg:w-3/5 xl:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800 min-h-[80vh]">
+            <!-- Close Button -->
+            <button onclick="hideFirewallModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100 z-10">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
             <div class="flex h-full">
                 <!-- Sidebar -->
                 <div class="w-64 bg-gray-50 dark:bg-gray-700 rounded-l-md p-4">
-                    <div class="flex justify-between items-center mb-6">
+                    <div class="mb-6">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white">Firewall Manager</h3>
-                        <button onclick="hideFirewallModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
                     </div>
                     
                     <nav class="space-y-2">
@@ -5318,7 +5665,6 @@
                                 <button onclick="addFirewallRule()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                     Add Rule
                                 </button>
-                                <a href="#" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm">[Help]</a>
                             </div>
                         </div>
                         

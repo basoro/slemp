@@ -379,7 +379,8 @@ def handle_install_service(data):
     service_map = {
         'nginx': 'nginx',
         'php-fpm': 'php-fpm',
-        'mysql': 'mariadb-server'
+        'mysql': 'mariadb-server',
+        'powerdns': 'pdns-server'
     }
 
     if service not in service_map:
@@ -574,6 +575,10 @@ def get_services_status():
                 # Check for MariaDB/MySQL
                 check_cmd = subprocess.run(['which', 'mysql'], capture_output=True, text=True)
                 installed = check_cmd.returncode == 0
+            elif service_name == 'powerdns':
+                # Check for PowerDNS
+                check_cmd = subprocess.run(['which', 'pdns_server'], capture_output=True, text=True)
+                installed = check_cmd.returncode == 0
             
             # Cek status proses hanya jika terinstall
             running = False
@@ -606,6 +611,19 @@ def get_services_status():
                     version_cmd = subprocess.run(['mysql', '--version'], capture_output=True, text=True)
                     if version_cmd.returncode == 0:
                         version = version_cmd.stdout.strip()
+                elif service_name == 'powerdns':
+                    version_cmd = subprocess.run(['pdns_server', '--version'], capture_output=True, text=True)
+                    # PowerDNS exits with code 99 but still outputs version info
+                    if version_cmd.returncode == 99 or version_cmd.returncode == 0:
+                        # Extract version from stderr (PowerDNS outputs to stderr)
+                        output = version_cmd.stderr.strip() if version_cmd.stderr else version_cmd.stdout.strip()
+                        if output:
+                            # Extract version number from the first line
+                            first_line = output.split('\n')[0]
+                            if 'PowerDNS Authoritative Server' in first_line:
+                                version = first_line
+                            else:
+                                version = output
 
             return {
                 'installed': installed,
@@ -625,7 +643,8 @@ def get_services_status():
     services = {
         'nginx': get_service_info('nginx'),
         'php_fpm': get_service_info('php-fpm'),
-        'mysql': get_service_info('mysql', 'mariadbd')
+        'mysql': get_service_info('mysql', 'mariadbd'),
+        'powerdns': get_service_info('powerdns', 'pdns_server')
     }
     return jsonify(services)
 
@@ -635,7 +654,8 @@ def start_service(service):
     service_map = {
         'nginx': 'nginx',
         'php-fpm': 'php-fpm',
-        'mysql': 'mariadb'
+        'mysql': 'mariadb',
+        'powerdns': 'pdns'
     }
 
     if service not in service_map:
@@ -670,7 +690,8 @@ def stop_service(service):
     service_map = {
         'nginx': 'nginx',
         'php-fpm': 'php-fpm',
-        'mysql': 'mariadb'
+        'mysql': 'mariadb',
+        'powerdns': 'pdns'
     }
 
     if service not in service_map:
@@ -701,7 +722,8 @@ def install_service(service):
     service_map = {
         'nginx': 'nginx',
         'php-fpm': 'php-fpm',
-        'mysql': 'mariadb-server'
+        'mysql': 'mariadb-server',
+        'powerdns': 'pdns-server'
     }
 
     if service not in service_map:
@@ -1641,6 +1663,482 @@ def toggle_php_module():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# PowerDNS specific endpoints
+@app.route('/api/service/<service>/restart', methods=['POST'])
+@login_required
+def restart_service(service):
+    """Restart a service"""
+    service_map = {
+        'nginx': 'nginx',
+        'php-fpm': 'php-fpm',
+        'mysql': 'mariadb',
+        'powerdns': 'pdns'
+    }
+
+    if service not in service_map:
+        return jsonify({'success': False, 'message': 'Layanan tidak valid'}), 400
+
+    try:
+        service_name = service_map[service]
+        logger.info(f'Restarting service {service_name}')
+        
+        # Stop the service first
+        stop_result = subprocess.run(['supervisorctl', 'stop', service_name], capture_output=True, text=True)
+        if stop_result.returncode != 0:
+            logger.warning(f'Failed to stop {service_name}: {stop_result.stderr}')
+        
+        # Wait a moment
+        time.sleep(2)
+        
+        # Start the service
+        if service_name == 'mariadb':
+            # For MariaDB, create socket directory first
+            subprocess.run(['mkdir', '-p', '/run/mysqld'], capture_output=True, text=True)
+            subprocess.run(['chown', 'mysql:mysql', '/run/mysqld'], capture_output=True, text=True)
+            subprocess.run(['chmod', '755', '/run/mysqld'], capture_output=True, text=True)
+        
+        start_result = subprocess.run(['supervisorctl', 'start', service_name], capture_output=True, text=True)
+        
+        if start_result.returncode == 0:
+            logger.info(f'Service {service_name} restarted successfully')
+            return jsonify({'success': True, 'message': f'{service_name} berhasil direstart'})
+        else:
+            logger.error(f'Failed to restart {service_name}: {start_result.stderr}')
+            return jsonify({'success': False, 'message': f'Gagal merestart {service_name}: {start_result.stderr}'})
+    except Exception as e:
+        logger.error(f'Error restarting {service}: {str(e)}')
+        return jsonify({'success': False, 'message': f'Terjadi kesalahan saat merestart {service}'}), 500
+
+@app.route('/api/service/<service>/logs', methods=['GET'])
+@login_required
+def get_service_logs(service):
+    """Get service logs"""
+    service_map = {
+        'nginx': '/var/log/nginx/error.log',
+        'php-fpm': '/var/log/php8.1-fpm.log',
+        'mysql': '/var/log/mysql/error.log',
+        'powerdns': '/var/log/pdns.log'
+    }
+
+    if service not in service_map:
+        return jsonify({'success': False, 'message': 'Layanan tidak valid'}), 400
+
+    try:
+        log_file = service_map[service]
+        lines = request.args.get('lines', 100, type=int)
+        
+        # Check if log file exists
+        if not os.path.exists(log_file):
+            return jsonify({'success': True, 'logs': f'Log file {log_file} tidak ditemukan'})
+        
+        # Get last N lines of log file
+        result = subprocess.run(['tail', '-n', str(lines), log_file], capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            return jsonify({'success': True, 'logs': result.stdout})
+        else:
+            return jsonify({'success': False, 'message': f'Gagal membaca log: {result.stderr}'})
+    except Exception as e:
+        logger.error(f'Error getting logs for {service}: {str(e)}')
+        return jsonify({'success': False, 'message': f'Terjadi kesalahan saat membaca log {service}'}), 500
+
+@app.route('/api/powerdns/domains', methods=['GET'])
+@login_required
+def list_powerdns_domains():
+    """List all domains in PowerDNS"""
+    try:
+        # Read domains from named.conf for bind backend
+        domains = []
+        named_conf_path = '/etc/powerdns/named.conf'
+        
+        if os.path.exists(named_conf_path):
+            with open(named_conf_path, 'r') as f:
+                content = f.read()
+                
+            # Extract domain names from zone declarations
+            import re
+            zone_pattern = r'zone\s+"([^"]+)"'
+            matches = re.findall(zone_pattern, content)
+            domains = matches
+        
+        return jsonify({'success': True, 'domains': domains})
+    except Exception as e:
+        logger.error(f'Error listing PowerDNS domains: {str(e)}')
+        return jsonify({'success': False, 'message': f'Terjadi kesalahan saat mendapatkan daftar domain'}), 500
+
+@app.route('/api/powerdns/domain', methods=['POST'])
+@login_required
+def add_powerdns_domain():
+    """Add a new domain to PowerDNS"""
+    try:
+        data = request.get_json()
+        domain = data.get('domain')
+        
+        if not domain:
+            return jsonify({'success': False, 'message': 'Domain name is required'}), 400
+        
+        # Create zone file
+        zone_file = f'/var/lib/powerdns/zones/{domain}.zone'
+        zone_content = f"""$ORIGIN {domain}.
+$TTL 3600
+@    IN    SOA    ns1.{domain}. admin.{domain}. (
+                {datetime.datetime.now().strftime('%Y%m%d01')}    ; Serial
+                3600          ; Refresh
+                1800          ; Retry
+                604800        ; Expire
+                86400 )       ; Minimum TTL
+
+@    IN    NS     ns1.{domain}.
+@    IN    NS     ns2.{domain}.
+@    IN    A      127.0.0.1
+www  IN    A      127.0.0.1
+ns1  IN    A      127.0.0.1
+ns2  IN    A      127.0.0.1
+"""
+        
+        # Write zone file
+        with open(zone_file, 'w') as f:
+            f.write(zone_content)
+        
+        # Set proper ownership
+        subprocess.run(['chown', 'pdns:pdns', zone_file], check=True)
+        
+        # Add zone to named.conf
+        zone_config = f'zone "{domain}" {{ type master; file "{zone_file}"; }};\n'
+        with open('/etc/powerdns/named.conf', 'a') as f:
+            f.write(zone_config)
+        
+        # Restart PowerDNS to load new zone
+        restart_result = subprocess.run(['supervisorctl', 'restart', 'pdns'], capture_output=True, text=True)
+        
+        if restart_result.returncode == 0:
+            logger.info(f'PowerDNS domain {domain} created successfully')
+            return jsonify({'success': True, 'message': f'Domain {domain} berhasil ditambahkan'})
+        else:
+            logger.error(f'Failed to restart PowerDNS after adding domain {domain}: {restart_result.stderr}')
+            return jsonify({'success': False, 'message': f'Domain ditambahkan tapi gagal restart PowerDNS: {restart_result.stderr}'})
+            
+    except Exception as e:
+        logger.error(f'Error adding PowerDNS domain: {str(e)}')
+        return jsonify({'success': False, 'message': f'Terjadi kesalahan saat menambahkan domain: {str(e)}'}), 500
+
+@app.route('/api/powerdns/default-ns', methods=['POST'])
+@login_required
+def save_default_nameservers():
+    """Save default name servers configuration"""
+    try:
+        data = request.get_json()
+        nameserver1 = data.get('nameserver1')
+        nameserver2 = data.get('nameserver2')
+        
+        if not nameserver1 or not nameserver2:
+            return jsonify({'success': False, 'message': 'Both nameservers are required'}), 400
+        
+        # Save to configuration file
+        config_file = '/etc/powerdns/default-ns.conf'
+        config_content = f"""# Default Name Servers Configuration
+# Generated on {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+NAMESERVER1={nameserver1}
+NAMESERVER2={nameserver2}
+"""
+        
+        with open(config_file, 'w') as f:
+            f.write(config_content)
+        
+        logger.info(f'Default name servers saved: {nameserver1}, {nameserver2}')
+        return jsonify({'success': True, 'message': 'Default name servers saved successfully'})
+        
+    except Exception as e:
+        logger.error(f'Error saving default name servers: {str(e)}')
+        return jsonify({'success': False, 'message': f'Error saving default name servers: {str(e)}'}), 500
+
+@app.route('/api/powerdns/default-ns', methods=['GET'])
+@login_required
+def get_default_nameservers():
+    """Get default name servers configuration"""
+    try:
+        config_file = '/etc/powerdns/default-ns.conf'
+        nameserver1 = 'ns1.atila.co.id.'
+        nameserver2 = 'ns2.atila.co.id.'
+        
+        # Read from configuration file if it exists
+        if os.path.exists(config_file):
+            with open(config_file, 'r') as f:
+                content = f.read()
+                for line in content.split('\n'):
+                    if line.startswith('NAMESERVER1='):
+                        nameserver1 = line.split('=', 1)[1]
+                    elif line.startswith('NAMESERVER2='):
+                        nameserver2 = line.split('=', 1)[1]
+        
+        return jsonify({
+            'success': True, 
+            'nameserver1': nameserver1,
+            'nameserver2': nameserver2
+        })
+        
+    except Exception as e:
+        logger.error(f'Error loading default name servers: {str(e)}')
+        return jsonify({'success': False, 'message': f'Error loading default name servers: {str(e)}'}), 500
+
+@app.route('/api/powerdns/record', methods=['POST'])
+@login_required
+def add_powerdns_record():
+    """Add a DNS record to PowerDNS"""
+    try:
+        data = request.get_json()
+        domain = data.get('domain')
+        name = data.get('name')
+        record_type = data.get('type')
+        content = data.get('content')
+        ttl = data.get('ttl', 3600)
+        
+        if not all([domain, name, record_type, content]):
+            return jsonify({'success': False, 'message': 'Domain, name, type, and content are required'}), 400
+        
+        # Validate IP address for A records
+        if record_type == 'A':
+            import ipaddress
+            try:
+                ipaddress.ip_address(content)
+            except ValueError:
+                return jsonify({'success': False, 'message': 'Invalid IP address format'}), 400
+        
+        # Add record directly to zone file for bind backend
+        zone_file = f'/var/lib/powerdns/zones/{domain}.zone'
+        if not os.path.exists(zone_file):
+            return jsonify({'success': False, 'message': f'Zone file for {domain} not found'}), 404
+        
+        # Read current zone file
+        with open(zone_file, 'r') as f:
+            zone_content = f.read()
+        
+        # Update serial number
+        import re
+        serial_pattern = r'(\d{10})\s*;\s*serial'
+        current_time = datetime.datetime.now().strftime('%Y%m%d%H')
+        new_serial = current_time
+        zone_content = re.sub(serial_pattern, f'{new_serial} ; serial', zone_content)
+        
+        # Add new record
+        record_name = name if name != '@' else ''
+        new_record = f'{record_name}\t{ttl}\tIN\t{record_type}\t{content}\n'
+        zone_content += new_record
+        
+        # Write updated zone file
+        with open(zone_file, 'w') as f:
+            f.write(zone_content)
+        
+        # Set proper ownership
+        subprocess.run(['chown', 'pdns:pdns', zone_file], capture_output=True)
+        
+        # Reload PowerDNS
+        reload_result = subprocess.run(['supervisorctl', 'restart', 'pdns'], capture_output=True, text=True)
+        
+        if reload_result.returncode == 0:
+            full_name = f'{name}.{domain}' if name != '@' else domain
+            logger.info(f'PowerDNS record {full_name} {record_type} {content} added successfully')
+            return jsonify({'success': True, 'message': f'Record {full_name} {record_type} berhasil ditambahkan'})
+        else:
+            logger.error(f'Failed to reload PowerDNS: {reload_result.stderr}')
+            return jsonify({'success': False, 'message': f'Record ditambahkan tapi gagal reload PowerDNS: {reload_result.stderr}'})
+    except Exception as e:
+        logger.error(f'Error adding PowerDNS record: {str(e)}')
+        return jsonify({'success': False, 'message': f'Terjadi kesalahan saat menambahkan record'}), 500
+
+@app.route('/api/powerdns/domain/<domain>/records', methods=['GET'])
+@login_required
+def list_powerdns_records(domain):
+    """List all records for a domain in PowerDNS"""
+    try:
+        # Read records directly from zone file for bind backend
+        zone_file = f'/var/lib/powerdns/zones/{domain}.zone'
+        
+        if not os.path.exists(zone_file):
+            return jsonify({'success': False, 'message': f'Zone file for {domain} not found'}), 404
+        
+        records = []
+        with open(zone_file, 'r') as f:
+            content = f.read()
+        
+        # Skip SOA record (multi-line)
+        lines = content.split('\n')
+        in_soa = False
+        
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith(';') or line.startswith('$'):
+                continue
+                
+            # Handle SOA record (multi-line)
+            if 'SOA' in line:
+                in_soa = True
+                continue
+            if in_soa and ')' in line:
+                in_soa = False
+                continue
+            if in_soa:
+                continue
+            
+            # Parse records - handle different formats
+            parts = line.split()
+            if len(parts) >= 3:
+                # Format: name [ttl] IN type content
+                # or: name IN type content
+                name = parts[0]
+                if name == '@':
+                    name = domain
+                elif not name.endswith('.'):
+                    name = f'{name}.{domain}' if name else domain
+                else:
+                    name = name.rstrip('.')
+                
+                # Check if TTL is present
+                if parts[1].isdigit() and len(parts) >= 4 and parts[2] == 'IN':
+                    # Format: name ttl IN type content
+                    ttl = parts[1]
+                    record_type = parts[3]
+                    content = ' '.join(parts[4:]) if len(parts) > 4 else ''
+                elif parts[1] == 'IN' and len(parts) >= 3:
+                    # Format: name IN type content
+                    ttl = '3600'
+                    record_type = parts[2]
+                    content = ' '.join(parts[3:]) if len(parts) > 3 else ''
+                else:
+                    continue
+                
+                records.append({
+                    'name': name,
+                    'ttl': ttl,
+                    'type': record_type,
+                    'content': content
+                })
+        
+        return jsonify({'success': True, 'records': records})
+    except Exception as e:
+        logger.error(f'Error listing PowerDNS records for {domain}: {str(e)}')
+        return jsonify({'success': False, 'message': f'Terjadi kesalahan saat mendapatkan records'}), 500
+
+@app.route('/api/powerdns/list-records/<domain>', methods=['GET'])
+@login_required
+def list_records_for_domain(domain):
+    """List all records for a domain in PowerDNS (alternative endpoint)"""
+    try:
+        # Read records directly from zone file for bind backend
+        zone_file = f'/var/lib/powerdns/zones/{domain}.zone'
+        
+        if not os.path.exists(zone_file):
+            return jsonify({'success': False, 'message': f'Zone file for {domain} not found'}), 404
+        
+        records = []
+        with open(zone_file, 'r') as f:
+            content = f.read()
+        
+        # Skip SOA record (multi-line)
+        lines = content.split('\n')
+        in_soa = False
+        
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith(';') or line.startswith('$'):
+                continue
+                
+            # Handle SOA record (multi-line)
+            if 'SOA' in line:
+                in_soa = True
+                continue
+            if in_soa and ')' in line:
+                in_soa = False
+                continue
+            if in_soa:
+                continue
+            
+            # Parse records - handle different formats
+            parts = line.split()
+            if len(parts) >= 3:
+                # Format: name [ttl] IN type content
+                # or: name IN type content
+                name = parts[0]
+                if name == '@':
+                    name = domain
+                elif not name.endswith('.'):
+                    name = f'{name}.{domain}' if name else domain
+                else:
+                    name = name.rstrip('.')
+                
+                # Check if TTL is present
+                if parts[1].isdigit() and len(parts) >= 4 and parts[2] == 'IN':
+                    # Format: name ttl IN type content
+                    ttl = parts[1]
+                    record_type = parts[3]
+                    content = ' '.join(parts[4:]) if len(parts) > 4 else ''
+                elif parts[1] == 'IN' and len(parts) >= 3:
+                    # Format: name IN type content
+                    ttl = '3600'
+                    record_type = parts[2]
+                    content = ' '.join(parts[3:]) if len(parts) > 3 else ''
+                else:
+                    continue
+                
+                records.append({
+                    'name': name,
+                    'ttl': ttl,
+                    'type': record_type,
+                    'content': content
+                })
+        
+        return jsonify({'success': True, 'records': records})
+    except Exception as e:
+        logger.error(f'Error listing PowerDNS records for {domain}: {str(e)}')
+        return jsonify({'success': False, 'message': f'Terjadi kesalahan saat mendapatkan records'}), 500
+
+@app.route('/api/powerdns/delete-domain', methods=['POST'])
+@login_required
+def delete_powerdns_domain():
+    """Delete a domain from PowerDNS"""
+    try:
+        data = request.get_json()
+        domain = data.get('domain')
+        
+        if not domain:
+            return jsonify({'success': False, 'message': 'Domain name is required'}), 400
+        
+        # Remove zone file
+        zone_file = f'/var/lib/powerdns/zones/{domain}.zone'
+        if os.path.exists(zone_file):
+            os.remove(zone_file)
+            logger.info(f'Removed zone file: {zone_file}')
+        
+        # Remove zone from named.conf
+        named_conf_path = '/etc/powerdns/named.conf'
+        if os.path.exists(named_conf_path):
+            with open(named_conf_path, 'r') as f:
+                content = f.read()
+            
+            # Remove zone declaration
+            import re
+            zone_pattern = rf'zone\s+"{re.escape(domain)}"\s*{{[^}}]*}};?\s*\n?'
+            content = re.sub(zone_pattern, '', content, flags=re.MULTILINE)
+            
+            with open(named_conf_path, 'w') as f:
+                f.write(content)
+            
+            logger.info(f'Removed zone {domain} from named.conf')
+        
+        # Restart PowerDNS to reload configuration
+        restart_result = subprocess.run(['supervisorctl', 'restart', 'pdns'], capture_output=True, text=True)
+        
+        if restart_result.returncode == 0:
+            logger.info(f'PowerDNS domain {domain} deleted successfully')
+            return jsonify({'success': True, 'message': f'Domain {domain} berhasil dihapus'})
+        else:
+            logger.error(f'Failed to restart PowerDNS after deleting domain {domain}: {restart_result.stderr}')
+            return jsonify({'success': False, 'message': f'Domain dihapus tapi gagal restart PowerDNS: {restart_result.stderr}'})
+            
+    except Exception as e:
+        logger.error(f'Error deleting PowerDNS domain: {str(e)}')
+        return jsonify({'success': False, 'message': f'Terjadi kesalahan saat menghapus domain: {str(e)}'}), 500
 
 @app.route('/api/php/modules', methods=['GET'])
 @login_required
