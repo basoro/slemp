@@ -1778,24 +1778,54 @@ def add_powerdns_domain():
         if not domain:
             return jsonify({'success': False, 'message': 'Domain name is required'}), 400
         
+        # Get default nameservers from configuration
+        config_file = '/etc/powerdns/default-ns.conf'
+        nameserver1 = 'ns1.atila.co.id.'
+        nameserver2 = 'ns2.atila.co.id.'
+        
+        # Read from configuration file if it exists
+        if os.path.exists(config_file):
+            with open(config_file, 'r') as f:
+                content = f.read()
+                for line in content.split('\n'):
+                    if line.startswith('NAMESERVER1='):
+                        nameserver1 = line.split('=', 1)[1]
+                    elif line.startswith('NAMESERVER2='):
+                        nameserver2 = line.split('=', 1)[1]
+        
+        # Check if domain is the same as nameserver top level domain
+        # Extract top level domain from nameservers
+        ns1_domain = nameserver1.rstrip('.')
+        ns2_domain = nameserver2.rstrip('.')
+        
+        # Get the top level domain from nameservers (e.g., ns1.atila.co.id -> atila.co.id)
+        ns1_tld = '.'.join(ns1_domain.split('.')[1:]) if '.' in ns1_domain else ns1_domain
+        ns2_tld = '.'.join(ns2_domain.split('.')[1:]) if '.' in ns2_domain else ns2_domain
+        
         # Create zone file
         zone_file = f'/var/lib/powerdns/zones/{domain}.zone'
         zone_content = f"""$ORIGIN {domain}.
 $TTL 3600
-@    IN    SOA    ns1.{domain}. admin.{domain}. (
+@    IN    SOA    {nameserver1} admin.{domain}. (
                 {datetime.datetime.now().strftime('%Y%m%d01')}    ; Serial
                 3600          ; Refresh
                 1800          ; Retry
                 604800        ; Expire
                 86400 )       ; Minimum TTL
 
-@    IN    NS     ns1.{domain}.
-@    IN    NS     ns2.{domain}.
+@    IN    NS     {nameserver1}
+@    IN    NS     {nameserver2}
 @    IN    A      127.0.0.1
 www  IN    A      127.0.0.1
-ns1  IN    A      127.0.0.1
-ns2  IN    A      127.0.0.1
 """
+        
+        # If domain matches nameserver top level domain, add A records for ns1 and ns2
+        if domain == ns1_tld or domain == ns2_tld:
+            ns1_subdomain = ns1_domain.split('.')[0]  # Extract 'ns1' from 'ns1.atila.co.id'
+            ns2_subdomain = ns2_domain.split('.')[0]  # Extract 'ns2' from 'ns2.atila.co.id'
+            
+            zone_content += f"{ns1_subdomain}  IN    A      127.0.0.1\n"
+            zone_content += f"{ns2_subdomain}  IN    A      127.0.0.1\n"
         
         # Write zone file
         with open(zone_file, 'w') as f:
@@ -2139,6 +2169,227 @@ def delete_powerdns_domain():
     except Exception as e:
         logger.error(f'Error deleting PowerDNS domain: {str(e)}')
         return jsonify({'success': False, 'message': f'Terjadi kesalahan saat menghapus domain: {str(e)}'}), 500
+
+@app.route('/api/powerdns/record/edit', methods=['POST'])
+@login_required
+def edit_powerdns_record():
+    """Edit a DNS record in PowerDNS"""
+    try:
+        data = request.get_json()
+        domain = data.get('domain')
+        old_name = data.get('old_name')
+        old_type = data.get('old_type')
+        old_content = data.get('old_content')
+        new_name = data.get('new_name')
+        new_type = data.get('new_type')
+        new_content = data.get('new_content')
+        new_ttl = data.get('new_ttl', 3600)
+        
+        if not all([domain, old_name, old_type, old_content, new_name, new_type, new_content]):
+            return jsonify({'success': False, 'message': 'All record fields are required'}), 400
+        
+        # Validate IP address for A records
+        if new_type == 'A':
+            import ipaddress
+            try:
+                ipaddress.ip_address(new_content)
+            except ValueError:
+                return jsonify({'success': False, 'message': 'Invalid IP address format'}), 400
+        
+        # Edit record directly in zone file for bind backend
+        zone_file = f'/var/lib/powerdns/zones/{domain}.zone'
+        if not os.path.exists(zone_file):
+            return jsonify({'success': False, 'message': f'Zone file for {domain} not found'}), 404
+        
+        # Read current zone file
+        with open(zone_file, 'r') as f:
+            zone_content = f.read()
+        
+        # Update serial number
+        import re
+        serial_pattern = r'(\d{10})\s*;\s*serial'
+        current_time = datetime.datetime.now().strftime('%Y%m%d%H')
+        new_serial = current_time
+        zone_content = re.sub(serial_pattern, f'{new_serial} ; serial', zone_content)
+        
+        # Find and replace the old record
+        lines = zone_content.split('\n')
+        updated_lines = []
+        record_found = False
+        
+        for line in lines:
+            line_stripped = line.strip()
+            if line_stripped and not line_stripped.startswith(';') and not line_stripped.startswith('$'):
+                # Skip SOA record handling
+                if 'SOA' in line_stripped:
+                    updated_lines.append(line)
+                    continue
+                
+                # Parse record line
+                parts = line_stripped.split()
+                if len(parts) >= 3:
+                    # Extract record details
+                    name = parts[0]
+                    if name == '@':
+                        name = domain
+                    elif not name.endswith('.'):
+                        name = f'{name}.{domain}' if name else domain
+                    else:
+                        name = name.rstrip('.')
+                    
+                    # Check if TTL is present
+                    if parts[1].isdigit() and len(parts) >= 4 and parts[2] == 'IN':
+                        record_type = parts[3]
+                        content = ' '.join(parts[4:]) if len(parts) > 4 else ''
+                    elif parts[1] == 'IN' and len(parts) >= 3:
+                        record_type = parts[2]
+                        content = ' '.join(parts[3:]) if len(parts) > 3 else ''
+                    else:
+                        updated_lines.append(line)
+                        continue
+                    
+                    # Check if this is the record to edit
+                    if (name == old_name and record_type == old_type and content == old_content):
+                        # Replace with new record
+                        new_record_name = new_name if new_name != domain else '@'
+                        if new_name.endswith(f'.{domain}'):
+                            new_record_name = new_name[:-len(f'.{domain}')]
+                        
+                        new_line = f'{new_record_name}\t{new_ttl}\tIN\t{new_type}\t{new_content}'
+                        updated_lines.append(new_line)
+                        record_found = True
+                    else:
+                        updated_lines.append(line)
+                else:
+                    updated_lines.append(line)
+            else:
+                updated_lines.append(line)
+        
+        if not record_found:
+            return jsonify({'success': False, 'message': 'Record not found'}), 404
+        
+        # Write updated zone file
+        updated_content = '\n'.join(updated_lines)
+        with open(zone_file, 'w') as f:
+            f.write(updated_content)
+        
+        # Set proper ownership
+        subprocess.run(['chown', 'pdns:pdns', zone_file], capture_output=True)
+        
+        # Reload PowerDNS
+        reload_result = subprocess.run(['supervisorctl', 'restart', 'pdns'], capture_output=True, text=True)
+        
+        if reload_result.returncode == 0:
+            logger.info(f'PowerDNS record edited successfully: {old_name} -> {new_name}')
+            return jsonify({'success': True, 'message': f'Record berhasil diubah'})
+        else:
+            logger.error(f'Failed to reload PowerDNS: {reload_result.stderr}')
+            return jsonify({'success': False, 'message': f'Record diubah tapi gagal reload PowerDNS: {reload_result.stderr}'})
+    except Exception as e:
+        logger.error(f'Error editing PowerDNS record: {str(e)}')
+        return jsonify({'success': False, 'message': f'Terjadi kesalahan saat mengubah record'}), 500
+
+@app.route('/api/powerdns/record/delete', methods=['POST'])
+@login_required
+def delete_powerdns_record():
+    """Delete a DNS record from PowerDNS"""
+    try:
+        data = request.get_json()
+        domain = data.get('domain')
+        name = data.get('name')
+        record_type = data.get('type')
+        content = data.get('content')
+        
+        if not all([domain, name, record_type, content]):
+            return jsonify({'success': False, 'message': 'All record fields are required'}), 400
+        
+        # Delete record directly from zone file for bind backend
+        zone_file = f'/var/lib/powerdns/zones/{domain}.zone'
+        if not os.path.exists(zone_file):
+            return jsonify({'success': False, 'message': f'Zone file for {domain} not found'}), 404
+        
+        # Read current zone file
+        with open(zone_file, 'r') as f:
+            zone_content = f.read()
+        
+        # Update serial number
+        import re
+        serial_pattern = r'(\d{10})\s*;\s*serial'
+        current_time = datetime.datetime.now().strftime('%Y%m%d%H')
+        new_serial = current_time
+        zone_content = re.sub(serial_pattern, f'{new_serial} ; serial', zone_content)
+        
+        # Find and remove the record
+        lines = zone_content.split('\n')
+        updated_lines = []
+        record_found = False
+        
+        for line in lines:
+            line_stripped = line.strip()
+            if line_stripped and not line_stripped.startswith(';') and not line_stripped.startswith('$'):
+                # Skip SOA record handling
+                if 'SOA' in line_stripped:
+                    updated_lines.append(line)
+                    continue
+                
+                # Parse record line
+                parts = line_stripped.split()
+                if len(parts) >= 3:
+                    # Extract record details
+                    record_name = parts[0]
+                    if record_name == '@':
+                        record_name = domain
+                    elif not record_name.endswith('.'):
+                        record_name = f'{record_name}.{domain}' if record_name else domain
+                    else:
+                        record_name = record_name.rstrip('.')
+                    
+                    # Check if TTL is present
+                    if parts[1].isdigit() and len(parts) >= 4 and parts[2] == 'IN':
+                        record_type_parsed = parts[3]
+                        content_parsed = ' '.join(parts[4:]) if len(parts) > 4 else ''
+                    elif parts[1] == 'IN' and len(parts) >= 3:
+                        record_type_parsed = parts[2]
+                        content_parsed = ' '.join(parts[3:]) if len(parts) > 3 else ''
+                    else:
+                        updated_lines.append(line)
+                        continue
+                    
+                    # Check if this is the record to delete
+                    if (record_name == name and record_type_parsed == record_type and content_parsed == content):
+                        record_found = True
+                        # Skip this line (delete it)
+                        continue
+                    else:
+                        updated_lines.append(line)
+                else:
+                    updated_lines.append(line)
+            else:
+                updated_lines.append(line)
+        
+        if not record_found:
+            return jsonify({'success': False, 'message': 'Record not found'}), 404
+        
+        # Write updated zone file
+        updated_content = '\n'.join(updated_lines)
+        with open(zone_file, 'w') as f:
+            f.write(updated_content)
+        
+        # Set proper ownership
+        subprocess.run(['chown', 'pdns:pdns', zone_file], capture_output=True)
+        
+        # Reload PowerDNS
+        reload_result = subprocess.run(['supervisorctl', 'restart', 'pdns'], capture_output=True, text=True)
+        
+        if reload_result.returncode == 0:
+            logger.info(f'PowerDNS record deleted successfully: {name} ({record_type})')
+            return jsonify({'success': True, 'message': f'Record berhasil dihapus'})
+        else:
+            logger.error(f'Failed to reload PowerDNS: {reload_result.stderr}')
+            return jsonify({'success': False, 'message': f'Record dihapus tapi gagal reload PowerDNS: {reload_result.stderr}'})
+    except Exception as e:
+        logger.error(f'Error deleting PowerDNS record: {str(e)}')
+        return jsonify({'success': False, 'message': f'Terjadi kesalahan saat menghapus record'}), 500
 
 @app.route('/api/php/modules', methods=['GET'])
 @login_required
