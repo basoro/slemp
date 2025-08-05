@@ -472,6 +472,19 @@ def handle_install_service(data):
                 logger.info(f'Emitting install_progress: {progress_data}')
                 socketio.emit('install_progress', progress_data)
                 
+                # Stop and disable the newly installed system service
+                system_service_name = service_name
+                if service == 'php-fpm':
+                    system_service_name = 'php8.1-fpm'  # Adjust for PHP-FPM service name
+                elif service == 'mysql':
+                    system_service_name = 'mariadb'  # Adjust for MariaDB service name
+                    
+                logger.info(f'Stopping newly installed system service: {system_service_name}')
+                socketio.emit('install_output', {'output': f'Menghentikan layanan sistem: {system_service_name}', 'type': 'info'})
+                # Note: In containerized environment with supervisor, we don't need to stop/disable system services
+                subprocess.run(['systemctl', 'stop', system_service_name], capture_output=True, text=True)
+                subprocess.run(['systemctl', 'disable', system_service_name], capture_output=True, text=True)
+                
                 # Start the service using supervisorctl
                 progress_data = {'message': f'Memulai layanan {service_name}...', 'step': 4, 'total': 4, 'status': f'Memulai layanan {service_name}...', 'percentage': 100}
                 logger.info(f'Emitting install_progress: {progress_data}')
@@ -582,6 +595,13 @@ stopasgroup=true\n"""
                     # PowerDNS specific configuration
                     socketio.emit('install_output', {'output': 'Mengkonfigurasi PowerDNS...', 'type': 'info'})
 
+                    # Stop and disable newly installed PowerDNS system service
+                    socketio.emit('install_output', {'output': 'Menghentikan layanan sistem PowerDNS yang baru diinstal...', 'type': 'info'})
+                    socketio.emit('install_output', {'output': '$ systemctl stop pdns', 'type': 'command'})
+                    subprocess.run(['systemctl', 'stop', 'pdns'], capture_output=True, text=True)
+                    socketio.emit('install_output', {'output': '$ systemctl disable pdns', 'type': 'command'})
+                    subprocess.run(['systemctl', 'disable', 'pdns'], capture_output=True, text=True)
+
                     # Disable DNSStubListener in resolved.conf
                     socketio.emit('install_output', {'output': '$ sed -i "s/^#DNSStubListener=.*/DNSStubListener=no/" /etc/systemd/resolved.conf', 'type': 'command'})
                     subprocess.run(['sed', '-i', 's/^#DNSStubListener=.*/DNSStubListener=no/', '/etc/systemd/resolved.conf'], capture_output=True, text=True, timeout=10)
@@ -614,6 +634,26 @@ stopasgroup=true\n"""
                     subprocess.run(['touch', '/var/log/pdns.log'], capture_output=True, text=True, timeout=10)
                     socketio.emit('install_output', {'output': '$ chown pdns:pdns /var/log/pdns.log', 'type': 'command'})
                     subprocess.run(['chown', 'pdns:pdns', '/var/log/pdns.log'], capture_output=True, text=True, timeout=10)
+
+                    # Add PowerDNS configuration to supervisord.conf
+                    pdns_config = """\n[program:pdns]
+command=/usr/sbin/pdns_server --daemon=no --guardian=no --control-console --loglevel=4
+autostart=true
+autorestart=true\n"""
+                    
+                    socketio.emit('install_output', {'output': 'Menambahkan konfigurasi PowerDNS ke supervisord.conf...', 'type': 'info'})
+                    with open('/etc/supervisor/conf.d/supervisord.conf', 'a') as f:
+                        f.write(pdns_config)
+                    
+                    # Reload supervisor configuration
+                    socketio.emit('install_output', {'output': '$ supervisorctl reread', 'type': 'command'})
+                    subprocess.run(['supervisorctl', 'reread'], capture_output=True, text=True, timeout=30)
+                    socketio.emit('install_output', {'output': '$ supervisorctl update', 'type': 'command'})
+                    subprocess.run(['supervisorctl', 'update'], capture_output=True, text=True, timeout=30)
+                    
+                    # Start PowerDNS with supervisor
+                    socketio.emit('install_output', {'output': '$ supervisorctl start pdns', 'type': 'command'})
+                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', 'pdns'], 30)
 
                 elif service_name == 'ufw':
                     # UFW specific configuration
@@ -1002,6 +1042,12 @@ stopasgroup=true\n"""
             elif service_name == 'pdns-server':
                 # PowerDNS specific configuration after installation
                 logger.info('Configuring PowerDNS after installation')
+                
+                # Stop and disable the newly installed PowerDNS system service
+                logger.info(f'Stopping newly installed system service: pdns')
+                # Note: In containerized environment with supervisor, we don't need to stop/disable system services
+                subprocess.run(['systemctl', 'stop', 'pdns'], capture_output=True, text=True)
+                subprocess.run(['systemctl', 'disable', 'pdns'], capture_output=True, text=True)
                 
                 # Stop and disable systemd-resolved
                 subprocess.run(['systemctl', 'stop', 'systemd-resolved'], capture_output=True, text=True)
