@@ -380,7 +380,8 @@ def handle_install_service(data):
         'nginx': 'nginx',
         'php-fpm': 'php-fpm',
         'mysql': 'mariadb-server',
-        'powerdns': 'pdns-server'
+        'powerdns': 'pdns-server',
+        'ufw': 'ufw'
     }
 
     if service not in service_map:
@@ -475,7 +476,158 @@ def handle_install_service(data):
                 progress_data = {'message': f'Memulai layanan {service_name}...', 'step': 4, 'total': 4, 'status': f'Memulai layanan {service_name}...', 'percentage': 100}
                 logger.info(f'Emitting install_progress: {progress_data}')
                 socketio.emit('install_progress', progress_data)
-                if service_name != 'mariadb-server':
+                
+                if service_name == 'nginx':
+                    # Nginx specific configuration
+                    socketio.emit('install_output', {'output': 'Mengkonfigurasi Nginx untuk supervisord...', 'type': 'info'})
+                    
+                    # Add Nginx configuration to supervisord.conf
+                    nginx_config = """\n[program:nginx]
+command=/usr/sbin/nginx -g 'daemon off;'
+autostart=true
+autorestart=true\n"""
+                    
+                    socketio.emit('install_output', {'output': 'Menambahkan konfigurasi Nginx ke supervisord.conf...', 'type': 'info'})
+                    with open('/etc/supervisor/conf.d/supervisord.conf', 'a') as f:
+                        f.write(nginx_config)
+                    
+                    # Reload supervisor configuration
+                    socketio.emit('install_output', {'output': '$ supervisorctl reread', 'type': 'command'})
+                    subprocess.run(['supervisorctl', 'reread'], capture_output=True, text=True, timeout=30)
+                    socketio.emit('install_output', {'output': '$ supervisorctl update', 'type': 'command'})
+                    subprocess.run(['supervisorctl', 'update'], capture_output=True, text=True, timeout=30)
+                    
+                    # Start Nginx with supervisor
+                    socketio.emit('install_output', {'output': '$ supervisorctl start nginx', 'type': 'command'})
+                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', 'nginx'], 30)
+                elif service_name == 'php-fpm':
+                    # PHP-FPM specific configuration
+                    socketio.emit('install_output', {'output': 'Mengkonfigurasi PHP-FPM untuk supervisord...', 'type': 'info'})
+                    
+                    # Add PHP-FPM configuration to supervisord.conf
+                    phpfpm_config = """\n[program:php-fpm]
+command=/usr/sbin/php-fpm8.1 -F
+autostart=true
+autorestart=true\n"""
+                    
+                    socketio.emit('install_output', {'output': 'Menambahkan konfigurasi PHP-FPM ke supervisord.conf...', 'type': 'info'})
+                    with open('/etc/supervisor/conf.d/supervisord.conf', 'a') as f:
+                        f.write(phpfpm_config)
+                    
+                    # Reload supervisor configuration
+                    socketio.emit('install_output', {'output': '$ supervisorctl reread', 'type': 'command'})
+                    subprocess.run(['supervisorctl', 'reread'], capture_output=True, text=True, timeout=30)
+                    socketio.emit('install_output', {'output': '$ supervisorctl update', 'type': 'command'})
+                    subprocess.run(['supervisorctl', 'update'], capture_output=True, text=True, timeout=30)
+                    
+                    # Start PHP-FPM with supervisor
+                    socketio.emit('install_output', {'output': '$ supervisorctl start php-fpm', 'type': 'command'})
+                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', 'php-fpm'], 30)
+                elif service_name == 'mariadb-server':
+                    # MariaDB specific configuration
+                    socketio.emit('install_output', {'output': 'Mengkonfigurasi MariaDB untuk supervisord...', 'type': 'info'})
+                    
+                    # Add MariaDB configuration to supervisord.conf
+                    mariadb_config = """\n[program:mariadb]
+command=/usr/sbin/mariadbd --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib/mysql/plugin --user=mysql --skip-log-error --pid-file=/run/mysqld/mysqld.pid --socket=/run/mysqld/mysqld.sock
+autostart=true
+autorestart=true
+killasgroup=true
+stopasgroup=true\n"""
+                    
+                    socketio.emit('install_output', {'output': 'Menambahkan konfigurasi MariaDB ke supervisord.conf...', 'type': 'info'})
+                    with open('/etc/supervisor/conf.d/supervisord.conf', 'a') as f:
+                        f.write(mariadb_config)
+                    
+                    # Reload supervisor configuration
+                    socketio.emit('install_output', {'output': '$ supervisorctl reread', 'type': 'command'})
+                    subprocess.run(['supervisorctl', 'reread'], capture_output=True, text=True, timeout=30)
+                    socketio.emit('install_output', {'output': '$ supervisorctl update', 'type': 'command'})
+                    subprocess.run(['supervisorctl', 'update'], capture_output=True, text=True, timeout=30)
+                    
+                    # For MariaDB, create socket directory first
+                    socketio.emit('install_output', {'output': 'Menyiapkan direktori socket MariaDB...', 'type': 'info'})
+                    socketio.emit('install_output', {'output': '$ mkdir -p /run/mysqld', 'type': 'command'})
+                    subprocess.run(['mkdir', '-p', '/run/mysqld'], capture_output=True, text=True, timeout=10)
+                    socketio.emit('install_output', {'output': '$ chown mysql:mysql /run/mysqld', 'type': 'command'})
+                    subprocess.run(['chown', 'mysql:mysql', '/run/mysqld'], capture_output=True, text=True, timeout=10)
+                    socketio.emit('install_output', {'output': '$ chmod 755 /run/mysqld', 'type': 'command'})
+                    subprocess.run(['chmod', '755', '/run/mysqld'], capture_output=True, text=True, timeout=10)
+                    
+                    # Start MariaDB with supervisor
+                    socketio.emit('install_output', {'output': '$ supervisorctl start mariadb', 'type': 'command'})
+                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', 'mariadb'], 30)
+                elif service_name == 'pdns-server':
+                    # PowerDNS specific configuration
+                    socketio.emit('install_output', {'output': 'Mengkonfigurasi PowerDNS...', 'type': 'info'})
+                    
+                    # Stop and disable systemd-resolved
+                    socketio.emit('install_output', {'output': '$ systemctl stop systemd-resolved', 'type': 'command'})
+                    subprocess.run(['systemctl', 'stop', 'systemd-resolved'], capture_output=True, text=True, timeout=30)
+                    socketio.emit('install_output', {'output': '$ systemctl disable systemd-resolved', 'type': 'command'})
+                    subprocess.run(['systemctl', 'disable', 'systemd-resolved'], capture_output=True, text=True, timeout=30)
+                    
+                    # Set nameserver to 8.8.8.8
+                    socketio.emit('install_output', {'output': '$ echo "nameserver 8.8.8.8" | tee /etc/resolv.conf', 'type': 'command'})
+                    with open('/etc/resolv.conf', 'w') as f:
+                        f.write('nameserver 8.8.8.8\n')
+                    
+                    # Create PowerDNS zones directory
+                    socketio.emit('install_output', {'output': '$ mkdir -p /var/lib/powerdns/zones', 'type': 'command'})
+                    subprocess.run(['mkdir', '-p', '/var/lib/powerdns/zones'], capture_output=True, text=True, timeout=10)
+                    
+                    # Create and set ownership of PowerDNS log file
+                    socketio.emit('install_output', {'output': '$ touch /var/log/pdns.log', 'type': 'command'})
+                    subprocess.run(['touch', '/var/log/pdns.log'], capture_output=True, text=True, timeout=10)
+                    socketio.emit('install_output', {'output': '$ chown pdns:pdns /var/log/pdns.log', 'type': 'command'})
+                    subprocess.run(['chown', 'pdns:pdns', '/var/log/pdns.log'], capture_output=True, text=True, timeout=10)
+                    
+                    # Add PowerDNS configuration to supervisord.conf
+                    pdns_config = """\n[program:pdns]
+command=/usr/sbin/pdns_server --guardian=no --daemon=no
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/pdns.err.log
+stdout_logfile=/var/log/pdns.out.log\n"""
+                    
+                    socketio.emit('install_output', {'output': 'Menambahkan konfigurasi PowerDNS ke supervisord.conf...', 'type': 'info'})
+                    with open('/etc/supervisor/conf.d/supervisord.conf', 'a') as f:
+                        f.write(pdns_config)
+                    
+                    # Reload supervisor configuration
+                    socketio.emit('install_output', {'output': '$ supervisorctl reread', 'type': 'command'})
+                    subprocess.run(['supervisorctl', 'reread'], capture_output=True, text=True, timeout=30)
+                    socketio.emit('install_output', {'output': '$ supervisorctl update', 'type': 'command'})
+                    subprocess.run(['supervisorctl', 'update'], capture_output=True, text=True, timeout=30)
+                    
+                    # Start PowerDNS with supervisor
+                    socketio.emit('install_output', {'output': '$ supervisorctl start pdns', 'type': 'command'})
+                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', 'pdns'], 30)
+                elif service_name == 'ufw':
+                    # UFW specific configuration
+                    socketio.emit('install_output', {'output': 'Mengkonfigurasi UFW untuk supervisord...', 'type': 'info'})
+                    
+                    # Add UFW configuration to supervisord.conf
+                    ufw_config = """\n[program:ufw]
+command=/bin/bash -c 'while true; do if ufw status | grep -q "Status: active"; then sleep 30; else exit 1; fi; done'
+autostart=false
+autorestart=false
+startretries=0\n"""
+                    
+                    socketio.emit('install_output', {'output': 'Menambahkan konfigurasi UFW ke supervisord.conf...', 'type': 'info'})
+                    with open('/etc/supervisor/conf.d/supervisord.conf', 'a') as f:
+                        f.write(ufw_config)
+                    
+                    # Reload supervisor configuration
+                    socketio.emit('install_output', {'output': '$ supervisorctl reread', 'type': 'command'})
+                    subprocess.run(['supervisorctl', 'reread'], capture_output=True, text=True, timeout=30)
+                    socketio.emit('install_output', {'output': '$ supervisorctl update', 'type': 'command'})
+                    subprocess.run(['supervisorctl', 'update'], capture_output=True, text=True, timeout=30)
+                    
+                    # UFW doesn't use supervisorctl start, it's managed differently
+                    socketio.emit('install_output', {'output': 'UFW berhasil dikonfigurasi untuk supervisord', 'type': 'info'})
+                    start_code = 0  # Set success code for UFW
+                elif service_name != 'mariadb-server':
                     socketio.emit('install_output', {'output': f'$ supervisorctl start {service}', 'type': 'command'})
                     start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', service], 30)
                 else:
@@ -579,6 +731,10 @@ def get_services_status():
                 # Check for PowerDNS
                 check_cmd = subprocess.run(['which', 'pdns_server'], capture_output=True, text=True)
                 installed = check_cmd.returncode == 0
+            elif service_name == 'ufw':
+                # Check for UFW
+                check_cmd = subprocess.run(['which', 'ufw'], capture_output=True, text=True)
+                installed = check_cmd.returncode == 0
             
             # Cek status proses hanya jika terinstall
             running = False
@@ -586,9 +742,15 @@ def get_services_status():
             version = 'Not Installed' if not installed else 'Checking...'
             
             if installed:
-                status_cmd = subprocess.run(['pgrep', process_name], capture_output=True, text=True)
-                running = status_cmd.returncode == 0
-                pid = status_cmd.stdout.strip() if running else None
+                if service_name == 'ufw':
+                    # For UFW, check status using ufw status command
+                    status_cmd = subprocess.run(['ufw', 'status'], capture_output=True, text=True)
+                    running = 'Status: active' in status_cmd.stdout if status_cmd.returncode == 0 else False
+                    pid = 'N/A'  # UFW doesn't have a traditional PID
+                else:
+                    status_cmd = subprocess.run(['pgrep', process_name], capture_output=True, text=True)
+                    running = status_cmd.returncode == 0
+                    pid = status_cmd.stdout.strip() if running else None
 
                 # Dapatkan versi
                 if service_name == 'nginx':
@@ -624,6 +786,10 @@ def get_services_status():
                                 version = first_line
                             else:
                                 version = output
+                elif service_name == 'ufw':
+                    version_cmd = subprocess.run(['ufw', '--version'], capture_output=True, text=True)
+                    if version_cmd.returncode == 0:
+                        version = version_cmd.stdout.strip()
 
             return {
                 'installed': installed,
@@ -655,7 +821,8 @@ def start_service(service):
         'nginx': 'nginx',
         'php-fpm': 'php-fpm',
         'mysql': 'mariadb',
-        'powerdns': 'pdns'
+        'powerdns': 'pdns',
+        'ufw': 'ufw'
     }
 
     if service not in service_map:
@@ -664,7 +831,10 @@ def start_service(service):
     try:
         service_name = service_map[service]
         # Use different commands based on service type
-        if service_name == 'mariadb':
+        if service_name == 'ufw':
+            # For UFW, use ufw enable command
+            result = subprocess.run(['ufw', '--force', 'enable'], capture_output=True, text=True)
+        elif service_name == 'mariadb':
             # For MariaDB, create socket directory first
             subprocess.run(['mkdir', '-p', '/run/mysqld'], capture_output=True, text=True)
             subprocess.run(['chown', 'mysql:mysql', '/run/mysqld'], capture_output=True, text=True)
@@ -691,7 +861,8 @@ def stop_service(service):
         'nginx': 'nginx',
         'php-fpm': 'php-fpm',
         'mysql': 'mariadb',
-        'powerdns': 'pdns'
+        'powerdns': 'pdns',
+        'ufw': 'ufw'
     }
 
     if service not in service_map:
@@ -700,7 +871,10 @@ def stop_service(service):
     try:
         service_name = service_map[service]
         # Use different commands based on service type
-        if service_name == 'mariadb':
+        if service_name == 'ufw':
+            # For UFW, use ufw disable command
+            result = subprocess.run(['ufw', '--force', 'disable'], capture_output=True, text=True)
+        elif service_name == 'mariadb':
             result = subprocess.run(['supervisorctl', 'stop', service_name], capture_output=True, text=True)
         else:
             # For nginx and php-fpm, use supervisorctl
@@ -757,15 +931,130 @@ def install_service(service):
             subprocess.run(['systemctl', 'disable', system_service_name], capture_output=True, text=True)
             
             # Start the service using supervisorctl
-            if service_name != 'mariadb-server':
-                start_result = subprocess.run(['supervisorctl', 'start', service], capture_output=True, text=True)
-            else:
-                # For MariaDB, create socket directory first
+            if service_name == 'nginx':
+                # Nginx specific configuration
+                logger.info('Configuring Nginx for supervisord')
+                
+                # Add Nginx configuration to supervisord.conf
+                nginx_config = """\n[program:nginx]
+command=/usr/sbin/nginx -g 'daemon off;'
+autostart=true
+autorestart=true\n"""
+                
+                with open('/etc/supervisor/conf.d/supervisord.conf', 'a') as f:
+                    f.write(nginx_config)
+                
+                # Reload supervisor configuration
+                subprocess.run(['supervisorctl', 'reread'], capture_output=True, text=True)
+                subprocess.run(['supervisorctl', 'update'], capture_output=True, text=True)
+                
+                # Start Nginx with supervisor
+                start_result = subprocess.run(['supervisorctl', 'start', 'nginx'], capture_output=True, text=True)
+            elif service_name == 'ufw':
+                # UFW specific configuration
+                logger.info('Configuring UFW for supervisord')
+                
+                # Add UFW configuration to supervisord.conf
+                ufw_config = """\n[program:ufw]
+command=/bin/bash -c 'while true; do if ufw status | grep -q "Status: active"; then sleep 30; else exit 1; fi; done'
+autostart=false
+autorestart=false
+startretries=0\n"""
+                
+                with open('/etc/supervisor/conf.d/supervisord.conf', 'a') as f:
+                    f.write(ufw_config)
+                
+                # Reload supervisor configuration
+                subprocess.run(['supervisorctl', 'reread'], capture_output=True, text=True)
+                subprocess.run(['supervisorctl', 'update'], capture_output=True, text=True)
+                
+                # UFW doesn't use supervisorctl start, it's managed differently
+                start_result = subprocess.run(['echo', 'UFW configured for supervisord successfully'], capture_output=True, text=True)
+            elif service_name == 'php-fpm':
+                # PHP-FPM specific configuration
+                logger.info('Configuring PHP-FPM for supervisord')
+                
+                # Add PHP-FPM configuration to supervisord.conf
+                phpfpm_config = """\n[program:php-fpm]
+command=/usr/sbin/php-fpm8.1 -F
+autostart=true
+autorestart=true\n"""
+                
+                with open('/etc/supervisor/conf.d/supervisord.conf', 'a') as f:
+                    f.write(phpfpm_config)
+                
+                # Reload supervisor configuration
+                subprocess.run(['supervisorctl', 'reread'], capture_output=True, text=True)
+                subprocess.run(['supervisorctl', 'update'], capture_output=True, text=True)
+                
+                # Start PHP-FPM with supervisor
+                start_result = subprocess.run(['supervisorctl', 'start', 'php-fpm'], capture_output=True, text=True)
+            elif service_name == 'mariadb-server':
+                # MariaDB specific configuration
+                logger.info('Configuring MariaDB for supervisord')
+                
+                # Create socket directory first
                 subprocess.run(['mkdir', '-p', '/run/mysqld'], capture_output=True, text=True)
                 subprocess.run(['chown', 'mysql:mysql', '/run/mysqld'], capture_output=True, text=True)
                 subprocess.run(['chmod', '755', '/run/mysqld'], capture_output=True, text=True)
-                # For MariaDB, use 'mariadb' as service name in supervisor
+                
+                # Add MariaDB configuration to supervisord.conf
+                mariadb_config = """\n[program:mariadb]
+command=/usr/sbin/mariadbd --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib/mysql/plugin --user=mysql --skip-log-error --pid-file=/run/mysqld/mysqld.pid --socket=/run/mysqld/mysqld.sock
+autostart=true
+autorestart=true
+killasgroup=true
+stopasgroup=true\n"""
+                
+                with open('/etc/supervisor/conf.d/supervisord.conf', 'a') as f:
+                    f.write(mariadb_config)
+                
+                # Reload supervisor configuration
+                subprocess.run(['supervisorctl', 'reread'], capture_output=True, text=True)
+                subprocess.run(['supervisorctl', 'update'], capture_output=True, text=True)
+                
+                # Start MariaDB with supervisor
                 start_result = subprocess.run(['supervisorctl', 'start', 'mariadb'], capture_output=True, text=True)
+            elif service_name == 'pdns-server':
+                # PowerDNS specific configuration after installation
+                logger.info('Configuring PowerDNS after installation')
+                
+                # Stop and disable systemd-resolved
+                subprocess.run(['systemctl', 'stop', 'systemd-resolved'], capture_output=True, text=True)
+                subprocess.run(['systemctl', 'disable', 'systemd-resolved'], capture_output=True, text=True)
+                
+                # Set DNS resolver to Google DNS
+                with open('/etc/resolv.conf', 'w') as f:
+                    f.write('nameserver 8.8.8.8\n')
+                
+                # Create PowerDNS zones directory
+                subprocess.run(['mkdir', '-p', '/var/lib/powerdns/zones'], capture_output=True, text=True)
+                
+                # Create and set ownership for PowerDNS log file
+                subprocess.run(['touch', '/var/log/pdns.log'], capture_output=True, text=True)
+                subprocess.run(['chown', 'pdns:pdns', '/var/log/pdns.log'], capture_output=True, text=True)
+                
+                # Add PowerDNS configuration to supervisord.conf
+                pdns_config = """\n[program:pdns]
+command=/usr/sbin/pdns_server --guardian=no --daemon=no
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/pdns.err.log
+stdout_logfile=/var/log/pdns.out.log\n"""
+                
+                with open('/etc/supervisor/conf.d/supervisord.conf', 'a') as f:
+                    f.write(pdns_config)
+                
+                # Reload supervisor configuration
+                subprocess.run(['supervisorctl', 'reread'], capture_output=True, text=True)
+                subprocess.run(['supervisorctl', 'update'], capture_output=True, text=True)
+                
+                # Now start PowerDNS using supervisorctl
+                start_result = subprocess.run(['supervisorctl', 'start', 'pdns'], capture_output=True, text=True)
+            else:
+                # This should not happen as all services are now handled specifically
+                logger.warning(f'Unhandled service: {service_name}')
+                start_result = subprocess.run(['echo', f'Service {service_name} configuration not found'], capture_output=True, text=True)
             
             if start_result.returncode == 0:
                 return jsonify({'success': True, 'message': f'{service_name} berhasil diinstall dan diaktifkan'})
@@ -4336,6 +4625,284 @@ def install_php_module():
         
     except Exception as e:
         logger.error(f'Error starting PHP module installation: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# UFW Firewall Management endpoints
+@app.route('/api/ufw/status', methods=['GET'])
+@login_required
+def get_ufw_status():
+    """Get UFW firewall status"""
+    try:
+        # Check if UFW is installed
+        result = subprocess.run(['which', 'ufw'], capture_output=True, text=True)
+        if result.returncode != 0:
+            return jsonify({
+                'success': True,
+                'installed': False,
+                'status': 'not_installed',
+                'message': 'UFW is not installed'
+            })
+        
+        # Get UFW status
+        result = subprocess.run(['ufw', 'status', 'verbose'], capture_output=True, text=True)
+        if result.returncode == 0:
+            output = result.stdout
+            
+            # Parse status
+            is_active = 'Status: active' in output
+            
+            # Parse default policies
+            default_incoming = 'deny (incoming)' if 'Default: deny (incoming)' in output else 'allow (incoming)' if 'Default: allow (incoming)' in output else 'unknown'
+            default_outgoing = 'allow (outgoing)' if 'Default: allow (outgoing)' in output else 'deny (outgoing)' if 'Default: deny (outgoing)' in output else 'unknown'
+            default_routed = 'disabled (routed)' if 'Default: disabled (routed)' in output else 'allow (routed)' if 'Default: allow (routed)' in output else 'unknown'
+            
+            return jsonify({
+                'success': True,
+                'installed': True,
+                'status': 'active' if is_active else 'inactive',
+                'active': is_active,
+                'default_incoming': default_incoming,
+                'default_outgoing': default_outgoing,
+                'default_routed': default_routed,
+                'output': output
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to get UFW status: {result.stderr}'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f'Error getting UFW status: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+
+
+
+@app.route('/api/ufw/rules', methods=['GET'])
+@login_required
+def list_ufw_rules():
+    """List UFW firewall rules"""
+    try:
+        result = subprocess.run(['ufw', 'status', 'numbered'], capture_output=True, text=True)
+        if result.returncode == 0:
+            output = result.stdout
+            rules = []
+            
+            # Parse rules from output
+            lines = output.split('\n')
+            for line in lines:
+                line = line.strip()
+                if line and line[0].isdigit() and ']' in line:
+                    # Extract rule number and rule text
+                    parts = line.split(']', 1)
+                    if len(parts) == 2:
+                        rule_num = parts[0].strip('[ ')
+                        rule_text = parts[1].strip()
+                        
+                        # Parse rule components
+                        rule_parts = rule_text.split()
+                        if len(rule_parts) >= 3:
+                            action = rule_parts[0] if rule_parts[0] in ['ALLOW', 'DENY', 'REJECT'] else 'ALLOW'
+                            
+                            # Find 'from' and 'to' parts
+                            from_idx = -1
+                            to_idx = -1
+                            for i, part in enumerate(rule_parts):
+                                if part.upper() == 'FROM':
+                                    from_idx = i
+                                elif part.upper() == 'TO':
+                                    to_idx = i
+                            
+                            port_protocol = ''
+                            source = 'Anywhere'
+                            destination = 'Anywhere'
+                            
+                            if from_idx > 0:
+                                port_protocol = ' '.join(rule_parts[1:from_idx])
+                            elif to_idx > 0:
+                                port_protocol = ' '.join(rule_parts[1:to_idx])
+                            else:
+                                port_protocol = ' '.join(rule_parts[1:])
+                            
+                            if from_idx >= 0 and from_idx + 1 < len(rule_parts):
+                                if to_idx > from_idx:
+                                    source = ' '.join(rule_parts[from_idx + 1:to_idx])
+                                else:
+                                    source = ' '.join(rule_parts[from_idx + 1:])
+                            
+                            if to_idx >= 0 and to_idx + 1 < len(rule_parts):
+                                destination = ' '.join(rule_parts[to_idx + 1:])
+                            
+                            rules.append({
+                                'number': rule_num,
+                                'action': action,
+                                'port_protocol': port_protocol,
+                                'source': source,
+                                'destination': destination,
+                                'raw': rule_text
+                            })
+            
+            return jsonify({
+                'success': True,
+                'rules': rules,
+                'output': output
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to list UFW rules: {result.stderr}'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f'Error listing UFW rules: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ufw/rule', methods=['POST'])
+@login_required
+def add_ufw_rule():
+    """Add UFW firewall rule"""
+    try:
+        data = request.get_json()
+        action = data.get('action', 'allow').lower()
+        port = data.get('port', '')
+        protocol = data.get('protocol', '')
+        source = data.get('source', '')
+        destination = data.get('destination', '')
+        
+        # Build UFW command
+        cmd = ['ufw']
+        
+        # Add action
+        if action in ['allow', 'deny', 'reject']:
+            cmd.append(action)
+        else:
+            cmd.append('allow')
+        
+        # Add from source if specified
+        if source and source.strip():
+            cmd.extend(['from', source.strip()])
+        
+        # Add to destination if specified
+        if destination and destination.strip():
+            cmd.extend(['to', destination.strip()])
+        
+        # Add port and protocol
+        if port and port.strip():
+            if protocol and protocol.strip():
+                cmd.extend(['port', f'{port.strip()}/{protocol.strip()}'])
+            else:
+                cmd.extend(['port', port.strip()])
+        elif protocol and protocol.strip():
+            cmd.append(f'proto {protocol.strip()}')
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode == 0:
+            logger.info(f'UFW rule added: {" ".join(cmd)}')
+            return jsonify({
+                'success': True,
+                'message': 'UFW rule added successfully',
+                'output': result.stdout,
+                'command': ' '.join(cmd)
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to add UFW rule: {result.stderr}',
+                'command': ' '.join(cmd)
+            }), 500
+            
+    except Exception as e:
+        logger.error(f'Error adding UFW rule: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ufw/rule/delete', methods=['POST'])
+@login_required
+def delete_ufw_rule():
+    """Delete UFW firewall rule"""
+    try:
+        data = request.get_json()
+        rule_number = data.get('rule_number')
+        
+        if not rule_number:
+            return jsonify({
+                'success': False,
+                'error': 'Rule number is required'
+            }), 400
+        
+        result = subprocess.run(['ufw', '--force', 'delete', str(rule_number)], capture_output=True, text=True)
+        if result.returncode == 0:
+            logger.info(f'UFW rule {rule_number} deleted')
+            return jsonify({
+                'success': True,
+                'message': f'UFW rule {rule_number} deleted successfully',
+                'output': result.stdout
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to delete UFW rule: {result.stderr}'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f'Error deleting UFW rule: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ufw/reset', methods=['POST'])
+@login_required
+def reset_ufw():
+    """Reset UFW firewall to defaults"""
+    try:
+        result = subprocess.run(['ufw', '--force', 'reset'], capture_output=True, text=True)
+        if result.returncode == 0:
+            logger.info('UFW firewall reset to defaults')
+            return jsonify({
+                'success': True,
+                'message': 'UFW firewall reset to defaults successfully',
+                'output': result.stdout
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to reset UFW: {result.stderr}'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f'Error resetting UFW: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ufw/logs', methods=['GET'])
+@login_required
+def get_ufw_logs():
+    """Get UFW firewall logs"""
+    try:
+        # Try to read UFW logs from common locations
+        log_files = ['/var/log/ufw.log', '/var/log/kern.log']
+        logs = []
+        
+        for log_file in log_files:
+            if os.path.exists(log_file):
+                try:
+                    result = subprocess.run(['tail', '-n', '100', log_file], capture_output=True, text=True)
+                    if result.returncode == 0:
+                        lines = result.stdout.split('\n')
+                        for line in lines:
+                            if 'UFW' in line or '[UFW' in line:
+                                logs.append({
+                                    'file': log_file,
+                                    'line': line.strip()
+                                })
+                except Exception as e:
+                    logger.warning(f'Error reading log file {log_file}: {str(e)}')
+        
+        return jsonify({
+            'success': True,
+            'logs': logs[-50:] if len(logs) > 50 else logs  # Return last 50 entries
+        })
+        
+    except Exception as e:
+        logger.error(f'Error getting UFW logs: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # Terminal namespace for handling terminal connections

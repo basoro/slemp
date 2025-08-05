@@ -26,24 +26,7 @@ echo "===> Install Python Requirements..."
 echo "===> Create supervisord.conf..."
 cat <<EOF > /etc/supervisor/conf.d/supervisord.conf
 [supervisord]
-nodaemon=true
-
-[program:nginx]
-command=/usr/sbin/nginx -g 'daemon off;'
-autostart=true
-autorestart=true
-
-[program:php-fpm]
-command=/usr/sbin/php-fpm8.1 -F
-autostart=true
-autorestart=true
-
-[program:mariadb]
-command=/usr/sbin/mariadbd --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib/mysql/plugin --user=mysql --skip-log-error --pid-file=/run/mysqld/mysqld.pid --socket=/run/mysqld/mysqld.sock
-autostart=true
-autorestart=true
-killasgroup=true
-stopasgroup=true
+nodaemon=true 
 
 [program:slemp]
 command=/opt/venv/bin/gunicorn app:app --chdir /var/www/panel --bind 0.0.0.0:5000 --worker-class eventlet --workers 1 --timeout 300
