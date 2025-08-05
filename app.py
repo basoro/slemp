@@ -557,31 +557,44 @@ stopasgroup=true\n"""
                     # Start MariaDB with supervisor
                     socketio.emit('install_output', {'output': '$ supervisorctl start mariadb', 'type': 'command'})
                     start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', 'mariadb'], 30)
+                    
                 elif service_name == 'pdns-server':
                     # PowerDNS specific configuration
                     socketio.emit('install_output', {'output': 'Mengkonfigurasi PowerDNS...', 'type': 'info'})
-                    
-                    # Stop and disable systemd-resolved
-                    socketio.emit('install_output', {'output': '$ systemctl stop systemd-resolved', 'type': 'command'})
-                    subprocess.run(['systemctl', 'stop', 'systemd-resolved'], capture_output=True, text=True, timeout=30)
-                    socketio.emit('install_output', {'output': '$ systemctl disable systemd-resolved', 'type': 'command'})
-                    subprocess.run(['systemctl', 'disable', 'systemd-resolved'], capture_output=True, text=True, timeout=30)
-                    
-                    # Set nameserver to 8.8.8.8
-                    socketio.emit('install_output', {'output': '$ echo "nameserver 8.8.8.8" | tee /etc/resolv.conf', 'type': 'command'})
-                    with open('/etc/resolv.conf', 'w') as f:
-                        f.write('nameserver 8.8.8.8\n')
-                    
+
+                    # Disable DNSStubListener in systemd-resolved.conf
+                    socketio.emit('install_output', {'output': '$ sed -i "s/^#DNSStubListener=.*/DNSStubListener=no/" /etc/systemd/resolved.conf', 'type': 'command'})
+                    subprocess.run(['sed', '-i', 's/^#DNSStubListener=.*/DNSStubListener=no/', '/etc/systemd/resolved.conf'], capture_output=True, text=True, timeout=10)
+
+                    # Restart systemd-resolved to apply changes
+                    socketio.emit('install_output', {'output': '$ systemctl restart systemd-resolved', 'type': 'command'})
+                    subprocess.run(['systemctl', 'restart', 'systemd-resolved'], capture_output=True, text=True, timeout=30)
+
+                    # Point /etc/resolv.conf to systemd's resolv.conf
+                    socketio.emit('install_output', {'output': '$ ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf', 'type': 'command'})
+                    subprocess.run(['ln', '-sf', '/run/systemd/resolve/resolv.conf', '/etc/resolv.conf'], capture_output=True, text=True, timeout=10)
+
+                    # Set nameserver to 8.8.8.8 if not already present
+                    with open('/run/systemd/resolve/resolv.conf', 'r') as f:
+                        resolv_conf = f.read()
+
+                    if 'nameserver 8.8.8.8' not in resolv_conf:
+                        socketio.emit('install_output', {'output': '$ echo "nameserver 8.8.8.8" | tee -a /etc/systemd/resolved.conf', 'type': 'command'})
+                        with open('/etc/systemd/resolved.conf', 'a') as f:
+                            f.write('nameserver 8.8.8.8\n')
+                        # Restart to apply
+                        subprocess.run(['systemctl', 'restart', 'systemd-resolved'], capture_output=True, text=True, timeout=10)
+
                     # Create PowerDNS zones directory
                     socketio.emit('install_output', {'output': '$ mkdir -p /var/lib/powerdns/zones', 'type': 'command'})
                     subprocess.run(['mkdir', '-p', '/var/lib/powerdns/zones'], capture_output=True, text=True, timeout=10)
-                    
+
                     # Create and set ownership of PowerDNS log file
                     socketio.emit('install_output', {'output': '$ touch /var/log/pdns.log', 'type': 'command'})
                     subprocess.run(['touch', '/var/log/pdns.log'], capture_output=True, text=True, timeout=10)
                     socketio.emit('install_output', {'output': '$ chown pdns:pdns /var/log/pdns.log', 'type': 'command'})
                     subprocess.run(['chown', 'pdns:pdns', '/var/log/pdns.log'], capture_output=True, text=True, timeout=10)
-                    
+
                     # Add PowerDNS configuration to supervisord.conf
                     pdns_config = """\n[program:pdns]
 command=/usr/sbin/pdns_server --guardian=no --daemon=no
