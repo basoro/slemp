@@ -855,7 +855,8 @@ def get_services_status():
         'nginx': get_service_info('nginx'),
         'php_fpm': get_service_info('php-fpm'),
         'mysql': get_service_info('mysql', 'mariadbd'),
-        'powerdns': get_service_info('powerdns', 'pdns_server')
+        'powerdns': get_service_info('powerdns', 'pdns_server'),
+        'ufw': get_service_info('ufw')
     }
     return jsonify(services)
 
@@ -4757,46 +4758,25 @@ def list_ufw_rules():
             lines = output.split('\n')
             for line in lines:
                 line = line.strip()
-                if line and line[0].isdigit() and ']' in line:
+                if line and line.startswith('[') and ']' in line:
                     # Extract rule number and rule text
                     parts = line.split(']', 1)
                     if len(parts) == 2:
                         rule_num = parts[0].strip('[ ')
                         rule_text = parts[1].strip()
                         
-                        # Parse rule components
-                        rule_parts = rule_text.split()
-                        if len(rule_parts) >= 3:
-                            action = rule_parts[0] if rule_parts[0] in ['ALLOW', 'DENY', 'REJECT'] else 'ALLOW'
+                        # Parse UFW output format: "5000                       ALLOW IN    Anywhere"
+                        # Split by multiple spaces to get columns
+                        import re
+                        columns = re.split(r'\s{2,}', rule_text)
+                        
+                        if len(columns) >= 3:
+                            port_protocol = columns[0].strip()
+                            action = columns[1].strip()
+                            source = columns[2].strip()
                             
-                            # Find 'from' and 'to' parts
-                            from_idx = -1
-                            to_idx = -1
-                            for i, part in enumerate(rule_parts):
-                                if part.upper() == 'FROM':
-                                    from_idx = i
-                                elif part.upper() == 'TO':
-                                    to_idx = i
-                            
-                            port_protocol = ''
-                            source = 'Anywhere'
-                            destination = 'Anywhere'
-                            
-                            if from_idx > 0:
-                                port_protocol = ' '.join(rule_parts[1:from_idx])
-                            elif to_idx > 0:
-                                port_protocol = ' '.join(rule_parts[1:to_idx])
-                            else:
-                                port_protocol = ' '.join(rule_parts[1:])
-                            
-                            if from_idx >= 0 and from_idx + 1 < len(rule_parts):
-                                if to_idx > from_idx:
-                                    source = ' '.join(rule_parts[from_idx + 1:to_idx])
-                                else:
-                                    source = ' '.join(rule_parts[from_idx + 1:])
-                            
-                            if to_idx >= 0 and to_idx + 1 < len(rule_parts):
-                                destination = ' '.join(rule_parts[to_idx + 1:])
+                            # For UFW format, destination is usually the port/protocol
+                            destination = port_protocol
                             
                             rules.append({
                                 'number': rule_num,
