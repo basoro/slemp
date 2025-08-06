@@ -4691,6 +4691,293 @@ def install_php_module():
         logger.error(f'Error starting PHP module installation: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/php/phpfpm-config', methods=['GET'])
+@login_required
+def get_phpfpm_config():
+    """Get PHP-FPM pool configuration"""
+    try:
+        logger.info('Loading PHP-FPM configuration...')
+        
+        # Common PHP-FPM pool configuration paths
+        pool_paths = [
+            '/etc/php/8.2/fpm/pool.d/www.conf',
+            '/etc/php/8.1/fpm/pool.d/www.conf',
+            '/etc/php/8.0/fpm/pool.d/www.conf',
+            '/etc/php/7.4/fpm/pool.d/www.conf'
+        ]
+        
+        config_content = ''
+        config_file = None
+        
+        for path in pool_paths:
+            if os.path.exists(path):
+                config_file = path
+                with open(path, 'r') as f:
+                    config_content = f.read()
+                break
+        
+        if not config_file:
+            # Return default configuration if no file found
+            config_content = '''[www]
+user = www-data
+group = www-data
+listen = /run/php/php8.1-fpm.sock
+listen.owner = www-data
+listen.group = www-data
+listen.mode = 0660
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 2
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3'''
+        
+        return jsonify({
+            'success': True,
+            'config': config_content,
+            'file': config_file
+        })
+        
+    except Exception as e:
+        logger.error(f'Error loading PHP-FPM config: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/php/test-phpfpm-config', methods=['POST'])
+@login_required
+def test_phpfpm_config():
+    """Test PHP-FPM configuration"""
+    try:
+        data = request.get_json()
+        config = data.get('config', '')
+        
+        if not config:
+            return jsonify({'success': False, 'error': 'Configuration content is required'})
+        
+        # Write config to temporary file
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.conf', delete=False) as temp_file:
+            temp_file.write(config)
+            temp_path = temp_file.name
+        
+        try:
+            # Test the configuration
+            test_cmd = ['php-fpm8.1', '-t', '-y', temp_path]
+            result = subprocess.run(test_cmd, capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                return jsonify({'success': True, 'message': 'Configuration is valid'})
+            else:
+                error_msg = result.stderr or result.stdout
+                return jsonify({'success': False, 'error': error_msg})
+        finally:
+            # Clean up temporary file
+            os.unlink(temp_path)
+            
+    except Exception as e:
+        logger.error(f'Error testing PHP-FPM config: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/php/save-phpfpm-config', methods=['POST'])
+@login_required
+def save_phpfpm_config():
+    """Save PHP-FPM pool configuration"""
+    try:
+        data = request.get_json()
+        config = data.get('config', '')
+        
+        if not config:
+            return jsonify({'success': False, 'error': 'Configuration content is required'})
+        
+        # Find the correct pool configuration file
+        pool_paths = [
+            '/etc/php/8.2/fpm/pool.d/www.conf',
+            '/etc/php/8.1/fpm/pool.d/www.conf',
+            '/etc/php/8.0/fpm/pool.d/www.conf',
+            '/etc/php/7.4/fpm/pool.d/www.conf'
+        ]
+        
+        config_file = None
+        for path in pool_paths:
+            if os.path.exists(path):
+                config_file = path
+                break
+        
+        if not config_file:
+            # Use default path if none found
+            config_file = '/etc/php/8.1/fpm/pool.d/www.conf'
+            # Create directory if it doesn't exist
+            os.makedirs(os.path.dirname(config_file), exist_ok=True)
+        
+        # Backup existing configuration
+        if os.path.exists(config_file):
+            backup_file = f'{config_file}.backup.{int(time.time())}'
+            shutil.copy2(config_file, backup_file)
+            logger.info(f'Backed up existing config to: {backup_file}')
+        
+        # Write new configuration
+        with open(config_file, 'w') as f:
+            f.write(config)
+        
+        # Test the configuration before restarting
+        test_cmd = ['php-fpm8.1', '-t']
+        test_result = subprocess.run(test_cmd, capture_output=True, text=True)
+        
+        if test_result.returncode != 0:
+            # Restore backup if test fails
+            if 'backup_file' in locals() and os.path.exists(backup_file):
+                shutil.copy2(backup_file, config_file)
+            error_msg = test_result.stderr or test_result.stdout
+            return jsonify({'success': False, 'error': f'Configuration test failed: {error_msg}'})
+        
+        # Restart PHP-FPM
+        restart_cmd = ['supervisorctl', 'restart', 'php-fpm']
+        restart_result = subprocess.run(restart_cmd, capture_output=True, text=True)
+        
+        if restart_result.returncode == 0:
+            logger.info('PHP-FPM configuration saved and service restarted successfully')
+            return jsonify({'success': True, 'message': 'Configuration saved and PHP-FPM restarted successfully'})
+        else:
+            logger.warning('Configuration saved but failed to restart PHP-FPM')
+            return jsonify({'success': True, 'message': 'Configuration saved but failed to restart PHP-FPM automatically'})
+            
+    except Exception as e:
+        logger.error(f'Error saving PHP-FPM config: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/php/phpini-config', methods=['GET'])
+@login_required
+def get_phpini_config():
+    """Get PHP.ini configuration"""
+    try:
+        logger.info('Loading PHP.ini configuration...')
+        
+        # Common PHP.ini paths
+        ini_paths = [
+            '/etc/php/8.2/fpm/php.ini',
+            '/etc/php/8.1/fpm/php.ini',
+            '/etc/php/8.0/fpm/php.ini',
+            '/etc/php/7.4/fpm/php.ini'
+        ]
+        
+        config_content = ''
+        config_file = None
+        
+        for path in ini_paths:
+            if os.path.exists(path):
+                config_file = path
+                with open(path, 'r') as f:
+                    config_content = f.read()
+                break
+        
+        if not config_file:
+            return jsonify({'success': False, 'error': 'PHP.ini file not found'})
+        
+        return jsonify({
+            'success': True,
+            'config': config_content,
+            'file': config_file
+        })
+        
+    except Exception as e:
+        logger.error(f'Error loading PHP.ini config: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/php/test-phpini-config', methods=['POST'])
+@login_required
+def test_phpini_config():
+    """Test PHP.ini configuration"""
+    try:
+        data = request.get_json()
+        config = data.get('config', '')
+        
+        if not config:
+            return jsonify({'success': False, 'error': 'Configuration content is required'})
+        
+        # Write config to temporary file
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.ini', delete=False) as temp_file:
+            temp_file.write(config)
+            temp_path = temp_file.name
+        
+        try:
+            # Test the configuration
+            test_cmd = ['php', '-c', temp_path, '-m']
+            result = subprocess.run(test_cmd, capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                return jsonify({'success': True, 'message': 'Configuration is valid'})
+            else:
+                error_msg = result.stderr or result.stdout
+                return jsonify({'success': False, 'error': error_msg})
+        finally:
+            # Clean up temporary file
+            os.unlink(temp_path)
+            
+    except Exception as e:
+        logger.error(f'Error testing PHP.ini config: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/php/save-phpini-config', methods=['POST'])
+@login_required
+def save_phpini_config():
+    """Save PHP.ini configuration"""
+    try:
+        data = request.get_json()
+        config = data.get('config', '')
+        
+        if not config:
+            return jsonify({'success': False, 'error': 'Configuration content is required'})
+        
+        # Find the correct PHP.ini file
+        ini_paths = [
+            '/etc/php/8.2/fpm/php.ini',
+            '/etc/php/8.1/fpm/php.ini',
+            '/etc/php/8.0/fpm/php.ini',
+            '/etc/php/7.4/fpm/php.ini'
+        ]
+        
+        config_file = None
+        for path in ini_paths:
+            if os.path.exists(path):
+                config_file = path
+                break
+        
+        if not config_file:
+            return jsonify({'success': False, 'error': 'PHP.ini file not found'})
+        
+        # Backup existing configuration
+        backup_file = f'{config_file}.backup.{int(time.time())}'
+        shutil.copy2(config_file, backup_file)
+        logger.info(f'Backed up existing config to: {backup_file}')
+        
+        # Write new configuration
+        with open(config_file, 'w') as f:
+            f.write(config)
+        
+        # Test the configuration
+        test_cmd = ['php', '-c', config_file, '-m']
+        test_result = subprocess.run(test_cmd, capture_output=True, text=True)
+        
+        if test_result.returncode != 0:
+            # Restore backup if test fails
+            shutil.copy2(backup_file, config_file)
+            error_msg = test_result.stderr or test_result.stdout
+            return jsonify({'success': False, 'error': f'Configuration test failed: {error_msg}'})
+        
+        # Restart PHP-FPM
+        restart_cmd = ['supervisorctl', 'restart', 'php-fpm']
+        restart_result = subprocess.run(restart_cmd, capture_output=True, text=True)
+        
+        if restart_result.returncode == 0:
+            logger.info('PHP.ini configuration saved and PHP-FPM restarted successfully')
+            return jsonify({'success': True, 'message': 'Configuration saved and PHP-FPM restarted successfully'})
+        else:
+            logger.warning('Configuration saved but failed to restart PHP-FPM')
+            return jsonify({'success': True, 'message': 'Configuration saved but failed to restart PHP-FPM automatically'})
+            
+    except Exception as e:
+        logger.error(f'Error saving PHP.ini config: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
 # UFW Firewall Management endpoints
 @app.route('/api/ufw/status', methods=['GET'])
 @login_required
