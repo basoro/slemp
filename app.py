@@ -48,11 +48,11 @@ def is_systemctl_available():
         return False
 
 def safe_systemctl_command(command, service_name, capture_output=True, text=True, timeout=30):
-    """Safely execute systemctl commands only in production environment"""
-    if is_docker_environment() or not is_systemctl_available():
-        logger.info(f'Skipping systemctl {command} {service_name} - running in containerized environment or systemctl not available')
+    """Execute systemctl command with error handling"""
+    if not is_systemctl_available():
+        logger.warning('systemctl is not available')
         return None
-    
+
     try:
         return subprocess.run(['systemctl', command, service_name], 
                             capture_output=capture_output, text=text, timeout=timeout)
@@ -548,8 +548,8 @@ autorestart=true\n"""
                     safe_systemctl_command('disable', service_name)
 
                     # Start Nginx with supervisor
-                    socketio.emit('install_output', {'output': '$ supervisorctl start nginx', 'type': 'command'})
-                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', 'nginx'], 30)
+                    socketio.emit('install_output', {'output': '$ supervisorctl restart nginx', 'type': 'command'})
+                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'restart', 'nginx'], 30)
                 elif service_name == 'php-fpm':
                     # PHP-FPM specific configuration
                     socketio.emit('install_output', {'output': 'Mengkonfigurasi PHP-FPM untuk supervisord...', 'type': 'info'})
@@ -575,8 +575,8 @@ autorestart=true\n"""
                     # Note: In containerized environment with supervisor, we don't need to stop/disable system services
 
                     # Start PHP-FPM with supervisor
-                    socketio.emit('install_output', {'output': '$ supervisorctl start php-fpm', 'type': 'command'})
-                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', 'php-fpm'], 30)
+                    socketio.emit('install_output', {'output': '$ supervisorctl restart php-fpm', 'type': 'command'})
+                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'restart', 'php-fpm'], 30)
                 elif service_name == 'mariadb-server':
                     # MariaDB specific configuration
                     socketio.emit('install_output', {'output': 'Mengkonfigurasi MariaDB untuk supervisord...', 'type': 'info'})
@@ -609,8 +609,8 @@ stopasgroup=true\n"""
                     subprocess.run(['chmod', '755', '/run/mysqld'], capture_output=True, text=True, timeout=10)
                     
                     # Start MariaDB with supervisor
-                    socketio.emit('install_output', {'output': '$ supervisorctl start mariadb', 'type': 'command'})
-                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', 'mariadb'], 30)
+                    socketio.emit('install_output', {'output': '$ supervisorctl restart mariadb', 'type': 'command'})
+                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'restart', 'mariadb'], 30)
                     
                     # Reset MySQL root password
                     if start_code == 0:
@@ -690,8 +690,8 @@ autorestart=true\n"""
                     subprocess.run(['supervisorctl', 'update'], capture_output=True, text=True, timeout=30)
                     
                     # Start PowerDNS with supervisor
-                    socketio.emit('install_output', {'output': '$ supervisorctl start pdns', 'type': 'command'})
-                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', 'pdns'], 30)
+                    socketio.emit('install_output', {'output': '$ supervisorctl restart pdns', 'type': 'command'})
+                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'restart', 'pdns'], 30)
 
                 elif service_name == 'ufw':
                     # UFW specific configuration
@@ -720,8 +720,8 @@ startretries=0\n"""
                 else:
                     # This should not happen as all services are now handled specifically
                     socketio.emit('install_output', {'output': f'Layanan {service_name} tidak memiliki konfigurasi khusus', 'type': 'warning'})
-                    socketio.emit('install_output', {'output': f'$ supervisorctl start {service}', 'type': 'command'})
-                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'start', service], 30)
+                    socketio.emit('install_output', {'output': f'$ supervisorctl restart {service}', 'type': 'command'})
+                    start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'restart', service], 30)
                 
                 if start_code == 0:
                     socketio.emit('install_complete', {'message': f'{service_name} berhasil diinstall dan diaktifkan!', 'service': service})
