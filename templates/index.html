@@ -1492,7 +1492,7 @@
         let previousNetworkData = null;
         
         const updateNetworkCharts = (data) => {
-            console.log('Received network data:', data);
+            // console.log('Received network data:', data);
             if (!data || !data.total_traffic) {
                 console.log('No network data or total_traffic missing');
                 return;
@@ -1547,7 +1547,7 @@
                 const response = await fetch('/api/system-info');
                 const data = await response.json();
                 
-                console.log('Raw system data from API:', data);
+                // console.log('Raw system data from API:', data);
 
                 // Update server uptime
                 if (data.uptime) {
@@ -1647,14 +1647,14 @@
                 return;
             }
             
-            console.log('System chart data received:', data);
+            // console.log('System chart data received:', data);
             
             const currentTime = new Date().toLocaleTimeString();
             const cpuUsage = parseFloat(data.cpu_usage) || 0;
             const memoryUsage = parseFloat(data.memory_usage) || 0;
             const diskUsage = parseFloat(data.disk_usage) || 0;
             
-            console.log('Parsed values - CPU:', cpuUsage, 'Memory:', memoryUsage, 'Disk:', diskUsage);
+            // console.log('Parsed values - CPU:', cpuUsage, 'Memory:', memoryUsage, 'Disk:', diskUsage);
             
             // Update system data arrays
             systemData.timestamps.push(currentTime);
@@ -3246,7 +3246,7 @@
             showInstallModal('Let\'s Encrypt SSL');
             
             // Update progress
-            updateInstallProgress('Memulai proses generate SSL certificate...', '1/4', 10);
+            updateInstallProgress('1', '4', 'Memulai proses generate SSL certificate...', 10);
             addInstallOutput('Starting Let\'s Encrypt SSL certificate generation...', 'info');
             addInstallOutput(`Domain: ${domain}`, 'info');
             addInstallOutput(`Email: ${email}`, 'info');
@@ -3260,13 +3260,13 @@
                 });
                 
                 socket.on('ssl_generate_progress', function(data) {
-                    updateInstallProgress(data.status, data.step, data.progress);
+                    updateInstallProgress(data.step || '1', '4', data.status, data.progress);
                 });
                 
                 socket.on('ssl_generate_complete', function(data) {
                     if (data.success) {
                         addInstallOutput('SSL certificate generated successfully!', 'success');
-                        updateInstallProgress('SSL certificate generated', '4/4', 100);
+                        updateInstallProgress('4', '4', 'SSL certificate generated', 100);
                         
                         // Update SSL certificate paths if provided
                         if (data.cert_path) {
@@ -3291,7 +3291,7 @@
                         }, 1000);
                     } else {
                         addInstallOutput(`SSL generation failed: ${data.error}`, 'error');
-                        updateInstallProgress('SSL generation failed', '4/4', 100);
+                        updateInstallProgress('4', '4', 'SSL generation failed', 100);
                         showNotification(data.error || 'Failed to generate SSL certificate', 'error');
                     }
                     
@@ -3320,7 +3320,7 @@
                 if (!response.ok) {
                     const data = await response.json();
                     addInstallOutput(`SSL generation failed: ${data.error}`, 'error');
-                    updateInstallProgress('SSL generation failed', '4/4', 100);
+                    updateInstallProgress('4', '4', 'SSL generation failed', 100);
                     showNotification(data.error || 'Failed to generate SSL certificate', 'error');
                     
                     // Re-enable close button
@@ -3335,7 +3335,7 @@
             } catch (error) {
                 console.error('Error generating SSL certificate:', error);
                 addInstallOutput(`SSL generation error: ${error.message}`, 'error');
-                updateInstallProgress('SSL generation failed', '4/4', 100);
+                updateInstallProgress('4', '4', 'SSL generation failed', 100);
                 showNotification('Failed to generate SSL certificate. Please try again.', 'error');
                 
                 // Re-enable close button
@@ -5229,6 +5229,8 @@
             } else if (tabName === 'status') {
                 loadFirewallStatus();
                 loadFirewallLogs();
+            } else if (tabName === 'ports') {
+                initializePortManagement();
             }
         }
 
@@ -5348,6 +5350,70 @@
             }
         }
 
+        // Port Forward Modal Functions
+        function showPortForwardModal(isEdit = false, ruleId = null) {
+            const modalHtml = `
+                <div id="port-forward-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+                        <div class="mt-3">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">${isEdit ? 'Edit' : 'Add'} Port Forward Rule</h3>
+                            <form id="port-forward-form">
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">External Port</label>
+                                    <input type="number" id="forward-external-port" placeholder="e.g., 8080" min="1" max="65535" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Internal IP</label>
+                                    <input type="text" id="forward-internal-ip" placeholder="e.g., 192.168.1.100" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Internal Port</label>
+                                    <input type="number" id="forward-internal-port" placeholder="e.g., 80" min="1" max="65535" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Protocol</label>
+                                    <select id="forward-protocol" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                        <option value="tcp">TCP</option>
+                                        <option value="udp">UDP</option>
+                                        <option value="both">Both (TCP & UDP)</option>
+                                    </select>
+                                </div>
+                                <div class="mb-6">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description (Optional)</label>
+                                    <input type="text" id="forward-description" placeholder="e.g., Web server forward" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                </div>
+                                <div class="flex justify-end space-x-3">
+                                    <button type="button" onclick="hidePortForwardModal()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500">Cancel</button>
+                                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">${isEdit ? 'Update' : 'Add'} Rule</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Store rule ID for editing
+            if (isEdit && ruleId) {
+                document.getElementById('port-forward-modal').dataset.ruleId = ruleId;
+                loadPortForwardRuleData(ruleId);
+            }
+            
+            // Handle form submission
+            document.getElementById('port-forward-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitPortForwardRule();
+            });
+        }
+
+        function hidePortForwardModal() {
+            const modal = document.getElementById('port-forward-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
         function submitFirewallRule() {
             const formData = {
                 action: document.getElementById('rule-action').value,
@@ -5396,6 +5462,247 @@
                 if (data.success) {
                     showAlert('Success', data.message);
                     loadFirewallRules();
+                } else {
+                    showAlert('Error', data.error || 'Failed to delete port forward rule');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting port forward rule:', error);
+                showAlert('Error', 'Failed to delete port forward rule');
+            });
+        }
+
+        function loadPortForwardRuleData(ruleId) {
+            fetch(`/api/port-forward/rules/${ruleId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.rule) {
+                    const rule = data.rule;
+                    document.getElementById('forward-external-port').value = rule.external_port;
+                    document.getElementById('forward-internal-ip').value = rule.internal_ip;
+                    document.getElementById('forward-internal-port').value = rule.internal_port;
+                    document.getElementById('forward-protocol').value = rule.protocol;
+                    document.getElementById('forward-description').value = rule.description || '';
+                } else {
+                    showAlert('Error', 'Failed to load rule data');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading rule data:', error);
+                showAlert('Error', 'Failed to load rule data');
+            });
+        }
+
+        function initializePortManagement() {
+            showPortTab('rules');
+        }
+
+        // Port Forwarding Functions
+        function showPortTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.port-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.port-tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+                btn.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+            });
+            
+            // Show selected tab content
+            if (tabName === 'rules') {
+                document.getElementById('port-rules-content').classList.remove('hidden');
+                document.getElementById('port-rules-tab').classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+                document.getElementById('port-rules-tab').classList.add('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+                loadFirewallRules();
+            } else if (tabName === 'forwarding') {
+                document.getElementById('port-forwarding-content').classList.remove('hidden');
+                document.getElementById('port-forwarding-tab').classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+                document.getElementById('port-forwarding-tab').classList.add('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+                loadPortForwardRules();
+            }
+        }
+
+        function loadPortForwardRules() {
+            fetch('/api/port-forward/rules')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayPortForwardRules(data.rules);
+                } else {
+                    console.error('Failed to load port forward rules:', data.error);
+                    showAlert('Error', 'Failed to load port forward rules');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading port forward rules:', error);
+                showAlert('Error', 'Failed to load port forward rules');
+            });
+        }
+
+        function displayPortForwardRules(rules) {
+            const tbody = document.getElementById('port-forward-rules-list');
+            const emptyDiv = document.getElementById('port-forward-rules-empty');
+            
+            if (!rules || rules.length === 0) {
+                tbody.innerHTML = '';
+                emptyDiv.classList.remove('hidden');
+                return;
+            }
+            
+            emptyDiv.classList.add('hidden');
+            
+            tbody.innerHTML = rules.map(rule => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${rule.external_port}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${rule.internal_ip}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${rule.internal_port}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${rule.protocol.toUpperCase()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${rule.description || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            rule.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 
+                            'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'
+                        }">
+                            ${rule.status === 'active' ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="editPortForwardRule(${rule.id})" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3">
+                            Edit
+                        </button>
+                        <button onclick="deletePortForwardRule(${rule.id})" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function addPortForwardRule() {
+            showPortForwardModal();
+        }
+
+        function editPortForwardRule(ruleId) {
+            showPortForwardModal(ruleId);
+        }
+
+        function showPortForwardModal(ruleId = null) {
+            const isEdit = ruleId !== null;
+            
+            const modalHtml = `
+                <div id="port-forward-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+                        <div class="mt-3">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">${isEdit ? 'Edit' : 'Add'} Port Forward Rule</h3>
+                            <form id="port-forward-form">
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">External Port</label>
+                                    <input type="number" id="forward-external-port" placeholder="e.g., 8080" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Internal IP</label>
+                                    <input type="text" id="forward-internal-ip" placeholder="e.g., 192.168.1.100" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Internal Port</label>
+                                    <input type="number" id="forward-internal-port" placeholder="e.g., 80" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Protocol</label>
+                                    <select id="forward-protocol" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" required>
+                                        <option value="tcp">TCP</option>
+                                        <option value="udp">UDP</option>
+                                        <option value="both">Both</option>
+                                    </select>
+                                </div>
+                                <div class="mb-6">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                                    <input type="text" id="forward-description" placeholder="Optional description" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                </div>
+                                <input type="hidden" id="forward-rule-id" value="${ruleId || ''}">
+                                <div class="flex justify-end space-x-3">
+                                    <button type="button" onclick="hidePortForwardModal()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500">Cancel</button>
+                                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">${isEdit ? 'Update' : 'Add'} Rule</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Load existing data if editing
+            if (isEdit) {
+                loadPortForwardRuleData(ruleId);
+            }
+            
+            // Handle form submission
+            document.getElementById('port-forward-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitPortForwardRule();
+            });
+        }
+
+        function hidePortForwardModal() {
+            const modal = document.getElementById('port-forward-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function submitPortForwardRule() {
+            const ruleId = document.getElementById('forward-rule-id').value;
+            const isEdit = ruleId !== '';
+            
+            const formData = {
+                external_port: parseInt(document.getElementById('forward-external-port').value),
+                internal_ip: document.getElementById('forward-internal-ip').value,
+                internal_port: parseInt(document.getElementById('forward-internal-port').value),
+                protocol: document.getElementById('forward-protocol').value,
+                description: document.getElementById('forward-description').value
+            };
+            
+            const url = isEdit ? `/api/port-forward/rules/${ruleId}` : '/api/port-forward/rules';
+            const method = isEdit ? 'PUT' : 'POST';
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Success', data.message);
+                    hidePortForwardModal();
+                    loadPortForwardRules();
+                } else {
+                    showAlert('Error', data.error || 'Failed to save port forward rule');
+                }
+            })
+            .catch(error => {
+                console.error('Error saving port forward rule:', error);
+                showAlert('Error', 'Failed to save port forward rule');
+            });
+        }
+
+        async function deletePortForwardRule(ruleId) {
+            const confirmed = await showConfirm('Konfirmasi Hapus Rule', 'Apakah Anda yakin ingin menghapus rule port forwarding ini?');
+            if (!confirmed) return;
+            
+            fetch(`/api/port-forward/rules/${ruleId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Success', data.message);
+                    loadPortForwardRules();
                 } else {
                     showAlert('Error', data.error || 'Failed to delete firewall rule');
                 }
@@ -5589,6 +5896,412 @@
                     console.error('Error resetting UFW:', error);
                     showAlert('Error', 'Failed to reset UFW');
                 });
+        }
+
+        // Port Management Functions
+        function addPortRule() {
+            showPortRuleModal();
+        }
+
+        function showPortRuleModal(rule = null) {
+            const isEdit = rule !== null;
+            const modalHtml = `
+                <div id="port-rule-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+                        <div class="mt-3">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">${isEdit ? 'Edit' : 'Add'} Port Rule</h3>
+                            <form id="port-rule-form">
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Port/Range</label>
+                                    <input type="text" id="port-number" placeholder="e.g., 80, 443, 8080-8090" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" value="${isEdit ? rule.port : ''}">
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Protocol</label>
+                                    <select id="port-protocol" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                        <option value="tcp" ${isEdit && rule.protocol === 'tcp' ? 'selected' : ''}>TCP</option>
+                                        <option value="udp" ${isEdit && rule.protocol === 'udp' ? 'selected' : ''}>UDP</option>
+                                        <option value="both" ${isEdit && rule.protocol === 'both' ? 'selected' : ''}>Both</option>
+                                    </select>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Action</label>
+                                    <select id="port-action" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                        <option value="allow" ${isEdit && rule.action === 'allow' ? 'selected' : ''}>Allow</option>
+                                        <option value="deny" ${isEdit && rule.action === 'deny' ? 'selected' : ''}>Deny</option>
+                                        <option value="reject" ${isEdit && rule.action === 'reject' ? 'selected' : ''}>Reject</option>
+                                    </select>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Source</label>
+                                    <input type="text" id="port-source" placeholder="e.g., 192.168.1.0/24, any" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" value="${isEdit ? rule.source : 'any'}">
+                                </div>
+                                <div class="mb-6">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                                    <input type="text" id="port-description" placeholder="Optional description" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" value="${isEdit ? rule.description : ''}">
+                                </div>
+                                <div class="flex justify-end space-x-3">
+                                    <button type="button" onclick="hidePortRuleModal()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500">Cancel</button>
+                                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">${isEdit ? 'Update' : 'Add'} Rule</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Handle form submission
+            document.getElementById('port-rule-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitPortRule(isEdit ? rule.id : null);
+            });
+        }
+
+        function hidePortRuleModal() {
+            const modal = document.getElementById('port-rule-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function submitPortRule(ruleId = null) {
+            const formData = {
+                port: document.getElementById('port-number').value,
+                protocol: document.getElementById('port-protocol').value,
+                action: document.getElementById('port-action').value,
+                source: document.getElementById('port-source').value,
+                description: document.getElementById('port-description').value
+            };
+
+            const url = ruleId ? `/api/ports/rule/${ruleId}` : '/api/ports/rule';
+            const method = ruleId ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Success', data.message);
+                    hidePortRuleModal();
+                    loadPortRules();
+                } else {
+                    showAlert('Error', data.error || 'Failed to save port rule');
+                }
+            })
+            .catch(error => {
+                console.error('Error saving port rule:', error);
+                showAlert('Error', 'Failed to save port rule');
+            });
+        }
+
+        function loadPortRules() {
+            fetch('/api/ports/rules')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayPortRules(data.rules);
+                    } else {
+                        showAlert('Error', data.error || 'Failed to load port rules');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading port rules:', error);
+                    showAlert('Error', 'Failed to load port rules');
+                });
+        }
+
+        function displayPortRules(rules) {
+            const tbody = document.querySelector('#port-rules-list');
+            tbody.innerHTML = '';
+            
+            if (rules.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                            No port rules found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            rules.forEach(rule => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${rule.port}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${rule.protocol.toUpperCase()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            rule.action === 'allow' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' :
+                            rule.action === 'deny' ? 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100' :
+                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100'
+                        }">
+                            ${rule.action.charAt(0).toUpperCase() + rule.action.slice(1)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${rule.source}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${rule.description || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            rule.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' :
+                            'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100'
+                        }">
+                            ${rule.status.charAt(0).toUpperCase() + rule.status.slice(1)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="editPortRule('${rule.id}')" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-3">Edit</button>
+                        <button onclick="deletePortRule('${rule.id}')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function editPortRule(ruleId) {
+            fetch(`/api/ports/rule/${ruleId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showPortRuleModal(data.rule);
+                    } else {
+                        showAlert('Error', data.error || 'Failed to load port rule');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading port rule:', error);
+                    showAlert('Error', 'Failed to load port rule');
+                });
+        }
+
+        async function deletePortRule(ruleId) {
+            const confirmed = await showConfirm('Konfirmasi Hapus Rule', 'Apakah Anda yakin ingin menghapus rule port ini?');
+            if (!confirmed) return;
+            
+            fetch(`/api/ports/rule/${ruleId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Success', data.message);
+                    loadPortRules();
+                } else {
+                    showAlert('Error', data.error || 'Failed to delete port rule');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting port rule:', error);
+                showAlert('Error', 'Failed to delete port rule');
+            });
+        }
+
+        function allowCommonPort(port, protocol, description) {
+            const formData = {
+                port: port,
+                protocol: protocol,
+                action: 'allow',
+                source: 'any',
+                description: description
+            };
+
+            fetch('/api/ports/rule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Success', `${description} port ${port} allowed successfully`);
+                    loadPortRules();
+                } else {
+                    showAlert('Error', data.error || `Failed to allow ${description} port`);
+                }
+            })
+            .catch(error => {
+                console.error('Error allowing port:', error);
+                showAlert('Error', `Failed to allow ${description} port`);
+            });
+        }
+
+        function refreshPortList() {
+            loadPortRules();
+            loadPortStatistics();
+        }
+
+        function quickAllowPort(port, description) {
+            const formData = {
+                port: port,
+                protocol: 'tcp',
+                action: 'allow',
+                source: 'any',
+                description: description
+            };
+
+            fetch('/api/ports/rule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Success', `${description} port ${port} allowed successfully`);
+                    refreshPortList();
+                } else {
+                    showAlert('Error', data.error || `Failed to allow ${description} port`);
+                }
+            })
+            .catch(error => {
+                console.error('Error allowing port:', error);
+                showAlert('Error', `Failed to allow ${description} port`);
+            });
+        }
+
+        function scanPorts() {
+            // Get target from input field
+            const targetInput = document.getElementById('scan-target');
+            const target = targetInput ? targetInput.value.trim() : '127.0.0.1';
+            if (!target) {
+                showAlert('Error', 'Please enter a target IP or hostname');
+                return;
+            }
+
+            const scanButton = document.querySelector('button[onclick="scanPorts()"]');
+            const originalText = scanButton.textContent;
+            scanButton.textContent = 'Scanning...';
+            scanButton.disabled = true;
+
+            fetch('/api/ports/scan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ target: target })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayPortScanResults(data.results);
+                    showAlert('Success', 'Port scan completed');
+                } else {
+                    showAlert('Error', data.error || 'Failed to scan ports');
+                }
+            })
+            .catch(error => {
+                console.error('Error scanning ports:', error);
+                showAlert('Error', 'Failed to scan ports');
+            })
+            .finally(() => {
+                scanButton.textContent = originalText;
+                scanButton.disabled = false;
+            });
+        }
+
+        function displayPortScanResults(results) {
+            const resultsContainer = document.getElementById('port-scan-results');
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<p class="text-sm text-gray-600 dark:text-gray-400">No open ports found</p>';
+                return;
+            }
+
+            const resultsHtml = results.map(port => `
+                <div class="flex justify-between items-center py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded mb-2">
+                    <div>
+                        <span class="font-medium text-gray-900 dark:text-white">Port ${port.port}</span>
+                        <span class="text-sm text-gray-600 dark:text-gray-400 ml-2">${port.protocol.toUpperCase()}</span>
+                        ${port.service ? `<span class="text-sm text-blue-600 dark:text-blue-400 ml-2">(${port.service})</span>` : ''}
+                    </div>
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full ${
+                        port.status === 'open' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' :
+                        'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'
+                    }">
+                        ${port.status.toUpperCase()}
+                    </span>
+                </div>
+            `).join('');
+
+            resultsContainer.innerHTML = resultsHtml;
+        }
+
+        function loadPortStatistics() {
+            fetch('/api/ports/statistics')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayPortStatistics(data.stats);
+                    } else {
+                        showAlert('Error', data.error || 'Failed to load port statistics');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading port statistics:', error);
+                    showAlert('Error', 'Failed to load port statistics');
+                });
+        }
+
+        function displayPortStatistics(stats) {
+            // Update individual statistics elements
+            const openPortsElement = document.getElementById('open-ports-count');
+            const blockedPortsElement = document.getElementById('blocked-ports-count');
+            const totalRulesElement = document.getElementById('total-rules-count');
+            
+            if (openPortsElement) openPortsElement.textContent = stats.open_ports || 0;
+            if (blockedPortsElement) blockedPortsElement.textContent = stats.blocked_ports || 0;
+            if (totalRulesElement) totalRulesElement.textContent = stats.total_rules || 0;
+        }
+
+        function filterPortRules() {
+            const searchTerm = document.getElementById('port-search').value.toLowerCase();
+            const statusFilter = document.getElementById('port-status-filter').value;
+            const actionFilter = document.getElementById('port-action-filter').value;
+            
+            const rows = document.querySelectorAll('#port-rules-list tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length === 1) return; // Skip "no data" row
+                
+                const port = cells[0].textContent.toLowerCase();
+                const protocol = cells[1].textContent.toLowerCase();
+                const action = cells[2].textContent.toLowerCase();
+                const source = cells[3].textContent.toLowerCase();
+                const description = cells[4].textContent.toLowerCase();
+                const status = cells[5].textContent.toLowerCase();
+                
+                const matchesSearch = !searchTerm || 
+                    port.includes(searchTerm) || 
+                    protocol.includes(searchTerm) || 
+                    source.includes(searchTerm) || 
+                    description.includes(searchTerm);
+                
+                const matchesStatus = !statusFilter || status.includes(statusFilter.toLowerCase());
+                const matchesAction = !actionFilter || action.includes(actionFilter.toLowerCase());
+                
+                if (matchesSearch && matchesStatus && matchesAction) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Initialize Port Management when modal is shown
+        function initializePortManagement() {
+            loadPortRules();
+            loadPortStatistics();
         }
 
         function showDnsSection(section) {
@@ -6381,11 +7094,199 @@
                     
                     <!-- Port Management Section -->
                     <div id="ports-section" class="firewall-section hidden">
-                        <h4 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Port Management</h4>
-                        <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6">
-                            <p class="text-gray-600 dark:text-gray-400">Manage open ports and port forwarding rules.</p>
-                            <!-- Add port management controls here -->
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h4 class="text-xl font-semibold text-gray-900 dark:text-white">Port Management</h4>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage open ports and port forwarding rules</p>
+                            </div>
+                            <div class="flex space-x-3">
+                                <button onclick="addPortRule()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Add Port Rule
+                                </button>
+                                <button onclick="refreshPortList()" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                    Refresh
+                                </button>
+                            </div>
                         </div>
+                        
+                        <!-- Port Management Tabs -->
+                        <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
+                            <nav class="-mb-px flex space-x-8">
+                                <button id="port-rules-tab" onclick="showPortTab('rules')" class="port-tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                                    Port Rules
+                                </button>
+                                <button id="port-forwarding-tab" onclick="showPortTab('forwarding')" class="port-tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                                    Port Forwarding
+                                </button>
+                            </nav>
+                        </div>
+                        
+                        <!-- Port Rules Tab Content -->
+                        <div id="port-rules-content" class="port-tab-content">
+                        
+                        <!-- Quick Port Actions -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Quick Allow</h5>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Allow common ports quickly</p>
+                                <div class="space-y-2">
+                                    <button onclick="quickAllowPort('22', 'SSH')" class="w-full text-left px-3 py-2 text-sm bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded border border-gray-200 dark:border-gray-600">
+                                        SSH (22)
+                                    </button>
+                                    <button onclick="quickAllowPort('80', 'HTTP')" class="w-full text-left px-3 py-2 text-sm bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded border border-gray-200 dark:border-gray-600">
+                                        HTTP (80)
+                                    </button>
+                                    <button onclick="quickAllowPort('443', 'HTTPS')" class="w-full text-left px-3 py-2 text-sm bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded border border-gray-200 dark:border-gray-600">
+                                        HTTPS (443)
+                                    </button>
+                                    <button onclick="quickAllowPort('3306', 'MySQL')" class="w-full text-left px-3 py-2 text-sm bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded border border-gray-200 dark:border-gray-600">
+                                        MySQL (3306)
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Port Scanner</h5>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Scan for open ports</p>
+                                <div class="space-y-2">
+                                    <button onclick="scanPorts()" class="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        Scan Ports
+                                    </button>
+                                    <div id="port-scan-results" class="mt-3"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Port Statistics</h5>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Current port status</p>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Open Ports:</span>
+                                        <span id="open-ports-count" class="font-medium text-green-600 dark:text-green-400">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Blocked Ports:</span>
+                                        <span id="blocked-ports-count" class="font-medium text-red-600 dark:text-red-400">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Total Rules:</span>
+                                        <span id="total-rules-count" class="font-medium text-blue-600 dark:text-blue-400">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Port Rules Table -->
+                        <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+                            <div class="px-4 py-5 sm:p-6">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h5 class="text-lg font-medium text-gray-900 dark:text-white">Port Rules</h5>
+                                    <div class="flex space-x-2">
+                                        <select id="port-filter" class="px-3 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="all">All Rules</option>
+                                            <option value="allow">Allow Rules</option>
+                                            <option value="deny">Deny Rules</option>
+                                            <option value="tcp">TCP Only</option>
+                                            <option value="udp">UDP Only</option>
+                                        </select>
+                                        <input type="text" id="port-search" placeholder="Search ports..." class="px-3 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                                
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                        <thead class="bg-gray-50 dark:bg-gray-700">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Port/Range</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Protocol</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Source</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="port-rules-list" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                            <!-- Port rules will be populated here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div id="port-rules-empty" class="text-center py-8 hidden">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No port rules</h3>
+                                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by adding a new port rule.</p>
+                                    <div class="mt-6">
+                                        <button onclick="addPortRule()" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                            Add Port Rule
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                        <!-- End Port Rules Tab Content -->
+                        
+                        <!-- Port Forwarding Tab Content -->
+                        <div id="port-forwarding-content" class="port-tab-content hidden">
+                            <div class="flex justify-between items-center mb-6">
+                                <div>
+                                    <h5 class="text-lg font-medium text-gray-900 dark:text-white">Port Forwarding Rules</h5>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Forward external ports to internal services</p>
+                                </div>
+                                <button onclick="addPortForwardRule()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Add Forward Rule
+                                </button>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+                                <div class="px-4 py-5 sm:p-6">
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                                <tr>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">External Port</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Internal IP</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Internal Port</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Protocol</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="port-forward-rules-list" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                                <!-- Port forwarding rules will be populated here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <div id="port-forward-rules-empty" class="text-center py-8 hidden">
+                                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                                        </svg>
+                                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No port forwarding rules</h3>
+                                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by adding a new port forwarding rule.</p>
+                                        <div class="mt-6">
+                                            <button onclick="addPortForwardRule()" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                Add Forward Rule
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End Port Forwarding Tab Content -->
                     </div>
                     
                     <!-- Status & Logs Section -->

@@ -5053,6 +5053,635 @@ class TerminalNamespace(Namespace):
                 print(f'Error reading from terminal: {e}')
                 break
 
+# Port Management Helper Functions
+def run_command(command):
+    """Run shell command and return output"""
+    try:
+        result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=30)
+        return result.returncode == 0, result.stdout, result.stderr
+    except subprocess.TimeoutExpired:
+        return False, "", "Command timed out"
+    except Exception as e:
+        return False, "", str(e)
+
+def get_ufw_rules():
+    """Get current UFW rules"""
+    try:
+        # Get UFW status and rules
+        success, output, error = run_command("sudo ufw status numbered")
+        if not success:
+            logger.warning(f"Cannot access UFW: {error}. Returning mock data.")
+            # Return some basic mock data if UFW is not accessible
+            return [
+                {
+                    'id': '1',
+                    'port': '22',
+                    'protocol': 'tcp',
+                    'action': 'allow',
+                    'source': 'any',
+                    'description': 'SSH Access (mock)',
+                    'status': 'active'
+                }
+            ]
+        
+        rules = []
+        lines = output.strip().split('\n')
+        
+        for line in lines:
+            if line.strip() and '[' in line and ']' in line:
+                # Parse UFW rule format: [ 1] 22/tcp                     ALLOW IN    Anywhere
+                match = re.match(r'\[\s*(\d+)\]\s+([^\s]+)\s+(ALLOW|DENY)\s+IN\s+(.+)', line.strip())
+                if match:
+                    rule_num = match.group(1)
+                    port_proto = match.group(2)
+                    action = match.group(3).lower()
+                    source = match.group(4).strip()
+                    
+                    # Parse port and protocol
+                    if '/' in port_proto:
+                        port, protocol = port_proto.split('/', 1)
+                    else:
+                        port = port_proto
+                        protocol = 'tcp'
+                    
+                    if source == 'Anywhere':
+                        source = 'any'
+                    
+                    rules.append({
+                        'id': rule_num,
+                        'port': port,
+                        'protocol': protocol,
+                        'action': action,
+                        'source': source,
+                        'description': f'{action.upper()} {protocol} port {port}',
+                        'status': 'active'
+                    })
+        
+        return rules
+    except Exception as e:
+        logger.error(f"Error getting UFW rules: {str(e)}")
+        return []
+
+def add_ufw_rule(port, protocol='tcp', action='allow', source='any', description=''):
+    """Add UFW rule"""
+    try:
+        # Normalize action
+        if action.lower() in ['accept', 'allow']:
+            action = 'allow'
+        elif action.lower() in ['deny', 'block', 'drop']:
+            action = 'deny'
+        
+        # Build UFW command
+        if source == 'any' or source == '0.0.0.0/0':
+            command = f"sudo ufw {action} {port}/{protocol}"
+        else:
+            command = f"sudo ufw {action} from {source} to any port {port} proto {protocol}"
+        
+        success, output, error = run_command(command)
+        
+        if success:
+            return True, f"UFW rule added successfully"
+        else:
+            return False, f"Failed to add UFW rule: {error}"
+    except Exception as e:
+        return False, str(e)
+
+def delete_ufw_rule(rule_num):
+    """Delete UFW rule by rule number"""
+    try:
+        command = f"sudo ufw --force delete {rule_num}"
+        success, output, error = run_command(command)
+        
+        if success:
+            return True, "UFW rule deleted successfully"
+        else:
+            return False, f"Failed to delete UFW rule: {error}"
+    except Exception as e:
+        return False, str(e)
+
+def scan_open_ports(target='127.0.0.1'):
+    """Scan for open ports using netstat"""
+    try:
+        success, output, error = run_command("netstat -tuln")
+        if not success:
+            return []
+        
+        ports = []
+        lines = output.strip().split('\n')
+        
+        for line in lines:
+            if 'LISTEN' in line:
+                parts = line.split()
+                if len(parts) >= 4:
+                    protocol = parts[0].lower()
+                    address = parts[3]
+                    
+                    if ':' in address:
+                        port = address.split(':')[-1]
+                        if port.isdigit():
+                            service = get_service_name(int(port))
+                            ports.append({
+                                'port': int(port),
+                                'protocol': protocol[:3],  # tcp or udp
+                                'status': 'open',
+                                'service': service
+                            })
+        
+        return ports
+    except Exception as e:
+        logger.error(f"Error scanning ports: {str(e)}")
+        return []
+
+def get_service_name(port):
+    """Get service name for common ports"""
+    services = {
+        22: 'ssh',
+        23: 'telnet',
+        25: 'smtp',
+        53: 'dns',
+        80: 'http',
+        110: 'pop3',
+        143: 'imap',
+        443: 'https',
+        993: 'imaps',
+        995: 'pop3s',
+        3306: 'mysql',
+        5432: 'postgresql',
+        6379: 'redis',
+        27017: 'mongodb',
+        5000: 'flask'
+    }
+    return services.get(port, 'unknown')
+
+def get_port_statistics():
+    """Get real port statistics"""
+    try:
+        rules = get_ufw_rules()
+        open_ports = scan_open_ports()
+        
+        allowed_count = len([r for r in rules if r['action'] == 'allow'])
+        blocked_count = len([r for r in rules if r['action'] == 'deny'])
+        
+        return {
+            'total_rules': len(rules),
+            'allowed_ports': allowed_count,
+            'blocked_ports': blocked_count,
+            'open_ports': len(open_ports)
+        }
+    except Exception as e:
+        logger.error(f"Error getting port statistics: {str(e)}")
+        return {
+            'total_rules': 0,
+            'allowed_ports': 0,
+            'blocked_ports': 0,
+            'open_ports': 0
+        }
+
+# Port Management API Endpoints
+@app.route('/api/ports/rules', methods=['GET'])
+@login_required
+def get_port_rules():
+    """Get all port rules"""
+    try:
+        rules = get_ufw_rules()
+        return jsonify({'success': True, 'rules': rules})
+    except Exception as e:
+        logger.error(f'Error getting port rules: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/ports/rule', methods=['POST'])
+@login_required
+def add_port_rule():
+    """Add a new port rule"""
+    try:
+        data = request.get_json()
+        port = data.get('port')
+        protocol = data.get('protocol', 'tcp')
+        action = data.get('action', 'allow')
+        source = data.get('source', 'any')
+        description = data.get('description', '')
+        
+        success, message = add_ufw_rule(port, protocol, action, source, description)
+        
+        if success:
+            logger.info(f'Added port rule: {port}/{protocol} {action} from {source}')
+            return jsonify({
+                'success': True, 
+                'message': f'Port rule for {port}/{protocol} added successfully'
+            })
+        else:
+            logger.error(f'Failed to add port rule: {message}')
+            return jsonify({'success': False, 'error': message})
+    except Exception as e:
+        logger.error(f'Error adding port rule: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/ports/rule/<rule_id>', methods=['GET'])
+@login_required
+def get_port_rule(rule_id):
+    """Get a specific port rule"""
+    try:
+        rules = get_ufw_rules()
+        rule = next((r for r in rules if r['id'] == rule_id), None)
+        
+        if rule:
+            return jsonify({'success': True, 'rule': rule})
+        else:
+            return jsonify({'success': False, 'error': 'Rule not found'})
+    except Exception as e:
+        logger.error(f'Error getting port rule {rule_id}: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/ports/rule/<rule_id>', methods=['PUT'])
+@login_required
+def update_port_rule(rule_id):
+    """Update a port rule"""
+    try:
+        data = request.get_json()
+        port = data.get('port')
+        protocol = data.get('protocol', 'tcp')
+        action = data.get('action', 'allow')
+        source = data.get('source', 'any')
+        description = data.get('description', '')
+        
+        # First, delete the old rule
+        delete_result = delete_ufw_rule(rule_id)
+        if not delete_result[0]:  # delete_ufw_rule returns (success, message)
+            return jsonify({'success': False, 'error': f'Failed to delete old rule: {delete_result[1]}'})
+        
+        # Then add the new rule with updated data
+        add_success, add_message = add_ufw_rule(port, protocol, action, source, description)
+        if add_success:
+            logger.info(f'Updated port rule {rule_id}: {port}/{protocol} {action} from {source}')
+            return jsonify({
+                'success': True, 
+                'message': f'Port rule {rule_id} updated successfully'
+            })
+        else:
+            return jsonify({'success': False, 'error': f'Failed to add updated rule: {add_message}'})
+            
+    except Exception as e:
+        logger.error(f'Error updating port rule {rule_id}: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/ports/rule/<rule_id>', methods=['DELETE'])
+@login_required
+def delete_port_rule(rule_id):
+    """Delete a port rule"""
+    try:
+        success, message = delete_ufw_rule(rule_id)
+        
+        if success:
+            logger.info(f'Deleted port rule {rule_id}')
+            return jsonify({
+                'success': True, 
+                'message': f'Port rule {rule_id} deleted successfully'
+            })
+        else:
+            logger.error(f'Failed to delete port rule {rule_id}: {message}')
+            return jsonify({'success': False, 'error': message})
+    except Exception as e:
+        logger.error(f'Error deleting port rule {rule_id}: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/ports/scan', methods=['POST'])
+@login_required
+def scan_ports():
+    """Scan for open ports"""
+    try:
+        data = request.get_json() or {}
+        target = data.get('target', '127.0.0.1')
+        
+        results = scan_open_ports(target)
+        
+        logger.info(f'Port scan completed for {target}, found {len(results)} open ports')
+        return jsonify({'success': True, 'results': results})
+    except Exception as e:
+        logger.error(f'Error scanning ports: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/ports/statistics', methods=['GET'])
+@login_required
+def get_port_statistics_api():
+    """Get port statistics"""
+    try:
+        stats = get_port_statistics()
+        return jsonify({'success': True, 'stats': stats})
+    except Exception as e:
+        logger.error(f'Error getting port statistics: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+# Port Forwarding Functions
+def get_port_forward_rules_list():
+    """Get list of port forwarding rules from UFW"""
+    try:
+        # Read UFW rules from user.rules file
+        rules_file = '/etc/ufw/user.rules'
+        if not os.path.exists(rules_file):
+            return []
+        
+        rules = []
+        rule_id = 1
+        
+        with open(rules_file, 'r') as f:
+            content = f.read()
+        
+        # Look for route rules in UFW format
+        lines = content.split('\n')
+        
+        # First pass: collect all input rules (external ports)
+        input_rules = []
+        for i, line in enumerate(lines):
+            line = line.strip()
+            if line.startswith('### tuple ### allow tcp') or line.startswith('### tuple ### allow udp'):
+                parts = line.split()
+                if len(parts) >= 6:
+                    protocol = parts[4]  # tcp/udp
+                    external_port = parts[5]  # external port
+                    input_rules.append({
+                        'protocol': protocol,
+                        'external_port': external_port,
+                        'line_index': i
+                    })
+        
+        # Second pass: process route rules and match with input rules
+        used_input_indices = set()  # Track which input rules have been used
+        
+        for i, line in enumerate(lines):
+            line = line.strip()
+            if line.startswith('### tuple ### route:allow'):
+                parts = line.split()
+                if len(parts) >= 7:
+                    protocol = parts[4]  # tcp/udp
+                    internal_port = parts[5]  # internal port (destination)
+                    internal_ip = parts[6]  # destination IP
+                    
+                    # Look for the corresponding iptables rule in next lines
+                    confirmed_internal_port = internal_port  # default
+                    j = i + 1
+                    while j < len(lines) and j < i + 5:  # Look within next 5 lines
+                        next_line = lines[j].strip()
+                        if 'ufw-user-forward' in next_line and '--dport' in next_line:
+                            # Confirm internal port from iptables rule
+                            rule_parts = next_line.split()
+                            for k, part in enumerate(rule_parts):
+                                if part == '--dport' and k + 1 < len(rule_parts):
+                                    confirmed_internal_port = rule_parts[k + 1]
+                                    break
+                            break
+                        j += 1
+                    
+                    # Find matching external port from input rules
+                    external_port = confirmed_internal_port  # default fallback
+                    for idx, input_rule in enumerate(input_rules):
+                        if (input_rule['protocol'] == protocol and 
+                            input_rule['line_index'] < i and 
+                            idx not in used_input_indices):  # Must come before route rule and not used
+                            external_port = input_rule['external_port']
+                            used_input_indices.add(idx)  # Mark as used
+                            break
+                    
+                    # Add the port forwarding rule
+                    rules.append({
+                        'id': rule_id,
+                        'external_port': int(external_port) if external_port.isdigit() else external_port,
+                        'internal_ip': internal_ip,
+                        'internal_port': int(confirmed_internal_port) if confirmed_internal_port.isdigit() else confirmed_internal_port,
+                        'protocol': protocol,
+                        'description': f'Forward {external_port} to {internal_ip}:{confirmed_internal_port}',
+                        'status': 'active'
+                    })
+                    rule_id += 1
+        
+        return rules
+    except Exception as e:
+        logger.error(f'Error getting port forward rules: {e}')
+        return []
+
+def create_port_forward_rule_helper(external_port, internal_ip, internal_port, protocol='tcp', description=''):
+    """Create a new port forwarding rule using UFW"""
+    try:
+        protocols = ['tcp'] if protocol == 'tcp' else ['udp'] if protocol == 'udp' else ['tcp', 'udp']
+        
+        for proto in protocols:
+            # Create UFW route rule for port forwarding
+            route_cmd = [
+                'sudo', 'ufw', 'route', 'allow', 'in', 'on', 'any',
+                'out', 'on', 'any', 'to', internal_ip, 'port', str(internal_port),
+                'proto', proto
+            ]
+            subprocess.run(route_cmd, check=True)
+            
+            # Add DNAT rule to UFW's before.rules
+            before_rules_file = '/etc/ufw/before.rules'
+            dnat_rule = f'-A PREROUTING -p {proto} --dport {external_port} -j DNAT --to-destination {internal_ip}:{internal_port}\n'
+            
+            # Read current before.rules
+            with open(before_rules_file, 'r') as f:
+                content = f.read()
+            
+            # Add DNAT rule if not already present
+            if dnat_rule.strip() not in content:
+                # Find the *nat table section
+                if '*nat' in content:
+                    # Insert after *nat line
+                    lines = content.split('\n')
+                    new_lines = []
+                    nat_found = False
+                    for line in lines:
+                        new_lines.append(line)
+                        if line.strip() == '*nat' and not nat_found:
+                            new_lines.append(':PREROUTING ACCEPT [0:0]')
+                            new_lines.append(dnat_rule.strip())
+                            nat_found = True
+                    
+                    if not nat_found:
+                        # Add *nat section at the beginning
+                        nat_section = f'*nat\n:PREROUTING ACCEPT [0:0]\n{dnat_rule}COMMIT\n\n'
+                        content = nat_section + content
+                    else:
+                        content = '\n'.join(new_lines)
+                else:
+                    # Add *nat section at the beginning
+                    nat_section = f'*nat\n:PREROUTING ACCEPT [0:0]\n{dnat_rule}COMMIT\n\n'
+                    content = nat_section + content
+                
+                # Write back to file
+                with open(before_rules_file, 'w') as f:
+                    f.write(content)
+        
+        # Reload UFW to apply changes
+        subprocess.run(['sudo', 'ufw', 'reload'], check=True)
+        
+        return {'success': True}
+    except subprocess.CalledProcessError as e:
+        logger.error(f'Error creating port forward rule: {e}')
+        return {'success': False, 'error': str(e)}
+    except Exception as e:
+        logger.error(f'Error creating port forward rule: {e}')
+        return {'success': False, 'error': str(e)}
+
+def update_port_forward_rule_data(rule_id, data):
+    """Update a port forwarding rule"""
+    try:
+        # For simplicity, delete old rule and create new one
+        delete_result = delete_port_forward_rule_data(rule_id)
+        if not delete_result['success']:
+            return delete_result
+        
+        create_result = create_port_forward_rule_helper(
+            data.get('external_port'),
+            data.get('internal_ip'),
+            data.get('internal_port'),
+            data.get('protocol', 'tcp'),
+            data.get('description', '')
+        )
+        return create_result
+    except Exception as e:
+        logger.error(f'Error updating port forward rule: {e}')
+        return {'success': False, 'error': str(e)}
+
+def delete_port_forward_rule_data(rule_id):
+    """Delete a port forwarding rule"""
+    try:
+        # Get current rules to find the rule to delete
+        rules = get_port_forward_rules_list()
+        rule_to_delete = next((r for r in rules if r.get('id') == rule_id), None)
+        
+        if not rule_to_delete:
+            return {'success': False, 'error': 'Rule not found'}
+        
+        external_port = rule_to_delete['external_port']
+        internal_ip = rule_to_delete['internal_ip']
+        internal_port = rule_to_delete['internal_port']
+        protocol = rule_to_delete['protocol']
+        
+        # Delete UFW route rule
+        route_cmd = [
+            'sudo', 'ufw', 'route', 'delete', 'allow', 'in', 'on', 'any',
+            'out', 'on', 'any', 'to', internal_ip, 'port', str(internal_port),
+            'proto', protocol
+        ]
+        try:
+            subprocess.run(route_cmd, check=True)
+        except subprocess.CalledProcessError:
+            pass  # Rule might not exist
+        
+        # Remove DNAT rule from UFW's before.rules
+        before_rules_file = '/etc/ufw/before.rules'
+        dnat_rule = f'-A PREROUTING -p {protocol} --dport {external_port} -j DNAT --to-destination {internal_ip}:{internal_port}'
+        
+        try:
+            with open(before_rules_file, 'r') as f:
+                content = f.read()
+            
+            # Remove the DNAT rule
+            lines = content.split('\n')
+            new_lines = []
+            for line in lines:
+                if line.strip() != dnat_rule:
+                    new_lines.append(line)
+            
+            # Write back to file
+            with open(before_rules_file, 'w') as f:
+                f.write('\n'.join(new_lines))
+        except Exception as e:
+            logger.warning(f'Could not remove DNAT rule from before.rules: {e}')
+        
+        # Reload UFW to apply changes
+        subprocess.run(['sudo', 'ufw', 'reload'], check=True)
+        
+        return {'success': True}
+    except subprocess.CalledProcessError as e:
+        logger.error(f'Error deleting port forward rule: {e}')
+        return {'success': False, 'error': str(e)}
+    except Exception as e:
+        logger.error(f'Error deleting port forward rule: {e}')
+        return {'success': False, 'error': str(e)}
+
+# Port Forwarding API endpoints
+@app.route('/api/port-forward/rules', methods=['GET'])
+@login_required
+def get_port_forward_rules():
+    """Get all port forwarding rules"""
+    try:
+        rules = get_port_forward_rules_list()
+        return jsonify({'success': True, 'rules': rules})
+    except Exception as e:
+        logger.error(f'Error getting port forward rules: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/port-forward/rules', methods=['POST'])
+@login_required
+def create_port_forward_rule():
+    """Create a new port forwarding rule"""
+    try:
+        data = request.get_json()
+        external_port = data.get('external_port')
+        internal_ip = data.get('internal_ip')
+        internal_port = data.get('internal_port')
+        protocol = data.get('protocol', 'tcp')
+        description = data.get('description', '')
+        
+        if not all([external_port, internal_ip, internal_port]):
+            return jsonify({'success': False, 'error': 'Missing required fields'})
+        
+        result = create_port_forward_rule_helper(external_port, internal_ip, internal_port, protocol, description)
+        if result['success']:
+            logger.info(f'Port forward rule created: {external_port} -> {internal_ip}:{internal_port}')
+            return jsonify({'success': True, 'message': 'Port forward rule created successfully'})
+        else:
+            return jsonify({'success': False, 'error': result['error']})
+    except Exception as e:
+        logger.error(f'Error creating port forward rule: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/port-forward/rules/<int:rule_id>', methods=['GET'])
+@login_required
+def get_port_forward_rule(rule_id):
+    """Get a specific port forwarding rule"""
+    try:
+        rules = get_port_forward_rules_list()
+        rule = next((r for r in rules if r.get('id') == rule_id), None)
+        if rule:
+            return jsonify({'success': True, 'rule': rule})
+        else:
+            return jsonify({'success': False, 'error': 'Rule not found'})
+    except Exception as e:
+        logger.error(f'Error getting port forward rule: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/port-forward/rules/<int:rule_id>', methods=['PUT'])
+@login_required
+def update_port_forward_rule(rule_id):
+    """Update a port forwarding rule"""
+    try:
+        data = request.get_json()
+        result = update_port_forward_rule_data(rule_id, data)
+        if result['success']:
+            logger.info(f'Port forward rule updated: {rule_id}')
+            return jsonify({'success': True, 'message': 'Port forward rule updated successfully'})
+        else:
+            return jsonify({'success': False, 'error': result['error']})
+    except Exception as e:
+        logger.error(f'Error updating port forward rule: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/port-forward/rules/<int:rule_id>', methods=['DELETE'])
+@login_required
+def delete_port_forward_rule(rule_id):
+    """Delete a port forwarding rule"""
+    try:
+        result = delete_port_forward_rule_data(rule_id)
+        if result['success']:
+            logger.info(f'Port forward rule deleted: {rule_id}')
+            return jsonify({'success': True, 'message': 'Port forward rule deleted successfully'})
+        else:
+            return jsonify({'success': False, 'error': result['error']})
+    except Exception as e:
+        logger.error(f'Error deleting port forward rule: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
 # Register the terminal namespace
 socketio.on_namespace(TerminalNamespace('/terminal'))
 
