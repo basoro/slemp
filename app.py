@@ -6200,6 +6200,508 @@ def delete_port_forward_rule(rule_id):
         logger.error(f'Error deleting port forward rule: {str(e)}')
         return jsonify({'success': False, 'error': str(e)})
 
+# MySQL Replication Management
+@app.route('/api/mysql/replication/status', methods=['GET'])
+@login_required
+def get_replication_status():
+    """Get MySQL replication status"""
+    try:
+        connection = create_mysql_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Failed to connect to MySQL'})
+        
+        cursor = connection.cursor(dictionary=True)
+        status = {'master': None, 'slave': []}
+        
+        # Check master status
+        try:
+            cursor.execute("SHOW MASTER STATUS")
+            master_result = cursor.fetchone()
+            if master_result:
+                status['master'] = {
+                    'file': master_result.get('File'),
+                    'position': master_result.get('Position'),
+                    'binlog_do_db': master_result.get('Binlog_Do_DB'),
+                    'binlog_ignore_db': master_result.get('Binlog_Ignore_DB')
+                }
+        except mysql.connector.Error:
+            pass  # Master not configured
+        
+        # Check slave status
+        try:
+            cursor.execute("SHOW SLAVE STATUS")
+            slave_result = cursor.fetchone()
+            if slave_result:
+                status['slave'] = [{
+                    'master_host': slave_result.get('Master_Host'),
+                    'master_user': slave_result.get('Master_User'),
+                    'master_port': slave_result.get('Master_Port'),
+                    'slave_io_running': slave_result.get('Slave_IO_Running'),
+                    'slave_sql_running': slave_result.get('Slave_SQL_Running'),
+                    'seconds_behind_master': slave_result.get('Seconds_Behind_Master'),
+                    'master_log_file': slave_result.get('Master_Log_File'),
+                    'read_master_log_pos': slave_result.get('Read_Master_Log_Pos'),
+                    'relay_log_file': slave_result.get('Relay_Log_File'),
+                    'relay_log_pos': slave_result.get('Relay_Log_Pos'),
+                    'last_errno': slave_result.get('Last_Errno'),
+                    'last_error': slave_result.get('Last_Error')
+                }]
+        except mysql.connector.Error:
+            pass  # Slave not configured
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({'success': True, 'status': status})
+        
+    except Exception as e:
+        logger.error(f'Error getting replication status: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/mysql/replication/setup-master', methods=['POST'])
+@login_required
+def setup_mysql_master():
+    """Setup MySQL as master for replication"""
+    try:
+        data = request.get_json()
+        server_id = data.get('server_id', 1)
+        log_bin = data.get('log_bin', 'mysql-bin')
+        
+        if not isinstance(server_id, int) or server_id < 1 or server_id > 4294967295:
+            return jsonify({'success': False, 'error': 'Invalid server ID. Must be between 1 and 4294967295'})
+        
+        # Read current MySQL configuration (Linux only)
+        config_paths = [
+            '/etc/mysql/mariadb.conf.d/50-server.cnf',
+            '/etc/mysql/mysql.conf.d/mysqld.cnf',
+            '/etc/my.cnf'
+        ]
+        
+        config_path = None
+        for path in config_paths:
+            if os.path.exists(path):
+                config_path = path
+                break
+        
+        if not config_path:
+            return jsonify({'success': False, 'error': 'MySQL configuration file not found'})
+        
+        # Backup original config
+        backup_path = f"{config_path}.backup.{int(time.time())}"
+        shutil.copy2(config_path, backup_path)
+        
+        # Read and modify configuration
+        with open(config_path, 'r') as f:
+            config_content = f.read()
+        
+        # Remove existing replication settings
+        lines = config_content.split('\n')
+        new_lines = []
+        in_mysqld_section = False
+        
+        for line in lines:
+            stripped = line.strip()
+            if stripped == '[mysqld]':
+                in_mysqld_section = True
+                new_lines.append(line)
+            elif stripped.startswith('[') and stripped != '[mysqld]':
+                in_mysqld_section = False
+                new_lines.append(line)
+            elif in_mysqld_section and (stripped.startswith('server-id') or 
+                                       stripped.startswith('log-bin') or
+                                       stripped.startswith('binlog-do-db') or
+                                       stripped.startswith('binlog-ignore-db')):
+                # Skip existing replication settings
+                continue
+            else:
+                new_lines.append(line)
+        
+        # Add new replication settings
+        mysqld_found = False
+        final_lines = []
+        for line in new_lines:
+            final_lines.append(line)
+            if line.strip() == '[mysqld]' and not mysqld_found:
+                mysqld_found = True
+                final_lines.append(f'server-id = {server_id}')
+                final_lines.append(f'log-bin = {log_bin}')
+                final_lines.append('binlog-format = ROW')
+                final_lines.append('expire-logs-days = 7')
+        
+        # Write new configuration
+        with open(config_path, 'w') as f:
+            f.write('\n'.join(final_lines))
+        
+        # Restart MySQL service (Linux only)
+        # Try systemctl first
+        restart_result = subprocess.run(['supervisorctl', 'restart', 'mariadb'], 
+                                      capture_output=True, text=True)
+        
+        if restart_result.returncode != 0:
+            # Restore backup
+            shutil.copy2(backup_path, config_path)
+            return jsonify({'success': False, 'error': f'Failed to restart MySQL: {restart_result.stderr}'})
+        
+        # Wait for MySQL to start
+        time.sleep(3)
+        
+        # Verify master setup and create replication user
+        connection = create_mysql_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Failed to connect to MySQL after restart'})
+        
+        cursor = connection.cursor(dictionary=True)
+        
+        # Check master status
+        cursor.execute("SHOW MASTER STATUS")
+        master_status = cursor.fetchone()
+        
+        if not master_status:
+            cursor.close()
+            connection.close()
+            return jsonify({'success': False, 'error': 'Master setup failed - no master status found'})
+        
+        # Create replication user if provided
+        replication_user = data.get('replication_user')
+        replication_password = data.get('replication_password')
+        
+        logger.info(f'Received replication_user: {replication_user}, has_password: {bool(replication_password)}')
+        
+        if replication_user and replication_password:
+            try:
+                logger.info(f'Creating replication user: {replication_user}')
+                
+                # Check if user exists first
+                cursor.execute("SELECT User FROM mysql.user WHERE User = %s AND Host = '%'", (replication_user,))
+                user_exists = cursor.fetchone() is not None
+                
+                if user_exists:
+                    logger.info(f'User {replication_user} exists, dropping first')
+                    cursor.execute(f"DROP USER '{replication_user}'@'%'")
+                    logger.info(f'Dropped existing user: {replication_user}')
+                else:
+                    logger.info(f'User {replication_user} does not exist, creating new user')
+                
+                # Create replication user
+                cursor.execute(f"CREATE USER '{replication_user}'@'%' IDENTIFIED BY '{replication_password}'")
+                logger.info(f'Created user: {replication_user}')
+                
+                cursor.execute(f"GRANT REPLICATION SLAVE ON *.* TO '{replication_user}'@'%'")
+                logger.info(f'Granted REPLICATION SLAVE privileges to: {replication_user}')
+                
+                cursor.execute("FLUSH PRIVILEGES")
+                logger.info('Flushed privileges')
+                
+                logger.info(f'Replication user {replication_user} created successfully')
+            except Exception as user_error:
+                logger.error(f'Failed to create replication user {replication_user}: {str(user_error)}')
+                # Don't fail the entire setup if user creation fails
+        else:
+            logger.warning(f'Replication user not created - user: {replication_user}, password provided: {bool(replication_password)}')
+        
+        cursor.close()
+        connection.close()
+        
+        logger.info(f'MySQL master setup completed with server-id {server_id}')
+        return jsonify({
+            'success': True, 
+            'message': 'Master setup completed successfully',
+            'master_status': master_status,
+            'replication_user_created': bool(replication_user and replication_password)
+        })
+        
+    except Exception as e:
+        logger.error(f'Error setting up MySQL master: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/mysql/replication/setup-slave', methods=['POST'])
+@login_required
+def setup_mysql_slave():
+    """Setup MySQL as slave for replication"""
+    try:
+        data = request.get_json()
+        master_host = data.get('master_host')
+        master_user = data.get('master_user')
+        master_password = data.get('master_password')
+        master_log_file = data.get('master_log_file', '')
+        master_log_pos = data.get('master_log_pos', 0)
+        server_id = data.get('server_id', 2)
+        
+        if not all([master_host, master_user, master_password]):
+            return jsonify({'success': False, 'error': 'Master host, user, and password are required'})
+        
+        if not isinstance(server_id, int) or server_id < 1 or server_id > 4294967295:
+            return jsonify({'success': False, 'error': 'Invalid server ID. Must be between 1 and 4294967295'})
+        
+        # Read current MySQL configuration
+        config_path = '/etc/mysql/mariadb.conf.d/50-server.cnf'
+        if not os.path.exists(config_path):
+            config_path = '/etc/mysql/mysql.conf.d/mysqld.cnf'
+        if not os.path.exists(config_path):
+            config_path = '/etc/my.cnf'
+        
+        if not os.path.exists(config_path):
+            return jsonify({'success': False, 'error': 'MySQL configuration file not found'})
+        
+        # Backup original config
+        backup_path = f"{config_path}.backup.{int(time.time())}"
+        shutil.copy2(config_path, backup_path)
+        
+        # Read and modify configuration
+        with open(config_path, 'r') as f:
+            config_content = f.read()
+        
+        # Remove existing replication settings
+        lines = config_content.split('\n')
+        new_lines = []
+        in_mysqld_section = False
+        
+        for line in lines:
+            stripped = line.strip()
+            if stripped == '[mysqld]':
+                in_mysqld_section = True
+                new_lines.append(line)
+            elif stripped.startswith('[') and stripped != '[mysqld]':
+                in_mysqld_section = False
+                new_lines.append(line)
+            elif in_mysqld_section and (stripped.startswith('server-id') or 
+                                       stripped.startswith('relay-log') or
+                                       stripped.startswith('read-only')):
+                # Skip existing replication settings
+                continue
+            else:
+                new_lines.append(line)
+        
+        # Add new replication settings
+        mysqld_found = False
+        final_lines = []
+        for line in new_lines:
+            final_lines.append(line)
+            if line.strip() == '[mysqld]' and not mysqld_found:
+                mysqld_found = True
+                final_lines.append(f'server-id = {server_id}')
+                final_lines.append('relay-log = relay-bin')
+                final_lines.append('read-only = 1')
+        
+        # Write new configuration
+        with open(config_path, 'w') as f:
+            f.write('\n'.join(final_lines))
+        
+        # Restart MySQL service
+        restart_result = subprocess.run(['supervisorctl', 'restart', 'mariadb'], 
+                                      capture_output=True, text=True)
+        
+        if restart_result.returncode != 0:
+            # Restore backup
+            shutil.copy2(backup_path, config_path)
+            return jsonify({'success': False, 'error': f'Failed to restart MySQL: {restart_result.stderr}'})
+        
+        # Wait for MySQL to start
+        time.sleep(3)
+        
+        # Setup slave connection
+        connection = create_mysql_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Failed to connect to MySQL after restart'})
+        
+        cursor = connection.cursor()
+        
+        # Stop slave if running
+        cursor.execute("STOP SLAVE")
+        
+        # Configure master connection
+        change_master_sql = f"""
+        CHANGE MASTER TO
+        MASTER_HOST='{master_host}',
+        MASTER_USER='{master_user}',
+        MASTER_PASSWORD='{master_password}'
+        """
+        
+        if master_log_file and master_log_pos > 0:
+            change_master_sql += f",\nMASTER_LOG_FILE='{master_log_file}',\nMASTER_LOG_POS={master_log_pos}"
+        
+        cursor.execute(change_master_sql)
+        
+        # Start slave
+        cursor.execute("START SLAVE")
+        
+        # Check slave status
+        cursor.execute("SHOW SLAVE STATUS")
+        slave_status = cursor.fetchone()
+        
+        cursor.close()
+        connection.close()
+        
+        logger.info(f'MySQL slave setup completed for master {master_host}')
+        return jsonify({
+            'success': True, 
+            'message': 'Slave setup completed successfully',
+            'slave_status': slave_status
+        })
+        
+    except Exception as e:
+        logger.error(f'Error setting up MySQL slave: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/mysql/replication/start-slave', methods=['POST'])
+@login_required
+def start_mysql_slave():
+    """Start MySQL slave replication"""
+    try:
+        connection = create_mysql_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Failed to connect to MySQL'})
+        
+        cursor = connection.cursor()
+        cursor.execute("START SLAVE")
+        cursor.close()
+        connection.close()
+        
+        logger.info('MySQL slave started')
+        return jsonify({'success': True, 'message': 'Slave started successfully'})
+        
+    except Exception as e:
+        logger.error(f'Error starting MySQL slave: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/mysql/replication/stop-slave', methods=['POST'])
+@login_required
+def stop_mysql_slave():
+    """Stop MySQL slave replication"""
+    try:
+        connection = create_mysql_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Failed to connect to MySQL'})
+        
+        cursor = connection.cursor()
+        cursor.execute("STOP SLAVE")
+        cursor.close()
+        connection.close()
+        
+        logger.info('MySQL slave stopped')
+        return jsonify({'success': True, 'message': 'Slave stopped successfully'})
+        
+    except Exception as e:
+        logger.error(f'Error stopping MySQL slave: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/mysql/replication/reset-slave', methods=['POST'])
+@login_required
+def reset_mysql_slave():
+    """Reset MySQL slave configuration"""
+    try:
+        connection = create_mysql_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Failed to connect to MySQL'})
+        
+        cursor = connection.cursor()
+        cursor.execute("STOP SLAVE")
+        cursor.execute("RESET SLAVE ALL")
+        cursor.close()
+        connection.close()
+        
+        logger.info('MySQL slave reset')
+        return jsonify({'success': True, 'message': 'Slave reset successfully'})
+        
+    except Exception as e:
+        logger.error(f'Error resetting MySQL slave: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/mysql/replication/disable-master', methods=['POST'])
+@login_required
+def disable_mysql_master():
+    """Disable MySQL master replication"""
+    try:
+        # Read current MySQL configuration (Linux only)
+        config_paths = [
+            '/etc/mysql/mariadb.conf.d/50-server.cnf',
+            '/etc/mysql/mysql.conf.d/mysqld.cnf',
+            '/etc/my.cnf'
+        ]
+        
+        config_path = None
+        for path in config_paths:
+            if os.path.exists(path):
+                config_path = path
+                break
+        
+        if not config_path:
+            return jsonify({'success': False, 'error': 'MySQL configuration file not found'})
+        
+        # Backup original config
+        backup_path = f"{config_path}.backup.{int(time.time())}"
+        shutil.copy2(config_path, backup_path)
+        
+        # Read and modify configuration
+        with open(config_path, 'r') as f:
+            config_content = f.read()
+        
+        # Remove replication settings
+        lines = config_content.split('\n')
+        new_lines = []
+        in_mysqld_section = False
+        
+        for line in lines:
+            stripped = line.strip()
+            if stripped == '[mysqld]':
+                in_mysqld_section = True
+                new_lines.append(line)
+            elif stripped.startswith('[') and stripped != '[mysqld]':
+                in_mysqld_section = False
+                new_lines.append(line)
+            elif in_mysqld_section and (stripped.startswith('server-id') or 
+                                       stripped.startswith('log-bin') or
+                                       stripped.startswith('binlog-format') or
+                                       stripped.startswith('expire-logs-days') or
+                                       stripped.startswith('binlog-do-db') or
+                                       stripped.startswith('binlog-ignore-db')):
+                # Skip replication settings
+                continue
+            else:
+                new_lines.append(line)
+        
+        # Write new configuration
+        with open(config_path, 'w') as f:
+            f.write('\n'.join(new_lines))
+        
+        # Restart MySQL service (Linux only)
+        restart_result = subprocess.run(['supervisorctl', 'restart', 'mariadb'], 
+                                      capture_output=True, text=True)
+        
+        if restart_result.returncode != 0:
+            # Restore backup
+            shutil.copy2(backup_path, config_path)
+            return jsonify({'success': False, 'error': f'Failed to restart MySQL: {restart_result.stderr}'})
+        
+        # Wait for MySQL to start
+        time.sleep(3)
+        
+        # Verify master is disabled
+        connection = create_mysql_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Failed to connect to MySQL after restart'})
+        
+        cursor = connection.cursor(dictionary=True)
+        
+        # Reset master (clear binary logs)
+        try:
+            cursor.execute("RESET MASTER")
+        except mysql.connector.Error as e:
+            logger.warning(f'Failed to reset master: {str(e)}')
+        
+        cursor.close()
+        connection.close()
+        
+        logger.info('MySQL master replication disabled successfully')
+        return jsonify({
+            'success': True, 
+            'message': 'Master replication disabled successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f'Error disabling MySQL master: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})
+
 # Register the terminal namespace
 socketio.on_namespace(TerminalNamespace('/terminal'))
 

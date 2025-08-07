@@ -576,6 +576,9 @@
                             <button onclick="editMariaDBConfig()" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                 MariaDB Config
                             </button>
+                            <button onclick="manageReplica()" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                                Replika
+                            </button>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -4018,7 +4021,7 @@
         }
         
         async function deleteUser(username, host) {
-            if (!confirm(`Apakah Anda yakin ingin menghapus user '${username}'@'${host}'?`)) {
+            if (!(await showConfirm(`Apakah Anda yakin ingin menghapus user '${username}'@'${host}'?`, 'Konfirmasi Hapus User'))) {
                 return;
             }
             
@@ -4873,6 +4876,265 @@
             } catch (error) {
                 console.error('Error:', error);
                 showNotification('Terjadi kesalahan saat menyimpan konfigurasi MariaDB', 'error');
+            }
+        }
+
+        // Replica Management Functions
+        function manageReplica() {
+            document.getElementById('replica-modal').classList.remove('hidden');
+            // Set default tab to master
+            switchReplicaTab('master');
+            loadReplicationStatus();
+        }
+
+        function closeReplicaModal() {
+            document.getElementById('replica-modal').classList.add('hidden');
+        }
+
+        async function loadReplicationStatus() {
+            try {
+                const response = await fetch('/api/mysql/replication/status');
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateReplicationStatusDisplay(data.status);
+                } else {
+                    showNotification('Gagal memuat status replikasi: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error loading replication status:', error);
+                showNotification('Error loading replication status', 'error');
+            }
+        }
+
+        function updateReplicationStatusDisplay(status) {
+            const masterStatus = document.getElementById('master-status');
+            const slaveStatus = document.getElementById('slave-status');
+            
+            // Update Master Status
+            if (status.master) {
+                masterStatus.innerHTML = `
+                    <div class="bg-green-50 dark:bg-green-900 p-4 rounded-lg">
+                        <h4 class="font-medium text-green-800 dark:text-green-200 mb-2">Master Status: Active</h4>
+                        <div class="text-sm text-green-700 dark:text-green-300">
+                            <p><strong>File:</strong> ${status.master.file}</p>
+                            <p><strong>Position:</strong> ${status.master.position}</p>
+                            <p><strong>Binlog Do DB:</strong> ${status.master.binlog_do_db || 'All'}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                masterStatus.innerHTML = `
+                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-600 dark:text-gray-300">Master Status: Not Configured</h4>
+                    </div>
+                `;
+            }
+            
+            // Update Slave Status
+            if (status.slave && status.slave.length > 0) {
+                slaveStatus.innerHTML = status.slave.map(slave => `
+                    <div class="bg-blue-50 dark:bg-blue-900 p-4 rounded-lg mb-2">
+                        <h4 class="font-medium text-blue-800 dark:text-blue-200 mb-2">Slave Status</h4>
+                        <div class="text-sm text-blue-700 dark:text-blue-300">
+                            <p><strong>Master Host:</strong> ${slave.master_host}</p>
+                            <p><strong>Master User:</strong> ${slave.master_user}</p>
+                            <p><strong>Slave IO Running:</strong> <span class="${slave.slave_io_running === 'Yes' ? 'text-green-600' : 'text-red-600'}">${slave.slave_io_running}</span></p>
+                            <p><strong>Slave SQL Running:</strong> <span class="${slave.slave_sql_running === 'Yes' ? 'text-green-600' : 'text-red-600'}">${slave.slave_sql_running}</span></p>
+                            <p><strong>Seconds Behind Master:</strong> ${slave.seconds_behind_master || 'N/A'}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                slaveStatus.innerHTML = `
+                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-600 dark:text-gray-300">Slave Status: Not Configured</h4>
+                    </div>
+                `;
+            }
+        }
+
+        async function setupMaster() {
+            const serverIdInput = document.getElementById('master-server-id');
+            const logBinInput = document.getElementById('master-log-bin');
+            const replicationUserInput = document.getElementById('master-replication-user');
+            const replicationPasswordInput = document.getElementById('master-replication-password');
+            
+
+            if (!serverIdInput.value) {
+                showNotification('Server ID harus diisi', 'error');
+                return;
+            }
+            
+            if (!replicationUserInput.value) {
+                showNotification('Username replika harus diisi', 'error');
+                return;
+            }
+            
+            if (!replicationPasswordInput.value) {
+                showNotification('Password replika harus diisi', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/mysql/replication/setup-master', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        server_id: parseInt(serverIdInput.value),
+                        log_bin: logBinInput.value || 'mysql-bin',
+                        replication_user: replicationUserInput.value,
+                        replication_password: replicationPasswordInput.value
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Master berhasil dikonfigurasi dan user replika dibuat', 'success');
+                    loadReplicationStatus();
+                } else {
+                    showNotification('Gagal mengkonfigurasi master: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error setting up master:', error);
+                showNotification('Error setting up master', 'error');
+            }
+        }
+
+        async function disableMaster() {
+            if (!(await showConfirm('Apakah Anda yakin ingin mematikan master replication? Ini akan menghapus konfigurasi replication dari MySQL.', 'Konfirmasi Disable Master'))) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/mysql/replication/disable-master', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Master replication berhasil dimatikan', 'success');
+                    loadReplicationStatus();
+                } else {
+                    showNotification('Gagal mematikan master replication: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error disabling master:', error);
+                showNotification('Error disabling master', 'error');
+            }
+        }
+
+        async function setupSlave() {
+            const masterHostInput = document.getElementById('slave-master-host');
+            const masterUserInput = document.getElementById('slave-master-user');
+            const masterPasswordInput = document.getElementById('slave-master-password');
+            const masterLogFileInput = document.getElementById('slave-master-log-file');
+            const masterLogPosInput = document.getElementById('slave-master-log-pos');
+            const serverIdInput = document.getElementById('slave-server-id');
+            
+            if (!masterHostInput.value || !masterUserInput.value || !masterPasswordInput.value || !serverIdInput.value) {
+                showNotification('Semua field harus diisi', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/mysql/replication/setup-slave', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        master_host: masterHostInput.value,
+                        master_user: masterUserInput.value,
+                        master_password: masterPasswordInput.value,
+                        master_log_file: masterLogFileInput.value,
+                        master_log_pos: parseInt(masterLogPosInput.value) || 0,
+                        server_id: parseInt(serverIdInput.value)
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Slave berhasil dikonfigurasi', 'success');
+                    loadReplicationStatus();
+                } else {
+                    showNotification('Gagal mengkonfigurasi slave: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error setting up slave:', error);
+                showNotification('Error setting up slave', 'error');
+            }
+        }
+
+        async function startSlave() {
+            try {
+                const response = await fetch('/api/mysql/replication/start-slave', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Slave berhasil dijalankan', 'success');
+                    loadReplicationStatus();
+                } else {
+                    showNotification('Gagal menjalankan slave: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error starting slave:', error);
+                showNotification('Error starting slave', 'error');
+            }
+        }
+
+        async function stopSlave() {
+            try {
+                const response = await fetch('/api/mysql/replication/stop-slave', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Slave berhasil dihentikan', 'success');
+                    loadReplicationStatus();
+                } else {
+                    showNotification('Gagal menghentikan slave: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error stopping slave:', error);
+                showNotification('Error stopping slave', 'error');
+            }
+        }
+
+        async function resetSlave() {
+            if (!(await showConfirm('Apakah Anda yakin ingin mereset konfigurasi slave?', 'Konfirmasi Reset Slave'))) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/mysql/replication/reset-slave', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Slave berhasil direset', 'success');
+                    loadReplicationStatus();
+                } else {
+                    showNotification('Gagal mereset slave: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error resetting slave:', error);
+                showNotification('Error resetting slave', 'error');
             }
         }
 
@@ -8603,6 +8865,245 @@ log_errors = On</textarea>
             loadNginxStatus();
             checkCertbotStatus();
         });
+    </script>
+
+    <!-- Replica Management Modal -->
+    <div id="replica-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-6xl shadow-lg rounded-md bg-white dark:bg-gray-800">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">MySQL Replication Management</h3>
+                    <button onclick="closeReplicaModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Status Section -->
+                <div class="mb-6">
+                    <h4 class="text-md font-medium text-gray-900 dark:text-white mb-4">Replication Status</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Master Status</h5>
+                            <div id="master-status">
+                                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                    <h4 class="font-medium text-gray-600 dark:text-gray-300">Loading...</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Slave Status</h5>
+                            <div id="slave-status">
+                                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                    <h4 class="font-medium text-gray-600 dark:text-gray-300">Loading...</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button onclick="loadReplicationStatus()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            Refresh Status
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Configuration Tabs -->
+                <div class="border-b border-gray-200 dark:border-gray-600">
+                    <nav class="-mb-px flex space-x-8">
+                        <button onclick="switchReplicaTab('master')" id="replica-tab-master" class="replica-tab-btn py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                            Master Setup
+                        </button>
+                        <button onclick="switchReplicaTab('slave')" id="replica-tab-slave" class="replica-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                            Slave Setup
+                        </button>
+                        <button onclick="switchReplicaTab('control')" id="replica-tab-control" class="replica-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                            Slave Control
+                        </button>
+                    </nav>
+                </div>
+                
+                <!-- Master Setup Tab -->
+                <div id="replica-content-master" class="replica-tab-content mt-6 space-y-4">
+                    <div class="bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-md p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                                    Warning
+                                </h3>
+                                <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                                    <p>Setting up master will modify MySQL configuration and restart the service. Make sure to backup your data first.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Server ID</label>
+                            <input type="number" id="master-server-id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="1" min="1" max="4294967295">
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Unique server ID (1-4294967295)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Log Bin Prefix</label>
+                            <input type="text" id="master-log-bin" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="mysql-bin">
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Binary log file prefix</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-md p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                                    Replication User Setup
+                                </h3>
+                                <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                                    <p>Create a dedicated user for replication. This user will be used by slave servers to connect to this master.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Replication Username</label>
+                            <input type="text" id="master-replication-user" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="replication_user">
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Username for replication connection</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Replication Password</label>
+                            <input type="password" id="master-replication-password" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Enter strong password">
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Strong password for replication user</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="disableMaster()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                            Disable Master
+                        </button>
+                        <button onclick="setupMaster()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                            Setup Master
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Slave Setup Tab -->
+                <div id="replica-content-slave" class="replica-tab-content mt-6 space-y-4 hidden">
+                    <div class="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-md p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                                    Information
+                                </h3>
+                                <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                                    <p>Configure this MySQL instance as a slave to replicate from a master server.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Master Host</label>
+                            <input type="text" id="slave-master-host" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="192.168.1.100">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Master User</label>
+                            <input type="text" id="slave-master-user" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="replication_user">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Master Password</label>
+                            <input type="password" id="slave-master-password" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="password">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Server ID</label>
+                            <input type="number" id="slave-server-id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="2" min="1" max="4294967295">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Master Log File</label>
+                            <input type="text" id="slave-master-log-file" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="mysql-bin.000001">
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Optional: Leave empty to start from current position</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Master Log Position</label>
+                            <input type="number" id="slave-master-log-pos" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="0" min="0">
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Optional: Leave 0 to start from current position</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button onclick="setupSlave()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            Setup Slave
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Slave Control Tab -->
+                <div id="replica-content-control" class="replica-tab-content mt-6 space-y-4 hidden">
+                    <div class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md p-4">
+                        <h4 class="text-md font-medium text-gray-900 dark:text-white mb-4">Slave Control Operations</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Use these controls to manage slave replication operations.</p>
+                        
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="startSlave()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                Start Slave
+                            </button>
+                            <button onclick="stopSlave()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                                Stop Slave
+                            </button>
+                            <button onclick="resetSlave()" class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                                Reset Slave
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end">
+                    <button onclick="closeReplicaModal()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Replica tab switching function
+        function switchReplicaTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.replica-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.replica-tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+                btn.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+            });
+            
+            // Show selected tab content
+            document.getElementById(`replica-content-${tabName}`).classList.remove('hidden');
+            
+            // Add active class to selected tab button
+            const activeBtn = document.getElementById(`replica-tab-${tabName}`);
+            activeBtn.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+            activeBtn.classList.add('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+        }
     </script>
 
 </body>
