@@ -6727,8 +6727,7 @@ def get_mysql_error_logs():
             '/var/log/mysql/error.log',
             '/var/log/mysqld.log',
             '/var/log/mysql.err',
-            '/usr/local/var/mysql/*.err',
-            '/opt/homebrew/var/mysql/*.err'
+            '/usr/local/var/mysql/*.err'
         ]
         
         logs_content = ""
@@ -6856,6 +6855,192 @@ def get_mysql_replication_logs():
         
     except Exception as e:
         logger.error(f'Error getting MySQL replication logs: {str(e)}')
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/mysql/general-logs', methods=['GET'])
+def get_mysql_general_logs():
+    """Get MySQL general logs"""
+    try:
+        # Common MySQL general log paths
+        general_log_paths = [
+            '/var/log/mysql/mysql.log',
+            '/var/log/mysql/general.log',
+            '/usr/local/var/mysql/general.log'
+        ]
+        
+        logs_content = ""
+        log_found = False
+        
+        for log_path in general_log_paths:
+            if os.path.exists(log_path):
+                try:
+                    with open(log_path, 'r') as f:
+                        # Get last 100 lines
+                        lines = f.readlines()
+                        recent_lines = lines[-100:] if len(lines) > 100 else lines
+                        logs_content += f"\n=== {log_path} ===\n"
+                        logs_content += ''.join(recent_lines)
+                        log_found = True
+                except Exception as e:
+                    logs_content += f"\nError reading {log_path}: {str(e)}\n"
+        
+        if not log_found:
+            logs_content = "No MySQL general logs found. General logging may be disabled.\n\n"
+            logs_content += "To enable general logging, add the following to your MySQL configuration:\n"
+            logs_content += "general_log = 1\n"
+            logs_content += "general_log_file = /var/log/mysql/general.log"
+        
+        # Format logs for HTML display
+        formatted_logs = logs_content.replace('\n', '<br>').replace(' ', '&nbsp;')
+        
+        return jsonify({
+            'success': True,
+            'logs': formatted_logs
+        })
+        
+    except Exception as e:
+        logger.error(f'Error getting MySQL general logs: {str(e)}')
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/mysql/slow-logs', methods=['GET'])
+def get_mysql_slow_logs():
+    """Get MySQL slow query logs"""
+    try:
+        # Common MySQL slow log paths
+        slow_log_paths = [
+            '/var/log/mysql/mysql-slow.log',
+            '/var/log/mysql/slow.log',
+            '/usr/local/var/mysql/slow.log'
+        ]
+        
+        logs_content = ""
+        log_found = False
+        
+        for log_path in slow_log_paths:
+            if os.path.exists(log_path):
+                try:
+                    with open(log_path, 'r') as f:
+                        # Get last 50 entries (slow logs can be verbose)
+                        lines = f.readlines()
+                        recent_lines = lines[-200:] if len(lines) > 200 else lines
+                        logs_content += f"\n=== {log_path} ===\n"
+                        logs_content += ''.join(recent_lines)
+                        log_found = True
+                except Exception as e:
+                    logs_content += f"\nError reading {log_path}: {str(e)}\n"
+        
+        if not log_found:
+            logs_content = "No MySQL slow query logs found. Slow query logging may be disabled.\n\n"
+            logs_content += "To enable slow query logging, add the following to your MySQL configuration:\n"
+            logs_content += "slow_query_log = 1\n"
+            logs_content += "slow_query_log_file = /var/log/mysql/mysql-slow.log\n"
+            logs_content += "long_query_time = 2"
+        
+        # Format logs for HTML display
+        formatted_logs = logs_content.replace('\n', '<br>').replace(' ', '&nbsp;')
+        
+        return jsonify({
+            'success': True,
+            'logs': formatted_logs
+        })
+        
+    except Exception as e:
+        logger.error(f'Error getting MySQL slow logs: {str(e)}')
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/mysql/analyze-slow-logs', methods=['GET'])
+def analyze_mysql_slow_logs():
+    """Analyze MySQL slow query logs"""
+    try:
+        connection = create_mysql_connection()
+        if not connection:
+            return jsonify({'success': False, 'message': 'Failed to connect to MySQL'})
+        
+        cursor = connection.cursor(dictionary=True)
+        analysis_content = ""
+        
+        # Get slow query log status
+        try:
+            cursor.execute("SHOW VARIABLES LIKE 'slow_query_log'")
+            slow_log_status = cursor.fetchone()
+            
+            cursor.execute("SHOW VARIABLES LIKE 'long_query_time'")
+            long_query_time = cursor.fetchone()
+            
+            cursor.execute("SHOW VARIABLES LIKE 'slow_query_log_file'")
+            slow_log_file = cursor.fetchone()
+            
+            analysis_content += "=== Slow Query Log Configuration ===\n"
+            analysis_content += f"Slow Query Log: {slow_log_status.get('Value', 'N/A') if slow_log_status else 'N/A'}\n"
+            analysis_content += f"Long Query Time: {long_query_time.get('Value', 'N/A') if long_query_time else 'N/A'} seconds\n"
+            analysis_content += f"Slow Log File: {slow_log_file.get('Value', 'N/A') if slow_log_file else 'N/A'}\n\n"
+            
+        except Exception as e:
+            analysis_content += f"Error getting slow log configuration: {str(e)}\n\n"
+        
+        # Get process list for currently running queries
+        try:
+            cursor.execute("SHOW PROCESSLIST")
+            processes = cursor.fetchall()
+            
+            long_running = [p for p in processes if p.get('Time', 0) > 5 and p.get('Command') not in ['Sleep', 'Binlog Dump']]
+            
+            if long_running:
+                analysis_content += "=== Currently Long Running Queries ===\n"
+                for process in long_running:
+                    analysis_content += f"ID: {process.get('Id', 'N/A')}, User: {process.get('User', 'N/A')}, "
+                    analysis_content += f"Time: {process.get('Time', 'N/A')}s, State: {process.get('State', 'N/A')}\n"
+                    analysis_content += f"Info: {process.get('Info', 'N/A')[:100]}...\n\n"
+            else:
+                analysis_content += "=== No Long Running Queries Found ===\n\n"
+                
+        except Exception as e:
+            analysis_content += f"Error getting process list: {str(e)}\n\n"
+        
+        # Get query cache statistics
+        try:
+            cursor.execute("SHOW STATUS LIKE 'Qcache%'")
+            qcache_stats = cursor.fetchall()
+            
+            if qcache_stats:
+                analysis_content += "=== Query Cache Statistics ===\n"
+                for stat in qcache_stats:
+                    analysis_content += f"{stat.get('Variable_name', 'N/A')}: {stat.get('Value', 'N/A')}\n"
+                analysis_content += "\n"
+                
+        except Exception as e:
+            analysis_content += f"Query cache statistics not available: {str(e)}\n\n"
+        
+        # Get table lock statistics
+        try:
+            cursor.execute("SHOW STATUS LIKE 'Table_locks%'")
+            lock_stats = cursor.fetchall()
+            
+            if lock_stats:
+                analysis_content += "=== Table Lock Statistics ===\n"
+                for stat in lock_stats:
+                    analysis_content += f"{stat.get('Variable_name', 'N/A')}: {stat.get('Value', 'N/A')}\n"
+                analysis_content += "\n"
+                
+        except Exception as e:
+            analysis_content += f"Table lock statistics not available: {str(e)}\n\n"
+        
+        cursor.close()
+        connection.close()
+        
+        if not analysis_content.strip():
+            analysis_content = "No slow query analysis data available."
+        
+        # Format analysis for HTML display
+        formatted_analysis = analysis_content.replace('\n', '<br>').replace(' ', '&nbsp;')
+        
+        return jsonify({
+            'success': True,
+            'analysis': formatted_analysis
+        })
+        
+    except Exception as e:
+        logger.error(f'Error analyzing MySQL slow logs: {str(e)}')
         return jsonify({'success': False, 'message': str(e)})
 
 # Register the terminal namespace

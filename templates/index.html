@@ -576,6 +576,9 @@
                             <button onclick="editMariaDBConfig()" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                 MariaDB Config
                             </button>
+                            <button onclick="openMySQLLogs()" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                                Logs
+                            </button>
                             <button onclick="manageReplica()" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
                                 Replika
                             </button>
@@ -4886,6 +4889,120 @@
             }
         }
 
+        // MySQL Logs Functions
+        function openMySQLLogs() {
+            document.getElementById('mysql-logs-modal').classList.remove('hidden');
+            // Load MySQL logs by default
+            switchLogTab('mysql');
+        }
+
+        function closeMySQLLogsModal() {
+            document.getElementById('mysql-logs-modal').classList.add('hidden');
+        }
+
+        function switchLogTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.log-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.log-tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+                btn.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+            });
+            
+            // Show selected tab content
+            document.getElementById(`log-content-${tabName}`).classList.remove('hidden');
+            
+            // Add active class to selected tab button
+            const activeBtn = document.getElementById(`log-tab-${tabName}`);
+            activeBtn.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+            activeBtn.classList.add('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+        }
+
+        async function loadMySQLErrorLogsMain() {
+            const logDisplay = document.getElementById('mysql-main-logs-display');
+            logDisplay.innerHTML = '<div class="text-yellow-400">Loading MySQL error logs...</div>';
+            
+            try {
+                const response = await fetch('/api/mysql/error-logs');
+                const data = await response.json();
+                
+                if (data.success) {
+                    logDisplay.innerHTML = data.logs || '<div class="text-gray-500">No error logs found.</div>';
+                } else {
+                    logDisplay.innerHTML = `<div class="text-red-400">Error loading logs: ${data.message}</div>`;
+                }
+            } catch (error) {
+                logDisplay.innerHTML = `<div class="text-red-400">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function loadMySQLGeneralLogs() {
+            const logDisplay = document.getElementById('mysql-main-logs-display');
+            logDisplay.innerHTML = '<div class="text-yellow-400">Loading MySQL general logs...</div>';
+            
+            try {
+                const response = await fetch('/api/mysql/general-logs');
+                const data = await response.json();
+                
+                if (data.success) {
+                    logDisplay.innerHTML = data.logs || '<div class="text-gray-500">No general logs found.</div>';
+                } else {
+                    logDisplay.innerHTML = `<div class="text-red-400">Error loading logs: ${data.message}</div>`;
+                }
+            } catch (error) {
+                logDisplay.innerHTML = `<div class="text-red-400">Error: ${error.message}</div>`;
+            }
+        }
+
+        function clearMySQLLogDisplay() {
+            const logDisplay = document.getElementById('mysql-main-logs-display');
+            logDisplay.innerHTML = '<div class="text-gray-500">Click "Load Error Logs" or "Load General Logs" to view log entries...</div>';
+        }
+
+        async function loadMySQLSlowLogs() {
+            const logDisplay = document.getElementById('mysql-slow-logs-display');
+            logDisplay.innerHTML = '<div class="text-yellow-400">Loading MySQL slow query logs...</div>';
+            
+            try {
+                const response = await fetch('/api/mysql/slow-logs');
+                const data = await response.json();
+                
+                if (data.success) {
+                    logDisplay.innerHTML = data.logs || '<div class="text-gray-500">No slow query logs found.</div>';
+                } else {
+                    logDisplay.innerHTML = `<div class="text-red-400">Error loading logs: ${data.message}</div>`;
+                }
+            } catch (error) {
+                logDisplay.innerHTML = `<div class="text-red-400">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function analyzeMySQLSlowLogs() {
+            const logDisplay = document.getElementById('mysql-slow-logs-display');
+            logDisplay.innerHTML = '<div class="text-yellow-400">Analyzing MySQL slow queries...</div>';
+            
+            try {
+                const response = await fetch('/api/mysql/analyze-slow-logs');
+                const data = await response.json();
+                
+                if (data.success) {
+                    logDisplay.innerHTML = data.analysis || '<div class="text-gray-500">No slow query analysis available.</div>';
+                } else {
+                    logDisplay.innerHTML = `<div class="text-red-400">Error analyzing logs: ${data.message}</div>`;
+                }
+            } catch (error) {
+                logDisplay.innerHTML = `<div class="text-red-400">Error: ${error.message}</div>`;
+            }
+        }
+
+        function clearSlowLogDisplay() {
+            const logDisplay = document.getElementById('mysql-slow-logs-display');
+            logDisplay.innerHTML = '<div class="text-gray-500">Click "Load Slow Query Logs" to view slow query entries...</div>';
+        }
+
         // Replica Management Functions
         function manageReplica() {
             document.getElementById('replica-modal').classList.remove('hidden');
@@ -5313,6 +5430,80 @@
                     </button>
                     <button onclick="saveMariaDBConfig()" class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                         Save Configuration
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MySQL Logs Modal -->
+    <div id="mysql-logs-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white dark:bg-gray-800">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">MySQL Logs</h3>
+                    <button onclick="closeMySQLLogsModal()" class="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Tab Navigation -->
+                <div class="border-b border-gray-200 dark:border-gray-600 mb-4">
+                    <nav class="-mb-px flex space-x-8">
+                        <button onclick="switchLogTab('mysql')" id="log-tab-mysql" class="log-tab-btn py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                            MySQL Logs
+                        </button>
+                        <button onclick="switchLogTab('slow')" id="log-tab-slow" class="log-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                            Slow Logs
+                        </button>
+                    </nav>
+                </div>
+                
+                <!-- MySQL Logs Tab -->
+                <div id="log-content-mysql" class="log-tab-content">
+                    <div class="mb-4">
+                        <div class="flex flex-wrap gap-3 mb-4">
+                            <button onclick="loadMySQLErrorLogsMain()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                Load Error Logs
+                            </button>
+                            <button onclick="loadMySQLGeneralLogs()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                Load General Logs
+                            </button>
+                            <button onclick="clearMySQLLogDisplay()" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                                Clear Display
+                            </button>
+                        </div>
+                        <div class="bg-black text-green-400 p-4 rounded-md font-mono text-sm h-96 overflow-y-auto" id="mysql-main-logs-display">
+                            <div class="text-gray-500">Click "Load Error Logs" or "Load General Logs" to view log entries...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Slow Logs Tab -->
+                <div id="log-content-slow" class="log-tab-content hidden">
+                    <div class="mb-4">
+                        <div class="flex flex-wrap gap-3 mb-4">
+                            <button onclick="loadMySQLSlowLogs()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                                Load Slow Query Logs
+                            </button>
+                            <button onclick="analyzeMySQLSlowLogs()" class="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                Analyze Slow Queries
+                            </button>
+                            <button onclick="clearSlowLogDisplay()" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                                Clear Display
+                            </button>
+                        </div>
+                        <div class="bg-black text-green-400 p-4 rounded-md font-mono text-sm h-96 overflow-y-auto" id="mysql-slow-logs-display">
+                            <div class="text-gray-500">Click "Load Slow Query Logs" to view slow query entries...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end mt-4">
+                    <button onclick="closeMySQLLogsModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Close
                     </button>
                 </div>
             </div>
