@@ -2120,6 +2120,50 @@ def list_powerdns_domains():
         logger.error(f'Error listing PowerDNS domains: {str(e)}')
         return jsonify({'success': False, 'message': f'Terjadi kesalahan saat mendapatkan daftar domain'}), 500
 
+def get_public_ip():
+    """Get public IP address of the server"""
+    try:
+        # Try multiple services to get public IP
+        services = [
+            'https://api.ipify.org',
+            'https://ipinfo.io/ip',
+            'https://icanhazip.com',
+            'https://ident.me'
+        ]
+        
+        for service in services:
+            try:
+                result = subprocess.run(['curl', '-s', '--connect-timeout', '5', service], 
+                                      capture_output=True, text=True, timeout=10)
+                if result.returncode == 0 and result.stdout.strip():
+                    ip = result.stdout.strip()
+                    # Validate IP format
+                    import ipaddress
+                    ipaddress.ip_address(ip)
+                    return ip
+            except Exception:
+                continue
+        
+        # Fallback: try to get IP from network interface
+        try:
+            import socket
+            # Connect to a remote address to determine local IP
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            local_ip = s.getsockname()[0]
+            s.close()
+            if local_ip and local_ip != '127.0.0.1':
+                return local_ip
+        except Exception:
+            pass
+            
+        # Final fallback
+        return '127.0.0.1'
+        
+    except Exception as e:
+        logger.warning(f'Failed to get public IP: {str(e)}')
+        return '127.0.0.1'
+
 @app.route('/api/powerdns/domain', methods=['POST'])
 @login_required
 def add_powerdns_domain():
@@ -2130,6 +2174,10 @@ def add_powerdns_domain():
         
         if not domain:
             return jsonify({'success': False, 'message': 'Domain name is required'}), 400
+        
+        # Get public IP address
+        public_ip = get_public_ip()
+        logger.info(f'Using IP address for domain {domain}: {public_ip}')
         
         # Get default nameservers from configuration
         config_file = '/etc/powerdns/default-ns.conf'
@@ -2168,8 +2216,8 @@ $TTL 3600
 
 @    IN    NS     {nameserver1}
 @    IN    NS     {nameserver2}
-@    IN    A      127.0.0.1
-www  IN    A      127.0.0.1
+@    IN    A      {public_ip}
+www  IN    A      {public_ip}
 """
         
         # If domain matches nameserver top level domain, add A records for ns1 and ns2
@@ -2177,8 +2225,8 @@ www  IN    A      127.0.0.1
             ns1_subdomain = ns1_domain.split('.')[0]  # Extract 'ns1' from 'ns1.atila.co.id'
             ns2_subdomain = ns2_domain.split('.')[0]  # Extract 'ns2' from 'ns2.atila.co.id'
             
-            zone_content += f"{ns1_subdomain}  IN    A      127.0.0.1\n"
-            zone_content += f"{ns2_subdomain}  IN    A      127.0.0.1\n"
+            zone_content += f"{ns1_subdomain}  IN    A      {public_ip}\n"
+            zone_content += f"{ns2_subdomain}  IN    A      {public_ip}\n"
         
         # Write zone file
         with open(zone_file, 'w') as f:
@@ -3394,6 +3442,189 @@ def set_root_password():
             return jsonify({'error': f'Error MySQL: {str(err)}'}), 500
     except Exception as e:
         logger.error(f'Unexpected error during password change: {e}')
+        return jsonify({'error': f'Terjadi kesalahan: {str(e)}'}), 500
+
+@app.route('/api/mysql/users', methods=['GET'])
+@login_required
+def get_mysql_users():
+    """Get list of MySQL users"""
+    try:
+        connection = create_mysql_connection()
+        cursor = connection.cursor(dictionary=True)
+        
+        # Get all users
+        cursor.execute("SELECT User, Host FROM mysql.user WHERE User != '' ORDER BY User, Host")
+        users = cursor.fetchall()
+        
+        # Get privileges for each user
+        for user in users:
+            try:
+                cursor.execute(f"SHOW GRANTS FOR '{user['User']}'@'{user['Host']}'")
+                grants = cursor.fetchall()
+                privileges = []
+                for grant in grants:
+                    grant_text = list(grant.values())[0]
+                    if 'ALL PRIVILEGES' in grant_text:
+                        privileges.append('ALL PRIVILEGES')
+                    elif 'GRANT' in grant_text:
+                        # Extract specific privileges
+                        start = grant_text.find('GRANT ') + 6
+                        end = grant_text.find(' ON')
+                        if start < end:
+                            privileges.append(grant_text[start:end])
+                user['privileges'] = ', '.join(privileges) if privileges else 'No privileges'
+            except Exception:
+                user['privileges'] = 'Unable to determine'
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({'users': users})
+        
+    except mysql.connector.Error as err:
+        logger.error(f'MySQL error getting users: {err}')
+        return jsonify({'error': f'Error MySQL: {str(err)}'}), 500
+    except Exception as e:
+        logger.error(f'Error getting MySQL users: {str(e)}')
+        return jsonify({'error': f'Terjadi kesalahan: {str(e)}'}), 500
+
+@app.route('/api/mysql/create-user', methods=['POST'])
+@login_required
+def create_mysql_user():
+    """Create a new MySQL user"""
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        host = data.get('host', '%')
+        privileges = data.get('privileges', 'ALL')
+        
+        if not username or not password:
+            return jsonify({'error': 'Username dan password harus diisi'}), 400
+        
+        connection = create_mysql_connection()
+        cursor = connection.cursor()
+        
+        # Create user
+        cursor.execute(f"CREATE USER '{username}'@'{host}' IDENTIFIED BY %s", (password,))
+        
+        # Grant privileges
+        if privileges == 'ALL':
+            cursor.execute(f"GRANT ALL PRIVILEGES ON *.* TO '{username}'@'{host}'")
+        else:
+            cursor.execute(f"GRANT {privileges} ON *.* TO '{username}'@'{host}'")
+        
+        # Flush privileges
+        cursor.execute("FLUSH PRIVILEGES")
+        
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        logger.info(f'MySQL user created: {username}@{host}')
+        return jsonify({'message': f'User {username}@{host} berhasil dibuat'})
+        
+    except mysql.connector.Error as err:
+        logger.error(f'MySQL error creating user: {err}')
+        if err.errno == 1396:  # User already exists
+            return jsonify({'error': f'User {username}@{host} sudah ada'}), 400
+        else:
+            return jsonify({'error': f'Error MySQL: {str(err)}'}), 500
+    except Exception as e:
+        logger.error(f'Error creating MySQL user: {str(e)}')
+        return jsonify({'error': f'Terjadi kesalahan: {str(e)}'}), 500
+
+@app.route('/api/mysql/delete-user', methods=['DELETE'])
+@login_required
+def delete_mysql_user():
+    """Delete a MySQL user"""
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        host = data.get('host')
+        
+        if not username or not host:
+            return jsonify({'error': 'Username dan host harus diisi'}), 400
+        
+        # Prevent deletion of root user
+        if username == 'root':
+            return jsonify({'error': 'User root tidak dapat dihapus'}), 400
+        
+        connection = create_mysql_connection()
+        cursor = connection.cursor()
+        
+        # Drop user
+        cursor.execute(f"DROP USER '{username}'@'{host}'")
+        
+        # Flush privileges
+        cursor.execute("FLUSH PRIVILEGES")
+        
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        logger.info(f'MySQL user deleted: {username}@{host}')
+        return jsonify({'message': f'User {username}@{host} berhasil dihapus'})
+        
+    except mysql.connector.Error as err:
+        logger.error(f'MySQL error deleting user: {err}')
+        if err.errno == 1396:  # User doesn't exist
+            return jsonify({'error': f'User {username}@{host} tidak ditemukan'}), 404
+        else:
+            return jsonify({'error': f'Error MySQL: {str(err)}'}), 500
+    except Exception as e:
+        logger.error(f'Error deleting MySQL user: {str(e)}')
+        return jsonify({'error': f'Terjadi kesalahan: {str(e)}'}), 500
+
+@app.route('/api/mysql/update-user', methods=['PUT'])
+@login_required
+def update_mysql_user():
+    """Update a MySQL user's password and privileges"""
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        host = data.get('host')
+        password = data.get('password')
+        privileges = data.get('privileges', 'ALL PRIVILEGES')
+        
+        if not username or not host or not password:
+            return jsonify({'error': 'Username, host, dan password harus diisi'}), 400
+        
+        connection = create_mysql_connection()
+        cursor = connection.cursor()
+        
+        # Update user password
+        cursor.execute(f"ALTER USER '{username}'@'{host}' IDENTIFIED BY %s", (password,))
+        
+        # Update privileges if specified
+        if privileges and privileges != 'CURRENT':
+            # First revoke all privileges
+            cursor.execute(f"REVOKE ALL PRIVILEGES ON *.* FROM '{username}'@'{host}'")
+            
+            # Grant new privileges
+            if privileges == 'ALL PRIVILEGES':
+                cursor.execute(f"GRANT ALL PRIVILEGES ON *.* TO '{username}'@'{host}'")
+            else:
+                cursor.execute(f"GRANT {privileges} ON *.* TO '{username}'@'{host}'")
+        
+        # Flush privileges
+        cursor.execute("FLUSH PRIVILEGES")
+        
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        logger.info(f'MySQL user updated: {username}@{host}')
+        return jsonify({'message': f'User {username}@{host} berhasil diupdate'})
+        
+    except mysql.connector.Error as err:
+        logger.error(f'MySQL error updating user: {err}')
+        if err.errno == 1396:  # User doesn't exist
+            return jsonify({'error': f'User {username}@{host} tidak ditemukan'}), 404
+        else:
+            return jsonify({'error': f'Error MySQL: {str(err)}'}), 500
+    except Exception as e:
+        logger.error(f'Error updating MySQL user: {str(e)}')
         return jsonify({'error': f'Terjadi kesalahan: {str(e)}'}), 500
 
 @app.route('/api/app/restart', methods=['POST'])
