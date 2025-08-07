@@ -6718,6 +6718,146 @@ def disable_mysql_master():
         logger.error(f'Error disabling MySQL master: {str(e)}')
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/api/mysql/error-logs', methods=['GET'])
+def get_mysql_error_logs():
+    """Get MySQL error logs"""
+    try:
+        # Common MySQL error log paths
+        error_log_paths = [
+            '/var/log/mysql/error.log',
+            '/var/log/mysqld.log',
+            '/var/log/mysql.err',
+            '/usr/local/var/mysql/*.err',
+            '/opt/homebrew/var/mysql/*.err'
+        ]
+        
+        logs_content = ""
+        log_found = False
+        
+        for log_path in error_log_paths:
+            if '*' in log_path:
+                # Handle wildcard paths
+                import glob
+                matching_files = glob.glob(log_path)
+                for file_path in matching_files:
+                    if os.path.exists(file_path):
+                        try:
+                            with open(file_path, 'r') as f:
+                                # Get last 100 lines
+                                lines = f.readlines()
+                                recent_lines = lines[-100:] if len(lines) > 100 else lines
+                                logs_content += f"\n=== {file_path} ===\n"
+                                logs_content += ''.join(recent_lines)
+                                log_found = True
+                        except Exception as e:
+                            logs_content += f"\nError reading {file_path}: {str(e)}\n"
+            else:
+                if os.path.exists(log_path):
+                    try:
+                        with open(log_path, 'r') as f:
+                            # Get last 100 lines
+                            lines = f.readlines()
+                            recent_lines = lines[-100:] if len(lines) > 100 else lines
+                            logs_content += f"\n=== {log_path} ===\n"
+                            logs_content += ''.join(recent_lines)
+                            log_found = True
+                    except Exception as e:
+                        logs_content += f"\nError reading {log_path}: {str(e)}\n"
+        
+        if not log_found:
+            logs_content = "No MySQL error logs found in common locations."
+        
+        # Format logs for HTML display
+        formatted_logs = logs_content.replace('\n', '<br>').replace(' ', '&nbsp;')
+        
+        return jsonify({
+            'success': True,
+            'logs': formatted_logs
+        })
+        
+    except Exception as e:
+        logger.error(f'Error getting MySQL error logs: {str(e)}')
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/mysql/replication-logs', methods=['GET'])
+def get_mysql_replication_logs():
+    """Get MySQL replication-related logs"""
+    try:
+        connection = create_mysql_connection()
+        if not connection:
+            return jsonify({'success': False, 'message': 'Failed to connect to MySQL'})
+        
+        cursor = connection.cursor(dictionary=True)
+        logs_content = ""
+        
+        # Get replication status for error information
+        try:
+            cursor.execute("SHOW SLAVE STATUS")
+            slave_status = cursor.fetchone()
+            
+            if slave_status:
+                logs_content += "=== Slave Status Information ===\n"
+                logs_content += f"Slave_IO_Running: {slave_status.get('Slave_IO_Running', 'N/A')}\n"
+                logs_content += f"Slave_SQL_Running: {slave_status.get('Slave_SQL_Running', 'N/A')}\n"
+                logs_content += f"Last_IO_Error: {slave_status.get('Last_IO_Error', 'None')}\n"
+                logs_content += f"Last_SQL_Error: {slave_status.get('Last_SQL_Error', 'None')}\n"
+                logs_content += f"Seconds_Behind_Master: {slave_status.get('Seconds_Behind_Master', 'N/A')}\n"
+                logs_content += f"Master_Log_File: {slave_status.get('Master_Log_File', 'N/A')}\n"
+                logs_content += f"Read_Master_Log_Pos: {slave_status.get('Read_Master_Log_Pos', 'N/A')}\n\n"
+            else:
+                logs_content += "=== No Slave Configuration Found ===\n\n"
+        except Exception as e:
+            logs_content += f"Error getting slave status: {str(e)}\n\n"
+        
+        # Get binary log information
+        try:
+            cursor.execute("SHOW BINARY LOGS")
+            binary_logs = cursor.fetchall()
+            
+            if binary_logs:
+                logs_content += "=== Binary Logs ===\n"
+                for log in binary_logs:
+                    logs_content += f"{log.get('Log_name', 'N/A')} - Size: {log.get('File_size', 'N/A')} bytes\n"
+                logs_content += "\n"
+            else:
+                logs_content += "=== No Binary Logs Found ===\n\n"
+        except Exception as e:
+            logs_content += f"Binary logs not available: {str(e)}\n\n"
+        
+        # Get master status
+        try:
+            cursor.execute("SHOW MASTER STATUS")
+            master_status = cursor.fetchone()
+            
+            if master_status:
+                logs_content += "=== Master Status ===\n"
+                logs_content += f"File: {master_status.get('File', 'N/A')}\n"
+                logs_content += f"Position: {master_status.get('Position', 'N/A')}\n"
+                logs_content += f"Binlog_Do_DB: {master_status.get('Binlog_Do_DB', 'N/A')}\n"
+                logs_content += f"Binlog_Ignore_DB: {master_status.get('Binlog_Ignore_DB', 'N/A')}\n\n"
+            else:
+                logs_content += "=== No Master Configuration Found ===\n\n"
+        except Exception as e:
+            logs_content += f"Master status not available: {str(e)}\n\n"
+        
+        cursor.close()
+        connection.close()
+        
+        if not logs_content.strip():
+            logs_content = "No replication information available."
+        
+        # Format logs for HTML display
+        formatted_logs = logs_content.replace('\n', '<br>').replace(' ', '&nbsp;')
+        
+        return jsonify({
+            'success': True,
+            'logs': formatted_logs
+        })
+        
+    except Exception as e:
+        logger.error(f'Error getting MySQL replication logs: {str(e)}')
+        return jsonify({'success': False, 'message': str(e)})
+
 # Register the terminal namespace
 socketio.on_namespace(TerminalNamespace('/terminal'))
 

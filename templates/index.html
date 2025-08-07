@@ -8927,6 +8927,9 @@ log_errors = On</textarea>
                         <button onclick="switchReplicaTab('control')" id="replica-tab-control" class="replica-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
                             Slave Control
                         </button>
+                        <button onclick="switchReplicaTab('logs')" id="replica-tab-logs" class="replica-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                            Logs
+                        </button>
                     </nav>
                 </div>
                 
@@ -9080,6 +9083,30 @@ log_errors = On</textarea>
                     </div>
                 </div>
                 
+                <!-- Logs Tab -->
+                <div id="replica-content-logs" class="replica-tab-content mt-6 space-y-4 hidden">
+                    <div class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md p-4">
+                        <h4 class="text-md font-medium text-gray-900 dark:text-white mb-4">MySQL Replication Logs</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">View MySQL error logs and replication-related log entries.</p>
+                        
+                        <div class="flex flex-wrap gap-3 mb-4">
+                            <button onclick="loadMySQLErrorLogs()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                Load Error Logs
+                            </button>
+                            <button onclick="loadReplicationLogs()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                Load Replication Logs
+                            </button>
+                            <button onclick="clearLogDisplay()" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                                Clear Display
+                            </button>
+                        </div>
+                        
+                        <div class="bg-black text-green-400 p-4 rounded-md font-mono text-sm h-96 overflow-y-auto" id="mysql-logs-display">
+                            <div class="text-gray-500">Click "Load Error Logs" or "Load Replication Logs" to view log entries...</div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="mt-6 flex justify-end">
                     <button onclick="closeReplicaModal()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500">
                         Close
@@ -9091,6 +9118,47 @@ log_errors = On</textarea>
 
     <script>
         // Replica tab switching function
+        async function loadMySQLErrorLogs() {
+            const logDisplay = document.getElementById('mysql-logs-display');
+            logDisplay.innerHTML = '<div class="text-yellow-400">Loading MySQL error logs...</div>';
+            
+            try {
+                const response = await fetch('/api/mysql/error-logs');
+                const data = await response.json();
+                
+                if (data.success) {
+                    logDisplay.innerHTML = data.logs || '<div class="text-gray-500">No error logs found.</div>';
+                } else {
+                    logDisplay.innerHTML = `<div class="text-red-400">Error loading logs: ${data.message}</div>`;
+                }
+            } catch (error) {
+                logDisplay.innerHTML = `<div class="text-red-400">Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function loadReplicationLogs() {
+            const logDisplay = document.getElementById('mysql-logs-display');
+            logDisplay.innerHTML = '<div class="text-yellow-400">Loading replication logs...</div>';
+            
+            try {
+                const response = await fetch('/api/mysql/replication-logs');
+                const data = await response.json();
+                
+                if (data.success) {
+                    logDisplay.innerHTML = data.logs || '<div class="text-gray-500">No replication logs found.</div>';
+                } else {
+                    logDisplay.innerHTML = `<div class="text-red-400">Error loading logs: ${data.message}</div>`;
+                }
+            } catch (error) {
+                logDisplay.innerHTML = `<div class="text-red-400">Error: ${error.message}</div>`;
+            }
+        }
+        
+        function clearLogDisplay() {
+            const logDisplay = document.getElementById('mysql-logs-display');
+            logDisplay.innerHTML = '<div class="text-gray-500">Click "Load Error Logs" or "Load Replication Logs" to view log entries...</div>';
+        }
+        
         function switchReplicaTab(tabName) {
             // Hide all tab contents
             document.querySelectorAll('.replica-tab-content').forEach(content => {
