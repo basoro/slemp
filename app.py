@@ -3579,33 +3579,58 @@ def delete_mysql_user():
 @app.route('/api/mysql/update-user', methods=['PUT'])
 @login_required
 def update_mysql_user():
-    """Update a MySQL user's password and privileges"""
+    """Update a MySQL user's password, privileges, and host"""
     try:
         data = request.get_json()
         username = data.get('username')
         host = data.get('host')
+        new_host = data.get('new_host', host)  # Use original host if new_host not provided
         password = data.get('password')
         privileges = data.get('privileges', 'ALL PRIVILEGES')
         
-        if not username or not host or not password:
-            return jsonify({'error': 'Username, host, dan password harus diisi'}), 400
+        if not username or not host or not password or not new_host:
+            return jsonify({'error': 'Username, host, new_host, dan password harus diisi'}), 400
         
         connection = create_mysql_connection()
         cursor = connection.cursor()
         
-        # Update user password
-        cursor.execute(f"ALTER USER '{username}'@'{host}' IDENTIFIED BY %s", (password,))
-        
-        # Update privileges if specified
-        if privileges and privileges != 'CURRENT':
-            # First revoke all privileges
-            cursor.execute(f"REVOKE ALL PRIVILEGES ON *.* FROM '{username}'@'{host}'")
+        # If host is changing, we need to create a new user and drop the old one
+        if host != new_host:
+            # Create new user with new host
+            cursor.execute(f"CREATE USER '{username}'@'{new_host}' IDENTIFIED BY %s", (password,))
             
-            # Grant new privileges
+            # Grant privileges to new user
             if privileges == 'ALL PRIVILEGES':
-                cursor.execute(f"GRANT ALL PRIVILEGES ON *.* TO '{username}'@'{host}'")
+                cursor.execute(f"GRANT ALL PRIVILEGES ON *.* TO '{username}'@'{new_host}'")
             else:
-                cursor.execute(f"GRANT {privileges} ON *.* TO '{username}'@'{host}'")
+                cursor.execute(f"GRANT {privileges} ON *.* TO '{username}'@'{new_host}'")
+            
+            # Drop old user
+            try:
+                cursor.execute(f"DROP USER '{username}'@'{host}'")
+            except mysql.connector.Error as err:
+                if err.errno != 1396:  # Ignore if user doesn't exist
+                    raise
+            
+            logger.info(f'MySQL user host changed: {username}@{host} -> {username}@{new_host}')
+            message = f'User {username}@{new_host} berhasil diupdate (host diubah dari {host})'
+        else:
+            # Just update password and privileges for existing user
+            cursor.execute(f"ALTER USER '{username}'@'{host}' IDENTIFIED BY %s", (password,))
+            
+            # Update privileges if specified
+            if privileges and privileges != 'CURRENT':
+                # First revoke all privileges
+                cursor.execute(f"REVOKE ALL PRIVILEGES ON *.* FROM '{username}'@'{host}'")
+                
+                # Grant new privileges
+                if privileges == 'ALL PRIVILEGES':
+                    cursor.execute(f"GRANT ALL PRIVILEGES ON *.* TO '{username}'@'{host}'")
+                else:
+                    cursor.execute(f"GRANT {privileges} ON *.* TO '{username}'@'{host}'")
+            
+            logger.info(f'MySQL user updated: {username}@{host}')
+            message = f'User {username}@{host} berhasil diupdate'
         
         # Flush privileges
         cursor.execute("FLUSH PRIVILEGES")
@@ -3614,13 +3639,14 @@ def update_mysql_user():
         cursor.close()
         connection.close()
         
-        logger.info(f'MySQL user updated: {username}@{host}')
-        return jsonify({'message': f'User {username}@{host} berhasil diupdate'})
+        return jsonify({'message': message})
         
     except mysql.connector.Error as err:
         logger.error(f'MySQL error updating user: {err}')
         if err.errno == 1396:  # User doesn't exist
             return jsonify({'error': f'User {username}@{host} tidak ditemukan'}), 404
+        elif err.errno == 1007:  # User already exists
+            return jsonify({'error': f'User {username}@{new_host} sudah ada'}), 409
         else:
             return jsonify({'error': f'Error MySQL: {str(err)}'}), 500
     except Exception as e:
@@ -6506,8 +6532,13 @@ def setup_mysql_slave():
         
         cursor = connection.cursor()
         
-        # Stop slave if running
-        cursor.execute("STOP SLAVE")
+        # Stop slave if running (ignore error if already stopped)
+        try:
+            cursor.execute("STOP SLAVE")
+        except Exception as stop_error:
+            # Ignore error if slave is already stopped
+            if "Slave already has been stopped" not in str(stop_error):
+                logger.warning(f'Error stopping slave (ignored): {str(stop_error)}')
         
         # Configure master connection
         change_master_sql = f"""
@@ -6574,12 +6605,21 @@ def stop_mysql_slave():
             return jsonify({'success': False, 'error': 'Failed to connect to MySQL'})
         
         cursor = connection.cursor()
-        cursor.execute("STOP SLAVE")
+        try:
+            cursor.execute("STOP SLAVE")
+            logger.info('MySQL slave stopped')
+            message = 'Slave stopped successfully'
+        except Exception as stop_error:
+            if "Slave already has been stopped" in str(stop_error):
+                logger.info('MySQL slave was already stopped')
+                message = 'Slave was already stopped'
+            else:
+                raise stop_error
+        
         cursor.close()
         connection.close()
         
-        logger.info('MySQL slave stopped')
-        return jsonify({'success': True, 'message': 'Slave stopped successfully'})
+        return jsonify({'success': True, 'message': message})
         
     except Exception as e:
         logger.error(f'Error stopping MySQL slave: {str(e)}')
@@ -6595,7 +6635,12 @@ def reset_mysql_slave():
             return jsonify({'success': False, 'error': 'Failed to connect to MySQL'})
         
         cursor = connection.cursor()
-        cursor.execute("STOP SLAVE")
+        try:
+            cursor.execute("STOP SLAVE")
+        except Exception as stop_error:
+            if "Slave already has been stopped" not in str(stop_error):
+                logger.warning(f'Error stopping slave during reset (ignored): {str(stop_error)}')
+        
         cursor.execute("RESET SLAVE ALL")
         cursor.close()
         connection.close()
