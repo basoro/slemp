@@ -25,6 +25,8 @@ import termios
 import struct
 import fcntl
 import signal
+import requests
+import tempfile
 
 # Environment detection
 def is_docker_environment():
@@ -61,11 +63,11 @@ def safe_systemctl_command(command, service_name, capture_output=True, text=True
         return None
 
 # Konfigurasi logging 
-if not os.path.exists('logs'):
-    os.makedirs('logs')
+if not os.path.exists('data/logs'):
+    os.makedirs('data/logs')
 
 log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-log_file = 'logs/server_manager.log'
+log_file = 'data/logs/server_manager.log'
 log_handler = RotatingFileHandler(log_file, maxBytes=1024*1024, backupCount=5)
 log_handler.setFormatter(log_formatter)
 
@@ -76,13 +78,13 @@ logger.addHandler(log_handler)
 # MySQL Connection Pool Configuration
 def load_config():
     """Load configuration from JSON file - force load from config.json only"""
-    config_file = os.path.join(os.path.dirname(__file__), 'config.json')
+    config_file = os.path.join(os.path.dirname(__file__), 'data', 'config.json')
     with open(config_file, 'r') as f:
         return json.load(f)
 
 def save_config(config_data):
     """Save configuration to JSON file"""
-    config_file = os.path.join(os.path.dirname(__file__), 'config.json')
+    config_file = os.path.join(os.path.dirname(__file__), 'data', 'config.json')
     try:
         # Save to file
         with open(config_file, 'w') as f:
@@ -276,7 +278,7 @@ def system_info():
     
     # Get system uptime
     boot_time = psutil.boot_time()
-    uptime_seconds = datetime.datetime.now().timestamp() - boot_time
+    uptime_seconds = int(datetime.datetime.now().timestamp() - boot_time)
     uptime_formatted = format_uptime(uptime_seconds)
     
     return jsonify({
@@ -7042,6 +7044,369 @@ def analyze_mysql_slow_logs():
     except Exception as e:
         logger.error(f'Error analyzing MySQL slow logs: {str(e)}')
         return jsonify({'success': False, 'message': str(e)})
+
+# Plugin Management API
+@app.route('/api/plugins', methods=['GET'])
+@login_required
+def get_plugins():
+    """Get list of installed plugins from plugins_info.json"""
+    try:
+        plugins_info_file = os.path.join(os.path.dirname(__file__), 'data', 'plugins_info.json')
+        plugins_dir = os.path.join(os.path.dirname(__file__), 'plugins')
+        
+        if not os.path.exists(plugins_info_file):
+            return jsonify({'success': True, 'plugins': []})
+        
+        with open(plugins_info_file, 'r', encoding='utf-8') as f:
+            plugins_data = json.load(f)
+            plugins = plugins_data.get('plugins', [])
+        
+        # Check if each plugin is actually installed (exists in plugins folder)
+        for plugin in plugins:
+            plugin_folder_path = os.path.join(plugins_dir, plugin.get('id', ''))
+            plugin['installed'] = os.path.exists(plugin_folder_path)
+        
+        return jsonify({'success': True, 'plugins': plugins})
+        
+    except Exception as e:
+        logger.error(f'Error getting plugins: {str(e)}')
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/plugins/toggle', methods=['POST'])
+@login_required
+def toggle_plugin():
+    """Enable or disable a plugin"""
+    try:
+        data = request.get_json()
+        plugin_name = data.get('plugin')
+        action = data.get('action')  # 'enable' or 'disable'
+        
+        if not plugin_name or not action:
+            return jsonify({'success': False, 'message': 'Plugin name and action are required'})
+        
+        plugins_dir = os.path.join(os.path.dirname(__file__), 'plugins')
+        plugin_path = os.path.join(plugins_dir, plugin_name)
+        info_file = os.path.join(plugin_path, 'info.json')
+        
+        if not os.path.exists(info_file):
+            return jsonify({'success': False, 'message': 'Plugin not found'})
+        
+        # Read current plugin info
+        with open(info_file, 'r', encoding='utf-8') as f:
+            plugin_info = json.load(f)
+        
+        # Update status
+        if action == 'enable':
+            plugin_info['status'] = 'active'
+        elif action == 'disable':
+            plugin_info['status'] = 'inactive'
+        else:
+            return jsonify({'success': False, 'message': 'Invalid action'})
+        
+        # Save updated info
+        with open(info_file, 'w', encoding='utf-8') as f:
+            json.dump(plugin_info, f, indent=2, ensure_ascii=False)
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Plugin {plugin_name} {action}d successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f'Error toggling plugin: {str(e)}')
+        return jsonify({'success': False, 'message': str(e)})
+
+def download_plugin_from_external(plugin_name):
+    """Download plugin from external URL and extract to plugins directory"""
+    try:
+        # External URL for plugin download
+        download_url = f'https://basoro.id/slemp-repo/{plugin_name}.zip'
+        
+        logger.info(f'Attempting to download plugin from: {download_url}')
+        
+        # Download the plugin zip file
+        response = requests.get(download_url, timeout=30)
+        response.raise_for_status()
+        
+        # Create plugins directory if it doesn't exist
+        plugins_dir = os.path.join(os.path.dirname(__file__), 'plugins')
+        os.makedirs(plugins_dir, exist_ok=True)
+        
+        # Create temporary file for the zip
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as temp_file:
+            temp_file.write(response.content)
+            temp_zip_path = temp_file.name
+        
+        try:
+            # Extract the zip file to plugins directory
+            with zipfile.ZipFile(temp_zip_path, 'r') as zip_ref:
+                # Extract to a temporary directory first to check structure
+                with tempfile.TemporaryDirectory() as temp_extract_dir:
+                    zip_ref.extractall(temp_extract_dir)
+                    
+                    # Check if the extracted content has the plugin structure
+                    extracted_items = os.listdir(temp_extract_dir)
+                    
+                    if len(extracted_items) == 1 and os.path.isdir(os.path.join(temp_extract_dir, extracted_items[0])):
+                        # If there's a single directory, use its contents
+                        source_dir = os.path.join(temp_extract_dir, extracted_items[0])
+                    else:
+                        # If multiple files/dirs, use the temp directory itself
+                        source_dir = temp_extract_dir
+                    
+                    # Create target plugin directory
+                    target_plugin_dir = os.path.join(plugins_dir, plugin_name)
+                    
+                    # Copy extracted content to target directory
+                    if os.path.exists(target_plugin_dir):
+                        shutil.rmtree(target_plugin_dir)
+                    
+                    shutil.copytree(source_dir, target_plugin_dir)
+                    
+                    logger.info(f'Successfully downloaded and extracted plugin: {plugin_name}')
+                    return True
+                    
+        finally:
+            # Clean up temporary zip file
+            if os.path.exists(temp_zip_path):
+                os.unlink(temp_zip_path)
+                
+    except requests.exceptions.RequestException as e:
+        logger.error(f'Failed to download plugin {plugin_name}: {str(e)}')
+        return False
+    except zipfile.BadZipFile as e:
+        logger.error(f'Invalid zip file for plugin {plugin_name}: {str(e)}')
+        return False
+    except Exception as e:
+        logger.error(f'Error downloading plugin {plugin_name}: {str(e)}')
+        return False
+
+@app.route('/api/plugins/download', methods=['POST'])
+@login_required
+def download_plugin():
+    """Download plugin from external URL"""
+    try:
+        data = request.get_json()
+        plugin_name = data.get('plugin_name')
+        
+        if not plugin_name:
+            return jsonify({'success': False, 'message': 'Plugin name is required'})
+        
+        # Check if plugin already exists
+        plugins_dir = os.path.join(os.path.dirname(__file__), 'plugins')
+        plugin_dir = os.path.join(plugins_dir, plugin_name)
+        
+        if os.path.exists(plugin_dir):
+            return jsonify({'success': False, 'message': 'Plugin already exists'})
+        
+        # Download plugin
+        download_success = download_plugin_from_external(plugin_name)
+        
+        if download_success:
+            # Update plugins_info.json if it exists
+            try:
+                plugins_info_file = os.path.join(os.path.dirname(__file__), 'data', 'plugins_info.json')
+                if os.path.exists(plugins_info_file):
+                    with open(plugins_info_file, 'r', encoding='utf-8') as f:
+                        plugins_data = json.load(f)
+                    
+                    # Check if plugin info.json exists to get metadata
+                    info_file = os.path.join(plugin_dir, 'info.json')
+                    if os.path.exists(info_file):
+                        with open(info_file, 'r', encoding='utf-8') as f:
+                            plugin_info = json.load(f)
+                        
+                        # Add to plugins list if not already there
+                        existing_plugin = next((p for p in plugins_data.get('plugins', []) if p.get('id') == plugin_name), None)
+                        if not existing_plugin:
+                            plugins_data.setdefault('plugins', []).append({
+                                'id': plugin_name,
+                                'name': plugin_info.get('name', plugin_name),
+                                'description': plugin_info.get('description', ''),
+                                'version': plugin_info.get('version', '1.0.0'),
+                                'status': plugin_info.get('status', 'active')
+                            })
+                            
+                            # Save updated plugins_info.json
+                            with open(plugins_info_file, 'w', encoding='utf-8') as f:
+                                json.dump(plugins_data, f, indent=2, ensure_ascii=False)
+            except Exception as e:
+                logger.warning(f'Could not update plugins_info.json: {str(e)}')
+            
+            return jsonify({
+                'success': True, 
+                'message': f'Plugin {plugin_name} downloaded successfully'
+            })
+        else:
+            return jsonify({
+                'success': False, 
+                'message': f'Failed to download plugin {plugin_name}'
+            })
+            
+    except Exception as e:
+        logger.error(f'Error downloading plugin: {str(e)}')
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/static/plugins/<plugin_id>/<filename>')
+@login_required
+def plugin_static(plugin_id, filename):
+    """Serve static files from plugin directories"""
+    try:
+        plugins_dir = os.path.join(os.path.dirname(__file__), 'plugins')
+        file_path = os.path.join(plugins_dir, plugin_id, filename)
+        
+        # Security check - ensure file is within plugin directory
+        if not os.path.abspath(file_path).startswith(os.path.abspath(plugins_dir)):
+            return 'Access denied', 403
+            
+        if os.path.exists(file_path):
+            return send_file(file_path)
+        else:
+            return 'File not found', 404
+            
+    except Exception as e:
+        logger.error(f'Error serving plugin static file: {str(e)}')
+        return 'Internal server error', 500
+
+@app.route('/api/plugins/<plugin_name>/interface')
+@login_required
+def plugin_interface(plugin_name):
+    """Serve plugin interface (index.html) with processed content"""
+    try:
+        logger.info(f'Plugin interface requested for: {plugin_name}')
+        plugins_dir = os.path.join(os.path.dirname(__file__), 'plugins')
+        plugin_dir = os.path.join(plugins_dir, plugin_name)
+        index_file = os.path.join(plugin_dir, 'index.html')
+        
+        logger.info(f'Plugin directory: {plugin_dir}')
+        logger.info(f'Index file path: {index_file}')
+        logger.info(f'Current working directory: {os.getcwd()}')
+        logger.info(f'App file location: {os.path.dirname(__file__)}')
+        
+        # Security check - ensure plugin directory exists
+        if not os.path.exists(plugin_dir):
+            logger.error(f'Plugin directory not found: {plugin_dir}')
+            return 'Plugin not found', 404
+            
+        # Check if index.html exists
+        if not os.path.exists(index_file):
+            logger.error(f'Plugin index.html not found: {index_file}')
+            return 'Plugin interface not found', 404
+            
+        # Security check - ensure file is within plugin directory
+        if not os.path.abspath(index_file).startswith(os.path.abspath(plugins_dir)):
+            logger.error(f'Security violation: file outside plugins directory')
+            return 'Access denied', 403
+        
+        # Read and process the HTML content
+        with open(index_file, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        # Process relative URLs to absolute URLs for API calls
+        # Only replace fetch calls that don't already have /api/plugins/ prefix
+        import re
+        
+        # Replace fetch calls that start with relative paths (not already prefixed)
+        # Pattern: fetch('/something') but not fetch('/api/plugins/...')
+        pattern1 = r'fetch\("(/[^"]*)")'
+        if f'/api/plugins/{plugin_name}/' not in html_content:
+            replacement1 = f'fetch("/api/plugins/{plugin_name}\1")'
+            html_content = re.sub(pattern1, replacement1, html_content)
+        
+        pattern2 = r"fetch\('(/[^']*)'\)"
+        if f'/api/plugins/{plugin_name}/' not in html_content:
+            replacement2 = f"fetch('/api/plugins/{plugin_name}\1')"
+            html_content = re.sub(pattern2, replacement2, html_content)
+        
+        # Add base tag for relative resources
+        if '<head>' in html_content:
+            base_tag = f'<base href="/api/plugins/{plugin_name}/">'
+            html_content = html_content.replace('<head>', f'<head>\n    {base_tag}')
+        
+        logger.info(f'Serving processed plugin interface for: {plugin_name}')
+        
+        from flask import Response
+        return Response(html_content, mimetype='text/html')
+            
+    except Exception as e:
+        logger.error(f'Error serving plugin interface: {str(e)}')
+        return 'Internal server error', 500
+
+@app.route('/api/plugins/<plugin_name>/<path:endpoint>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+def plugin_api(plugin_name, endpoint):
+    """Proxy API calls to plugin's index.py using main() function"""
+    try:
+        plugins_dir = os.path.join(os.path.dirname(__file__), 'plugins')
+        plugin_dir = os.path.join(plugins_dir, plugin_name)
+        plugin_file = os.path.join(plugin_dir, 'index.py')
+        
+        # Security check - ensure plugin directory and file exist
+        if not os.path.exists(plugin_dir) or not os.path.exists(plugin_file):
+            return jsonify({'error': 'Plugin not found'}), 404
+            
+        # Import the plugin module dynamically
+        import sys
+        import importlib.util
+        
+        spec = importlib.util.spec_from_file_location(f"plugin_{plugin_name}", plugin_file)
+        plugin_module = importlib.util.module_from_spec(spec)
+        
+        # Add plugin directory to sys.path temporarily
+        original_path = sys.path.copy()
+        sys.path.insert(0, plugin_dir)
+        
+        try:
+            spec.loader.exec_module(plugin_module)
+            
+            # Check if plugin has main() function (new standard approach)
+            if hasattr(plugin_module, 'main'):
+                # Set the action in form data based on endpoint
+                from werkzeug.datastructures import ImmutableMultiDict
+                form_data = dict(request.form)
+                form_data['action'] = endpoint
+                request.form = ImmutableMultiDict(form_data)
+                
+                # Call the main function directly
+                return plugin_module.main()
+            
+            # Fallback: Get the blueprint from the plugin (legacy approach)
+            elif hasattr(plugin_module, 'bp'):
+                # Get the blueprint and find the matching route
+                blueprint = plugin_module.bp
+                
+                # Create a temporary Flask app context for the plugin
+                from flask import Flask as TempFlask
+                temp_app = TempFlask(__name__)
+                temp_app.register_blueprint(blueprint)
+                
+                # Forward the request to the plugin using temp app
+                with temp_app.test_client() as client:
+                    if request.method == 'GET':
+                        response = client.get(f'/{endpoint}', 
+                                            query_string=request.query_string)
+                    elif request.method == 'POST':
+                        response = client.post(f'/{endpoint}', 
+                                             data=request.get_data(), 
+                                             content_type=request.content_type)
+                    elif request.method == 'PUT':
+                        response = client.put(f'/{endpoint}', 
+                                            data=request.get_data(), 
+                                            content_type=request.content_type)
+                    elif request.method == 'DELETE':
+                        response = client.delete(f'/{endpoint}')
+                    
+                    return response.get_data(), response.status_code, dict(response.headers)
+            else:
+                return jsonify({'error': 'Plugin does not expose main() function or API blueprint'}), 500
+                
+        finally:
+            # Restore original sys.path
+            sys.path = original_path
+            
+    except Exception as e:
+        logger.error(f'Error calling plugin API: {str(e)}')
+        return jsonify({'error': str(e)}), 500
 
 # Register the terminal namespace
 socketio.on_namespace(TerminalNamespace('/terminal'))

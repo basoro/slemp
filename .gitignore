@@ -1,2 +1,5 @@
 logs
-__pycache__/app.cpython-310.pyc
+__pycache__
+*/__pycache__
+*.pyc
+plugins/*
