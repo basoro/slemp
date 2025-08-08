@@ -7,7 +7,7 @@ apt-get install -y --no-install-recommends \
     python3 python3-pip python3-venv \
     gcc python3-dev libffi-dev \
     supervisor \
-    curl wget unzip vim lsb-release ca-certificates && \
+    curl wget zip unzip vim lsb-release ca-certificates && \
 apt-get clean && rm -rf /var/lib/apt/lists/*
 
 echo "===> Download panel.zip..."
