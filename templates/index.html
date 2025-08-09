@@ -143,6 +143,12 @@
                             </button>
                             <div id="actions-dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
                                 <div class="py-1">
+                                    <button onclick="updateApp(); toggleActionsDropdown()" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                        Update
+                                    </button>
                                     <button onclick="restartApp(); toggleActionsDropdown()" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
                                         <svg class="mr-3 h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -212,6 +218,9 @@
                                 </div>
                             </div>
 
+                            <button onclick="updateApp()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                🔄 Update
+                            </button>
                             <button onclick="restartApp()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
                                 🔄 Reload
                             </button>
@@ -4840,6 +4849,37 @@
                         element.className = 'text-sm text-red-600';
                     }
                 });
+            }
+        }
+
+        // Fungsi untuk update aplikasi Flask
+        async function updateApp() {
+            if (!(await showConfirm('Apakah Anda yakin ingin update aplikasi? Koneksi akan terputus sementara.', 'Konfirmasi Update'))) {
+                return;
+            }
+
+            try {
+                showNotification('Memulai update aplikasi...', 'info');
+                
+                const response = await fetch('/api/app/update', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Aplikasi berhasil diupdate! Halaman akan dimuat ulang dalam 3 detik...', 'success');
+                    
+                    // Reload halaman setelah 3 detik
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
+                } else {
+                    showNotification(`Gagal update aplikasi: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Terjadi kesalahan saat update aplikasi', 'error');
             }
         }
 

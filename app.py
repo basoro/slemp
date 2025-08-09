@@ -3657,6 +3657,48 @@ def update_mysql_user():
         logger.error(f'Error updating MySQL user: {str(e)}')
         return jsonify({'error': f'Terjadi kesalahan: {str(e)}'}), 500
 
+@app.route('/api/app/update', methods=['POST'])
+@login_required
+def update_app():
+    """Update aplikasi Flask"""
+    
+    try:
+        app.logger.info(f"App update initiated")
+        
+        # Restart SLEMP menggunakan supervisorctl
+        result = subprocess.run(
+            ['bash', '/var/www/panel/update.sh'],
+            capture_output=True,
+            text=True,
+            timeout=15
+        )
+        
+        if result.returncode == 0:
+            app.logger.info("App updated successfully")
+            return jsonify({
+                'success': True,
+                'message': 'Aplikasi berhasil diupdate'
+            })
+        else:
+            app.logger.error(f"Failed to update app: {result.stderr}")
+            return jsonify({
+                'success': False,
+                'message': f'Gagal update aplikasi: {result.stderr}'
+            }), 500
+            
+    except subprocess.TimeoutExpired:
+        app.logger.error("Timeout updating app")
+        return jsonify({
+            'success': False,
+            'message': 'Timeout saat update aplikasi'
+        }), 500
+    except Exception as e:
+        app.logger.error(f"Error during app update: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Terjadi kesalahan: {str(e)}'
+        }), 500
+
 @app.route('/api/app/restart', methods=['POST'])
 @login_required
 def restart_app():
