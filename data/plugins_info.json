@@ -104,27 +104,6 @@
       "homepage": "https://slemp.com/plugins/security",
       "documentation": "https://docs.slemp.com/plugins/security",
       "support": "https://support.slemp.com/security"
-    },
-    {
-      "id": "skipdropreplica",
-      "name": "Skip Drop Replica",
-      "version": "1.0.0",
-      "description": "Plugin untuk melewati perintah DROP yang menyebabkan error replication di MySQL",
-      "author": "SLEMP Team",
-      "category": "Database",
-      "status": "active",
-      "icon": "skipdropreplica-icon.svg",
-      "dependencies": ["pymysql", "supervisor"],
-      "permissions": ["mysql_management", "supervisor_management"],
-      "install_date": "2024-02-01",
-      "last_update": "2024-02-01",
-      "size": "0.8 MB",
-      "downloads": 0,
-      "rating": 5.0,
-      "tags": ["mysql", "replication", "database", "skip", "drop"],
-      "homepage": "https://slemp.com/plugins/skipdropreplica",
-      "documentation": "https://docs.slemp.com/plugins/skipdropreplica",
-      "support": "https://support.slemp.com/skipdropreplica"
     }
   ]
 }
