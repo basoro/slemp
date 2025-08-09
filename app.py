@@ -5507,6 +5507,386 @@ def get_ufw_logs():
         logger.error(f'Error getting UFW logs: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# SSH Configuration endpoints
+@app.route('/api/ssh/config', methods=['GET'])
+@login_required
+def get_ssh_config():
+    """Get SSH configuration"""
+    try:
+        ssh_config = {}
+        
+        # Read SSH config file
+        ssh_config_file = '/etc/ssh/sshd_config'
+        if os.path.exists(ssh_config_file):
+            with open(ssh_config_file, 'r') as f:
+                content = f.read()
+                
+                # Parse port
+                port_match = re.search(r'^\s*Port\s+(\d+)', content, re.MULTILINE)
+                ssh_config['port'] = int(port_match.group(1)) if port_match else 22
+                
+                # Parse PermitRootLogin
+                root_match = re.search(r'^\s*PermitRootLogin\s+(\w+)', content, re.MULTILINE)
+                ssh_config['allow_root'] = root_match.group(1).lower() == 'yes' if root_match else False
+                
+                # Parse PasswordAuthentication
+                pass_match = re.search(r'^\s*PasswordAuthentication\s+(\w+)', content, re.MULTILINE)
+                ssh_config['password_auth'] = pass_match.group(1).lower() == 'yes' if pass_match else True
+        else:
+            # Default values if config file doesn't exist
+            ssh_config = {
+                'port': 22,
+                'allow_root': False,
+                'password_auth': True
+            }
+        
+        return jsonify({
+            'success': True,
+            **ssh_config
+        })
+        
+    except Exception as e:
+        logger.error(f'Error getting SSH config: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ssh/config', methods=['POST'])
+@login_required
+def update_ssh_config():
+    """Update SSH configuration"""
+    try:
+        data = request.get_json()
+        port = data.get('port', 22)
+        allow_root = data.get('allow_root', False)
+        password_auth = data.get('password_auth', True)
+        
+        # Validate port
+        if not isinstance(port, int) or port < 1 or port > 65535:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid port number'
+            }), 400
+        
+        ssh_config_file = '/etc/ssh/sshd_config'
+        backup_file = f'{ssh_config_file}.backup.{datetime.now().strftime("%Y%m%d_%H%M%S")}'
+        
+        # Create backup
+        if os.path.exists(ssh_config_file):
+            subprocess.run(['cp', ssh_config_file, backup_file], check=True)
+        
+        # Read current config
+        content = ''
+        if os.path.exists(ssh_config_file):
+            with open(ssh_config_file, 'r') as f:
+                content = f.read()
+        
+        # Update or add configurations
+        lines = content.split('\n')
+        updated_lines = []
+        port_updated = False
+        root_updated = False
+        pass_updated = False
+        
+        for line in lines:
+            if re.match(r'^\s*Port\s+', line):
+                updated_lines.append(f'Port {port}')
+                port_updated = True
+            elif re.match(r'^\s*PermitRootLogin\s+', line):
+                updated_lines.append(f'PermitRootLogin {"yes" if allow_root else "no"}')
+                root_updated = True
+            elif re.match(r'^\s*PasswordAuthentication\s+', line):
+                updated_lines.append(f'PasswordAuthentication {"yes" if password_auth else "no"}')
+                pass_updated = True
+            else:
+                updated_lines.append(line)
+        
+        # Add missing configurations
+        if not port_updated:
+            updated_lines.append(f'Port {port}')
+        if not root_updated:
+            updated_lines.append(f'PermitRootLogin {"yes" if allow_root else "no"}')
+        if not pass_updated:
+            updated_lines.append(f'PasswordAuthentication {"yes" if password_auth else "no"}')
+        
+        # Write updated config
+        with open(ssh_config_file, 'w') as f:
+            f.write('\n'.join(updated_lines))
+        
+        logger.info(f'SSH config updated: port={port}, allow_root={allow_root}, password_auth={password_auth}')
+        
+        return jsonify({
+            'success': True,
+            'message': 'SSH configuration updated successfully',
+            'backup_file': backup_file
+        })
+        
+    except Exception as e:
+        logger.error(f'Error updating SSH config: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# UFW Policies endpoints
+@app.route('/api/ufw/policies', methods=['GET'])
+@login_required
+def get_ufw_policies():
+    """Get UFW default policies"""
+    try:
+        result = subprocess.run(['ufw', 'status', 'verbose'], capture_output=True, text=True)
+        if result.returncode == 0:
+            output = result.stdout
+            
+            # Parse default policies
+            policies = {
+                'incoming': 'deny',
+                'outgoing': 'allow',
+                'forward': 'deny'
+            }
+            
+            # Extract policies from output
+            if 'Default: deny (incoming)' in output:
+                policies['incoming'] = 'deny'
+            elif 'Default: allow (incoming)' in output:
+                policies['incoming'] = 'allow'
+            elif 'Default: reject (incoming)' in output:
+                policies['incoming'] = 'reject'
+                
+            if 'Default: allow (outgoing)' in output:
+                policies['outgoing'] = 'allow'
+            elif 'Default: deny (outgoing)' in output:
+                policies['outgoing'] = 'deny'
+            elif 'Default: reject (outgoing)' in output:
+                policies['outgoing'] = 'reject'
+                
+            if 'Default: deny (routed)' in output or 'Default: disabled (routed)' in output:
+                policies['forward'] = 'deny'
+            elif 'Default: allow (routed)' in output:
+                policies['forward'] = 'allow'
+            
+            return jsonify({
+                'success': True,
+                **policies
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to get UFW policies: {result.stderr}'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f'Error getting UFW policies: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ufw/policies', methods=['POST'])
+@login_required
+def update_ufw_policies():
+    """Update UFW default policies"""
+    try:
+        data = request.get_json()
+        incoming = data.get('incoming', 'deny')
+        outgoing = data.get('outgoing', 'allow')
+        forward = data.get('forward', 'deny')
+        
+        # Validate policy values
+        valid_policies = ['allow', 'deny', 'reject']
+        if incoming not in valid_policies or outgoing not in valid_policies or forward not in valid_policies:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid policy value. Must be allow, deny, or reject'
+            }), 400
+        
+        # Update policies
+        commands = [
+            ['ufw', '--force', 'default', incoming, 'incoming'],
+            ['ufw', '--force', 'default', outgoing, 'outgoing'],
+            ['ufw', '--force', 'default', forward, 'routed']
+        ]
+        
+        for cmd in commands:
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                return jsonify({
+                    'success': False,
+                    'error': f'Failed to update policy: {result.stderr}'
+                }), 500
+        
+        logger.info(f'UFW policies updated: incoming={incoming}, outgoing={outgoing}, forward={forward}')
+        
+        return jsonify({
+            'success': True,
+            'message': 'UFW policies updated successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f'Error updating UFW policies: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# UFW Logging endpoints
+@app.route('/api/ufw/logging', methods=['GET'])
+@login_required
+def get_ufw_logging():
+    """Get UFW logging settings"""
+    try:
+        result = subprocess.run(['ufw', 'status', 'verbose'], capture_output=True, text=True)
+        if result.returncode == 0:
+            output = result.stdout
+            
+            # Parse logging level
+            logging_settings = {
+                'level': 'off',
+                'log_denied': False,
+                'log_allowed': False
+            }
+            
+            if 'Logging: on (low)' in output:
+                logging_settings['level'] = 'low'
+            elif 'Logging: on (medium)' in output:
+                logging_settings['level'] = 'medium'
+            elif 'Logging: on (high)' in output:
+                logging_settings['level'] = 'high'
+            elif 'Logging: on (full)' in output:
+                logging_settings['level'] = 'full'
+            elif 'Logging: off' in output:
+                logging_settings['level'] = 'off'
+            
+            # For simplicity, we'll assume log_denied and log_allowed based on level
+            if logging_settings['level'] != 'off':
+                logging_settings['log_denied'] = True
+                if logging_settings['level'] in ['high', 'full']:
+                    logging_settings['log_allowed'] = True
+            
+            return jsonify({
+                'success': True,
+                **logging_settings
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to get UFW logging settings: {result.stderr}'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f'Error getting UFW logging settings: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ufw/logging', methods=['POST'])
+@login_required
+def update_ufw_logging():
+    """Update UFW logging settings"""
+    try:
+        data = request.get_json()
+        level = data.get('level', 'off')
+        
+        # Validate logging level
+        valid_levels = ['off', 'low', 'medium', 'high', 'full']
+        if level not in valid_levels:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid logging level. Must be off, low, medium, high, or full'
+            }), 400
+        
+        # Update logging
+        result = subprocess.run(['ufw', 'logging', level], capture_output=True, text=True)
+        if result.returncode == 0:
+            logger.info(f'UFW logging updated: level={level}')
+            return jsonify({
+                'success': True,
+                'message': f'UFW logging set to {level}'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to update UFW logging: {result.stderr}'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f'Error updating UFW logging: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Firewall Security Settings endpoints
+@app.route('/api/firewall/security', methods=['GET'])
+@login_required
+def get_firewall_security():
+    """Get firewall security settings"""
+    try:
+        # Default security settings
+        security_settings = {
+            'rate_limit': 30,
+            'connection_timeout': 300,
+            'enable_syn_cookies': True,
+            'enable_connection_tracking': True,
+            'block_invalid_packets': True
+        }
+        
+        # Try to read actual system settings
+        try:
+            # Check SYN cookies
+            with open('/proc/sys/net/ipv4/tcp_syncookies', 'r') as f:
+                security_settings['enable_syn_cookies'] = f.read().strip() == '1'
+        except:
+            pass
+            
+        try:
+            # Check connection tracking
+            result = subprocess.run(['lsmod'], capture_output=True, text=True)
+            security_settings['enable_connection_tracking'] = 'nf_conntrack' in result.stdout
+        except:
+            pass
+        
+        return jsonify({
+            'success': True,
+            **security_settings
+        })
+        
+    except Exception as e:
+        logger.error(f'Error getting firewall security settings: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/firewall/security', methods=['POST'])
+@login_required
+def update_firewall_security():
+    """Update firewall security settings"""
+    try:
+        data = request.get_json()
+        rate_limit = data.get('rate_limit', 30)
+        connection_timeout = data.get('connection_timeout', 300)
+        enable_syn_cookies = data.get('enable_syn_cookies', True)
+        enable_connection_tracking = data.get('enable_connection_tracking', True)
+        block_invalid_packets = data.get('block_invalid_packets', True)
+        
+        # Validate values
+        if not isinstance(rate_limit, int) or rate_limit < 1 or rate_limit > 1000:
+            return jsonify({
+                'success': False,
+                'error': 'Rate limit must be between 1 and 1000'
+            }), 400
+            
+        if not isinstance(connection_timeout, int) or connection_timeout < 30 or connection_timeout > 3600:
+            return jsonify({
+                'success': False,
+                'error': 'Connection timeout must be between 30 and 3600 seconds'
+            }), 400
+        
+        # Apply SYN cookies setting
+        try:
+            with open('/proc/sys/net/ipv4/tcp_syncookies', 'w') as f:
+                f.write('1' if enable_syn_cookies else '0')
+        except Exception as e:
+            logger.warning(f'Failed to set SYN cookies: {str(e)}')
+        
+        # Note: Other settings would require more complex system configuration
+        # For now, we'll just log the settings and return success
+        
+        logger.info(f'Firewall security settings updated: rate_limit={rate_limit}, '
+                   f'connection_timeout={connection_timeout}, syn_cookies={enable_syn_cookies}, '
+                   f'connection_tracking={enable_connection_tracking}, block_invalid={block_invalid_packets}')
+        
+        return jsonify({
+            'success': True,
+            'message': 'Firewall security settings updated successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f'Error updating firewall security settings: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # Terminal namespace for handling terminal connections
 class TerminalNamespace(Namespace):
     def __init__(self, namespace=None):

@@ -6248,6 +6248,8 @@
                 loadFirewallLogs();
             } else if (tabName === 'ports') {
                 initializePortManagement();
+            } else if (tabName === 'settings') {
+                loadFirewallSettings();
             }
         }
 
@@ -7321,6 +7323,183 @@
             loadPortStatistics();
         }
 
+        // Firewall Settings Functions
+        function loadFirewallSettings() {
+            // Load current SSH settings
+            fetch('/api/ssh/config')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('ssh-port').value = data.port || 22;
+                        document.getElementById('ssh-allow-root').checked = data.allow_root || false;
+                        document.getElementById('ssh-password-auth').checked = data.password_auth !== false;
+                    }
+                })
+                .catch(error => console.error('Error loading SSH config:', error));
+
+            // Load current firewall policies
+            fetch('/api/ufw/policies')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('default-incoming').value = data.incoming || 'deny';
+                        document.getElementById('default-outgoing').value = data.outgoing || 'allow';
+                        document.getElementById('default-forward').value = data.forward || 'deny';
+                    }
+                })
+                .catch(error => console.error('Error loading firewall policies:', error));
+
+            // Load logging settings
+            fetch('/api/ufw/logging')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('logging-level').value = data.level || 'off';
+                        document.getElementById('log-denied').checked = data.log_denied || false;
+                        document.getElementById('log-allowed').checked = data.log_allowed || false;
+                    }
+                })
+                .catch(error => console.error('Error loading logging settings:', error));
+        }
+
+        function updateSSHSettings() {
+            const port = document.getElementById('ssh-port').value;
+            const allowRoot = document.getElementById('ssh-allow-root').checked;
+            const passwordAuth = document.getElementById('ssh-password-auth').checked;
+
+            if (!port || port < 1 || port > 65535) {
+                showAlert('Error', 'Please enter a valid port number (1-65535)');
+                return;
+            }
+
+            const settings = {
+                port: parseInt(port),
+                allow_root: allowRoot,
+                password_auth: passwordAuth
+            };
+
+            fetch('/api/ssh/config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(settings)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Success', 'SSH settings updated successfully. Please restart SSH service to apply changes.');
+                } else {
+                    showAlert('Error', data.error || 'Failed to update SSH settings');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating SSH settings:', error);
+                showAlert('Error', 'Failed to update SSH settings');
+            });
+        }
+
+        function updateDefaultPolicies() {
+            const incoming = document.getElementById('default-incoming').value;
+            const outgoing = document.getElementById('default-outgoing').value;
+            const forward = document.getElementById('default-forward').value;
+
+            const policies = {
+                incoming: incoming,
+                outgoing: outgoing,
+                forward: forward
+            };
+
+            fetch('/api/ufw/policies', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(policies)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Success', 'Default policies updated successfully');
+                    loadFirewallStatus();
+                } else {
+                    showAlert('Error', data.error || 'Failed to update default policies');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating default policies:', error);
+                showAlert('Error', 'Failed to update default policies');
+            });
+        }
+
+        function updateLoggingSettings() {
+            const level = document.getElementById('logging-level').value;
+            const logDenied = document.getElementById('log-denied').checked;
+            const logAllowed = document.getElementById('log-allowed').checked;
+
+            const settings = {
+                level: level,
+                log_denied: logDenied,
+                log_allowed: logAllowed
+            };
+
+            fetch('/api/ufw/logging', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(settings)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Success', 'Logging settings updated successfully');
+                } else {
+                    showAlert('Error', data.error || 'Failed to update logging settings');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating logging settings:', error);
+                showAlert('Error', 'Failed to update logging settings');
+            });
+        }
+
+        function updateSecuritySettings() {
+            const rateLimit = document.getElementById('rate-limit').value;
+            const connectionTimeout = document.getElementById('connection-timeout').value;
+            const enableSynCookies = document.getElementById('enable-syn-cookies').checked;
+            const enableConnectionTracking = document.getElementById('enable-connection-tracking').checked;
+            const blockInvalidPackets = document.getElementById('block-invalid-packets').checked;
+
+            const settings = {
+                rate_limit: parseInt(rateLimit),
+                connection_timeout: parseInt(connectionTimeout),
+                enable_syn_cookies: enableSynCookies,
+                enable_connection_tracking: enableConnectionTracking,
+                block_invalid_packets: blockInvalidPackets
+            };
+
+            fetch('/api/firewall/security', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(settings)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Success', 'Security settings updated successfully');
+                } else {
+                    showAlert('Error', data.error || 'Failed to update security settings');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating security settings:', error);
+                showAlert('Error', 'Failed to update security settings');
+            });
+        }
+
         function showDnsSection(section) {
             // Hide all sections
             document.querySelectorAll('.dns-section').forEach(el => el.classList.add('hidden'));
@@ -8318,9 +8497,154 @@
                     <!-- Settings Section -->
                     <div id="settings-section" class="firewall-section hidden">
                         <h4 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Firewall Settings</h4>
+                        
+                        <!-- SSH Configuration -->
+                        <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6 mb-6">
+                            <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-4">SSH Configuration</h5>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="ssh-port" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SSH Port</label>
+                                    <input type="number" id="ssh-port" value="22" min="1" max="65535" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Default SSH port (22). Change with caution.</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SSH Access Control</label>
+                                    <div class="space-y-2">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="ssh-allow-root" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Allow root login</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="ssh-password-auth" checked class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Password authentication</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <button onclick="updateSSHSettings()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12"></path>
+                                    </svg>
+                                    Update SSH Settings
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Default Policies -->
+                        <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6 mb-6">
+                            <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Default Policies</h5>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label for="default-incoming" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Incoming</label>
+                                    <select id="default-incoming" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="deny">Deny</option>
+                                        <option value="allow">Allow</option>
+                                        <option value="reject">Reject</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="default-outgoing" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Outgoing</label>
+                                    <select id="default-outgoing" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="allow">Allow</option>
+                                        <option value="deny">Deny</option>
+                                        <option value="reject">Reject</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="default-forward" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Forward</label>
+                                    <select id="default-forward" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="deny">Deny</option>
+                                        <option value="allow">Allow</option>
+                                        <option value="reject">Reject</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <button onclick="updateDefaultPolicies()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Apply Default Policies
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Logging Settings -->
+                        <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6 mb-6">
+                            <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Logging Settings</h5>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="logging-level" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Logging Level</label>
+                                    <select id="logging-level" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="off">Off</option>
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                        <option value="full">Full</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Log Options</label>
+                                    <div class="space-y-2">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="log-denied" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Log denied packets</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="log-allowed" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Log allowed packets</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <button onclick="updateLoggingSettings()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                    </svg>
+                                    Update Logging
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Security Settings -->
                         <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6">
-                            <p class="text-gray-600 dark:text-gray-400">Configure firewall settings and policies.</p>
-                            <!-- Add settings controls here -->
+                            <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Security Settings</h5>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="rate-limit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rate Limiting (connections/minute)</label>
+                                    <input type="number" id="rate-limit" value="30" min="1" max="1000" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label for="connection-timeout" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Connection Timeout (seconds)</label>
+                                    <input type="number" id="connection-timeout" value="300" min="30" max="3600" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="enable-syn-cookies" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Enable SYN cookies (DDoS protection)</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="enable-connection-tracking" checked class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Enable connection tracking</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="block-invalid-packets" checked class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Block invalid packets</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <button onclick="updateSecuritySettings()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                    </svg>
+                                    Apply Security Settings
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
