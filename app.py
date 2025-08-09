@@ -1783,6 +1783,105 @@ def create_vhost():
         logger.error(f'Error creating virtual host: {str(e)}')
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/nginx/create-default-site', methods=['POST'])
+@login_required
+def create_default_site():
+    logger.info('Default site creation attempt')
+    try:
+        domain = request.json.get('domain')
+        
+        if not domain:
+            logger.error('Domain is required')
+            return jsonify({'error': 'Domain is required'}), 400
+        
+        logger.info(f'Setting default site for domain: {domain}')
+        
+        # Check if the domain config exists
+        config_path = f'/etc/nginx/sites-available/{domain}'
+        if not os.path.exists(config_path):
+            logger.error(f'Virtual host config not found: {config_path}')
+            return jsonify({'error': f'Virtual host {domain} not found'}), 404
+        
+        # First, remove default_server from all existing configs
+        sites_enabled_dir = '/etc/nginx/sites-enabled'
+        if os.path.exists(sites_enabled_dir):
+            for filename in os.listdir(sites_enabled_dir):
+                # Process all files including 'default'
+                    
+                file_path = os.path.join(sites_enabled_dir, filename)
+                if os.path.isfile(file_path):
+                    try:
+                        with open(file_path, 'r') as f:
+                            content = f.read()
+                        
+                        # Remove default_server from listen directives (handle all possible formats)
+                        content = re.sub(r'listen\s+80\s+default_server\s*;', 'listen 80;', content)
+                        content = re.sub(r'listen\s+443\s+ssl\s+default_server\s*;', 'listen 443 ssl;', content)
+                        content = re.sub(r'listen\s+\[::\]:80\s+default_server\s*;', 'listen [::]:80;', content)
+                        content = re.sub(r'listen\s+\[::\]:443\s+ssl\s+default_server\s*;', 'listen [::]:443 ssl;', content)
+                        # Also handle cases where default_server comes before ssl
+                        content = re.sub(r'listen\s+443\s+default_server\s+ssl\s*;', 'listen 443 ssl;', content)
+                        content = re.sub(r'listen\s+\[::\]:443\s+default_server\s+ssl\s*;', 'listen [::]:443 ssl;', content)
+                        
+                        with open(file_path, 'w') as f:
+                            f.write(content)
+                        
+                        logger.info(f'Removed default_server from {filename}')
+                    except Exception as e:
+                        logger.warning(f'Error processing {filename}: {str(e)}')
+        
+        # Now add default_server to the selected domain
+        enabled_path = f'/etc/nginx/sites-enabled/{domain}'
+        if os.path.exists(enabled_path):
+            try:
+                with open(enabled_path, 'r') as f:
+                    content = f.read()
+                
+                # First remove any existing default_server from this file too
+                content = re.sub(r'listen\s+80\s+default_server\s*;', 'listen 80;', content)
+                content = re.sub(r'listen\s+443\s+ssl\s+default_server\s*;', 'listen 443 ssl;', content)
+                content = re.sub(r'listen\s+\[::\]:80\s+default_server\s*;', 'listen [::]:80;', content)
+                content = re.sub(r'listen\s+\[::\]:443\s+ssl\s+default_server\s*;', 'listen [::]:443 ssl;', content)
+                content = re.sub(r'listen\s+443\s+default_server\s+ssl\s*;', 'listen 443 ssl;', content)
+                content = re.sub(r'listen\s+\[::\]:443\s+default_server\s+ssl\s*;', 'listen [::]:443 ssl;', content)
+                
+                # Add default_server to listen directives
+                content = re.sub(r'listen\s+80;', 'listen 80 default_server;', content)
+                content = re.sub(r'listen\s+443\s+ssl;', 'listen 443 ssl default_server;', content)
+                content = re.sub(r'listen\s+\[::\]:80;', 'listen [::]:80 default_server;', content)
+                content = re.sub(r'listen\s+\[::\]:443\s+ssl;', 'listen [::]:443 ssl default_server;', content)
+                
+                with open(enabled_path, 'w') as f:
+                    f.write(content)
+                
+                logger.info(f'Added default_server to {domain}')
+            except Exception as e:
+                logger.error(f'Error updating {domain} config: {str(e)}')
+                return jsonify({'error': f'Error updating {domain} config: {str(e)}'}), 500
+        else:
+            logger.error(f'Enabled site not found: {enabled_path}')
+            return jsonify({'error': f'Enabled site {domain} not found'}), 404
+        
+        # Test nginx configuration
+        test_result = subprocess.run(['nginx', '-t'], capture_output=True, text=True)
+        if test_result.returncode != 0:
+            logger.error(f'Nginx configuration test failed: {test_result.stderr}')
+            return jsonify({'error': f'Nginx configuration test failed: {test_result.stderr}'}), 500
+        
+        # Reload nginx configuration
+        logger.info('Reloading nginx configuration')
+        result = subprocess.run(['nginx', '-s', 'reload'], capture_output=True, text=True)
+        if result.returncode != 0:
+            logger.error(f'Failed to reload nginx: {result.stderr}')
+            return jsonify({'error': f'Failed to reload nginx: {result.stderr}'}), 500
+        
+        logger.info(f'Successfully set {domain} as default site')
+        return jsonify({'message': f'Successfully set {domain} as default site'})
+        
+    except Exception as e:
+        logger.error(f'Error setting default site: {str(e)}')
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/nginx/delete-vhost', methods=['POST'])
 @login_required
 def delete_vhost():
