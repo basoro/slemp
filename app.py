@@ -6150,6 +6150,9 @@ class TerminalNamespace(Namespace):
                 os.environ['TERM'] = 'xterm-256color'
                 os.environ['PS1'] = '\[\033[01;32m\]slemp@container\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$ '
                 
+                # Set default working directory to /var/www/html
+                os.chdir('/var/www/html')
+                
                 # Execute bash
                 os.execvp('/bin/bash', ['/bin/bash'])
             else:
