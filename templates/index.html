@@ -44,6 +44,30 @@
             transform: translateY(-1px);
         }
         
+        /* Navigation active state */
+        button.active {
+            color: #2563eb !important;
+            border-bottom-color: #2563eb !important;
+            font-weight: 600;
+        }
+        
+        .dark button.active {
+            color: #60a5fa !important;
+            border-bottom-color: #60a5fa !important;
+        }
+        
+        /* Mobile menu active state */
+        #mobile-menu button.active {
+            background-color: #dbeafe !important;
+            color: #1d4ed8 !important;
+            border-bottom: none !important;
+        }
+        
+        .dark #mobile-menu button.active {
+            background-color: #1e3a8a !important;
+            color: #93c5fd !important;
+        }
+        
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
@@ -54,18 +78,22 @@
                     <div class="flex">
                         <div class="flex-shrink-0 flex items-center">
                             <img src="{{ url_for('static', filename='logo.png') }}" alt="SLEMP Logo" class="h-8 w-8 mr-3">
-                            <h1 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">SLEMP Panel</h1>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">SLEMP Panel</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Server Management Made Easy</p>
+                            </div>
+
                         </div>
-                        <div class="hidden md:ml-6 md:flex md:space-x-8">
+                        <div class="hidden md:ml-6 md:flex md:space-x-5">
                             <button onclick="showSection('dashboard')" class="text-gray-900 dark:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 text-sm font-medium transition-colors duration-200">
-                            Dashboard
-                        </button>
-                        <button onclick="showSection('network')" class="text-gray-900 dark:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 text-sm font-medium transition-colors duration-200">
-                            Network
-                        </button>
-                        <button onclick="showSection('nginx')" class="text-gray-900 dark:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 text-sm font-medium transition-colors duration-200">
-                            Nginx
-                        </button>
+                                Dashboard
+                            </button>
+                            <button onclick="showSection('network')" class="text-gray-900 dark:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 text-sm font-medium transition-colors duration-200">
+                                Network
+                            </button>
+                            <button onclick="showSection('nginx')" class="text-gray-900 dark:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 text-sm font-medium transition-colors duration-200">
+                                Nginx
+                            </button>
                             <button onclick="showSection('php')" class="text-gray-900 dark:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 text-sm font-medium transition-colors duration-200">
                                 PHP-FPM
                             </button>
@@ -2729,6 +2757,30 @@
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.add('hidden');
             });
+            
+            // Remove active class from all navigation buttons (desktop and mobile)
+            document.querySelectorAll('button[onclick*="showSection"]').forEach(button => {
+                button.classList.remove('active');
+                // Only apply border styles to desktop navigation buttons
+                if (!button.closest('#mobile-menu')) {
+                    button.classList.remove('border-blue-500');
+                    button.classList.add('border-transparent');
+                }
+            });
+            
+            // Add active class to current section buttons (both desktop and mobile)
+            const desktopButton = document.querySelector(`.hidden.md\\:ml-6 button[onclick="showSection('${sectionName}')"]`);
+            const mobileButton = document.querySelector(`#mobile-menu button[onclick*="showSection('${sectionName}')"]`);
+            
+            if (desktopButton) {
+                desktopButton.classList.add('active');
+                desktopButton.classList.remove('border-transparent');
+                desktopButton.classList.add('border-blue-500');
+            }
+            
+            if (mobileButton) {
+                mobileButton.classList.add('active');
+            }
 
             if (sectionName === 'dashboard') {
                 document.getElementById('dashboard-section').classList.remove('hidden');
@@ -9831,12 +9883,35 @@ log_errors = On</textarea>
 
         // Load plugins when dashboard section is shown
         document.addEventListener('DOMContentLoaded', function() {
+            // Set dashboard as active section by default
+            showSection('dashboard');
+            
             // Load plugins when page loads (dashboard is shown by default)
             setTimeout(() => {
                 loadPlugins();
             }, 500);
         });
     </script>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">© 2024 SLEMP Panel. All rights reserved.</p>
+                    </div>
+                </div>
+                <div class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
+                    <div class="text-center md:text-right">
+                        <p class="text-xs text-gray-400 dark:text-gray-500">
+                            Version 1.0.0
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
 
 </body>
 </html>
