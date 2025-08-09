@@ -1846,7 +1846,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                     </svg>
                                 </button>
-                                <div id="dropdown-${file.path.replace(/[^a-zA-Z0-9]/g, '_')}" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-700 ring-1 ring-black ring-opacity-5 z-[9999]">
+                                <div id="dropdown-${file.path.replace(/[^a-zA-Z0-9]/g, '_')}" class="hidden origin-top-right fixed right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-700 ring-1 ring-black ring-opacity-5 z-[9999]">
                                     <div class="py-1" role="menu">
                                         ${!file.is_dir ? `<button onclick="openEditor('${file.path}'); hideDropdown('${file.path}')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
                                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2136,22 +2136,29 @@
             
             // Toggle current dropdown
             if (dropdown.classList.contains('hidden')) {
-                dropdown.classList.remove('hidden');
+                // Find the button that triggered this dropdown
+                const button = dropdown.previousElementSibling;
+                const buttonRect = button.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                
+                // Position dropdown relative to button
+                dropdown.style.left = (buttonRect.right - 192) + 'px'; // 192px = w-48
                 
                 // Check if dropdown would be cut off at bottom
-                const rect = dropdown.getBoundingClientRect();
-                const viewportHeight = window.innerHeight;
-                const containerRect = dropdown.closest('.bg-white').getBoundingClientRect();
-                
-                // If dropdown extends beyond container or viewport, position it upward
-                if (rect.bottom > containerRect.bottom || rect.bottom > viewportHeight - 20) {
-                    dropdown.classList.remove('origin-top-right');
-                    dropdown.classList.add('origin-bottom-right', 'bottom-full', 'mb-2');
-                    dropdown.classList.remove('mt-2');
+                const estimatedDropdownHeight = 200; // Approximate height
+                if (buttonRect.bottom + estimatedDropdownHeight > viewportHeight - 20) {
+                    // Position above button
+                    dropdown.style.top = (buttonRect.top - estimatedDropdownHeight) + 'px';
+                    dropdown.classList.remove('origin-top-right', 'mt-2');
+                    dropdown.classList.add('origin-bottom-right');
                 } else {
-                    dropdown.classList.add('origin-top-right', 'mt-2');
-                    dropdown.classList.remove('origin-bottom-right', 'bottom-full', 'mb-2');
+                    // Position below button
+                    dropdown.style.top = (buttonRect.bottom + 8) + 'px'; // 8px = mt-2
+                    dropdown.classList.add('origin-top-right');
+                    dropdown.classList.remove('origin-bottom-right');
                 }
+                
+                dropdown.classList.remove('hidden');
             } else {
                 dropdown.classList.add('hidden');
             }
