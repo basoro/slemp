@@ -4861,11 +4861,28 @@
             }
 
             try {
-                showNotification('Memulai update aplikasi...', 'info');
+                showNotification('Memulai update aplikasi... Proses ini dapat memakan waktu hingga 5 menit.', 'info');
+                
+                // Show loading indicator
+                const loadingDiv = document.createElement('div');
+                loadingDiv.id = 'update-loading';
+                loadingDiv.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                loadingDiv.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p class="text-gray-700 dark:text-gray-300">Sedang mengupdate aplikasi...</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Mohon tunggu, proses ini dapat memakan waktu beberapa menit</p>
+                    </div>
+                `;
+                document.body.appendChild(loadingDiv);
                 
                 const response = await fetch('/api/app/update', {
                     method: 'POST'
                 });
+                
+                // Remove loading indicator
+                const loading = document.getElementById('update-loading');
+                if (loading) loading.remove();
                 
                 const data = await response.json();
                 
@@ -4880,6 +4897,10 @@
                     showNotification(`Gagal update aplikasi: ${data.message}`, 'error');
                 }
             } catch (error) {
+                // Remove loading indicator if still present
+                const loading = document.getElementById('update-loading');
+                if (loading) loading.remove();
+                
                 console.error('Error:', error);
                 showNotification('Terjadi kesalahan saat update aplikasi', 'error');
             }

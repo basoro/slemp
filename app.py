@@ -3670,7 +3670,7 @@ def update_app():
             ['bash', '/var/www/panel/update.sh'],
             capture_output=True,
             text=True,
-            timeout=15
+            timeout=300  # Increased timeout to 5 minutes for update process
         )
         
         if result.returncode == 0:
@@ -3687,10 +3687,10 @@ def update_app():
             }), 500
             
     except subprocess.TimeoutExpired:
-        app.logger.error("Timeout updating app")
+        app.logger.error("Timeout updating app after 5 minutes")
         return jsonify({
             'success': False,
-            'message': 'Timeout saat update aplikasi'
+            'message': 'Timeout saat update aplikasi (lebih dari 5 menit). Silakan coba lagi atau periksa koneksi internet.'
         }), 500
     except Exception as e:
         app.logger.error(f"Error during app update: {str(e)}")
