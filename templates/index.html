@@ -3203,6 +3203,10 @@
             // Auto-check SSL certificates when SSL tab is clicked
             if (tabName === 'ssl') {
                 checkExistingSSLCertificates();
+                // Also check SSL certificate info automatically
+                setTimeout(() => {
+                    checkSSLCertificate();
+                }, 500);
             }
         }
 
@@ -3455,6 +3459,97 @@
                 cancelBtn.textContent = 'Close';
                 cancelBtn.disabled = false;
                 cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // Check SSL Certificate Information
+        async function checkSSLCertificate() {
+            const domain = document.getElementById('vhost-domain').value;
+            const sslCert = document.getElementById('vhost-ssl-cert').value;
+            
+            if (!domain) {
+                showAlert('Domain is required', 'Error');
+                return;
+            }
+            
+            // Reset SSL info display
+            document.getElementById('vhost-ssl-status').textContent = 'Checking...';
+            document.getElementById('vhost-ssl-expiry').textContent = 'Checking...';
+            document.getElementById('vhost-ssl-days-left').textContent = 'Checking...';
+            
+            try {
+                const response = await fetch('/api/ssl/check', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        domain: domain,
+                        cert_path: sslCert
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update SSL status
+                    const statusElement = document.getElementById('vhost-ssl-status');
+                    const expiryElement = document.getElementById('vhost-ssl-expiry');
+                    const daysLeftElement = document.getElementById('vhost-ssl-days-left');
+                    
+                    statusElement.textContent = data.status || 'Valid';
+                    statusElement.className = statusElement.className.replace(/text-\w+-\d+/g, '');
+                    
+                    if (data.valid) {
+                        statusElement.classList.add('text-green-600', 'dark:text-green-400');
+                    } else {
+                        statusElement.classList.add('text-red-600', 'dark:text-red-400');
+                    }
+                    
+                    // Update expiry date
+                    if (data.expiry_date) {
+                        expiryElement.textContent = new Date(data.expiry_date).toLocaleDateString('id-ID', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } else {
+                        expiryElement.textContent = 'Not available';
+                    }
+                    
+                    // Update days left
+                    if (data.days_left !== undefined) {
+                        daysLeftElement.textContent = `${data.days_left} days`;
+                        daysLeftElement.className = daysLeftElement.className.replace(/text-\w+-\d+/g, '');
+                        
+                        if (data.days_left > 30) {
+                            daysLeftElement.classList.add('text-green-600', 'dark:text-green-400');
+                        } else if (data.days_left > 7) {
+                            daysLeftElement.classList.add('text-yellow-600', 'dark:text-yellow-400');
+                        } else {
+                            daysLeftElement.classList.add('text-red-600', 'dark:text-red-400');
+                        }
+                    } else {
+                        daysLeftElement.textContent = 'Not available';
+                    }
+                    
+                    showNotification('SSL certificate checked successfully', 'success');
+                } else {
+                    document.getElementById('vhost-ssl-status').textContent = data.error || 'Check failed';
+                    document.getElementById('vhost-ssl-expiry').textContent = 'Not available';
+                    document.getElementById('vhost-ssl-days-left').textContent = 'Not available';
+                    
+                    showAlert(data.error || 'Failed to check SSL certificate', 'Error');
+                }
+            } catch (error) {
+                console.error('Error checking SSL certificate:', error);
+                document.getElementById('vhost-ssl-status').textContent = 'Check failed';
+                document.getElementById('vhost-ssl-expiry').textContent = 'Not available';
+                document.getElementById('vhost-ssl-days-left').textContent = 'Not available';
+                
+                showAlert('Error checking SSL certificate', 'Error');
             }
         }
 
@@ -5925,6 +6020,41 @@
                             </div>
                         </div>
                         
+                        <!-- SSL Certificate Information -->
+                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                            <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-3">SSL Certificate Information</h4>
+                            <div class="space-y-3">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Certificate Status</label>
+                                        <div id="vhost-ssl-status" class="px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-600 dark:text-gray-300">
+                                            Not checked
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Expiration Date</label>
+                                        <div id="vhost-ssl-expiry" class="px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-600 dark:text-gray-300">
+                                            Not available
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Days Until Expiry</label>
+                                    <div id="vhost-ssl-days-left" class="px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-600 dark:text-gray-300">
+                                        Not available
+                                    </div>
+                                </div>
+                                <button type="button" onclick="checkSSLCertificate()" class="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    <span class="flex items-center justify-center">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Check SSL Certificate
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="flex items-center space-x-3">
                             <input type="checkbox" id="vhost-force-https" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
                             <label for="vhost-force-https" class="text-sm text-gray-700 dark:text-gray-300">Force HTTPS (Redirect HTTP to HTTPS)</label>

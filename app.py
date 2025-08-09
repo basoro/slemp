@@ -4325,6 +4325,141 @@ def generate_letsencrypt_ssl():
             'error': f'Internal server error: {str(e)}'
         }), 500
 
+def _extract_cert_field(cert_data, field_name, default_value):
+    """Safely extract field from SSL certificate data"""
+    try:
+        for item in cert_data:
+            if isinstance(item, (tuple, list)) and len(item) >= 2:
+                key, value = item[0], item[1]
+                if key == field_name:
+                    return value
+    except (TypeError, ValueError, IndexError):
+        pass
+    return default_value
+
+@app.route('/api/ssl/check', methods=['POST'])
+@login_required
+def check_ssl_certificate_info():
+    """Check SSL certificate information including expiry date"""
+    try:
+        data = request.get_json()
+        domain = data.get('domain')
+        cert_path = data.get('cert_path')
+        
+        if not domain:
+            return jsonify({
+                'success': False,
+                'error': 'Domain is required'
+            }), 400
+        
+        logger.info(f'Checking SSL certificate info for {domain} by user {current_user.username}')
+        
+        # Try to get certificate info from domain (online check)
+        try:
+            import ssl
+            import socket
+            
+            # Create SSL context
+            context = ssl.create_default_context()
+            
+            # Connect to domain and get certificate
+            with socket.create_connection((domain, 443), timeout=10) as sock:
+                with context.wrap_socket(sock, server_hostname=domain) as ssock:
+                    cert = ssock.getpeercert()
+                    
+                    # Parse expiry date
+                    expiry_str = cert['notAfter']
+                    expiry_date = datetime.datetime.strptime(expiry_str, '%b %d %H:%M:%S %Y %Z')
+                    
+                    # Calculate days left
+                    now = datetime.datetime.now()
+                    days_left = (expiry_date - now).days
+                    
+                    # Determine status
+                    if days_left < 0:
+                        status = 'Expired'
+                        valid = False
+                    elif days_left < 7:
+                        status = 'Expires Soon'
+                        valid = True
+                    elif days_left < 30:
+                        status = 'Valid (Renewal Recommended)'
+                        valid = True
+                    else:
+                        status = 'Valid'
+                        valid = True
+                    
+                    return jsonify({
+                        'success': True,
+                        'valid': valid,
+                        'status': status,
+                        'expiry_date': expiry_date.isoformat(),
+                        'days_left': days_left,
+                        'issuer': _extract_cert_field(cert.get('issuer', []), 'organizationName', 'Unknown'),
+                        'subject': _extract_cert_field(cert.get('subject', []), 'commonName', domain)
+                    })
+                    
+        except (socket.timeout, socket.gaierror, ssl.SSLError, ConnectionRefusedError) as e:
+            # If online check fails, try to check local certificate file
+            if cert_path and os.path.exists(cert_path):
+                try:
+                    import subprocess
+                    
+                    # Use openssl to check certificate
+                    result = subprocess.run([
+                        'openssl', 'x509', '-in', cert_path, '-noout', '-enddate'
+                    ], capture_output=True, text=True, timeout=10)
+                    
+                    if result.returncode == 0:
+                        # Parse openssl output
+                        enddate_line = result.stdout.strip()
+                        if 'notAfter=' in enddate_line:
+                            date_str = enddate_line.split('notAfter=')[1]
+                            expiry_date = datetime.datetime.strptime(date_str, '%b %d %H:%M:%S %Y %Z')
+                            
+                            now = datetime.datetime.now()
+                            days_left = (expiry_date - now).days
+                            
+                            if days_left < 0:
+                                status = 'Expired'
+                                valid = False
+                            elif days_left < 7:
+                                status = 'Expires Soon'
+                                valid = True
+                            elif days_left < 30:
+                                status = 'Valid (Renewal Recommended)'
+                                valid = True
+                            else:
+                                status = 'Valid'
+                                valid = True
+                            
+                            return jsonify({
+                                'success': True,
+                                'valid': valid,
+                                'status': status,
+                                'expiry_date': expiry_date.isoformat(),
+                                'days_left': days_left,
+                                'source': 'local_file'
+                            })
+                    
+                except subprocess.TimeoutExpired:
+                    pass
+                except Exception as file_error:
+                    logger.warning(f'Error checking local certificate file: {str(file_error)}')
+            
+            # Return connection error
+            return jsonify({
+                'success': False,
+                'error': f'Unable to connect to {domain}:443 or check certificate file. Error: {str(e)}'
+            })
+            
+    except Exception as e:
+        logger.error(f'Error checking SSL certificate info: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': f'Internal server error: {str(e)}'
+        }), 500
+
 def run_certbot_installation():
     """Run Certbot installation in background with real-time output"""
     try:
