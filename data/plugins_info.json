@@ -104,6 +104,27 @@
       "homepage": "https://slemp.com/plugins/security",
       "documentation": "https://docs.slemp.com/plugins/security",
       "support": "https://support.slemp.com/security"
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama Manager",
+      "version": "3.0.1",
+      "description": "Manage Ollama models and configurations",
+      "author": "SLEMP Team",
+      "category": "AI",
+      "status": "active",
+      "icon": "ollama-icon.svg",
+      "dependencies": ["ollama"],
+      "permissions": ["ollama_manage"],
+      "install_date": "2024-01-08",
+      "last_update": "2024-01-28",
+      "size": "4.1 MB",
+      "downloads": 3200,
+      "rating": 4.9,
+      "tags": ["ollama", "ai", "models"],
+      "homepage": "https://slemp.com/plugins/ollama",
+      "documentation": "https://docs.slemp.com/plugins/ollama",
+      "support": "https://support.slemp.com/ollama"
     }
   ]
 }
