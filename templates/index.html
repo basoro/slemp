@@ -10318,20 +10318,23 @@ log_errors = On</textarea>
                     function triggerPluginInit() {
                         console.log('🚀 Triggering plugin initialization');
                         
-                        // Dispatch DOMContentLoaded event for plugin scripts
+                        // Dispatch DOMContentLoaded event for plugin scripts (non-bubbling)
                         const event = new Event('DOMContentLoaded', {
-                            bubbles: true,
+                            bubbles: false,
                             cancelable: true
                         });
                         contentDiv.dispatchEvent(event);
                         
-                        // Also trigger any window load events
+                        // Also trigger any window load events (but don't bubble to avoid conflicts)
                         setTimeout(() => {
-                            const loadEvent = new Event('load', {
-                                bubbles: true,
-                                cancelable: true
-                            });
-                            window.dispatchEvent(loadEvent);
+                            // Instead of triggering global load event, just call plugin init functions directly
+                            // Look for common plugin initialization patterns
+                            if (typeof window.initPlugin === 'function') {
+                                window.initPlugin();
+                            }
+                            if (typeof window.init === 'function') {
+                                window.init();
+                            }
                         }, 100);
                     }
                     
@@ -10449,13 +10452,16 @@ log_errors = On</textarea>
 
         // Load plugins when dashboard section is shown
         document.addEventListener('DOMContentLoaded', function() {
-            // Set dashboard as active section by default
-            showSection('dashboard');
-            
-            // Load plugins when page loads (dashboard is shown by default)
-            setTimeout(() => {
-                loadPlugins();
-            }, 500);
+            // Only set dashboard as active section if no plugin modal is open
+            if (!document.getElementById('plugin-modal')) {
+                // Set dashboard as active section by default
+                showSection('dashboard');
+                
+                // Load plugins when page loads (dashboard is shown by default)
+                setTimeout(() => {
+                    loadPlugins();
+                }, 500);
+            }
         });
     </script>
 
