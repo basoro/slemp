@@ -23,6 +23,9 @@ python3 -m venv /opt/venv
 echo "===> Install Python Requirements..."
 /opt/venv/bin/pip install -r /var/www/panel/requirements.txt
 
+systemctl start supervisor
+systemctl enable supervisor
+
 echo "===> Create supervisord.conf..."
 cat <<EOF > /etc/supervisor/conf.d/supervisord.conf
 [supervisord]
@@ -34,8 +37,15 @@ autostart=true
 autorestart=true
 EOF
 
+
 supervisorctl reread
 supervisorctl update
-supervisorctl start slemp
+supervisorctl restart slemp
+
+echo "===> Allowing port via UFW..."
+ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw allow 5000/tcp
 
 echo "===> Setup complete!"

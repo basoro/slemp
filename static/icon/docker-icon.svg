@@ -1,10 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M2 17h20l-2-6H4l-2 6z"/>
-  <path d="M6 11V7h4v4H6z"/>
-  <path d="M10 11V7h4v4h-4z"/>
-  <path d="M14 11V7h4v4h-4z"/>
-  <path d="M18 11V9h2v2h-2z"/>
-  <path d="M6 7V5h4v2H6z"/>
-  <path d="M10 7V3h4v4h-4z"/>
-  <path d="M14 7V5h4v2h-4z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Container boxes -->
+  <rect x="2" y="8" width="3" height="3" rx="0.5"/>
+  <rect x="6" y="8" width="3" height="3" rx="0.5"/>
+  <rect x="10" y="8" width="3" height="3" rx="0.5"/>
+  <rect x="14" y="8" width="3" height="3" rx="0.5"/>
+  <rect x="18" y="8" width="3" height="3" rx="0.5"/>
+  
+  <rect x="2" y="12" width="3" height="3" rx="0.5"/>
+  <rect x="6" y="12" width="3" height="3" rx="0.5"/>
+  <rect x="10" y="12" width="3" height="3" rx="0.5"/>
+  <rect x="14" y="12" width="3" height="3" rx="0.5"/>
+  <rect x="18" y="12" width="3" height="3" rx="0.5"/>
+  
+  <rect x="6" y="4" width="3" height="3" rx="0.5"/>
+  <rect x="10" y="4" width="3" height="3" rx="0.5"/>
+  <rect x="14" y="4" width="3" height="3" rx="0.5"/>
+  
+  <!-- Docker whale tail -->
+  <path d="M22 9c0-1.5-1.5-3-3-3s-3 1.5-3 3"/>
+  <circle cx="20" cy="7" r="1" fill="currentColor"/>
+  
+  <!-- Base platform -->
+  <line x1="1" y1="16" x2="23" y2="16" stroke-width="1.5"/>
 </svg>
