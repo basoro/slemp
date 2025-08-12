@@ -1,0 +1,15 @@
+# =======================
+# docker-compose.yml
+# =======================
+services:
+  app:
+    build: .
+    container_name: fullstack_slemp
+    volumes:
+      - ./data/html:/var/www/html
+      - .:/var/www/panel
+    ports:
+      - "80:80"    # Akses PHP site
+      - "3306:3306"  # Akses MariaDB
+      - "5000:5000"  # Akses Panel Python langsung (tanpa proxy)
+    tty: true

@@ -10366,8 +10366,12 @@ log_errors = On</textarea>
                                     };
                                     console.log(`📡 Loading external script: ${script.src}`);
                                 } else {
-                                    newScript.textContent = script.textContent;
-                                    console.log(`⚡ Executing inline script ${index + 1}`);
+                                    // Wrap inline script in IIFE to avoid variable conflicts
+                                    const wrappedScript = `(function() {
+                                        ${script.textContent}
+                                    })();`;
+                                    newScript.textContent = wrappedScript;
+                                    console.log(`⚡ Executing inline script ${index + 1} (wrapped in IIFE)`);
                                     // For inline scripts, consider them loaded immediately
                                     setTimeout(onScriptLoad, 10);
                                 }
