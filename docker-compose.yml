@@ -6,7 +6,7 @@ services:
     build: .
     container_name: fullstack_slemp
     volumes:
-      - ./data/html:/var/www/html
+      - ./htdocs:/var/www/html
       - .:/var/www/panel
     ports:
       - "80:80"    # Akses PHP site
