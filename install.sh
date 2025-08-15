@@ -32,7 +32,7 @@ cat <<EOF > /etc/supervisor/conf.d/supervisord.conf
 nodaemon=true 
 
 [program:slemp]
-command=/opt/venv/bin/gunicorn app:app --chdir /var/www/panel --bind 0.0.0.0:5000 --worker-class eventlet --workers 1 --timeout 300
+command=/opt/venv/bin/gunicorn app:app --chdir /var/www/panel --bind 0.0.0.0:7777 --worker-class eventlet --workers 1 --timeout 300
 autostart=true
 autorestart=true
 EOF
