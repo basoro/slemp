@@ -6385,7 +6385,7 @@ def get_service_name(port):
         5432: 'postgresql',
         6379: 'redis',
         27017: 'mongodb',
-        5000: 'flask'
+        7777: 'flask'
     }
     return services.get(port, 'unknown')
 
@@ -8071,4 +8071,4 @@ def plugin_api(plugin_name, endpoint):
 socketio.on_namespace(TerminalNamespace('/terminal'))
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)
+    socketio.run(app, host='0.0.0.0', port=7777, debug=True, allow_unsafe_werkzeug=True)

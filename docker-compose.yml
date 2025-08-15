@@ -11,5 +11,5 @@ services:
     ports:
       - "80:80"    # Akses PHP site
       - "3306:3306"  # Akses MariaDB
-      - "5000:5000"  # Akses Panel Python langsung (tanpa proxy)
+      - "7777:7777"  # Akses Panel Python langsung (tanpa proxy)
     tty: true

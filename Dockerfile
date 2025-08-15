@@ -25,13 +25,13 @@ RUN echo "[supervisord]\n\
 nodaemon=true\n\
 \n\
 [program:slemp]\n\
-command=/opt/venv/bin/gunicorn app:app --chdir /var/www/panel --bind 0.0.0.0:5000 --worker-class eventlet --workers 1 --timeout 300\n\
+command=/opt/venv/bin/gunicorn app:app --chdir /var/www/panel --bind 0.0.0.0:7777 --worker-class eventlet --workers 1 --timeout 300\n\
 autostart=true\n\
 autorestart=true" \
 > /etc/supervisor/conf.d/supervisord.conf
 
 # Expose ports
-EXPOSE 80 3306 5000
+EXPOSE 80 3306 7777
 
 # Volume mounts
 VOLUME ["/var/www/html", "/var/www/panel"]

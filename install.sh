@@ -46,6 +46,6 @@ echo "===> Allowing port via UFW..."
 ufw allow 22/tcp
 ufw allow 80/tcp
 ufw allow 443/tcp
-ufw allow 5000/tcp
+ufw allow 7777/tcp
 
 echo "===> Setup complete!"
