@@ -10316,7 +10316,8 @@ log_errors = On</textarea>
                     
                     // Function to trigger DOMContentLoaded event for plugin
                     function triggerPluginInit() {
-                        console.log('🚀 Triggering plugin initialization');
+                        console.log('🚀 [Modal] Triggering plugin initialization');
+                        console.log('🚀 [Modal] Available window functions:', Object.keys(window).filter(key => key.includes('init')));
                         
                         // Dispatch DOMContentLoaded event for plugin scripts (non-bubbling)
                         const event = new Event('DOMContentLoaded', {
@@ -10324,17 +10325,48 @@ log_errors = On</textarea>
                             cancelable: true
                         });
                         contentDiv.dispatchEvent(event);
+                        console.log('📡 [Modal] DOMContentLoaded event dispatched');
                         
                         // Also trigger any window load events (but don't bubble to avoid conflicts)
                         setTimeout(() => {
-                            // Instead of triggering global load event, just call plugin init functions directly
-                            // Look for common plugin initialization patterns
-                            if (typeof window.initPlugin === 'function') {
-                                window.initPlugin();
-                            }
-                            if (typeof window.init === 'function') {
-                                window.init();
-                            }
+                            console.log('⏰ [Modal] Checking for initialization functions...');
+                            
+                            // Retry mechanism for plugin initialization
+                            let retryCount = 0;
+                            const maxRetries = 5;
+                            
+                            const tryInitialization = () => {
+                                retryCount++;
+                                console.log(`🔄 [Modal] Initialization attempt ${retryCount}/${maxRetries}`);
+                                
+                                // Look for common plugin initialization patterns
+                                if (typeof window.initPlugin === 'function') {
+                                    console.log('✅ [Modal] Calling window.initPlugin()');
+                                    window.initPlugin();
+                                }
+                                if (typeof window.init === 'function') {
+                                    console.log('✅ [Modal] Calling window.init()');
+                                    window.init();
+                                }
+                                if (typeof window.initializePage === 'function') {
+                                    console.log('✅ [Modal] Calling window.initializePage()');
+                                    window.initializePage();
+                                    return true; // Success
+                                } else {
+                                    console.warn(`⚠️ [Modal] window.initializePage not found (attempt ${retryCount})`);
+                                    
+                                    // Retry if function not found and we haven't exceeded max retries
+                                    if (retryCount < maxRetries) {
+                                        console.log(`🔄 [Modal] Retrying in ${retryCount * 100}ms...`);
+                                        setTimeout(tryInitialization, retryCount * 100);
+                                    } else {
+                                        console.error('❌ [Modal] Failed to find initializePage after all retries');
+                                    }
+                                    return false;
+                                }
+                            };
+                            
+                            tryInitialization();
                         }, 100);
                     }
                     
@@ -10366,12 +10398,9 @@ log_errors = On</textarea>
                                     };
                                     console.log(`📡 Loading external script: ${script.src}`);
                                 } else {
-                                    // Wrap inline script in IIFE to avoid variable conflicts
-                                    const wrappedScript = `(function() {
-                                        ${script.textContent}
-                                    })();`;
-                                    newScript.textContent = wrappedScript;
-                                    console.log(`⚡ Executing inline script ${index + 1} (wrapped in IIFE)`);
+                                    // Execute inline script directly to preserve global scope
+                                    newScript.textContent = script.textContent;
+                                    console.log(`⚡ Executing inline script ${index + 1} (direct execution)`);
                                     // For inline scripts, consider them loaded immediately
                                     setTimeout(onScriptLoad, 10);
                                 }
