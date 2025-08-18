@@ -1143,7 +1143,9 @@ def uninstall_service(service):
     service_map = {
         'nginx': 'nginx',
         'php-fpm': 'php-fpm',
-        'mysql': 'mariadb-server'
+        'mysql': 'mariadb-server',
+        'powerdns': 'pdns-server',
+        'ufw': 'ufw'
     }
 
     if service not in service_map:
@@ -5533,10 +5535,6 @@ def get_ufw_status():
     except Exception as e:
         logger.error(f'Error getting UFW status: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
-
-
-
-
 
 @app.route('/api/ufw/rules', methods=['GET'])
 @login_required
