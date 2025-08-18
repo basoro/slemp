@@ -587,7 +587,7 @@ autorestart=true\n"""
                     
                     # Add MariaDB configuration to supervisord.conf
                     mariadb_config = """\n[program:mariadb]
-command=/usr/sbin/mariadbd --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib/mysql/plugin --user=mysql --skip-log-error --pid-file=/run/mysqld/mysqld.pid --socket=/run/mysqld/mysqld.sock
+command=/usr/sbin/mariadbd --basedir=/usr --datadir=/var/www/panel/data/mysql --plugin-dir=/usr/lib/mysql/plugin --user=mysql --skip-log-error --pid-file=/run/mysqld/mysqld.pid --socket=/run/mysqld/mysqld.sock
 autostart=true
 autorestart=true
 killasgroup=true
