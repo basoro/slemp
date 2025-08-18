@@ -947,7 +947,8 @@ def install_service(service):
         'nginx': 'nginx',
         'php-fpm': 'php-fpm',
         'mysql': 'mariadb-server',
-        'powerdns': 'pdns-server'
+        'powerdns': 'pdns-server',
+        'ufw': 'ufw'
     }
 
     if service not in service_map:
