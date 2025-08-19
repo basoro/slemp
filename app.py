@@ -611,6 +611,8 @@ stopasgroup=true\n"""
                     subprocess.run(['chown', 'mysql:mysql', '/run/mysqld'], capture_output=True, text=True, timeout=10)
                     socketio.emit('install_output', {'output': '$ chmod 755 /run/mysqld', 'type': 'command'})
                     subprocess.run(['chmod', '755', '/run/mysqld'], capture_output=True, text=True, timeout=10)
+                    subprocess.run(['mkdir', '-p', '/var/www/panel/data/mysql'], capture_output=True, text=True)
+                    subprocess.run(['chown', 'mysql:mysql', '/var/www/panel/data/mysql'], capture_output=True, text=True)
                     
                     # Start MariaDB with supervisor
                     socketio.emit('install_output', {'output': '$ supervisorctl restart mariadb', 'type': 'command'})
@@ -1047,6 +1049,8 @@ autorestart=true\n"""
                 subprocess.run(['mkdir', '-p', '/run/mysqld'], capture_output=True, text=True)
                 subprocess.run(['chown', 'mysql:mysql', '/run/mysqld'], capture_output=True, text=True)
                 subprocess.run(['chmod', '755', '/run/mysqld'], capture_output=True, text=True)
+                subprocess.run(['mkdir', '-p', '/var/www/panel/data/mysql'], capture_output=True, text=True)
+                subprocess.run(['chown', 'mysql:mysql', '/var/www/panel/data/mysql'], capture_output=True, text=True)
                 
                 # Add MariaDB configuration to supervisord.conf
                 mariadb_config = """\n[program:mariadb]
