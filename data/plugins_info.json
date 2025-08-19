@@ -85,27 +85,6 @@
       "support": "https://support.slemp.com/systemmonitor"
     },
     {
-      "id": "security",
-      "name": "Security Scanner",
-      "version": "3.0.1",
-      "description": "Advanced security scanning and vulnerability detection for web applications",
-      "author": "SLEMP Security Team",
-      "category": "Security",
-      "status": "active",
-      "icon": "security-icon.svg",
-      "dependencies": ["nmap", "openssl"],
-      "permissions": ["security_scan", "vulnerability_check"],
-      "install_date": "2024-01-08",
-      "last_update": "2024-01-28",
-      "size": "4.1 MB",
-      "downloads": 3200,
-      "rating": 4.9,
-      "tags": ["security", "vulnerability", "scanning"],
-      "homepage": "https://slemp.com/plugins/security",
-      "documentation": "https://docs.slemp.com/plugins/security",
-      "support": "https://support.slemp.com/security"
-    },
-    {
       "id": "ollama",
       "name": "Ollama Manager",
       "version": "3.0.1",
