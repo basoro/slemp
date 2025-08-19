@@ -582,6 +582,19 @@ autorestart=true\n"""
                     socketio.emit('install_output', {'output': '$ supervisorctl restart php-fpm', 'type': 'command'})
                     start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'restart', 'php-fpm'], 30)
                 elif service_name == 'mariadb-server':
+
+                    # For MariaDB, create socket directory first
+                    socketio.emit('install_output', {'output': 'Menyiapkan direktori socket MariaDB...', 'type': 'info'})
+                    socketio.emit('install_output', {'output': '$ mkdir -p /run/mysqld', 'type': 'command'})
+                    subprocess.run(['mkdir', '-p', '/run/mysqld'], capture_output=True, text=True, timeout=10)
+                    socketio.emit('install_output', {'output': '$ chown mysql:mysql /run/mysqld', 'type': 'command'})
+                    subprocess.run(['chown', 'mysql:mysql', '/run/mysqld'], capture_output=True, text=True, timeout=10)
+                    socketio.emit('install_output', {'output': '$ chmod 755 /run/mysqld', 'type': 'command'})
+                    subprocess.run(['chmod', '755', '/run/mysqld'], capture_output=True, text=True, timeout=10)
+                    subprocess.run(['mkdir', '-p', '/var/www/panel/data/mysql'], capture_output=True, text=True)
+                    subprocess.run(['chown', 'mysql:mysql', '/var/www/panel/data/mysql'], capture_output=True, text=True)
+                    subprocess.run(['mysql_install_db', '--user=mysql', '--basedir=/usr', '--datadir=/var/www/panel/data/mysql'])
+
                     # MariaDB specific configuration
                     socketio.emit('install_output', {'output': 'Mengkonfigurasi MariaDB untuk supervisord...', 'type': 'info'})
                     
@@ -603,18 +616,6 @@ stopasgroup=true\n"""
                     socketio.emit('install_output', {'output': '$ supervisorctl update', 'type': 'command'})
                     subprocess.run(['supervisorctl', 'update'], capture_output=True, text=True, timeout=30)
                     
-                    # For MariaDB, create socket directory first
-                    socketio.emit('install_output', {'output': 'Menyiapkan direktori socket MariaDB...', 'type': 'info'})
-                    socketio.emit('install_output', {'output': '$ mkdir -p /run/mysqld', 'type': 'command'})
-                    subprocess.run(['mkdir', '-p', '/run/mysqld'], capture_output=True, text=True, timeout=10)
-                    socketio.emit('install_output', {'output': '$ chown mysql:mysql /run/mysqld', 'type': 'command'})
-                    subprocess.run(['chown', 'mysql:mysql', '/run/mysqld'], capture_output=True, text=True, timeout=10)
-                    socketio.emit('install_output', {'output': '$ chmod 755 /run/mysqld', 'type': 'command'})
-                    subprocess.run(['chmod', '755', '/run/mysqld'], capture_output=True, text=True, timeout=10)
-                    subprocess.run(['mkdir', '-p', '/var/www/panel/data/mysql'], capture_output=True, text=True)
-                    subprocess.run(['chown', 'mysql:mysql', '/var/www/panel/data/mysql'], capture_output=True, text=True)
-                    subprocess.run(['mysql_install_db', '--user=mysql', '--basedir=/usr', '--datadir=/var/www/panel/data/mysql'])
-
                     # Start MariaDB with supervisor
                     socketio.emit('install_output', {'output': '$ supervisorctl restart mariadb', 'type': 'command'})
                     start_code, start_output = run_command_with_realtime_output(['supervisorctl', 'restart', 'mariadb'], 30)
