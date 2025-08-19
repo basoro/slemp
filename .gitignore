@@ -6,3 +6,4 @@ plugins/*
 data/*
 venv/*
 htdocs/*
+app.py.bak
