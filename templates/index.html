@@ -327,6 +327,22 @@
                         <div class="mt-4 text-sm text-gray-500 dark:text-gray-300">
                             <p>Active Connections: <span id="active-connections" class="font-semibold">0</span></p>
                         </div>
+                        
+                        <!-- Network Action Buttons Demo -->
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            <button onclick="showSection('network', 'monitor')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Monitor Network
+                            </button>
+                            <button onclick="showSection('network', 'configure')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                Configure Network
+                            </button>
+                            <button onclick="showSection('network', 'troubleshoot')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                                Troubleshoot
+                            </button>
+                            <button onclick="showSection('network', 'reset')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                Reset Network
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -10390,7 +10406,7 @@ log_errors = On</textarea>
                             </div>
                             <div class="flex flex-wrap gap-1">
                                 ${plugin.installed === true ? 
-                                    `<button onclick="managePlugin('${plugin.id}')" class="px-2 py-1 text-sm bg-purple-300 text-purple-700 rounded hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-200">Manage</button>` :
+                                    `<button onclick="window.location.href='/plugins/${plugin.id}'" class="px-2 py-1 text-sm bg-purple-300 text-purple-700 rounded hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-200">Manage</button>` :
                                     `<button onclick="downloadPlugin('${plugin.id}')" class="px-2 py-1 text-sm bg-cyan-300 text-cyan-700 rounded hover:bg-cyan-200 dark:bg-cyan-900 dark:text-cyan-200">Download</button>`
                                 }
                             </div>
@@ -10485,244 +10501,89 @@ log_errors = On</textarea>
             }
         }
 
-        function managePlugin(pluginId) {
-            showPluginModal(pluginId);
-        }
+        // Plugin modal functions removed - now using direct route navigation
 
-        async function showPluginModal(pluginId) {
-            // Close any existing modal first
-            closePluginModal();
+        // Function to detect current URL and set appropriate navbar state
+        function setNavbarStateFromURL() {
+            const currentPath = window.location.pathname;
+            const urlParams = new URLSearchParams(window.location.search);
             
-            // Create modal
-            const modal = document.createElement('div');
-            modal.id = 'plugin-modal';
-            modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+            // Check for section parameter first
+            const sectionParam = urlParams.get('section');
+            if (sectionParam) {
+                originalShowSection(sectionParam);
+                return;
+            }
             
-            modal.innerHTML = `
-                <div class="relative top-10 mx-auto p-0 border w-11/12 md:w-5/6 lg:w-4/5 xl:w-3/4 max-w-7xl shadow-lg rounded-md bg-white dark:bg-gray-800">
-                    <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-600">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Manage ${pluginId}</h3>
-                        <button onclick="closePluginModal()" class="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>
-                    <div id="plugin-content" class="p-4" style="min-height: 600px;">
-                        <div class="flex justify-center items-center h-32">
-                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                            <span class="ml-2 text-gray-600 dark:text-gray-300">Loading plugin...</span>
-                        </div>
-                    </div>
-                </div>
-            `;
+            // Check for specific actions or sections in URL
+            if (currentPath.includes('network') || urlParams.has('network_action')) {
+                originalShowSection('network');
+            } else if (currentPath.includes('nginx')) {
+                originalShowSection('nginx');
+            } else if (currentPath.includes('php')) {
+                originalShowSection('php');
+            } else if (currentPath.includes('mysql')) {
+                originalShowSection('mysql');
+            } else if (currentPath.includes('files')) {
+                originalShowSection('files');
+            } else if (currentPath.includes('plugins')) {
+                originalShowSection('plugins');
+            } else {
+                // Default to dashboard
+                originalShowSection('dashboard');
+            }
+        }
+        
+        // Function to update URL without page reload
+        function updateURLState(section, action = null) {
+            const url = new URL(window.location);
             
-            document.body.appendChild(modal);
-            
-            // Load plugin content via fetch API
-            try {
-                console.log('🔧 Opening plugin modal for:', pluginId);
-                console.log('📡 Loading plugin interface via fetch API');
+            if (action) {
+                url.searchParams.set(`${section}_action`, action);
+            } else {
+                // Remove any action parameters when switching sections
+                const paramsToRemove = [];
+                for (const [key] of url.searchParams) {
+                    if (key.endsWith('_action')) {
+                        paramsToRemove.push(key);
+                    }
+                }
+                paramsToRemove.forEach(param => url.searchParams.delete(param));
                 
-                const response = await fetch(`/api/plugins/${pluginId}/interface`);
-                if (response.ok) {
-                    const htmlContent = await response.text();
-                    console.log('✅ Plugin HTML content received');
-                    
-                    // Extract body content from the HTML
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(htmlContent, 'text/html');
-                    const bodyContent = doc.body.innerHTML;
-                    
-                    // Insert the content into the modal
-                    const contentDiv = document.getElementById('plugin-content');
-                    contentDiv.innerHTML = bodyContent;
-                    console.log('✅ Plugin content injected into modal');
-                    
-                    // Execute any scripts in the loaded content
-                    const scripts = contentDiv.querySelectorAll('script');
-                    console.log(`🔧 Found ${scripts.length} scripts to execute`);
-                    
-                    let scriptsLoaded = 0;
-                    const totalScripts = scripts.length;
-                    
-                    // Function to trigger DOMContentLoaded event for plugin
-                    function triggerPluginInit() {
-                        console.log('🚀 [Modal] Triggering plugin initialization');
-                        console.log('🚀 [Modal] Available window functions:', Object.keys(window).filter(key => key.includes('init')));
-                        
-                        // Dispatch DOMContentLoaded event for plugin scripts (non-bubbling)
-                        const event = new Event('DOMContentLoaded', {
-                            bubbles: false,
-                            cancelable: true
-                        });
-                        contentDiv.dispatchEvent(event);
-                        console.log('📡 [Modal] DOMContentLoaded event dispatched');
-                        
-                        // Also trigger any window load events (but don't bubble to avoid conflicts)
-                        setTimeout(() => {
-                            console.log('⏰ [Modal] Checking for initialization functions...');
-                            
-                            // Retry mechanism for plugin initialization
-                            let retryCount = 0;
-                            const maxRetries = 5;
-                            
-                            const tryInitialization = () => {
-                                retryCount++;
-                                console.log(`🔄 [Modal] Initialization attempt ${retryCount}/${maxRetries}`);
-                                
-                                // Look for common plugin initialization patterns
-                                if (typeof window.initPlugin === 'function') {
-                                    console.log('✅ [Modal] Calling window.initPlugin()');
-                                    window.initPlugin();
-                                }
-                                if (typeof window.init === 'function') {
-                                    console.log('✅ [Modal] Calling window.init()');
-                                    window.init();
-                                }
-                                if (typeof window.initializePage === 'function') {
-                                    console.log('✅ [Modal] Calling window.initializePage()');
-                                    window.initializePage();
-                                    return true; // Success
-                                } else {
-                                    console.warn(`⚠️ [Modal] window.initializePage not found (attempt ${retryCount})`);
-                                    
-                                    // Retry if function not found and we haven't exceeded max retries
-                                    if (retryCount < maxRetries) {
-                                        console.log(`🔄 [Modal] Retrying in ${retryCount * 100}ms...`);
-                                        setTimeout(tryInitialization, retryCount * 100);
-                                    } else {
-                                        console.error('❌ [Modal] Failed to find initializePage after all retries');
-                                    }
-                                    return false;
-                                }
-                            };
-                            
-                            tryInitialization();
-                        }, 100);
-                    }
-                    
-                    if (totalScripts === 0) {
-                        // No scripts to load, trigger init immediately
-                        triggerPluginInit();
-                    } else {
-                        scripts.forEach((script, index) => {
-                            try {
-                                const newScript = document.createElement('script');
-                                
-                                // Handle script load completion
-                                const onScriptLoad = () => {
-                                    scriptsLoaded++;
-                                    console.log(`✅ Script ${index + 1}/${totalScripts} loaded`);
-                                    
-                                    if (scriptsLoaded === totalScripts) {
-                                        console.log('✅ All scripts loaded, initializing plugin');
-                                        setTimeout(triggerPluginInit, 50);
-                                    }
-                                };
-                                
-                                if (script.src) {
-                                    newScript.src = script.src;
-                                    newScript.onload = onScriptLoad;
-                                    newScript.onerror = () => {
-                                        console.error(`❌ Failed to load external script: ${script.src}`);
-                                        onScriptLoad(); // Still count as processed
-                                    };
-                                    console.log(`📡 Loading external script: ${script.src}`);
-                                } else {
-                                    // Execute inline script directly to preserve global scope
-                                    newScript.textContent = script.textContent;
-                                    console.log(`⚡ Executing inline script ${index + 1} (direct execution)`);
-                                    // For inline scripts, consider them loaded immediately
-                                    setTimeout(onScriptLoad, 10);
-                                }
-                                
-                                document.head.appendChild(newScript);
-                            } catch (scriptError) {
-                                console.error(`❌ Error executing script ${index + 1}:`, scriptError);
-                                scriptsLoaded++;
-                                if (scriptsLoaded === totalScripts) {
-                                    setTimeout(triggerPluginInit, 50);
-                                }
-                            }
-                        });
-                    }
-                    
-                    console.log('✅ Script execution initiated');
+                if (section !== 'dashboard') {
+                    url.searchParams.set('section', section);
                 } else {
-                    console.error(`❌ Failed to load plugin: ${response.status} ${response.statusText}`);
-                    document.getElementById('plugin-content').innerHTML = `
-                        <div class="text-center text-red-600 dark:text-red-400">
-                            <p>Error loading plugin: ${response.status} ${response.statusText}</p>
-                        </div>
-                    `;
+                    url.searchParams.delete('section');
                 }
-            } catch (error) {
-                console.error('❌ Exception loading plugin:', error);
-                document.getElementById('plugin-content').innerHTML = `
-                    <div class="text-center text-red-600 dark:text-red-400">
-                        <p>Error loading plugin: ${error.message}</p>
-                    </div>
-                `;
             }
             
-            // Handle escape key
-            modal.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    closePluginModal();
-                }
-            });
+            window.history.pushState({section, action}, '', url);
         }
-
-        function closePluginModal() {
-            const modal = document.getElementById('plugin-modal');
-            if (modal) {
-                // Call plugin cleanup function if available
-                if (typeof window.cleanup === 'function') {
-                    try {
-                        window.cleanup();
-                    } catch (error) {
-                        console.error('Error during plugin cleanup:', error);
-                    }
-                }
-                
-                // Clean up plugin-specific window properties
-                delete window.processes;
-                delete window.filteredProcesses;
-                delete window.killProcessPid;
-                delete window.currentJobs;
-                delete window.currentSort;
-                delete window.jobToDelete;
-                delete window.systemData;
-                delete window.refreshInterval;
-                delete window.cpuChart;
-                delete window.memoryChart;
-                delete window.cleanup;
-                delete window.refreshData;
-                delete window.updateSystemInfo;
-                delete window.updateCharts;
-                delete window.loadData;
-                delete window.formatBytes;
-                delete window.loadJobs;
-                delete window.loadSystemInfo;
-                delete window.renderJobsTable;
-                delete window.filterJobs;
-                delete window.addJob;
-                delete window.toggleJobStatus;
-                delete window.deleteJob;
-                
-                modal.remove();
+        
+        // Enhanced showSection function with URL state management
+        const originalShowSection = showSection;
+        showSection = function(sectionName, action = null) {
+            originalShowSection(sectionName);
+            updateURLState(sectionName, action);
+        };
+        
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function(event) {
+            if (event.state && event.state.section) {
+                originalShowSection(event.state.section);
+            } else {
+                setNavbarStateFromURL();
             }
-        }
+        });
 
         // Load plugins when dashboard section is shown
         document.addEventListener('DOMContentLoaded', function() {
             // Only set dashboard as active section if no plugin modal is open
             if (!document.getElementById('plugin-modal')) {
-                // Set dashboard as active section by default
-                showSection('dashboard');
+                // Set navbar state based on current URL
+                setNavbarStateFromURL();
                 
-                // Load plugins when page loads (dashboard is shown by default)
+                // Load plugins when page loads
                 setTimeout(() => {
                     loadPlugins();
                 }, 500);

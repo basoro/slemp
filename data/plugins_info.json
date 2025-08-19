@@ -146,6 +146,27 @@
       "homepage": "https://slemp.com/plugins/fail2ban",
       "documentation": "https://docs.slemp.com/plugins/fail2ban",
       "support": "https://support.slemp.com/fail2ban"
+    },
+    {
+      "id": "contoh",
+      "name": "Plugin Contoh",
+      "version": "1.0.0",
+      "description": "Plugin contoh untuk demonstrasi pengembangan plugin SLEMP dengan fitur dasar dan template",
+      "author": "SLEMP Team",
+      "category": "Development",
+      "status": "active",
+      "icon": "default-icon.svg",
+      "dependencies": [],
+      "permissions": ["demo_access"],
+      "install_date": "2024-02-01",
+      "last_update": "2024-02-01",
+      "size": "0.5 MB",
+      "downloads": 0,
+      "rating": 5.0,
+      "tags": ["demo", "example", "template", "development"],
+      "homepage": "https://slemp.com/plugins/contoh",
+      "documentation": "https://docs.slemp.com/plugins/contoh",
+      "support": "https://support.slemp.com/contoh"
     }
   ]
 }

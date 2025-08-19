@@ -8174,6 +8174,33 @@ def plugin_static(plugin_id, filename):
         logger.error(f'Error serving plugin static file: {str(e)}')
         return 'Internal server error', 500
 
+@app.route('/plugins/<plugin_name>')
+@login_required
+def plugin_page(plugin_name):
+    """Serve plugin page"""
+    try:
+        logger.info(f'Plugin page requested for: {plugin_name}')
+        plugins_dir = os.path.join(os.path.dirname(__file__), 'plugins')
+        plugin_dir = os.path.join(plugins_dir, plugin_name)
+        
+        # Check if plugin directory exists
+        if not os.path.exists(plugin_dir):
+            return f'Plugin {plugin_name} not found', 404
+            
+        # Check if plugin has index.html
+        index_file = os.path.join(plugin_dir, 'index.html')
+        if os.path.exists(index_file):
+            with open(index_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            return content
+        else:
+            # Return basic plugin info if no index.html
+            return f'<h1>Plugin: {plugin_name}</h1><p>Plugin directory exists but no index.html found.</p>'
+            
+    except Exception as e:
+        logger.error(f'Error serving plugin page: {str(e)}')
+        return 'Internal server error', 500
+
 @app.route('/api/plugins/<plugin_name>/interface')
 @login_required
 def plugin_interface(plugin_name):
