@@ -345,6 +345,7 @@
                                     <div class="mt-3 flex space-x-2" id="dns-buttons">
                                         <button onclick="startService('pdns')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
                                         <button onclick="stopService('pdns')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
+                                        <button onclick="restartService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Restart</button>
                                         <button onclick="installService('pdns')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install</button>
                                     </div>
                                 </div>
@@ -361,6 +362,7 @@
                                     <div class="mt-3 flex space-x-2" id="firewall-buttons">
                                         <button onclick="startService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Enable</button>
                                         <button onclick="stopService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Disable</button>
+                                        <button onclick="restartService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Restart</button>
                                         <button onclick="installService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install</button>
                                     </div>
                                 </div>
@@ -720,6 +722,7 @@
                                     <div class="mt-3 flex space-x-2" id="nginx-buttons">
                                         <button onclick="startService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
                                         <button onclick="stopService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
+                                        <button onclick="restartService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Restart</button>
                                         <button onclick="installService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install</button>
                                     </div>
                                 </div>
@@ -732,6 +735,7 @@
                                     <div class="mt-3 flex space-x-2" id="php-buttons">
                                         <button onclick="startService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
                                         <button onclick="stopService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
+                                        <button onclick="restartService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Restart</button>
                                         <button onclick="installService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install</button>
                                     </div>
                                 </div>
@@ -744,6 +748,7 @@
                                     <div class="mt-3 flex space-x-2" id="mysql-buttons">
                                         <button onclick="startService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
                                         <button onclick="stopService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
+                                        <button onclick="restartService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Restart</button>
                                         <button onclick="installService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install</button>
                                     </div>
                                 </div>
@@ -1466,6 +1471,55 @@
                 cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 
                 showNotification(`Instalasi gagal: ${data.message}`, 'error');
+            });
+            
+            // Uninstallation events
+            socket.on('uninstall_progress', (data) => {
+                console.log('Received uninstall_progress:', data);
+                updateUninstallProgress(data.step, data.total, data.status, data.percentage);
+            });
+            
+            socket.on('uninstall_output', (data) => {
+                console.log('Received uninstall_output:', data);
+                addUninstallOutput(data.output, data.type || 'info');
+            });
+            
+            socket.on('uninstall_complete', (data) => {
+                console.log('Received uninstall_complete:', data);
+                addUninstallOutput(`✅ ${data.service} berhasil diuninstall!`, 'success');
+                updateUninstallProgress(5, 5, 'Uninstall selesai', 100);
+                
+                // Re-enable close buttons
+                const closeBtn = document.getElementById('uninstall-close-btn');
+                const cancelBtn = document.getElementById('uninstall-cancel-btn');
+                closeBtn.style.display = 'block';
+                cancelBtn.textContent = 'Close';
+                cancelBtn.disabled = false;
+                cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                // Update service status
+                setTimeout(() => {
+                    updateServiceStatus();
+                }, 1000);
+                
+                showNotification(`${data.service} berhasil diuninstall!`, 'success');
+            });
+            
+            socket.on('uninstall_error', (data) => {
+                console.log('Received uninstall_error:', data);
+                addUninstallOutput(`❌ Error: ${data.message}`, 'error');
+                
+                // Re-enable close buttons
+                const closeBtn = document.getElementById('uninstall-close-btn');
+                const cancelBtn = document.getElementById('uninstall-cancel-btn');
+                if (closeBtn) closeBtn.style.display = 'block';
+                if (cancelBtn) {
+                    cancelBtn.textContent = 'Close';
+                    cancelBtn.disabled = false;
+                    cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                
+                showNotification(`Uninstall gagal: ${data.message}`, 'error');
             });
             
             // PHP Module Installation Events
@@ -4819,6 +4873,25 @@
             }
         }
 
+        // Fungsi untuk restart layanan
+        async function restartService(service) {
+            try {
+                const response = await fetch(`/api/service/${service}/restart`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showNotification(`${service} berhasil direstart`, 'success');
+                    updateServiceStatus();
+                } else {
+                    showAlert(`Gagal merestart ${service}: ${data.message}`, 'Error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert(`Terjadi kesalahan saat merestart ${service}`, 'Error');
+            }
+        }
+
         // Fungsi untuk menginstall layanan dengan modal real-time
         async function installService(service) {
             if (!(await showConfirm(`Apakah Anda yakin ingin menginstall ${service}? Proses ini mungkin memakan waktu beberapa menit.`, 'Konfirmasi Install'))) {
@@ -4880,6 +4953,50 @@
             const modal = document.getElementById('install-modal');
             const closeBtn = document.getElementById('install-close-btn');
             const cancelBtn = document.getElementById('install-cancel-btn');
+            
+            // Re-enable close buttons
+            closeBtn.style.display = 'block';
+            cancelBtn.textContent = 'Close';
+            cancelBtn.disabled = false;
+            cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            
+            // Hide modal
+            modal.classList.add('hidden');
+        }
+        
+        function showUninstallModal(service) {
+            const modal = document.getElementById('uninstall-modal');
+            const title = document.getElementById('uninstall-modal-title');
+            const output = document.getElementById('uninstall-output');
+            const status = document.getElementById('uninstall-status');
+            const step = document.getElementById('uninstall-step');
+            const progressBar = document.getElementById('uninstall-progress-bar');
+            const closeBtn = document.getElementById('uninstall-close-btn');
+            const cancelBtn = document.getElementById('uninstall-cancel-btn');
+            
+            // Set modal title
+            title.textContent = `Uninstalling ${service.charAt(0).toUpperCase() + service.slice(1)}`;
+            
+            // Reset status
+            output.innerHTML = '';
+            status.textContent = 'Memulai uninstall...';
+            step.textContent = '0/5';
+            progressBar.style.width = '0%';
+            
+            // Disable close buttons during uninstallation
+            closeBtn.style.display = 'none';
+            cancelBtn.textContent = 'Uninstalling...';
+            cancelBtn.disabled = true;
+            cancelBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            // Show modal
+            modal.classList.remove('hidden');
+        }
+        
+        function closeUninstallModal() {
+            const modal = document.getElementById('uninstall-modal');
+            const closeBtn = document.getElementById('uninstall-close-btn');
+            const cancelBtn = document.getElementById('uninstall-cancel-btn');
             
             // Re-enable close buttons
             closeBtn.style.display = 'block';
@@ -4960,6 +5077,76 @@
                 console.error('install-progress-bar element not found');
             }
         }
+        
+        // Add uninstallation output to terminal
+        function addUninstallOutput(message, type = 'info') {
+            const output = document.getElementById('uninstall-output');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let colorClass = 'text-green-400';
+            let prefix = '';
+            
+            if (type === 'error') {
+                colorClass = 'text-red-400';
+                prefix = '❌ ';
+            } else if (type === 'warning') {
+                colorClass = 'text-yellow-400';
+                prefix = '⚠️  ';
+            } else if (type === 'success') {
+                colorClass = 'text-blue-400';
+                prefix = '✅ ';
+            } else if (type === 'command') {
+                colorClass = 'text-cyan-400 font-bold';
+                prefix = '➤ ';
+            } else {
+                colorClass = 'text-green-400';
+                prefix = '  ';
+            }
+            
+            const line = document.createElement('div');
+            line.className = `${colorClass} mb-1 leading-relaxed`;
+            
+            if (type === 'command') {
+                line.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> ${prefix}<span class="text-cyan-300">${message}</span>`;
+            } else {
+                line.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> ${prefix}<span>${message}</span>`;
+            }
+            
+            output.appendChild(line);
+            
+            // Auto-scroll to bottom with smooth behavior
+            const terminal = document.getElementById('uninstall-terminal');
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+        
+        // Update uninstallation progress
+        function updateUninstallProgress(step, total, status, percentage) {
+            console.log('updateUninstallProgress called with:', { step, total, status, percentage });
+            const statusElement = document.getElementById('uninstall-status');
+            const stepElement = document.getElementById('uninstall-step');
+            const progressBar = document.getElementById('uninstall-progress-bar');
+            
+            if (statusElement) {
+                statusElement.textContent = status;
+                console.log('Updated uninstall status to:', status);
+            } else {
+                console.error('uninstall-status element not found');
+            }
+            
+            if (stepElement) {
+                stepElement.textContent = `${step}/${total}`;
+                console.log('Updated uninstall step to:', `${step}/${total}`);
+            } else {
+                console.error('uninstall-step element not found');
+            }
+            
+            if (progressBar) {
+                progressBar.style.width = `${percentage}%`;
+                console.log('Updated uninstall progress bar to:', `${percentage}%`);
+            } else {
+                console.error('uninstall-progress-bar element not found');
+            }
+        }
 
         // Fungsi untuk menguninstall layanan
         async function uninstallService(service) {
@@ -4969,21 +5156,19 @@
 
             try {
                 showNotification(`Memulai uninstall ${service}...`, 'info');
+                showUninstallModal(service);
                 
-                const response = await fetch(`/api/service/${service}/uninstall`, {
-                    method: 'POST'
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification(`${service} berhasil diuninstall!`, 'success');
-                    updateServiceStatus();
+                // Emit uninstall_service event via WebSocket
+                if (socket && socket.connected) {
+                    socket.emit('uninstall_service', { service: service });
                 } else {
-                    showNotification(`Gagal menguninstall ${service}: ${data.message}`, 'error');
+                    showNotification('WebSocket connection not available', 'error');
+                    closeUninstallModal();
                 }
             } catch (error) {
-                console.error('Error:', error);
-                showNotification(`Terjadi kesalahan saat menguninstall ${service}`, 'error');
+                console.error('Error starting uninstallation:', error);
+                showNotification('Uninstallation failed to start', 'error');
+                closeUninstallModal();
             }
         }
 
@@ -5006,6 +5191,7 @@
                         nginxButtons.innerHTML = `
                             <button onclick="startService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
                             <button onclick="stopService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
+                            <button onclick="restartService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-yellow-600 rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">Restart</button>
                             <button onclick="uninstallService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Uninstall</button>
                         `;
                     } else {
@@ -5027,6 +5213,7 @@
                         phpButtons.innerHTML = `
                             <button onclick="startService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
                             <button onclick="stopService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
+                            <button onclick="restartService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-yellow-600 rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">Restart</button>
                             <button onclick="uninstallService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Uninstall</button>
                         `;
                     } else {
@@ -5048,6 +5235,7 @@
                         mysqlButtons.innerHTML = `
                             <button onclick="startService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
                             <button onclick="stopService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
+                            <button onclick="restartService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-yellow-600 rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">Restart</button>
                             <button onclick="uninstallService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Uninstall</button>
                         `;
                     } else {
@@ -5069,6 +5257,7 @@
                         dnsButtons.innerHTML = `
                             <button onclick="startService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
                             <button onclick="stopService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
+                            <button onclick="restartService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-yellow-600 rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">Restart</button>
                             <button onclick="uninstallService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Uninstall</button>
                         `;
                     } else {
@@ -5090,6 +5279,7 @@
                         firewallButtons.innerHTML = `
                             <button onclick="startService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Enable</button>
                             <button onclick="stopService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Disable</button>
+                            <button onclick="restartService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-yellow-600 rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">Restart</button>
                             <button onclick="uninstallService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Uninstall</button>
                         `;
                     } else {
@@ -5905,6 +6095,48 @@
                 
                 <div class="flex justify-end space-x-3">
                     <button onclick="closeInstallModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" id="install-cancel-btn">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Uninstall Progress Modal -->
+    <div id="uninstall-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-[60]">
+        <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white" id="uninstall-modal-title">Uninstalling Service</h3>
+                    <button onclick="closeUninstallModal()" class="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100" id="uninstall-close-btn">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Terminal-style output -->
+                <div class="mb-4">
+                    <div class="bg-black dark:bg-gray-900 rounded-lg p-4 h-80 overflow-y-auto font-mono text-sm" id="uninstall-terminal">
+                        <div class="text-green-400" id="uninstall-output">
+                            <!-- Uninstallation output will appear here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progress indicator -->
+                <div class="mb-4">
+                    <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 mb-2">
+                        <span id="uninstall-status">Memulai uninstall...</span>
+                        <span id="uninstall-step">0/5</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div class="bg-red-600 h-2 rounded-full transition-all duration-300" style="width: 0%" id="uninstall-progress-bar"></div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button onclick="closeUninstallModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" id="uninstall-cancel-btn">
                         Cancel
                     </button>
                 </div>

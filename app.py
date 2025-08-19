@@ -765,6 +765,229 @@ startretries=0\n"""
     logger.info(f'Emitting initial install_progress: {progress_data}')
     emit('install_progress', progress_data)
 
+@socketio.on('uninstall_service')
+def handle_uninstall_service(data):
+    """Handle real-time service uninstallation via SocketIO"""
+    # Check if user is authenticated
+    if not current_user.is_authenticated:
+        emit('error', {'message': 'Authentication required'})
+        return
+    
+    service = data.get('service')
+    service_map = {
+        'nginx': 'nginx',
+        'php-fpm': 'php-fpm',
+        'mysql': 'mariadb-server',
+        'powerdns': 'pdns-server',
+        'ufw': 'ufw'
+    }
+
+    if service not in service_map:
+        emit('uninstall_error', {'message': 'Layanan tidak valid'})
+        return
+
+    # Start uninstallation in background thread to prevent worker timeout
+    import threading
+    
+    def uninstall_in_background():
+        def emit_output_lines(output_text, output_type='info'):
+            """Split output into lines and emit each line separately"""
+            if output_text:
+                lines = output_text.strip().split('\n')
+                for line in lines:
+                    if line.strip():  # Only emit non-empty lines
+                        socketio.emit('uninstall_output', {'output': line, 'type': output_type})
+        
+        def run_command_with_realtime_output(cmd, timeout_seconds=300):
+            """Run command and emit output in real-time"""
+            try:
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    universal_newlines=True,
+                    bufsize=1
+                )
+                
+                output_lines = []
+                while True:
+                    line = process.stdout.readline()
+                    if line:
+                        line = line.rstrip()
+                        if line:  # Only emit non-empty lines
+                            socketio.emit('uninstall_output', {'output': line, 'type': 'info'})
+                            output_lines.append(line)
+                    elif process.poll() is not None:
+                        break
+                
+                return_code = process.wait(timeout=timeout_seconds)
+                return return_code, '\n'.join(output_lines)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                socketio.emit('uninstall_output', {'output': 'Command timed out', 'type': 'error'})
+                return -1, 'Command timed out'
+            except Exception as e:
+                socketio.emit('uninstall_output', {'output': f'Error running command: {str(e)}', 'type': 'error'})
+                return -1, str(e)
+        
+        try:
+            service_name = service_map[service]
+            logger.info(f'Starting real-time uninstallation of {service_name} via WebSocket')
+            
+            progress_data = {'message': f'Memulai uninstall {service_name}...', 'step': 1, 'total': 5, 'status': f'Memulai uninstall {service_name}...', 'percentage': 20}
+            logger.info(f'Emitting uninstall_progress: {progress_data}')
+            socketio.emit('uninstall_progress', progress_data)
+            
+            # Stop the service first using supervisorctl
+            progress_data = {'message': f'Menghentikan layanan {service_name}...', 'step': 2, 'total': 5, 'status': f'Menghentikan layanan {service_name}...', 'percentage': 40}
+            logger.info(f'Emitting uninstall_progress: {progress_data}')
+            socketio.emit('uninstall_progress', progress_data)
+            
+            if service_name != 'mariadb-server':
+                socketio.emit('uninstall_output', {'output': f'$ supervisorctl stop {service_name}', 'type': 'command'})
+                stop_code, stop_output = run_command_with_realtime_output(['supervisorctl', 'stop', service_name], 30)
+            else:
+                # For MariaDB, use different service name
+                socketio.emit('uninstall_output', {'output': '$ supervisorctl stop mariadb', 'type': 'command'})
+                stop_code, stop_output = run_command_with_realtime_output(['supervisorctl', 'stop', 'mariadb'], 30)
+            
+            # Remove the service package
+            progress_data = {'message': f'Menghapus paket {service_name}...', 'step': 3, 'total': 5, 'status': f'Menghapus paket {service_name}...', 'percentage': 60}
+            logger.info(f'Emitting uninstall_progress: {progress_data}')
+            socketio.emit('uninstall_progress', progress_data)
+            socketio.emit('uninstall_output', {'output': f'$ apt-get remove -y {service_name}', 'type': 'command'})
+            
+            remove_code, remove_output = run_command_with_realtime_output(['apt-get', 'remove', '-y', service_name], 300)
+            
+            if remove_code == 0:
+                logger.info(f'Service {service_name} removed successfully')
+                
+                # Clean up configuration files and dependencies
+                progress_data = {'message': 'Membersihkan file konfigurasi...', 'step': 4, 'total': 5, 'status': 'Membersihkan file konfigurasi...', 'percentage': 80}
+                logger.info(f'Emitting uninstall_progress: {progress_data}')
+                socketio.emit('uninstall_progress', progress_data)
+                
+                socketio.emit('uninstall_output', {'output': f'$ apt-get purge -y {service_name}', 'type': 'command'})
+                purge_code, purge_output = run_command_with_realtime_output(['apt-get', 'purge', '-y', service_name], 300)
+                
+                socketio.emit('uninstall_output', {'output': '$ apt-get autoremove -y', 'type': 'command'})
+                autoremove_code, autoremove_output = run_command_with_realtime_output(['apt-get', 'autoremove', '-y'], 300)
+                
+                # Additional cleanup for specific services
+                progress_data = {'message': 'Membersihkan file khusus layanan...', 'step': 5, 'total': 5, 'status': 'Membersihkan file khusus layanan...', 'percentage': 100}
+                logger.info(f'Emitting uninstall_progress: {progress_data}')
+                socketio.emit('uninstall_progress', progress_data)
+                
+                if service == 'nginx':
+                    # Remove all nginx packages including modules
+                    socketio.emit('uninstall_output', {'output': 'Menghapus paket nginx tambahan...', 'type': 'info'})
+                    nginx_packages = [
+                        'nginx', 'nginx-core', 'nginx-common',
+                        'libnginx-mod-http-geoip2', 'libnginx-mod-http-image-filter',
+                        'libnginx-mod-http-xslt-filter', 'libnginx-mod-mail',
+                        'libnginx-mod-stream-geoip2', 'libnginx-mod-stream'
+                    ]
+                    
+                    for package in nginx_packages:
+                        try:
+                            socketio.emit('uninstall_output', {'output': f'$ apt-get remove -y {package}', 'type': 'command'})
+                            remove_pkg_code, remove_pkg_output = run_command_with_realtime_output(['apt-get', 'remove', '-y', package], 60)
+                            socketio.emit('uninstall_output', {'output': f'$ apt-get purge -y {package}', 'type': 'command'})
+                            purge_pkg_code, purge_pkg_output = run_command_with_realtime_output(['apt-get', 'purge', '-y', package], 60)
+                            logger.info(f'Removed and purged package: {package}')
+                        except Exception as e:
+                            socketio.emit('uninstall_output', {'output': f'Could not remove package {package}: {str(e)}', 'type': 'warning'})
+                            logger.warning(f'Could not remove package {package}: {str(e)}')
+                    
+                    # Remove nginx configuration directory completely
+                    nginx_config_dir = '/etc/nginx'
+                    if os.path.exists(nginx_config_dir):
+                        try:
+                            socketio.emit('uninstall_output', {'output': f'Menghapus direktori konfigurasi: {nginx_config_dir}', 'type': 'info'})
+                            shutil.rmtree(nginx_config_dir)
+                            logger.info(f'Removed nginx configuration directory: {nginx_config_dir}')
+                        except Exception as e:
+                            socketio.emit('uninstall_output', {'output': f'Could not remove nginx config directory: {str(e)}', 'type': 'warning'})
+                            logger.warning(f'Could not remove nginx config directory: {str(e)}')
+                    
+                    # Remove nginx log directory
+                    nginx_log_dir = '/var/log/nginx'
+                    if os.path.exists(nginx_log_dir):
+                        try:
+                            socketio.emit('uninstall_output', {'output': f'Menghapus direktori log: {nginx_log_dir}', 'type': 'info'})
+                            shutil.rmtree(nginx_log_dir)
+                            logger.info(f'Removed nginx log directory: {nginx_log_dir}')
+                        except Exception as e:
+                            socketio.emit('uninstall_output', {'output': f'Could not remove nginx log directory: {str(e)}', 'type': 'warning'})
+                            logger.warning(f'Could not remove nginx log directory: {str(e)}')
+                    
+                    # Remove nginx cache directory
+                    nginx_cache_dir = '/var/cache/nginx'
+                    if os.path.exists(nginx_cache_dir):
+                        try:
+                            socketio.emit('uninstall_output', {'output': f'Menghapus direktori cache: {nginx_cache_dir}', 'type': 'info'})
+                            shutil.rmtree(nginx_cache_dir)
+                            logger.info(f'Removed nginx cache directory: {nginx_cache_dir}')
+                        except Exception as e:
+                            socketio.emit('uninstall_output', {'output': f'Could not remove nginx cache directory: {str(e)}', 'type': 'warning'})
+                            logger.warning(f'Could not remove nginx cache directory: {str(e)}')
+                    
+                    # Remove nginx lib directory
+                    nginx_lib_dir = '/var/lib/nginx'
+                    if os.path.exists(nginx_lib_dir):
+                        try:
+                            socketio.emit('uninstall_output', {'output': f'Menghapus direktori lib: {nginx_lib_dir}', 'type': 'info'})
+                            shutil.rmtree(nginx_lib_dir)
+                            logger.info(f'Removed nginx lib directory: {nginx_lib_dir}')
+                        except Exception as e:
+                            socketio.emit('uninstall_output', {'output': f'Could not remove nginx lib directory: {str(e)}', 'type': 'warning'})
+                            logger.warning(f'Could not remove nginx lib directory: {str(e)}')
+                
+                elif service == 'mysql':
+                    # Remove MySQL data directory if requested
+                    mysql_data_dir = '/var/lib/mysql'
+                    if os.path.exists(mysql_data_dir):
+                        try:
+                            socketio.emit('uninstall_output', {'output': f'Menghapus direktori data MySQL: {mysql_data_dir}', 'type': 'info'})
+                            shutil.rmtree(mysql_data_dir)
+                            logger.info(f'Removed MySQL data directory: {mysql_data_dir}')
+                        except Exception as e:
+                            socketio.emit('uninstall_output', {'output': f'Could not remove MySQL data directory: {str(e)}', 'type': 'warning'})
+                            logger.warning(f'Could not remove MySQL data directory: {str(e)}')
+                    
+                    # Reset MySQL password in config.json
+                    try:
+                        socketio.emit('uninstall_output', {'output': 'Reset password MySQL di config.json...', 'type': 'info'})
+                        config = load_config()
+                        config['mysql']['password'] = ''
+                        save_config(config)
+                        logger.info('Reset MySQL password in config.json to empty string')
+                    except Exception as e:
+                        socketio.emit('uninstall_output', {'output': f'Could not reset MySQL password in config: {str(e)}', 'type': 'warning'})
+                        logger.warning(f'Could not reset MySQL password in config: {str(e)}')
+                
+                socketio.emit('uninstall_output', {'output': f'{service_name} berhasil diuninstall dan dibersihkan', 'type': 'success'})
+                socketio.emit('uninstall_complete', {'success': True, 'message': f'{service_name} berhasil diuninstall dan dibersihkan', 'service': service_name})
+                logger.info(f'Service {service_name} uninstalled successfully via WebSocket')
+            else:
+                logger.error(f'Failed to uninstall {service_name}: remove_code={remove_code}')
+                socketio.emit('uninstall_output', {'output': f'Gagal menguninstall {service_name}', 'type': 'error'})
+                socketio.emit('uninstall_complete', {'success': False, 'message': f'Gagal menguninstall {service_name}', 'service': service_name})
+        except Exception as e:
+            logger.error(f'Error uninstalling {service}: {str(e)}')
+            socketio.emit('uninstall_output', {'output': f'Error: {str(e)}', 'type': 'error'})
+            socketio.emit('uninstall_complete', {'success': False, 'message': f'Terjadi kesalahan saat menguninstall {service}', 'service': service})
+    
+    # Start background thread
+    thread = threading.Thread(target=uninstall_in_background)
+    thread.daemon = True
+    thread.start()
+    
+    # Immediately return to prevent blocking
+    progress_data = {'message': 'Uninstall dimulai...', 'step': 1, 'total': 5, 'status': 'Uninstall dimulai...', 'percentage': 20}
+    logger.info(f'Emitting initial uninstall_progress: {progress_data}')
+    emit('uninstall_progress', progress_data)
+
 @app.route('/api/services/status')
 @login_required
 def get_services_status():
