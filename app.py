@@ -591,6 +591,15 @@ autorestart=true\n"""
                     subprocess.run(['chown', 'mysql:mysql', '/run/mysqld'], capture_output=True, text=True, timeout=10)
                     socketio.emit('install_output', {'output': '$ chmod 755 /run/mysqld', 'type': 'command'})
                     subprocess.run(['chmod', '755', '/run/mysqld'], capture_output=True, text=True, timeout=10)
+                    # Check if mysql folder exists and rename it with datetime if it does
+                    mysql_data_path = '/var/www/panel/data/mysql'
+                    if os.path.exists(mysql_data_path):
+                        from datetime import datetime
+                        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                        backup_path = f'/var/www/panel/data/mysql-{timestamp}'
+                        socketio.emit('install_output', {'output': f'Folder mysql sudah ada, memindahkan ke mysql-{timestamp}', 'type': 'info'})
+                        subprocess.run(['mv', mysql_data_path, backup_path], capture_output=True, text=True)
+                    
                     subprocess.run(['mkdir', '-p', '/var/www/panel/data/mysql'], capture_output=True, text=True)
                     subprocess.run(['chown', 'mysql:mysql', '/var/www/panel/data/mysql'], capture_output=True, text=True)
                     subprocess.run(['mysql_install_db', '--user=mysql', '--basedir=/usr', '--datadir=/var/www/panel/data/mysql'])
@@ -1051,6 +1060,15 @@ autorestart=true\n"""
                 subprocess.run(['mkdir', '-p', '/run/mysqld'], capture_output=True, text=True)
                 subprocess.run(['chown', 'mysql:mysql', '/run/mysqld'], capture_output=True, text=True)
                 subprocess.run(['chmod', '755', '/run/mysqld'], capture_output=True, text=True)
+                # Check if mysql folder exists and rename it with datetime if it does
+                mysql_data_path = '/var/www/panel/data/mysql'
+                if os.path.exists(mysql_data_path):
+                    from datetime import datetime
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    backup_path = f'/var/www/panel/data/mysql-{timestamp}'
+                    socketio.emit('install_output', {'output': f'Folder mysql sudah ada, memindahkan ke mysql-{timestamp}', 'type': 'info'})
+                    subprocess.run(['mv', mysql_data_path, backup_path], capture_output=True, text=True)
+                    
                 subprocess.run(['mkdir', '-p', '/var/www/panel/data/mysql'], capture_output=True, text=True)
                 subprocess.run(['chown', 'mysql:mysql', '/var/www/panel/data/mysql'], capture_output=True, text=True)
                 subprocess.run(['mysql_install_db', '--user=mysql', '--basedir=/usr', '--datadir=/var/www/panel/data/mysql'])
