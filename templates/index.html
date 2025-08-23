@@ -68,205 +68,306 @@
             color: #93c5fd !important;
         }
         
+        /* Sidebar collapsed state - center icons */
+        .sidebar-collapsed nav button,
+        .sidebar-collapsed .border-t button {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0.5rem !important;
+        }
+        
+        .sidebar-collapsed nav button svg,
+        .sidebar-collapsed .border-t button svg {
+            margin: 0 !important;
+        }
+        
+        /* Mobile responsive styles */
+        @media (max-width: 768px) {
+            /* Force sidebar to be collapsed on mobile */
+            .sidebar {
+                transform: translateX(-100%) !important;
+            }
+            
+            .sidebar-collapsed {
+                transform: translateX(0) !important;
+                width: 4rem !important;
+            }
+            
+            /* Adjust main content for mobile */
+            .main-content {
+                margin-left: 0 !important;
+                padding-left: 1rem !important;
+            }
+            
+            .sidebar-collapsed + .main-content {
+                margin-left: 4rem !important;
+            }
+            
+            /* Hide sidebar text on mobile even when expanded */
+            .sidebar nav button span,
+            .sidebar .border-t button span,
+            .sidebar .logo-text {
+                display: none !important;
+            }
+            
+            /* Ensure mobile sidebar buttons are centered */
+            .sidebar nav button,
+            .sidebar .border-t button {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0.5rem !important;
+            }
+            
+            /* Service button responsive styles */
+            .service-btn {
+                padding: 0.5rem !important;
+                min-width: 2.5rem;
+            }
+            
+            .service-btn-text {
+                display: none;
+            }
+            
+            .service-btn svg {
+                margin-right: 0 !important;
+            }
+        }
+        
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
-    <div class="min-h-screen">
-        <nav class="bg-white dark:bg-gray-800 shadow-lg transition-colors duration-200">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16">
-                    <div class="flex">
-                        <div class="flex-shrink-0 flex items-center">
-                            <img src="{{ url_for('static', filename='logo.png') }}" alt="SLEMP Logo" class="h-8 w-8 mr-3">
-                            <div>
-                                <p class="text-sm font-medium text-gray-900 dark:text-white">SLEMP Panel</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Server Management Made Easy</p>
-                            </div>
-
-                        </div>
-                        <div class="hidden md:ml-6 md:flex md:space-x-5">
-                            <button onclick="showSection('dashboard')" class="text-gray-900 dark:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 text-sm font-medium transition-colors duration-200">
-                                Dashboard
-                            </button>
-                            <button onclick="showSection('network')" class="text-gray-900 dark:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 text-sm font-medium transition-colors duration-200">
-                                Network
-                            </button>
-                            <button onclick="showSection('nginx')" class="text-gray-900 dark:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 text-sm font-medium transition-colors duration-200">
-                                Nginx
-                            </button>
-                            <button onclick="showSection('php')" class="text-gray-900 dark:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 text-sm font-medium transition-colors duration-200">
-                                PHP-FPM
-                            </button>
-                            <button onclick="showSection('mysql')" class="text-gray-900 dark:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 text-sm font-medium transition-colors duration-200">
-                                MySQL
-                            </button>
-                            <button onclick="showSection('files')" class="text-gray-900 dark:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 text-sm font-medium transition-colors duration-200">
-                                File Manager
-                            </button>
-                            <button onclick="showSection('plugins')" class="text-gray-900 dark:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 text-sm font-medium transition-colors duration-200">
-                                Plugins
-                            </button>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <!-- Mobile menu button -->
-                        <div class="md:hidden">
-                            <button onclick="toggleMobileMenu()" class="text-gray-900 dark:text-gray-100 inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
-                                <svg id="mobile-menu-icon" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="w-64 bg-gray-900 dark:bg-gray-950 shadow-lg transition-all duration-300 flex flex-col">
+            <!-- Logo Section -->
+            <div class="flex items-center px-6 py-4 border-b border-gray-700 dark:border-gray-800">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="SLEMP Logo" class="h-8 w-8 mr-3 flex-shrink-0">
+                <div class="sidebar-logo-text">
+                    <p class="text-sm font-medium text-white">SLEMP Panel</p>
+                    <p class="text-xs text-gray-400">Server Management</p>
+                </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <nav class="flex-1 px-4 py-4 space-y-2">
+                <button onclick="showSection('dashboard')" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                    <svg class="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v4H8V5z"></path>
+                    </svg>
+                    <span class="sidebar-text">Dashboard</span>
+                </button>
+                <button onclick="showSection('network')" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                    <svg class="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+                    </svg>
+                    <span class="sidebar-text">Network</span>
+                </button>
+                <button onclick="showSection('nginx')" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                    <svg class="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2"></path>
+                    </svg>
+                    <span class="sidebar-text">Nginx</span>
+                </button>
+                <button onclick="showSection('php')" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                    <svg class="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                    </svg>
+                    <span class="sidebar-text">PHP-FPM</span>
+                </button>
+                <button onclick="showSection('mysql')" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                    <svg class="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                    </svg>
+                    <span class="sidebar-text">MySQL</span>
+                </button>
+                <button onclick="showSection('files')" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                    <svg class="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v4H8V5z"></path>
+                    </svg>
+                    <span class="sidebar-text">File Manager</span>
+                </button>
+                <button onclick="showSection('plugins')" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                    <svg class="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                    <span class="sidebar-text">Plugins</span>
+                </button>
+            </nav>
+            
+            <!-- Sidebar Footer with Actions -->
+            <div class="border-t border-gray-700 dark:border-gray-800 p-4">
+                <div class="space-y-2">
+                    <button onclick="updateApp()" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-400 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                        <svg class="mr-3 h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span class="sidebar-text">Update</span>
+                    </button>
+                    <button onclick="restartApp()" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-400 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                        <svg class="mr-3 h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span class="sidebar-text">Reload</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Header -->
+            <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+                <div class="px-5 pb-1 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <div class="flex items-center">                            
+                            <div class="flex items-center" onclick="toggleSidebarCollapse()" style="cursor: pointer;">
+                                <svg class="h-7 w-7 text-gray-600 dark:text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                                 </svg>
-                                <svg id="mobile-close-icon" class="h-6 w-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        
-                        <!-- Desktop buttons -->
-                        <div class="hidden md:flex md:items-center md:space-x-4">
-                        <!-- Theme Toggle Dropdown -->
-                        <div class="relative" id="theme-dropdown">
-                            <button onclick="toggleThemeDropdown()" id="theme-toggle" class="text-gray-900 dark:text-gray-100 inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                <svg id="theme-icon" class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path id="theme-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                                </svg>
-                                <span id="theme-text">Light</span>
-                                <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </button>
-                            <div id="theme-dropdown-menu" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
-                                <div class="py-1">
-                                    <button onclick="setTheme('light')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
-                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                                        </svg>
-                                        Light
-                                    </button>
-                                    <button onclick="setTheme('dark')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
-                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                                        </svg>
-                                        Dark
-                                    </button>
-                                    <button onclick="setTheme('system')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
-                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                                        </svg>
-                                        System
-                                    </button>
-                                </div>
                             </div>
                         </div>
                         
-                        <!-- Actions Dropdown -->
-                        <div class="relative" id="actions-dropdown">
-                            <button onclick="toggleActionsDropdown()" class="relative text-gray-900 dark:text-gray-100 inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-                                </svg>
-                                Actions
-                                <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                                <!-- Update indicator -->
-                                <span class="absolute -top-1 -right-1 h-3 w-3 bg-orange-500 rounded-full animate-pulse"></span>
-                            </button>
-                            <div id="actions-dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
-                                <div class="py-1">
-                                    <button onclick="updateApp(); toggleActionsDropdown()" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
-                                        <svg class="mr-3 h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                        </svg>
-                                        Update
-                                    </button>
-                                    <button onclick="restartApp(); toggleActionsDropdown()" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
-                                        <svg class="mr-3 h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                        </svg>
-                                        Reload
-                                    </button>
-                                    <button onclick="showChangePasswordModal(); toggleActionsDropdown()" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
-                                        <svg class="mr-3 h-4 w-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0 1 21 9z"></path>
-                                        </svg>
-                                        Password
-                                    </button>
-                                    <div class="border-t border-gray-100 dark:border-gray-600"></div>
-                                    <a href="{{ url_for('logout') }}" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
-                                        <svg class="mr-3 h-4 w-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                                        </svg>
-                                        Logout
-                                    </a>
+                        <div class="flex items-center space-x-4">
+                            <!-- Theme Toggle -->
+                            <div class="relative" id="theme-dropdown">
+                                <button onclick="toggleThemeDropdown()" id="theme-toggle" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <svg id="theme-icon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path id="theme-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                    </svg>
+                                </button>
+                                <div id="theme-dropdown-menu" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                                    <div class="py-1">
+                                        <button onclick="setTheme('light')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                            <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                            </svg>
+                                            Light
+                                        </button>
+                                        <button onclick="setTheme('dark')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                            <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                            </svg>
+                                            Dark
+                                        </button>
+                                        <button onclick="setTheme('system')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                            <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                            </svg>
+                                            System
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Mobile menu -->
-                <div id="mobile-menu" class="hidden md:hidden">
-                    <div class="px-2 pt-2 pb-3 space-y-1 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-                        <button onclick="showSection('dashboard'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            Dashboard
-                        </button>
-                        <button onclick="showSection('network'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            Network
-                        </button>
-                        <button onclick="showSection('nginx'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            Nginx
-                        </button>
-                        <button onclick="showSection('php'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            PHP-FPM
-                        </button>
-                        <button onclick="showSection('mysql'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            MySQL
-                        </button>
-                        <button onclick="showSection('files'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            File Manager
-                        </button>
-                        <button onclick="showSection('plugins'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            Plugins
-                        </button>
-                        
-                        <!-- Mobile Actions -->
-                        <div class="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
-                            <!-- Theme options for mobile -->
-                            <div class="px-3 py-2">
-                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Theme</p>
-                                <div class="space-y-1">
-                                    <button onclick="setTheme('light'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        ☀️ Light
-                                    </button>
-                                    <button onclick="setTheme('dark'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        🌙 Dark
-                                    </button>
-                                    <button onclick="setTheme('system'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        💻 System
-                                    </button>
-                                </div>
-                            </div>
-
-                            <button onclick="updateApp()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                🔄 Update
+                            
+                            <!-- Password Change -->
+                            <button onclick="showChangePasswordModal()" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0 1 21 9z"></path>
+                                </svg>
                             </button>
-                            <button onclick="restartApp()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                🔄 Reload
-                            </button>
-                            <button onclick="showChangePasswordModal()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                🔑 Password
-                            </button>
-                            <a href="{{ url_for('logout') }}" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                🚪 Logout
+                            
+                            <!-- Logout -->
+                            <a href="{{ url_for('logout') }}" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                </svg>
                             </a>
                         </div>
                     </div>
                 </div>
+            </header>
+                
+            <!-- Mobile Sidebar Overlay -->
+            <div id="mobile-menu" class="fixed inset-0 z-50 hidden md:hidden">
+                <!-- Backdrop -->
+                <div class="fixed inset-0 bg-black bg-opacity-50" onclick="toggleMobileMenu()"></div>
+                
+                <!-- Mobile Sidebar -->
+                <div class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out">
+                    <!-- Mobile Sidebar Header -->
+                    <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Menu</h2>
+                        <button onclick="toggleMobileMenu()" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Mobile Navigation -->
+                    <nav class="flex-1 px-4 py-4 space-y-2">
+                        <button onclick="showSection('dashboard'); toggleMobileMenu()" class="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6a2 2 0 01-2 2H10a2 2 0 01-2-2V5z"></path>
+                            </svg>
+                            Dashboard
+                        </button>
+                        <button onclick="showSection('network'); toggleMobileMenu()" class="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
+                            </svg>
+                            Network
+                        </button>
+                        <button onclick="showSection('nginx'); toggleMobileMenu()" class="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2"></path>
+                            </svg>
+                            Nginx
+                        </button>
+                        <button onclick="showSection('php'); toggleMobileMenu()" class="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                            </svg>
+                            PHP-FPM
+                        </button>
+                        <button onclick="showSection('mysql'); toggleMobileMenu()" class="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                            </svg>
+                            MySQL
+                        </button>
+                        <button onclick="showSection('files'); toggleMobileMenu()" class="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6a2 2 0 01-2 2H10a2 2 0 01-2-2V5z"></path>
+                            </svg>
+                            File Manager
+                        </button>
+                        <button onclick="showSection('plugins'); toggleMobileMenu()" class="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                            Plugins
+                        </button>
+                    </nav>
+                    
+                    <!-- Mobile Footer Actions -->
+                    <div class="border-t border-gray-200 dark:border-gray-700 p-4">
+                        <div class="space-y-2">
+                            <button onclick="updateApp(); toggleMobileMenu()" class="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                Update
+                            </button>
+                            <button onclick="restartApp(); toggleMobileMenu()" class="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                Reload
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </nav>
-
-        <main class="max-w-7xl mx-auto py-4 px-4 sm:py-6 sm:px-6 lg:px-8">
+            
+            <!-- Main Content -->
+            <main class="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
             <!-- Dashboard Section -->
             <div id="dashboard-section" class="section mb-8">
                 <div class="flex justify-between items-center mb-4">
@@ -736,10 +837,31 @@
                                     <p class="text-sm font-medium text-gray-900 dark:text-white">Nginx</p>
                                     <p class="text-sm text-gray-500 dark:text-gray-300" id="nginx-status">Checking...</p>
                                     <div class="mt-3 flex space-x-2" id="nginx-buttons">
-                                        <button onclick="startService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
-                                        <button onclick="stopService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
-                                        <button onclick="restartService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Restart</button>
-                                        <button onclick="installService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install</button>
+                                        <button onclick="startService('nginx')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"></path>
+                                            </svg>
+                                            <span class="service-btn-text">Start</span>
+                                        </button>
+                                        <button onclick="stopService('nginx')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h6m-6 4h6"></path>
+                                            </svg>
+                                            <span class="service-btn-text">Stop</span>
+                                        </button>
+                                        <button onclick="restartService('nginx')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                            </svg>
+                                            <span class="service-btn-text">Restart</span>
+                                        </button>
+                                        <button onclick="installService('nginx')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                            </svg>
+                                            <span class="service-btn-text">Install</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -749,10 +871,31 @@
                                     <p class="text-sm font-medium text-gray-900 dark:text-white">PHP-FPM</p>
                                     <p class="text-sm text-gray-500 dark:text-gray-300" id="php-status">Checking...</p>
                                     <div class="mt-3 flex space-x-2" id="php-buttons">
-                                        <button onclick="startService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
-                                        <button onclick="stopService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
-                                        <button onclick="restartService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Restart</button>
-                                        <button onclick="installService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install</button>
+                                        <button onclick="startService('php-fpm')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"></path>
+                                            </svg>
+                                            <span class="service-btn-text">Start</span>
+                                        </button>
+                                        <button onclick="stopService('php-fpm')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h6m-6 4h6"></path>
+                                            </svg>
+                                            <span class="service-btn-text">Stop</span>
+                                        </button>
+                                        <button onclick="restartService('php-fpm')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                            </svg>
+                                            <span class="service-btn-text">Restart</span>
+                                        </button>
+                                        <button onclick="installService('php-fpm')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                            </svg>
+                                            <span class="service-btn-text">Install</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -762,10 +905,31 @@
                                     <p class="text-sm font-medium text-gray-900 dark:text-white">MySQL</p>
                                     <p class="text-sm text-gray-500 dark:text-gray-300" id="mysql-status">Checking...</p>
                                     <div class="mt-3 flex space-x-2" id="mysql-buttons">
-                                        <button onclick="startService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
-                                        <button onclick="stopService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
-                                        <button onclick="restartService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Restart</button>
-                                        <button onclick="installService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install</button>
+                                        <button onclick="startService('mysql')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"></path>
+                                            </svg>
+                                            <span class="service-btn-text">Start</span>
+                                        </button>
+                                        <button onclick="stopService('mysql')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h6m-6 4h6"></path>
+                                            </svg>
+                                            <span class="service-btn-text">Stop</span>
+                                        </button>
+                                        <button onclick="restartService('mysql')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                            </svg>
+                                            <span class="service-btn-text">Restart</span>
+                                        </button>
+                                        <button onclick="installService('mysql')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                            </svg>
+                                            <span class="service-btn-text">Install</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -1058,62 +1222,6 @@
                 showAlert('Failed to load tables', 'Error');
             });
     }
-
-    // function loadDatabases() {
-    //     fetch('/api/mysql/databases')
-    //         .then(response => response.json())
-    //         .then(databases => {
-    //             const databaseList = document.getElementById('database-list');
-    //             const queryDatabaseSelect = document.getElementById('query-database');
-    //             databaseList.innerHTML = '';
-    //             queryDatabaseSelect.innerHTML = '<option value="">Choose a database...</option>';
-                
-    //             console.log('About to iterate databases:', databases, 'Type:', typeof databases, 'IsArray:', Array.isArray(databases));
-                
-    //             if (!databases || !Array.isArray(databases)) {
-    //                 console.error('Databases is not a valid array:', databases);
-    //                 return;
-    //             }
-                
-    //             console.log('About to iterate databases:', databases, 'Type:', typeof databases, 'IsArray:', Array.isArray(databases));
-                
-    //             if (!databases || !Array.isArray(databases)) {
-    //                 console.error('Databases is not a valid array at forEach:', databases);
-    //                 return;
-    //             }
-                
-    //             console.log('About to iterate databases:', databases, 'Type:', typeof databases, 'IsArray:', Array.isArray(databases));
-                
-    //             if (!databases || !Array.isArray(databases)) {
-    //                 console.error('Databases is not a valid array at forEach:', databases);
-    //                 return;
-    //             }
-                
-    //             databases.forEach(db => {
-    //                 const row = document.createElement('tr');
-    //                 row.className = 'hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200';
-    //                 row.innerHTML = `
-    //                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${db.name}</td>
-    //                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${db.size} MB</td>
-    //                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-    //                         <button onclick="showTables('${db.name}')" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4">Show Tables</button>
-    //                         <button onclick="deleteDatabase('${db.name}')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
-    //                     </td>
-    //                 `;
-    //                 databaseList.appendChild(row);
-
-    //                 // Add database to query interface select
-    //                 const option = document.createElement('option');
-    //                 option.value = db.name;
-    //                 option.textContent = db.name;
-    //                 queryDatabaseSelect.appendChild(option);
-    //             });
-    //         })
-    //         .catch(error => {
-    //             console.error('Error:', error);
-    //             showAlert('Failed to load databases', 'Error');
-    //         });
-    // }
 
     async function executeQuery() {
         const database = document.getElementById('query-database').value;
@@ -2896,6 +3004,128 @@
         // Theme Management
         let currentTheme = 'system';
         let systemPrefersDark = false;
+        let sidebarCollapsed = false;
+
+        function toggleSidebarCollapse() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+            const logoText = document.querySelector('.sidebar-logo-text');
+            const logoContainer = document.querySelector('#sidebar > div:first-child');
+            const menuButtons = document.querySelectorAll('nav button');
+            const footerButtons = document.querySelectorAll('#sidebar > div:last-child button');
+            
+            sidebarCollapsed = !sidebarCollapsed;
+            
+            // Save state to localStorage
+            localStorage.setItem('sidebarCollapsed', sidebarCollapsed.toString());
+            
+            if (sidebarCollapsed) {
+                // Add collapsed class for CSS styling
+                sidebar.classList.add('sidebar-collapsed');
+                // Hide menu text elements
+                sidebarTexts.forEach(text => {
+                    text.style.display = 'none';
+                });
+                // Hide logo text
+                if (logoText) {
+                    logoText.style.display = 'none';
+                }
+                // Adjust logo container padding for collapsed state
+                if (logoContainer) {
+                    logoContainer.style.padding = '1.1rem';
+                    logoContainer.style.justifyContent = 'center';
+                }
+                // Make sidebar narrower
+                sidebar.style.width = '4rem';
+                
+                // Resize charts after sidebar collapse
+                setTimeout(() => {
+                    if (systemRealtimeChart) systemRealtimeChart.resize();
+                    if (realtimeChart) realtimeChart.resize();
+                }, 300);
+            } else {
+                // Remove collapsed class
+                sidebar.classList.remove('sidebar-collapsed');
+                // Show menu text elements
+                sidebarTexts.forEach(text => {
+                    text.style.display = 'block';
+                });
+                // Show logo text
+                if (logoText) {
+                    logoText.style.display = 'block';
+                }
+                // Restore logo container padding
+                if (logoContainer) {
+                    logoContainer.style.padding = '1rem 1.5rem';
+                    logoContainer.style.justifyContent = 'flex-start';
+                }
+                // Restore sidebar width
+                sidebar.style.width = '16rem';
+                
+                // Resize charts after sidebar expand
+                setTimeout(() => {
+                    if (systemRealtimeChart) systemRealtimeChart.resize();
+                    if (realtimeChart) realtimeChart.resize();
+                }, 300);
+            }
+        }
+
+        function applySidebarState() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+            const logoText = document.querySelector('.sidebar-logo-text');
+            const logoContainer = document.querySelector('#sidebar > div:first-child');
+            
+            if (sidebarCollapsed) {
+                // Add collapsed class for CSS styling
+                sidebar.classList.add('sidebar-collapsed');
+                // Hide menu text elements
+                sidebarTexts.forEach(text => {
+                    text.style.display = 'none';
+                });
+                // Hide logo text
+                if (logoText) {
+                    logoText.style.display = 'none';
+                }
+                // Adjust logo container padding for collapsed state
+                if (logoContainer) {
+                    logoContainer.style.padding = '1.1rem';
+                    logoContainer.style.justifyContent = 'center';
+                }
+                // Make sidebar narrower
+                 sidebar.style.width = '4rem';
+                 
+                 // Resize charts after applying collapsed state
+                 setTimeout(() => {
+                     if (systemRealtimeChart) systemRealtimeChart.resize();
+                     if (realtimeChart) realtimeChart.resize();
+                 }, 300);
+             } else {
+                // Remove collapsed class
+                sidebar.classList.remove('sidebar-collapsed');
+                // Show menu text elements
+                sidebarTexts.forEach(text => {
+                    text.style.display = 'block';
+                });
+                // Show logo text
+                if (logoText) {
+                    logoText.style.display = 'block';
+                }
+                // Restore logo container padding
+                if (logoContainer) {
+                    logoContainer.style.padding = '1rem 1.5rem';
+                    logoContainer.style.justifyContent = 'flex-start';
+                }
+                // Restore sidebar width
+                 sidebar.style.width = '16rem';
+                 
+                 // Resize charts after applying expanded state
+                 setTimeout(() => {
+                     if (systemRealtimeChart) systemRealtimeChart.resize();
+                     if (realtimeChart) realtimeChart.resize();
+                 }, 300);
+             }
+        }
 
         function setTheme(theme) {
             currentTheme = theme;
@@ -2966,17 +3196,15 @@
 
         function updateThemeUI() {
             const themeIcon = document.getElementById('theme-icon-path');
-            const themeText = document.getElementById('theme-text');
             
-            if (currentTheme === 'light') {
-                themeIcon.setAttribute('d', 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z');
-                themeText.textContent = 'Light';
-            } else if (currentTheme === 'dark') {
-                themeIcon.setAttribute('d', 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z');
-                themeText.textContent = 'Dark';
-            } else {
-                themeIcon.setAttribute('d', 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z');
-                themeText.textContent = 'System';
+            if (themeIcon) {
+                if (currentTheme === 'light') {
+                    themeIcon.setAttribute('d', 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z');
+                } else if (currentTheme === 'dark') {
+                    themeIcon.setAttribute('d', 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z');
+                } else {
+                    themeIcon.setAttribute('d', 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z');
+                }
             }
         }
 
@@ -2993,6 +3221,23 @@
             const savedTheme = localStorage.getItem('theme');
             currentTheme = savedTheme || 'system';
             
+            // Check if device is mobile
+            const isMobile = window.innerWidth <= 768;
+            
+            // Initialize sidebar state from localStorage or auto-collapse on mobile
+            const savedSidebarState = localStorage.getItem('sidebarCollapsed');
+            if (savedSidebarState !== null && !isMobile) {
+                sidebarCollapsed = savedSidebarState === 'true';
+            } else if (isMobile) {
+                // Auto-collapse sidebar on mobile devices
+                sidebarCollapsed = true;
+            }
+            
+            // Apply sidebar state
+            if (sidebarCollapsed) {
+                applySidebarState();
+            }
+            
             // Apply theme and update UI
             applyTheme();
             updateThemeUI();
@@ -3004,6 +3249,25 @@
                     applyTheme();
                 }
             });
+            
+            // Listen for window resize to handle mobile/desktop transitions
+            window.addEventListener('resize', () => {
+                const isMobile = window.innerWidth <= 768;
+                const wasMobile = sidebarCollapsed && !localStorage.getItem('sidebarCollapsed');
+                
+                if (isMobile && !sidebarCollapsed) {
+                    // Auto-collapse when switching to mobile
+                    sidebarCollapsed = true;
+                    applySidebarState();
+                } else if (!isMobile && wasMobile) {
+                    // Auto-expand when switching to desktop (if it was auto-collapsed)
+                    const savedState = localStorage.getItem('sidebarCollapsed');
+                    if (savedState === null) {
+                        sidebarCollapsed = false;
+                        applySidebarState();
+                    }
+                }
+            });
         }
 
         // Close dropdowns when clicking outside
@@ -3011,11 +3275,11 @@
             const themeDropdown = document.getElementById('theme-dropdown');
             const actionsDropdown = document.getElementById('actions-dropdown');
             
-            if (!themeDropdown.contains(event.target)) {
+            if (themeDropdown && !themeDropdown.contains(event.target)) {
                 document.getElementById('theme-dropdown-menu').classList.add('hidden');
             }
             
-            if (!actionsDropdown.contains(event.target)) {
+            if (actionsDropdown && !actionsDropdown.contains(event.target)) {
                 document.getElementById('actions-dropdown-menu').classList.add('hidden');
             }
         });
@@ -3045,7 +3309,7 @@
             const dropdown = document.getElementById('actions-dropdown');
             const dropdownMenu = document.getElementById('actions-dropdown-menu');
             
-            if (!dropdown.contains(event.target)) {
+            if (dropdown && dropdownMenu && !dropdown.contains(event.target)) {
                 dropdownMenu.classList.add('hidden');
             }
         });
@@ -5203,16 +5467,42 @@
                         nginxStatus.textContent = `Status: ${data.nginx.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.nginx.version} | PID: ${data.nginx.pid || 'N/A'}`;
                         nginxStatus.className = `text-sm ${data.nginx.running ? 'text-green-600' : 'text-red-600'}`;
                         nginxButtons.innerHTML = `
-                            <button onclick="startService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
-                            <button onclick="stopService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
-                            <button onclick="restartService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-yellow-600 rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">Restart</button>
-                            <button onclick="uninstallService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Uninstall</button>
+                            <button onclick="startService('nginx')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"></path>
+                                </svg>
+                                <span class="service-btn-text">Start</span>
+                            </button>
+                            <button onclick="stopService('nginx')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h6m-6 4h6"></path>
+                                </svg>
+                                <span class="service-btn-text">Stop</span>
+                            </button>
+                            <button onclick="restartService('nginx')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-yellow-600 rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                <span class="service-btn-text">Restart</span>
+                            </button>
+                            <button onclick="uninstallService('nginx')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                <span class="service-btn-text">Uninstall</span>
+                            </button>
                         `;
                     } else {
                         nginxStatus.textContent = 'Status: Tidak Terinstall';
                         nginxStatus.className = 'text-sm text-gray-500';
                         nginxButtons.innerHTML = `
-                            <button onclick="installService('nginx')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install Nginx</button>
+                            <button onclick="installService('nginx')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                <span class="service-btn-text">Install Nginx</span>
+                            </button>
                         `;
                     }
                 }
@@ -5225,16 +5515,42 @@
                         phpStatus.textContent = `Status: ${data.php_fpm.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.php_fpm.version} | PID: ${data.php_fpm.pid || 'N/A'}`;
                         phpStatus.className = `text-sm ${data.php_fpm.running ? 'text-green-600' : 'text-red-600'}`;
                         phpButtons.innerHTML = `
-                            <button onclick="startService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
-                            <button onclick="stopService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
-                            <button onclick="restartService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-yellow-600 rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">Restart</button>
-                            <button onclick="uninstallService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Uninstall</button>
+                            <button onclick="startService('php-fpm')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"></path>
+                                </svg>
+                                <span class="service-btn-text">Start</span>
+                            </button>
+                            <button onclick="stopService('php-fpm')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h6m-6 4h6"></path>
+                                </svg>
+                                <span class="service-btn-text">Stop</span>
+                            </button>
+                            <button onclick="restartService('php-fpm')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-yellow-600 rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                <span class="service-btn-text">Restart</span>
+                            </button>
+                            <button onclick="uninstallService('php-fpm')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                <span class="service-btn-text">Uninstall</span>
+                            </button>
                         `;
                     } else {
                         phpStatus.textContent = 'Status: Tidak Terinstall';
                         phpStatus.className = 'text-sm text-gray-500';
                         phpButtons.innerHTML = `
-                            <button onclick="installService('php-fpm')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install PHP-FPM</button>
+                            <button onclick="installService('php-fpm')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                <span class="service-btn-text">Install PHP-FPM</span>
+                            </button>
                         `;
                     }
                 }
@@ -5247,16 +5563,42 @@
                         mysqlStatus.textContent = `Status: ${data.mysql.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.mysql.version} | PID: ${data.mysql.pid || 'N/A'}`;
                         mysqlStatus.className = `text-sm ${data.mysql.running ? 'text-green-600' : 'text-red-600'}`;
                         mysqlButtons.innerHTML = `
-                            <button onclick="startService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
-                            <button onclick="stopService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
-                            <button onclick="restartService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-yellow-600 rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">Restart</button>
-                            <button onclick="uninstallService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Uninstall</button>
+                            <button onclick="startService('mysql')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"></path>
+                                </svg>
+                                <span class="service-btn-text">Start</span>
+                            </button>
+                            <button onclick="stopService('mysql')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h6m-6 4h6"></path>
+                                </svg>
+                                <span class="service-btn-text">Stop</span>
+                            </button>
+                            <button onclick="restartService('mysql')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-yellow-600 rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                <span class="service-btn-text">Restart</span>
+                            </button>
+                            <button onclick="uninstallService('mysql')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                <span class="service-btn-text">Uninstall</span>
+                            </button>
                         `;
                     } else {
                         mysqlStatus.textContent = 'Status: Tidak Terinstall';
                         mysqlStatus.className = 'text-sm text-gray-500';
                         mysqlButtons.innerHTML = `
-                            <button onclick="installService('mysql')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install MySQL</button>
+                            <button onclick="installService('mysql')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                <span class="service-btn-text">Install MySQL</span>
+                            </button>
                         `;
                     }
                 }
@@ -10576,6 +10918,9 @@ log_errors = On</textarea>
 
         // Load plugins when dashboard section is shown
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize theme and sidebar state
+            initializeTheme();
+            
             // Only set dashboard as active section if no plugin modal is open
             if (!document.getElementById('plugin-modal')) {
                 // Set navbar state based on current URL
@@ -10588,26 +10933,6 @@ log_errors = On</textarea>
             }
         });
     </script>
-
-    <!-- Footer -->
-    <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="flex items-center mb-4 md:mb-0">
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">© 2024 SLEMP Panel. All rights reserved.</p>
-                    </div>
-                </div>
-                <div class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
-                    <div class="text-center md:text-right">
-                        <p class="text-xs text-gray-400 dark:text-gray-500">
-                            Version 1.0.0
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
 
 </body>
 </html>
