@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />    
+    <title>SLEMP Panel</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="w-64 bg-gray-900 dark:bg-gray-950 shadow-lg transition-all duration-300 flex flex-col">
+            <!-- Logo Section -->
+            <div class="flex items-center px-6 py-4 border-b border-gray-700 dark:border-gray-800">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="SLEMP Logo" class="h-8 w-8 mr-3 flex-shrink-0">
+                <div class="sidebar-logo-text">
+                    <p class="text-sm font-medium text-white">SLEMP Panel</p>
+                    <p class="text-xs text-gray-400">Server Management</p>
+                </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <nav class="flex-1 px-4 py-4 space-y-2">
+                <a href="/" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                    <svg class="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v4H8V5z"></path>
+                    </svg>
+                    <span class="sidebar-text">Dashboard</span>
+                </a>
+                <a href="/network" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                    <svg class="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+                    </svg>
+                    <span class="sidebar-text">Network</span>
+                </a>
+                <a href="/nginx" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                    <svg class="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2"></path>
+                    </svg>
+                    <span class="sidebar-text">Nginx</span>
+                </a>
+                <a href="/php" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                    <svg class="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                    </svg>
+                    <span class="sidebar-text">PHP-FPM</span>
+                </a>
+                <a href="/mysql" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                    <svg class="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                    </svg>
+                    <span class="sidebar-text">MySQL</span>
+                </a>
+                <a href="/files" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                    <svg class="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v4H8V5z"></path>
+                    </svg>
+                    <span class="sidebar-text">File Manager</span>
+                </a>
+                <a href="/plugins" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                    <svg class="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                    <span class="sidebar-text">Plugins</span>
+                </a>
+            </nav>
+            
+            <!-- Sidebar Footer with Actions -->
+            <div class="border-t border-gray-700 dark:border-gray-800 p-4">
+                <div class="space-y-2">
+                    <button onclick="updateApp()" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-400 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                        <svg class="mr-3 h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span class="sidebar-text">Update</span>
+                    </button>
+                    <button onclick="restartApp()" class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-400 hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200 rounded-md">
+                        <svg class="mr-3 h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span class="sidebar-text">Reload</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {% block content %}{% endblock %}
+
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle w-full max-w-xs sm:max-w-lg mx-4">
+                <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Change Password</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="current-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Password</label>
+                            <input type="password" id="current-password" class="mt-1 block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="new-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">New Password</label>
+                            <input type="password" id="new-password" class="mt-1 block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" onclick="changePassword()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">Change Password</button>
+                    <button type="button" onclick="hideChangePasswordModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Installation Progress Modal -->
+    <div id="install-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-[60]">
+        <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white" id="install-modal-title">Installing Service</h3>
+                    <button onclick="closeInstallModal()" class="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100" id="install-close-btn">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Terminal-style output -->
+                <div class="mb-4">
+                    <div class="bg-black dark:bg-gray-900 rounded-lg p-4 h-80 overflow-y-auto font-mono text-sm" id="install-terminal">
+                        <div class="text-green-400" id="install-output">
+                            <!-- Installation output will appear here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progress indicator -->
+                <div class="mb-4">
+                    <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 mb-2">
+                        <span id="install-status">Memulai instalasi...</span>
+                        <span id="install-step">0/4</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%" id="install-progress-bar"></div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button onclick="closeInstallModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" id="install-cancel-btn">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Uninstall Progress Modal -->
+    <div id="uninstall-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-[60]">
+        <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white" id="uninstall-modal-title">Uninstalling Service</h3>
+                    <button onclick="closeUninstallModal()" class="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100" id="uninstall-close-btn">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Terminal-style output -->
+                <div class="mb-4">
+                    <div class="bg-black dark:bg-gray-900 rounded-lg p-4 h-80 overflow-y-auto font-mono text-sm" id="uninstall-terminal">
+                        <div class="text-green-400" id="uninstall-output">
+                            <!-- Uninstallation output will appear here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progress indicator -->
+                <div class="mb-4">
+                    <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 mb-2">
+                        <span id="uninstall-status">Memulai uninstall...</span>
+                        <span id="uninstall-step">0/5</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div class="bg-red-600 h-2 rounded-full transition-all duration-300" style="width: 0%" id="uninstall-progress-bar"></div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button onclick="closeUninstallModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" id="uninstall-cancel-btn">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/public.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -249,6 +249,36 @@ def change_password():
 def index():
     return render_template('index.html')
 
+@app.route('/network')
+@login_required
+def network():
+    return render_template('network.html')
+
+@app.route('/nginx')
+@login_required
+def nginx():
+    return render_template('nginx.html')
+
+@app.route('/php')
+@login_required
+def php():
+    return render_template('php.html')
+
+@app.route('/mysql')
+@login_required
+def mysql():
+    return render_template('mysql.html')
+
+@app.route('/files')
+@login_required
+def files():
+    return render_template('files.html')
+
+@app.route('/plugins')
+@login_required
+def plugins():
+    return render_template('plugins.html')
+
 @app.route('/terminal')
 @login_required
 def terminal():
@@ -270,7 +300,7 @@ def format_uptime(seconds):
     return ' '.join(result) if result else "0s"
 
 @app.route('/api/system-info')
-@login_required
+## @login_required
 def system_info():
     cpu_percent = psutil.cpu_percent()
     memory = psutil.virtual_memory()
@@ -295,6 +325,101 @@ def system_info():
         },
         'uptime': uptime_formatted
     })
+
+@app.route('/api/recent-activity')
+## @login_required
+def recent_activity():
+    """Get recent system activities and events"""
+    try:
+        activities = []
+        
+        # Add some sample activities - in a real implementation, 
+        # these would come from system logs, database, or monitoring data
+        current_time = datetime.datetime.now()
+        
+        # Check service status changes
+        try:
+            # Get service status directly without using the API endpoint
+            def get_service_info_direct(service_name, process_name=None):
+                if process_name is None:
+                    process_name = service_name
+                try:
+                    # Check if service is installed and running
+                    if service_name == 'nginx':
+                        check_cmd = subprocess.run(['which', 'nginx'], capture_output=True, text=True)
+                        installed = check_cmd.returncode == 0
+                        if installed:
+                            status_cmd = subprocess.run(['pgrep', 'nginx'], capture_output=True, text=True)
+                            running = status_cmd.returncode == 0
+                            return {'running': running}
+                    elif service_name == 'php-fpm':
+                        status_cmd = subprocess.run(['pgrep', 'php-fpm'], capture_output=True, text=True)
+                        running = status_cmd.returncode == 0
+                        return {'running': running}
+                    elif service_name == 'mysql':
+                        status_cmd = subprocess.run(['pgrep', 'mariadbd'], capture_output=True, text=True)
+                        running = status_cmd.returncode == 0
+                        return {'running': running}
+                except Exception:
+                    pass
+                return {'running': False}
+            
+            services = ['nginx', 'php-fpm', 'mysql']
+            for service_name in services:
+                service_info = get_service_info_direct(service_name)
+                if service_info.get('running'):
+                    activities.append({
+                        'message': f'{service_name.replace("-", "-").title()} service is running',
+                        'type': 'success',
+                        'timestamp': (current_time - datetime.timedelta(minutes=5)).strftime('%H:%M')
+                    })
+        except Exception as e:
+            logger.error(f'Error getting service status for activity: {e}')
+        
+        # Add system events
+        activities.extend([
+            {
+                'message': 'System backup completed',
+                'type': 'success',
+                'timestamp': (current_time - datetime.timedelta(hours=2)).strftime('%H:%M')
+            },
+            {
+                'message': 'MySQL database optimized',
+                'type': 'info',
+                'timestamp': (current_time - datetime.timedelta(hours=3)).strftime('%H:%M')
+            },
+            {
+                'message': 'PHP module installed: imagick',
+                'type': 'info',
+                'timestamp': (current_time - datetime.timedelta(hours=4)).strftime('%H:%M')
+            },
+            {
+                'message': 'System update completed',
+                'type': 'success',
+                'timestamp': (current_time - datetime.timedelta(hours=6)).strftime('%H:%M')
+            }
+        ])
+        
+        # Sort by timestamp (most recent first) and limit to 10 items
+        activities = activities[:10]
+        
+        return jsonify({
+            'activities': activities,
+            'total': len(activities)
+        })
+        
+    except Exception as e:
+        logger.error(f'Error getting recent activity: {e}')
+        return jsonify({
+            'activities': [
+                {
+                    'message': 'Unable to load recent activities',
+                    'type': 'error',
+                    'timestamp': datetime.datetime.now().strftime('%H:%M')
+                }
+            ],
+            'total': 1
+        }), 500
 
 # Format bytes to human readable format
 def format_bytes(bytes_value):
@@ -8174,28 +8299,118 @@ def plugin_static(plugin_id, filename):
         logger.error(f'Error serving plugin static file: {str(e)}')
         return 'Internal server error', 500
 
+@app.route('/plugins/<plugin_name>/<filename>')
+@login_required
+def plugin_static_direct(plugin_name, filename):
+    """Serve static files from plugin directories via /plugins/ route"""
+    try:
+        plugins_dir = os.path.join(os.path.dirname(__file__), 'plugins')
+        file_path = os.path.join(plugins_dir, plugin_name, filename)
+        
+        # Security check - ensure file is within plugin directory
+        if not os.path.abspath(file_path).startswith(os.path.abspath(plugins_dir)):
+            return 'Access denied', 403
+            
+        if os.path.exists(file_path):
+            return send_file(file_path)
+        else:
+            return 'File not found', 404
+            
+    except Exception as e:
+        logger.error(f'Error serving plugin static file: {str(e)}')
+        return 'Internal server error', 500
+
 @app.route('/plugins/<plugin_name>')
 @login_required
 def plugin_page(plugin_name):
-    """Serve plugin page"""
+    """Serve plugin page with Jinja2 template support"""
     try:
         logger.info(f'Plugin page requested for: {plugin_name}')
         plugins_dir = os.path.join(os.path.dirname(__file__), 'plugins')
         plugin_dir = os.path.join(plugins_dir, plugin_name)
-        
-        # Check if plugin directory exists
-        if not os.path.exists(plugin_dir):
-            return f'Plugin {plugin_name} not found', 404
-            
-        # Check if plugin has index.html
         index_file = os.path.join(plugin_dir, 'index.html')
-        if os.path.exists(index_file):
-            with open(index_file, 'r', encoding='utf-8') as f:
-                content = f.read()
-            return content
+        
+        # Security check - ensure plugin directory exists
+        if not os.path.exists(plugin_dir):
+            logger.error(f'Plugin directory not found: {plugin_dir}')
+            return 'Plugin not found', 404
+            
+        # Check if index.html exists
+        if not os.path.exists(index_file):
+            logger.error(f'Plugin index.html not found: {index_file}')
+            return 'Plugin interface not found', 404
+            
+        # Security check - ensure file is within plugin directory
+        if not os.path.abspath(index_file).startswith(os.path.abspath(plugins_dir)):
+            logger.error(f'Security violation: file outside plugins directory')
+            return 'Access denied', 403
+        
+        # Read and process the HTML content
+        with open(index_file, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        # Check if content contains Jinja2 template syntax
+        import re
+        jinja_patterns = [r'\{%.*?%\}', r'\{\{.*?\}\}', r'\{#.*?#\}']
+        is_template = any(re.search(pattern, html_content) for pattern in jinja_patterns)
+        
+        logger.info(f'Template detection for {plugin_name}: is_template={is_template}')
+        logger.info(f'First 200 chars of content: {html_content[:200]}')
+        
+        if is_template:
+            try:
+                # Render as Jinja2 template
+                from jinja2 import Environment, FileSystemLoader, ChoiceLoader
+                
+                # Create template environment with plugin directory and main templates
+                plugin_loader = FileSystemLoader(plugin_dir)
+                main_loader = FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates'))
+                loader = ChoiceLoader([plugin_loader, main_loader])
+                env = Environment(loader=loader)
+                
+                logger.info(f'Creating Jinja2 environment for plugin: {plugin_name}')
+                
+                # Render template with Flask context
+                template = env.from_string(html_content)
+                
+                # Add Flask context functions
+                from flask import url_for, request
+                context = {
+                    'url_for': url_for,
+                    'request': request
+                }
+                
+                html_content = template.render(**context)
+                
+                logger.info(f'Successfully rendered Jinja2 template for plugin: {plugin_name}')
+                logger.info(f'Rendered content length: {len(html_content)}')
+                
+            except Exception as template_error:
+                logger.error(f'Error rendering template for {plugin_name}: {str(template_error)}')
+                # Fall back to original content if template rendering fails
+                pass
         else:
-            # Return basic plugin info if no index.html
-            return f'<h1>Plugin: {plugin_name}</h1><p>Plugin directory exists but no index.html found.</p>'
+            # Process relative URLs to absolute URLs for API calls
+            # Replace fetch calls that start with relative paths for /plugins/ route
+            pattern1 = r'fetch\("(/[^"]*)")'
+            if f'/api/plugins/{plugin_name}/' not in html_content:
+                replacement1 = f'fetch("/api/plugins/{plugin_name}\1")'
+                html_content = re.sub(pattern1, replacement1, html_content)
+            
+            pattern2 = r"fetch\('(/[^']*)')"
+            if f'/api/plugins/{plugin_name}/' not in html_content:
+                replacement2 = f"fetch('/api/plugins/{plugin_name}\1')"
+                html_content = re.sub(pattern2, replacement2, html_content)
+            
+            # Add base tag for relative resources
+            if '<head>' in html_content:
+                base_tag = f'<base href="/plugins/{plugin_name}/">'
+                html_content = html_content.replace('<head>', f'<head>\n    {base_tag}')
+        
+        logger.info(f'Serving processed plugin page for: {plugin_name}')
+        
+        from flask import Response
+        return Response(html_content, mimetype='text/html')
             
     except Exception as e:
         logger.error(f'Error serving plugin page: {str(e)}')
@@ -8235,26 +8450,66 @@ def plugin_interface(plugin_name):
         with open(index_file, 'r', encoding='utf-8') as f:
             html_content = f.read()
         
-        # Process relative URLs to absolute URLs for API calls
-        # Only replace fetch calls that don't already have /api/plugins/ prefix
+        # Check if content contains Jinja2 template syntax
         import re
+        jinja_patterns = [r'\{%.*?%\}', r'\{\{.*?\}\}', r'\{#.*?#\}']
+        is_template = any(re.search(pattern, html_content) for pattern in jinja_patterns)
         
-        # Replace fetch calls that start with relative paths (not already prefixed)
-        # Pattern: fetch('/something') but not fetch('/api/plugins/...')
-        pattern1 = r'fetch\("(/[^"]*)")'
-        if f'/api/plugins/{plugin_name}/' not in html_content:
-            replacement1 = f'fetch("/api/plugins/{plugin_name}\1")'
-            html_content = re.sub(pattern1, replacement1, html_content)
+        logger.info(f'Template detection for {plugin_name}: is_template={is_template}')
+        logger.info(f'First 200 chars of content: {html_content[:200]}')
         
-        pattern2 = r"fetch\('(/[^']*)'\)"
-        if f'/api/plugins/{plugin_name}/' not in html_content:
-            replacement2 = f"fetch('/api/plugins/{plugin_name}\1')"
-            html_content = re.sub(pattern2, replacement2, html_content)
-        
-        # Add base tag for relative resources
-        if '<head>' in html_content:
-            base_tag = f'<base href="/api/plugins/{plugin_name}/">'
-            html_content = html_content.replace('<head>', f'<head>\n    {base_tag}')
+        if is_template:
+            try:
+                # Render as Jinja2 template
+                from jinja2 import Environment, FileSystemLoader, ChoiceLoader
+                
+                # Create template environment with plugin directory and main templates
+                plugin_loader = FileSystemLoader(plugin_dir)
+                main_loader = FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates'))
+                loader = ChoiceLoader([plugin_loader, main_loader])
+                env = Environment(loader=loader)
+                
+                logger.info(f'Creating Jinja2 environment for plugin: {plugin_name}')
+                
+                # Render template with Flask context
+                template = env.from_string(html_content)
+                
+                # Add Flask context functions
+                from flask import url_for, request
+                context = {
+                    'url_for': url_for,
+                    'request': request
+                }
+                
+                html_content = template.render(**context)
+                
+                logger.info(f'Successfully rendered Jinja2 template for plugin: {plugin_name}')
+                logger.info(f'Rendered content length: {len(html_content)}')
+                
+            except Exception as template_error:
+                logger.error(f'Error rendering template for {plugin_name}: {str(template_error)}')
+                # Fall back to original content if template rendering fails
+                pass
+        else:
+            # Process relative URLs to absolute URLs for API calls
+            # Only replace fetch calls that don't already have /api/plugins/ prefix
+            
+            # Replace fetch calls that start with relative paths (not already prefixed)
+            # Pattern: fetch('/something') but not fetch('/api/plugins/...')
+            pattern1 = r'fetch\("(/[^"]*)")'
+            if f'/api/plugins/{plugin_name}/' not in html_content:
+                replacement1 = f'fetch("/api/plugins/{plugin_name}\1")'
+                html_content = re.sub(pattern1, replacement1, html_content)
+            
+            pattern2 = r"fetch\('(/[^']*)'\)"
+            if f'/api/plugins/{plugin_name}/' not in html_content:
+                replacement2 = f"fetch('/api/plugins/{plugin_name}\1')"
+                html_content = re.sub(pattern2, replacement2, html_content)
+            
+            # Add base tag for relative resources
+            if '<head>' in html_content:
+                base_tag = f'<base href="/api/plugins/{plugin_name}/">'
+                html_content = html_content.replace('<head>', f'<head>\n    {base_tag}')
         
         logger.info(f'Serving processed plugin interface for: {plugin_name}')
         

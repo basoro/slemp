@@ -1,0 +1,311 @@
+.fullscreen-editor {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    margin: 0 !important;
+    z-index: 9999 !important;
+    border-radius: 0 !important;
+}
+
+.editor-toolbar {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.dark .editor-toolbar {
+    border-bottom-color: #4b5563;
+}
+
+.editor-action-btn {
+    transition: all 0.2s ease;
+}
+
+.editor-action-btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Navigation active state */
+button.active {
+    color: #2563eb !important;
+    border-bottom-color: #2563eb !important;
+    font-weight: 600;
+}
+
+.dark button.active {
+    color: #60a5fa !important;
+    border-bottom-color: #60a5fa !important;
+}
+
+/* Mobile menu active state */
+#mobile-menu button.active {
+    background-color: #dbeafe !important;
+    color: #1d4ed8 !important;
+    border-bottom: none !important;
+}
+
+.dark #mobile-menu button.active {
+    background-color: #1e3a8a !important;
+    color: #93c5fd !important;
+}
+
+/* Sidebar collapsed state - center icons */
+.sidebar-collapsed nav button,
+.sidebar-collapsed .border-t button {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.5rem !important;
+}
+
+.sidebar-collapsed nav button svg,
+.sidebar-collapsed .border-t button svg {
+    margin: 0 !important;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+    /* Force sidebar to be collapsed on mobile */
+    .sidebar {
+        transform: translateX(-100%) !important;
+    }
+    
+    .sidebar-collapsed {
+        transform: translateX(0) !important;
+        width: 4rem !important;
+    }
+    
+    /* Adjust main content for mobile */
+    .main-content {
+        margin-left: 0 !important;
+        padding-left: 1rem !important;
+    }
+    
+    .sidebar-collapsed + .main-content {
+        margin-left: 4rem !important;
+    }
+    
+    /* Hide sidebar text on mobile even when expanded */
+    .sidebar nav button span,
+    .sidebar .border-t button span,
+    .sidebar .logo-text {
+        display: none !important;
+    }
+    
+    /* Ensure mobile sidebar buttons are centered */
+    .sidebar nav button,
+    .sidebar .border-t button {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0.5rem !important;
+    }
+    
+    /* Service button responsive styles */
+    .service-btn {
+        padding: 0.5rem !important;
+        min-width: 2.5rem;
+    }
+    
+    .service-btn-text {
+        display: none;
+    }
+    
+    .service-btn svg {
+        margin-right: 0 !important;
+    }
+}
+
+/* Dashboard Layout Styles */
+.dashboard-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.service-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.service-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
+}
+
+.dark .service-card {
+    background: #1f2937;
+    border-color: #374151;
+    color: white;
+}
+
+.service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6);
+}
+
+.service-status-running {
+    background: #dcfce7;
+    color: #166534;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.service-status-stopped {
+    background: #fef2f2;
+    color: #991b1b;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dark .service-status-running {
+    background: #064e3b;
+    color: #6ee7b7;
+}
+
+.dark .service-status-stopped {
+    background: #7f1d1d;
+    color: #fca5a5;
+}
+
+.system-resource-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    height: 100%;
+}
+
+.dark .system-resource-card {
+    background: #1f2937;
+    border-color: #374151;
+    color: white;
+}
+
+.progress-container {
+    background: #f3f4f6;
+    border-radius: 9999px;
+    height: 0.5rem;
+    overflow: hidden;
+    margin: 0.5rem 0;
+}
+
+.dark .progress-container {
+    background: #374151;
+}
+
+.activity-item {
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s ease;
+}
+
+.activity-item:hover {
+    background: #f9fafb;
+}
+
+.dark .activity-item:hover {
+    background: #374151;
+}
+
+.activity-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.chart-container {
+    height: 300px;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+/* Responsive Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.service-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .service-card,
+    .system-resource-card {
+        padding: 1rem;
+    }
+    
+    .service-grid,
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+}
+
+/* Service button improvements */
+.service-btn {
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+}
+
+.service-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.service-btn:active {
+    transform: translateY(0);
+}
+
+.service-btn svg {
+    width: 1rem;
+    height: 1rem;
+}

@@ -1,0 +1,819 @@
+{% extends "layout.html" %}
+{% block content %}        
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Header -->
+            <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+                <div class="px-5 pb-1 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <div class="flex items-center">                            
+                            <div class="flex items-center" onclick="toggleSidebarCollapse()" style="cursor: pointer;">
+                                <svg class="h-7 w-7 text-gray-600 dark:text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4">
+                            <!-- Theme Toggle -->
+                            <div class="relative" id="theme-dropdown">
+                                <button onclick="toggleThemeDropdown()" id="theme-toggle" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <svg id="theme-icon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path id="theme-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                    </svg>
+                                </button>
+                                <div id="theme-dropdown-menu" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                                    <div class="py-1">
+                                        <button onclick="setTheme('light')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                            <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                            </svg>
+                                            Light
+                                        </button>
+                                        <button onclick="setTheme('dark')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                            <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                            </svg>
+                                            Dark
+                                        </button>
+                                        <button onclick="setTheme('system')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                            <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                            </svg>
+                                            System
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Password Change -->
+                            <button onclick="showChangePasswordModal()" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0 1 21 9z"></path>
+                                </svg>
+                            </button>
+                            
+                            <!-- Logout -->
+                            <a href="{{ url_for('logout') }}" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+                            
+            <!-- Main Content -->
+            <main class="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
+
+                <!-- Network Monitoring Section -->
+                <div class="mb-8">
+                    <h2 class="text-lg font-semibold mb-4 dark:text-white">Real-time Network Traffic (Bytes/sec)</h2>
+
+                    <!-- Real-time Network Traffic Chart -->
+                    <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg my-6 transition-colors duration-200">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div id="network-realtime-chart" class="w-full" style="height: 400px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Network Interfaces Table -->
+                    <div class="bg-white dark:bg-gray-800 shadow overflow-visible sm:rounded-lg transition-colors duration-200">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">Network Interfaces</h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <thead class="bg-gray-50 dark:bg-gray-700">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Interface</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Bytes Sent</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Bytes Received</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Packets Sent</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Packets Received</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="network-interfaces-table" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                        <!-- Network interfaces will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-4 text-sm text-gray-500 dark:text-gray-300">
+                                <p>Active Connections: <span id="active-connections" class="font-semibold">0</span></p>
+                            </div>
+                            
+                            <!-- Network Action Buttons Demo -->
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                <button onclick="showSection('network', 'monitor')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Monitor Network
+                                </button>
+                                <button onclick="showSection('network', 'configure')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                    Configure Network
+                                </button>
+                                <button onclick="showSection('network', 'troubleshoot')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                                    Troubleshoot
+                                </button>
+                                <button onclick="showSection('network', 'reset')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                    Reset Network
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Network Management Cards -->
+                    <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg transition-colors duration-200 mt-6">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                                <!-- DNS Manager Card -->
+                                <div class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">DNS Manager</p>
+                                            <button onclick="showDnsManagerModal()" class="px-3 py-1 text-sm font-medium text-white bg-purple-600 rounded hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Manage</button>
+                                        </div>
+                                        <p class="text-sm text-gray-500 dark:text-gray-300" id="dns-status">PowerDNS Management</p>
+                                        <div class="mt-3 flex space-x-2" id="dns-buttons">
+                                            <button onclick="startService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
+                                            <button onclick="stopService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
+                                            <button onclick="restartService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Restart</button>
+                                            <button onclick="installService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Firewall Card -->
+                                <div class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">Firewall</p>
+                                            <button onclick="showFirewallModal()" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Manage</button>
+                                        </div>
+                                        <p class="text-sm text-gray-500 dark:text-gray-300" id="firewall-status">UFW Firewall Management</p>
+                                        <div class="mt-3 flex space-x-2" id="firewall-buttons">
+                                            <button onclick="startService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Enable</button>
+                                            <button onclick="stopService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Disable</button>
+                                            <button onclick="restartService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Restart</button>
+                                            <button onclick="installService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+
+            </main>
+        </div>
+
+        <!-- Edit DNS Record Modal -->
+        <div id="editDnsRecordModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-[250]">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+                <div class="mt-3">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Edit DNS Record</h3>
+                        <button onclick="closeEditDnsRecordModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <form id="editDnsRecordForm">
+                        <input type="hidden" id="editRecordDomain" name="domain">
+                        <input type="hidden" id="editRecordOldName" name="old_name">
+                        <input type="hidden" id="editRecordOldType" name="old_type">
+                        <input type="hidden" id="editRecordOldContent" name="old_content">
+                        <input type="hidden" id="editRecordOldTtl" name="old_ttl">
+                        
+                        <div class="mb-4">
+                            <label for="editRecordName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
+                            <input type="text" id="editRecordName" name="name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="editRecordType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Type</label>
+                            <select id="editRecordType" name="type" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" required>
+                                <option value="A">A</option>
+                                <option value="AAAA">AAAA</option>
+                                <option value="CNAME">CNAME</option>
+                                <option value="MX">MX</option>
+                                <option value="TXT">TXT</option>
+                                <option value="NS">NS</option>
+                                <option value="PTR">PTR</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label for="editRecordContent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Content</label>
+                            <input type="text" id="editRecordContent" name="content" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="editRecordTtl" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">TTL</label>
+                            <input type="number" id="editRecordTtl" name="ttl" value="3600" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" required>
+                        </div>
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" onclick="closeEditDnsRecordModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                                Cancel
+                            </button>
+                            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Update Record
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- DNS Manager Modal -->
+        <div id="dns-manager-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-8 mx-auto p-4 border w-10/12 md:w-4/5 lg:w-3/5 xl:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800 min-h-[80vh]">
+                <!-- Close Button -->
+                <button onclick="hideDnsManagerModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100 z-10">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                
+                <!-- Tab Navigation -->
+                <div class="border-b border-gray-200 dark:border-gray-600 mb-6">
+                    <nav class="-mb-px flex space-x-8">
+                        <button onclick="showDnsSection('domains')" id="dns-tab-domains" class="dns-tab-btn py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                            Domain name list
+                        </button>
+                        <button onclick="showDnsSection('default-ns')" id="dns-tab-default-ns" class="dns-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                            Default NS
+                        </button>
+                        <button onclick="showDnsSection('service')" id="dns-tab-service" class="dns-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                            Service
+                        </button>
+                        <button onclick="showDnsSection('logs')" id="dns-tab-logs" class="dns-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                            Logs
+                        </button>
+                    </nav>
+                </div>
+                
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- Domain List Section -->
+                    <div id="domains-section" class="dns-section">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h4 class="text-xl font-semibold text-gray-900 dark:text-white">Domain name list</h4>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage your DNS domains and records</p>
+                            </div>
+                            <div>
+                                <button onclick="addDomainName()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                    Add Domain
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Domain</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700" id="domain-list">
+                                    <!-- Domain list will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Default NS Section -->
+                    <div id="default-ns-section" class="dns-section hidden">
+                        <h4 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Default Name Servers</h4>
+                        <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">NameServer 1</label>
+                                    <input type="text" id="nameserver1" value="" 
+                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" 
+                                            placeholder="ns1.example.com">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">NameServer 2</label>
+                                    <input type="text" id="nameserver2" value="" 
+                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" 
+                                            placeholder="ns2.example.com">
+                                </div>
+                                <div class="pt-4">
+                                    <button onclick="saveDefaultNameServers()" 
+                                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        Save
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Service Section -->
+                    <div id="service-section" class="dns-section hidden">
+                        <h4 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">PowerDNS Service</h4>
+                        <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Service Control</h5>
+                                    <div class="space-y-3">
+                                        <button onclick="restartPowerDNS()" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            Restart PowerDNS
+                                        </button>
+                                        <button onclick="checkPowerDNSStatus()" class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                            Check Status
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Service Status</h5>
+                                    <div id="powerdns-status" class="p-4 bg-gray-50 dark:bg-gray-700 rounded-md">
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Click 'Check Status' to view current status</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Logs Section -->
+                    <div id="logs-section" class="dns-section hidden">
+                        <h4 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">DNS Logs</h4>
+                        <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6">
+                            <div class="mb-4">
+                                <button onclick="loadPowerDNSLogs()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    Refresh Logs
+                                </button>
+                            </div>
+                            <div id="powerdns-logs" class="bg-black dark:bg-gray-900 text-green-400 p-4 rounded-md h-96 overflow-y-auto font-mono text-sm">
+                                <p>Click 'Refresh Logs' to view PowerDNS logs...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DNS Records Modal -->
+        <div id="dns-records-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-8 mx-auto p-4 border w-10/12 md:w-4/5 lg:w-3/5 xl:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800 min-h-[80vh]">
+                <!-- Close Button -->
+                <button onclick="hideDnsRecordsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100 z-10">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                
+                <!-- Header -->
+                <div class="mb-6">
+                    <h3 id="dns-records-title" class="text-lg font-medium text-gray-900 dark:text-white">DNS Records</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage DNS records for the domain</p>
+                </div>
+                
+
+                
+                <!-- Records Table -->
+                <div id="dns-records-content" class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+                    <!-- Records will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Firewall Modal -->
+        <div id="firewall-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-8 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/5 xl:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800 min-h-[80vh]">
+                <div class="mt-3">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Firewall Manager</h3>
+                        <button onclick="hideFirewallModal()" class="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Tab Navigation -->
+                    <div class="border-b border-gray-200 dark:border-gray-600 mb-4">
+                        <nav class="-mb-px flex space-x-8">
+                            <button onclick="switchFirewallTab('rules')" id="tab-rules" class="firewall-tab-btn py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                                Firewall Rules
+                            </button>
+                            <button onclick="switchFirewallTab('ports')" id="tab-ports" class="firewall-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                                Port Management
+                            </button>
+                            <button onclick="switchFirewallTab('status')" id="tab-status" class="firewall-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                                Status & Logs
+                            </button>
+                            <button onclick="switchFirewallTab('settings')" id="tab-settings" class="firewall-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                                Settings
+                            </button>
+                        </nav>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content">
+                        <!-- Firewall Rules Section -->
+                        <div id="rules-section" class="firewall-section">
+                            <div class="flex justify-between items-center mb-6">
+                                <div>
+                                    <h4 class="text-xl font-semibold text-gray-900 dark:text-white">Firewall Rules</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage UFW firewall rules and access control</p>
+                                </div>
+                                <div class="flex space-x-3">
+                                    <button onclick="addFirewallRule()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                        Add Rule
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <thead class="bg-gray-50 dark:bg-gray-700">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rule</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">From</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">To</th>
+                                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Operations</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="firewall-rules-tbody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                        <tr>
+                                            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                                Loading firewall rules...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Port Management Section -->
+                        <div id="ports-section" class="firewall-section hidden">
+                            <div class="flex justify-between items-center mb-6">
+                                <div>
+                                    <h4 class="text-xl font-semibold text-gray-900 dark:text-white">Port Management</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage open ports and port forwarding rules</p>
+                                </div>
+                                <div class="flex space-x-3">
+                                    <button onclick="addPortRule()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        </svg>
+                                        Add Port Rule
+                                    </button>
+                                    <button onclick="refreshPortList()" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                        Refresh
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Port Management Tabs -->
+                            <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
+                                <nav class="-mb-px flex space-x-8">
+                                    <button id="port-rules-tab" onclick="showPortTab('rules')" class="port-tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                                        Port Rules
+                                    </button>
+                                    <button id="port-forwarding-tab" onclick="showPortTab('forwarding')" class="port-tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                                        Port Forwarding
+                                    </button>
+                                </nav>
+                            </div>
+                            
+                            <!-- Port Rules Tab Content -->
+                            <div id="port-rules-content" class="port-tab-content">
+                            
+                            <!-- Quick Port Actions -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                    <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Quick Allow</h5>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Allow common ports quickly</p>
+                                    <div class="space-y-2">
+                                        <button onclick="quickAllowPort('22', 'SSH')" class="w-full text-left px-3 py-2 text-sm bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded border border-gray-200 dark:border-gray-600">
+                                            SSH (22)
+                                        </button>
+                                        <button onclick="quickAllowPort('80', 'HTTP')" class="w-full text-left px-3 py-2 text-sm bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded border border-gray-200 dark:border-gray-600">
+                                            HTTP (80)
+                                        </button>
+                                        <button onclick="quickAllowPort('443', 'HTTPS')" class="w-full text-left px-3 py-2 text-sm bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded border border-gray-200 dark:border-gray-600">
+                                            HTTPS (443)
+                                        </button>
+                                        <button onclick="quickAllowPort('3306', 'MySQL')" class="w-full text-left px-3 py-2 text-sm bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded border border-gray-200 dark:border-gray-600">
+                                            MySQL (3306)
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                    <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Port Scanner</h5>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Scan for open ports</p>
+                                    <div class="space-y-2">
+                                        <button onclick="scanPorts()" class="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            Scan Ports
+                                        </button>
+                                        <div id="port-scan-results" class="mt-3"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                    <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Port Statistics</h5>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Current port status</p>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-400">Open Ports:</span>
+                                            <span id="open-ports-count" class="font-medium text-green-600 dark:text-green-400">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-400">Blocked Ports:</span>
+                                            <span id="blocked-ports-count" class="font-medium text-red-600 dark:text-red-400">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-400">Total Rules:</span>
+                                            <span id="total-rules-count" class="font-medium text-blue-600 dark:text-blue-400">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Port Rules Table -->
+                            <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+                                <div class="px-4 py-5 sm:p-6">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h5 class="text-lg font-medium text-gray-900 dark:text-white">Port Rules</h5>
+                                        <div class="flex space-x-2">
+                                            <select id="port-filter" class="px-3 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                <option value="all">All Rules</option>
+                                                <option value="allow">Allow Rules</option>
+                                                <option value="deny">Deny Rules</option>
+                                                <option value="tcp">TCP Only</option>
+                                                <option value="udp">UDP Only</option>
+                                            </select>
+                                            <input type="text" id="port-search" placeholder="Search ports..." class="px-3 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                                <tr>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Port/Range</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Protocol</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Source</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="port-rules-list" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                                <!-- Port rules will be populated here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <div id="port-rules-empty" class="text-center py-8 hidden">
+                                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No port rules</h3>
+                                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by adding a new port rule.</p>
+                                        <div class="mt-6">
+                                            <button onclick="addPortRule()" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                                Add Port Rule
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                            <!-- End Port Rules Tab Content -->
+                            
+                            <!-- Port Forwarding Tab Content -->
+                            <div id="port-forwarding-content" class="port-tab-content hidden">
+                                <div class="flex justify-between items-center mb-6">
+                                    <div>
+                                        <h5 class="text-lg font-medium text-gray-900 dark:text-white">Port Forwarding Rules</h5>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Forward external ports to internal services</p>
+                                    </div>
+                                    <button onclick="addPortForwardRule()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        </svg>
+                                        Add Forward Rule
+                                    </button>
+                                </div>
+                                
+                                <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+                                    <div class="px-4 py-5 sm:p-6">
+                                        <div class="overflow-x-auto">
+                                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                                    <tr>
+                                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">External Port</th>
+                                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Internal IP</th>
+                                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Internal Port</th>
+                                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Protocol</th>
+                                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
+                                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="port-forward-rules-list" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                                    <!-- Port forwarding rules will be populated here -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        
+                                        <div id="port-forward-rules-empty" class="text-center py-8 hidden">
+                                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                                            </svg>
+                                            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No port forwarding rules</h3>
+                                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by adding a new port forwarding rule.</p>
+                                            <div class="mt-6">
+                                                <button onclick="addPortForwardRule()" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                    Add Forward Rule
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- End Port Forwarding Tab Content -->
+                        </div>
+                        
+                        <!-- Status & Logs Section -->
+                        <div id="status-section" class="firewall-section hidden">
+                            <h4 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Firewall Status & Logs</h4>
+                            <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6">
+                                <p class="text-gray-600 dark:text-gray-400">View firewall status and access logs.</p>
+                                <!-- Add status and logs display here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Settings Section -->
+                        <div id="settings-section" class="firewall-section hidden">
+                            <h4 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Firewall Settings</h4>
+                            
+                            <!-- SSH Configuration -->
+                            <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6 mb-6">
+                                <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-4">SSH Configuration</h5>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label for="ssh-port" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SSH Port</label>
+                                        <input type="number" id="ssh-port" value="22" min="1" max="65535" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Default SSH port (22). Change with caution.</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SSH Access Control</label>
+                                        <div class="space-y-2">
+                                            <label class="flex items-center">
+                                                <input type="checkbox" id="ssh-allow-root" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Allow root login</span>
+                                            </label>
+                                            <label class="flex items-center">
+                                                <input type="checkbox" id="ssh-password-auth" checked class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Password authentication</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <button onclick="updateSSHSettings()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12"></path>
+                                        </svg>
+                                        Update SSH Settings
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Default Policies -->
+                            <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6 mb-6">
+                                <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Default Policies</h5>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div>
+                                        <label for="default-incoming" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Incoming</label>
+                                        <select id="default-incoming" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="deny">Deny</option>
+                                            <option value="allow">Allow</option>
+                                            <option value="reject">Reject</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="default-outgoing" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Outgoing</label>
+                                        <select id="default-outgoing" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="allow">Allow</option>
+                                            <option value="deny">Deny</option>
+                                            <option value="reject">Reject</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="default-forward" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Forward</label>
+                                        <select id="default-forward" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="deny">Deny</option>
+                                            <option value="allow">Allow</option>
+                                            <option value="reject">Reject</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <button onclick="updateDefaultPolicies()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Apply Default Policies
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Logging Settings -->
+                            <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6 mb-6">
+                                <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Logging Settings</h5>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label for="logging-level" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Logging Level</label>
+                                        <select id="logging-level" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="off">Off</option>
+                                            <option value="low">Low</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="high">High</option>
+                                            <option value="full">Full</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Log Options</label>
+                                        <div class="space-y-2">
+                                            <label class="flex items-center">
+                                                <input type="checkbox" id="log-denied" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Log denied packets</span>
+                                            </label>
+                                            <label class="flex items-center">
+                                                <input type="checkbox" id="log-allowed" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Log allowed packets</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <button onclick="updateLoggingSettings()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                        </svg>
+                                        Update Logging
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Security Settings -->
+                            <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6">
+                                <h5 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Security Settings</h5>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label for="rate-limit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rate Limiting (connections/minute)</label>
+                                        <input type="number" id="rate-limit" value="30" min="1" max="1000" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label for="connection-timeout" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Connection Timeout (seconds)</label>
+                                        <input type="number" id="connection-timeout" value="300" min="30" max="3600" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <div class="space-y-2">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="enable-syn-cookies" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Enable SYN cookies (DDoS protection)</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="enable-connection-tracking" checked class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Enable connection tracking</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="block-invalid-packets" checked class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Block invalid packets</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <button onclick="updateSecuritySettings()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                        </svg>
+                                        Apply Security Settings
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/network.js') }}"></script>
+{% endblock %}
