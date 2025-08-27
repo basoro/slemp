@@ -609,7 +609,7 @@ def handle_install_service(data):
             socketio.emit('install_progress', progress_data)
             socketio.emit('install_output', {'output': '$ apt-get update', 'type': 'command'})
             
-            update_code, update_output = run_command_with_realtime_output(['apt-get', 'update'], 300)
+            update_code, update_output = run_command_with_realtime_output(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', 'update'], 300)
             
             if update_code != 0:
                 logger.warning(f'Package update failed with code {update_code}')
@@ -627,7 +627,7 @@ def handle_install_service(data):
             socketio.emit('install_progress', progress_data)
             socketio.emit('install_output', {'output': f'$ apt-get install -y {service_name}', 'type': 'command'})
             
-            install_code, install_output = run_command_with_realtime_output(['apt-get', 'install', '-y', service_name], 600)
+            install_code, install_output = run_command_with_realtime_output(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', 'install', '-y', service_name], 600)
             
             if install_code == 0:
                 logger.info(f'Service {service_name} installed successfully via WebSocket')
@@ -986,7 +986,7 @@ def handle_uninstall_service(data):
             socketio.emit('uninstall_progress', progress_data)
             socketio.emit('uninstall_output', {'output': f'$ apt-get remove -y {service_name}', 'type': 'command'})
             
-            remove_code, remove_output = run_command_with_realtime_output(['apt-get', 'remove', '-y', service_name], 300)
+            remove_code, remove_output = run_command_with_realtime_output(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', 'remove', '-y', service_name], 300)
             
             if remove_code == 0:
                 logger.info(f'Service {service_name} removed successfully')
@@ -997,10 +997,10 @@ def handle_uninstall_service(data):
                 socketio.emit('uninstall_progress', progress_data)
                 
                 socketio.emit('uninstall_output', {'output': f'$ apt-get purge -y {service_name}', 'type': 'command'})
-                purge_code, purge_output = run_command_with_realtime_output(['apt-get', 'purge', '-y', service_name], 300)
+                purge_code, purge_output = run_command_with_realtime_output(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', 'purge', '-y', service_name], 300)
                 
                 socketio.emit('uninstall_output', {'output': '$ apt-get autoremove -y', 'type': 'command'})
-                autoremove_code, autoremove_output = run_command_with_realtime_output(['apt-get', 'autoremove', '-y'], 300)
+                autoremove_code, autoremove_output = run_command_with_realtime_output(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', 'autoremove', '-y'], 300)
                 
                 # Additional cleanup for specific services
                 progress_data = {'message': 'Membersihkan file khusus layanan...', 'step': 5, 'total': 5, 'status': 'Membersihkan file khusus layanan...', 'percentage': 100}
@@ -1020,9 +1020,9 @@ def handle_uninstall_service(data):
                     for package in nginx_packages:
                         try:
                             socketio.emit('uninstall_output', {'output': f'$ apt-get remove -y {package}', 'type': 'command'})
-                            remove_pkg_code, remove_pkg_output = run_command_with_realtime_output(['apt-get', 'remove', '-y', package], 60)
+                            remove_pkg_code, remove_pkg_output = run_command_with_realtime_output(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', 'remove', '-y', package], 60)
                             socketio.emit('uninstall_output', {'output': f'$ apt-get purge -y {package}', 'type': 'command'})
-                            purge_pkg_code, purge_pkg_output = run_command_with_realtime_output(['apt-get', 'purge', '-y', package], 60)
+                            purge_pkg_code, purge_pkg_output = run_command_with_realtime_output(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', 'purge', '-y', package], 60)
                             logger.info(f'Removed and purged package: {package}')
                         except Exception as e:
                             socketio.emit('uninstall_output', {'output': f'Could not remove package {package}: {str(e)}', 'type': 'warning'})
@@ -1324,12 +1324,12 @@ def install_service(service):
         logger.info(f'Starting installation of {service_name}')
         
         # Update package list first
-        update_result = subprocess.run(['apt-get', 'update'], capture_output=True, text=True)
+        update_result = subprocess.run(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', 'update'], capture_output=True, text=True)
         if update_result.returncode != 0:
             logger.warning(f'Package update failed: {update_result.stderr}')
         
         # Install the service
-        install_result = subprocess.run(['apt-get', 'install', '-y', service_name], capture_output=True, text=True)
+        install_result = subprocess.run(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', 'install', '-y', service_name], capture_output=True, text=True)
         
         if install_result.returncode == 0:
             logger.info(f'Service {service_name} installed successfully')
@@ -1544,14 +1544,14 @@ def uninstall_service(service):
             stop_result = subprocess.run(['supervisorctl', 'stop', 'mariadb'], capture_output=True, text=True)
         
         # Remove the service package
-        remove_result = subprocess.run(['apt-get', 'remove', '-y', service_name], capture_output=True, text=True)
+        remove_result = subprocess.run(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', 'remove', '-y', service_name], capture_output=True, text=True)
         
         if remove_result.returncode == 0:
             logger.info(f'Service {service_name} removed successfully')
             
             # Clean up configuration files and dependencies
-            purge_result = subprocess.run(['apt-get', 'purge', '-y', service_name], capture_output=True, text=True)
-            autoremove_result = subprocess.run(['apt-get', 'autoremove', '-y'], capture_output=True, text=True)
+            purge_result = subprocess.run(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', 'purge', '-y', service_name], capture_output=True, text=True)
+            autoremove_result = subprocess.run(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', 'autoremove', '-y'], capture_output=True, text=True)
             
             # Additional cleanup for specific services
             if service == 'nginx':
@@ -1572,8 +1572,8 @@ def uninstall_service(service):
                 
                 for package in nginx_packages:
                     try:
-                        remove_pkg_result = subprocess.run(['apt-get', 'remove', '-y', package], capture_output=True, text=True)
-                        purge_pkg_result = subprocess.run(['apt-get', 'purge', '-y', package], capture_output=True, text=True)
+                        remove_pkg_result = subprocess.run(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', 'remove', '-y', package], capture_output=True, text=True)
+                        purge_pkg_result = subprocess.run(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', 'purge', '-y', package], capture_output=True, text=True)
                         logger.info(f'Removed and purged package: {package}')
                     except Exception as e:
                         logger.warning(f'Could not remove package {package}: {str(e)}')
@@ -2439,7 +2439,7 @@ def toggle_php_module():
                     last_error = ""
                     for variant in module_variants:
                         try:
-                            install_cmd = f"apt-get update && apt-get install {variant} -y"
+                            install_cmd = f"DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install {variant} -y"
                             install_result = subprocess.run(install_cmd, shell=True, capture_output=True, text=True)
                             if install_result.returncode == 0:
                                 installed = True
@@ -5277,7 +5277,7 @@ def handle_install_php_module(data):
                 'type': 'command'
             })
             
-            result = subprocess.run(['apt', 'update'], capture_output=True, text=True)
+            result = subprocess.run(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt', 'update'], capture_output=True, text=True)
             if result.returncode != 0:
                 socketio.emit('php_module_install_error', {
                     'message': f'Failed to update package list: {result.stderr}'
@@ -5325,7 +5325,7 @@ def handle_install_php_module(data):
                     'type': 'info'
                 })
                 
-                result = subprocess.run(['apt', 'install', '-y', package_name], capture_output=True, text=True)
+                result = subprocess.run(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt', 'install', '-y', package_name], capture_output=True, text=True)
                 if result.returncode == 0:
                     socketio.emit('php_module_install_output', {
                         'output': f'Successfully installed {package_name}',
@@ -5451,7 +5451,7 @@ def install_php_module():
                     'type': 'command'
                 })
                 
-                result = subprocess.run(['apt', 'update'], capture_output=True, text=True)
+                result = subprocess.run(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt', 'update'], capture_output=True, text=True)
                 if result.returncode != 0:
                     socketio.emit('php_module_install_error', {
                         'message': f'Failed to update package list: {result.stderr}'
@@ -5499,7 +5499,7 @@ def install_php_module():
                         'type': 'info'
                     })
                     
-                    result = subprocess.run(['apt', 'install', '-y', package_name], capture_output=True, text=True)
+                    result = subprocess.run(['env', 'DEBIAN_FRONTEND=noninteractive', 'apt', 'install', '-y', package_name], capture_output=True, text=True)
                     if result.returncode == 0:
                         socketio.emit('php_module_install_output', {
                             'output': f'Successfully installed {package_name}',

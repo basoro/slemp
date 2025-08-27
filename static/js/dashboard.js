@@ -237,7 +237,7 @@ async function updateServiceStatus() {
         const nginxButtons = document.querySelector('#nginx-buttons');
         if (nginxStatus && nginxButtons) {
             if (data.nginx.installed) {
-                nginxStatus.textContent = `Status: ${data.nginx.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.nginx.version} | PID: ${data.nginx.pid || 'N/A'}`;
+                nginxStatus.textContent = `Status: ${data.nginx.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.nginx.version}`;
                 nginxStatus.className = `text-sm ${data.nginx.running ? 'text-green-600' : 'text-red-600'}`;
                 if (nginxStatusBadge) {
                     nginxStatusBadge.textContent = data.nginx.running ? 'Running' : 'Stopped';
@@ -298,7 +298,7 @@ async function updateServiceStatus() {
         const phpButtons = document.querySelector('#php-buttons');
         if (phpStatus && phpButtons) {
             if (data.php_fpm.installed) {
-                phpStatus.textContent = `Status: ${data.php_fpm.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.php_fpm.version} | PID: ${data.php_fpm.pid || 'N/A'}`;
+                phpStatus.textContent = `Status: ${data.php_fpm.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.php_fpm.version}`;
                 phpStatus.className = `text-sm ${data.php_fpm.running ? 'text-green-600' : 'text-red-600'}`;
                 if (phpStatusBadge) {
                     phpStatusBadge.textContent = data.php_fpm.running ? 'Running' : 'Stopped';
@@ -359,7 +359,7 @@ async function updateServiceStatus() {
         const mysqlButtons = document.querySelector('#mysql-buttons');
         if (mysqlStatus && mysqlButtons) {
             if (data.mysql.installed) {
-                mysqlStatus.textContent = `Status: ${data.mysql.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.mysql.version} | PID: ${data.mysql.pid || 'N/A'}`;
+                mysqlStatus.textContent = `Status: ${data.mysql.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.mysql.version}`;
                 mysqlStatus.className = `text-sm ${data.mysql.running ? 'text-green-600' : 'text-red-600'}`;
                 if (mysqlStatusBadge) {
                     mysqlStatusBadge.textContent = data.mysql.running ? 'Running' : 'Stopped';
