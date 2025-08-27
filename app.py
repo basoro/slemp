@@ -638,7 +638,7 @@ def handle_install_service(data):
                 # Stop and disable the newly installed system service (only in production)
                 system_service_name = service_name
                 if service == 'php-fpm':
-                    system_service_name = 'php8.1-fpm'  # Adjust for PHP-FPM service name
+                    system_service_name = 'php8.3-fpm'  # Adjust for PHP-FPM service name
                 elif service == 'mysql':
                     system_service_name = 'mariadb'  # Adjust for MariaDB service name
                     
@@ -685,9 +685,13 @@ autorestart=true\n"""
                     
                     # Add PHP-FPM configuration to supervisord.conf
                     phpfpm_config = """\n[program:php-fpm]
-command=/usr/sbin/php-fpm8.1 -F
+command=/usr/sbin/php-fpm8.3 --nodaemonize --fpm-config /etc/php/8.3/fpm/php-fpm.conf
 autostart=true
-autorestart=true\n"""
+autorestart=true
+stderr_logfile=/var/log/php-fpm.err.log
+stdout_logfile=/var/log/php-fpm.out.log
+user=root
+stopsignal=QUIT\n"""
                     
                     socketio.emit('install_output', {'output': 'Menambahkan konfigurasi PHP-FPM ke supervisord.conf...', 'type': 'info'})
                     with open('/etc/supervisor/conf.d/supervisord.conf', 'a') as f:
@@ -1127,7 +1131,7 @@ def get_services_status():
                 installed = check_cmd.returncode == 0
             elif service_name == 'php-fpm':
                 # Check for common PHP-FPM paths
-                php_fpm_paths = ['/usr/sbin/php-fpm8.1', '/usr/sbin/php-fpm', 'php-fpm']
+                php_fpm_paths = ['/usr/sbin/php-fpm8.3', '/usr/sbin/php-fpm', 'php-fpm']
                 for php_fpm_path in php_fpm_paths:
                     check_cmd = subprocess.run(['which', php_fpm_path], capture_output=True, text=True)
                     if check_cmd.returncode == 0:
@@ -1170,7 +1174,7 @@ def get_services_status():
                         version = version_cmd.stderr.strip()
                 elif service_name == 'php-fpm':
                     # Try different PHP-FPM executable paths
-                    php_fpm_paths = ['/usr/sbin/php-fpm8.1', '/usr/sbin/php-fpm', 'php-fpm']
+                    php_fpm_paths = ['/usr/sbin/php-fpm8.3', '/usr/sbin/php-fpm', 'php-fpm']
                     for php_fpm_path in php_fpm_paths:
                         try:
                             version_cmd = subprocess.run([php_fpm_path, '-v'], capture_output=True, text=True)
@@ -1333,7 +1337,7 @@ def install_service(service):
             # Stop and disable the newly installed system service
             system_service_name = service_name
             if service == 'php-fpm':
-                system_service_name = 'php8.1-fpm'  # Adjust for PHP-FPM service name
+                system_service_name = 'php8.3-fpm'  # Adjust for PHP-FPM service name
             elif service == 'mysql':
                 system_service_name = 'mariadb'  # Adjust for MariaDB service name
                 
@@ -1387,9 +1391,13 @@ startretries=0\n"""
                 
                 # Add PHP-FPM configuration to supervisord.conf
                 phpfpm_config = """\n[program:php-fpm]
-command=/usr/sbin/php-fpm8.1 -F
+command=/usr/sbin/php-fpm8.3 --nodaemonize --fpm-config /etc/php/8.3/fpm/php-fpm.conf
 autostart=true
-autorestart=true\n"""
+autorestart=true
+stderr_logfile=/var/log/php-fpm.err.log
+stdout_logfile=/var/log/php-fpm.out.log
+user=root
+stopsignal=QUIT\n"""
                 
                 with open('/etc/supervisor/conf.d/supervisord.conf', 'a') as f:
                     f.write(phpfpm_config)
@@ -2060,7 +2068,7 @@ def create_vhost():
 
     location ~ \.php$ {{
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/php8.1-fpm.sock;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
     }}
 }}"""
 
@@ -2448,7 +2456,7 @@ def toggle_php_module():
                         }), 500
             
             # Enable the module in php.ini
-            php_ini_path = '/etc/php/8.1/fpm/php.ini'  # Adjust path as needed
+            php_ini_path = '/etc/php/8.3/fpm/php.ini'  # Adjust path as needed
             if os.path.exists(php_ini_path):
                 with open(php_ini_path, 'r') as f:
                     content = f.read()
@@ -2470,7 +2478,7 @@ def toggle_php_module():
         
         elif action == 'disable':
             # Disable the module in php.ini
-            php_ini_path = '/etc/php/8.1/fpm/php.ini'  # Adjust path as needed
+            php_ini_path = '/etc/php/8.3/fpm/php.ini'  # Adjust path as needed
             if os.path.exists(php_ini_path):
                 with open(php_ini_path, 'r') as f:
                     lines = f.readlines()
@@ -2548,7 +2556,7 @@ def get_service_logs(service):
     """Get service logs"""
     service_map = {
         'nginx': '/var/log/nginx/error.log',
-        'php-fpm': '/var/log/php8.1-fpm.log',
+        'php-fpm': '/var/log/php8.3-fpm.log',
         'mysql': '/var/log/mysql/error.log',
         'powerdns': '/var/log/pdns.log'
     }
@@ -3449,12 +3457,12 @@ def get_php_info():
                         php_info['config_file'] = line.split(':', 1)[1].strip()
                         break
                 else:
-                    php_info['config_file'] = '/etc/php/8.1/fpm/php.ini'
+                    php_info['config_file'] = '/etc/php/8.3/fpm/php.ini'
             else:
-                php_info['config_file'] = '/etc/php/8.1/fpm/php.ini'
+                php_info['config_file'] = '/etc/php/8.3/fpm/php.ini'
         except Exception as e:
             logger.warning(f'Error getting PHP config file: {str(e)}')
-            php_info['config_file'] = '/etc/php/8.1/fpm/php.ini'
+            php_info['config_file'] = '/etc/php/8.3/fpm/php.ini'
         
         # Get server API
         php_info['server_api'] = 'FPM/FastCGI'
@@ -4339,7 +4347,7 @@ def nginx_config():
             'message': f'Terjadi kesalahan: {str(e)}'
         }), 500
 
-def generate_vhost_config(domain, root_dir, ssl=False, ssl_cert='', ssl_key='', force_https=False, php_version='8.1', 
+def generate_vhost_config(domain, root_dir, ssl=False, ssl_cert='', ssl_key='', force_https=False, php_version='8.3', 
                           proxy_enabled=False, proxy_pass='', proxy_headers='', rewrite_rules='', 
                           index_files='index.html index.htm index.php', error_404='', error_500=''):
     """Generate nginx virtual host configuration"""
@@ -4453,7 +4461,7 @@ def update_vhost():
         ssl_cert = data.get('ssl_cert', '')
         ssl_key = data.get('ssl_key', '')
         force_https = data.get('force_https', False)
-        php_version = data.get('php_version', '8.1')
+        php_version = data.get('php_version', '8.3')
         custom_config = data.get('custom_config', '')
         
         # Get proxy settings
@@ -5308,7 +5316,7 @@ def handle_install_php_module(data):
             actual_module = module_mappings.get(module_name, module_name)
             
             # Try different package naming conventions
-            package_names = [f'php-{actual_module}', f'php8.1-{actual_module}', f'php8.2-{actual_module}', f'php8.3-{actual_module}']
+            package_names = [f'php-{actual_module}', f'php8.3-{actual_module}', f'php8.2-{actual_module}', f'php8.3-{actual_module}']
             installed = False
             
             for package_name in package_names:
@@ -5482,7 +5490,7 @@ def install_php_module():
                 actual_module = module_mappings.get(module_name, module_name)
                 
                 # Try different package naming conventions
-                package_names = [f'php-{actual_module}', f'php8.1-{actual_module}', f'php8.2-{actual_module}', f'php8.3-{actual_module}']
+                package_names = [f'php-{actual_module}', f'php8.3-{actual_module}', f'php8.2-{actual_module}', f'php8.3-{actual_module}']
                 installed = False
                 
                 for package_name in package_names:
@@ -5582,10 +5590,12 @@ def get_phpfpm_config():
         
         # Common PHP-FPM pool configuration paths
         pool_paths = [
+            '/etc/php/8.3/fpm/pool.d/www.conf',
             '/etc/php/8.2/fpm/pool.d/www.conf',
             '/etc/php/8.1/fpm/pool.d/www.conf',
             '/etc/php/8.0/fpm/pool.d/www.conf',
-            '/etc/php/7.4/fpm/pool.d/www.conf'
+            '/etc/php/7.4/fpm/pool.d/www.conf',
+            '/etc/php/7.3/fpm/pool.d/www.conf'
         ]
         
         config_content = ''
@@ -5603,7 +5613,7 @@ def get_phpfpm_config():
             config_content = '''[www]
 user = www-data
 group = www-data
-listen = /run/php/php8.1-fpm.sock
+listen = /run/php/php8.3-fpm.sock
 listen.owner = www-data
 listen.group = www-data
 listen.mode = 0660
@@ -5642,7 +5652,7 @@ def test_phpfpm_config():
         
         try:
             # Test the configuration
-            test_cmd = ['php-fpm8.1', '-t', '-y', temp_path]
+            test_cmd = ['php-fpm8.3', '-t', '-y', temp_path]
             result = subprocess.run(test_cmd, capture_output=True, text=True)
             
             if result.returncode == 0:
@@ -5671,10 +5681,12 @@ def save_phpfpm_config():
         
         # Find the correct pool configuration file
         pool_paths = [
+            '/etc/php/8.3/fpm/pool.d/www.conf',
             '/etc/php/8.2/fpm/pool.d/www.conf',
             '/etc/php/8.1/fpm/pool.d/www.conf',
             '/etc/php/8.0/fpm/pool.d/www.conf',
-            '/etc/php/7.4/fpm/pool.d/www.conf'
+            '/etc/php/7.4/fpm/pool.d/www.conf',
+            '/etc/php/7.3/fpm/pool.d/www.conf'
         ]
         
         config_file = None
@@ -5685,7 +5697,7 @@ def save_phpfpm_config():
         
         if not config_file:
             # Use default path if none found
-            config_file = '/etc/php/8.1/fpm/pool.d/www.conf'
+            config_file = '/etc/php/8.3/fpm/pool.d/www.conf'
             # Create directory if it doesn't exist
             os.makedirs(os.path.dirname(config_file), exist_ok=True)
         
@@ -5700,7 +5712,7 @@ def save_phpfpm_config():
             f.write(config)
         
         # Test the configuration before restarting
-        test_cmd = ['php-fpm8.1', '-t']
+        test_cmd = ['php-fpm8.3', '-t']
         test_result = subprocess.run(test_cmd, capture_output=True, text=True)
         
         if test_result.returncode != 0:
@@ -5734,10 +5746,12 @@ def get_phpini_config():
         
         # Common PHP.ini paths
         ini_paths = [
+            '/etc/php/8.3/fpm/php.ini',
             '/etc/php/8.2/fpm/php.ini',
             '/etc/php/8.1/fpm/php.ini',
             '/etc/php/8.0/fpm/php.ini',
-            '/etc/php/7.4/fpm/php.ini'
+            '/etc/php/7.4/fpm/php.ini',
+            '/etc/php/7.3/fpm/php.ini'
         ]
         
         config_content = ''
@@ -5811,10 +5825,12 @@ def save_phpini_config():
         
         # Find the correct PHP.ini file
         ini_paths = [
+            '/etc/php/8.3/fpm/php.ini',
             '/etc/php/8.2/fpm/php.ini',
             '/etc/php/8.1/fpm/php.ini',
             '/etc/php/8.0/fpm/php.ini',
-            '/etc/php/7.4/fpm/php.ini'
+            '/etc/php/7.4/fpm/php.ini',
+            '/etc/php/7.3/fpm/php.ini'
         ]
         
         config_file = None

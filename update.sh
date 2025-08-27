@@ -3,11 +3,11 @@ set -e
 
 echo "===> Updating SLEMP Panel..."
 echo "===> Download panel.zip..."
-wget https://github.com/basoro/slemp/archive/refs/heads/sabrina.zip  -O /tmp/panel.zip
-unzip /tmp/panel.zip -d /tmp
-rm -f /tmp/slemp-sabrina/data/config.json
-cp -aR /tmp/slemp-sabrina/* /opt/slemp/
-rm -rf /tmp/slemp-sabrina
+wget https://github.com/basoro/slemp/archive/refs/heads/sabrina.zip  -O ~/slemp.zip
+unzip ~/slemp.zip -d ~/slemp
+rm -f ~/slemp/data/config.json
+cp -aR ~/slemp/* /opt/slemp/
+rm -rf ~/slemp
 
 echo "===> Setup Python Virtual Environment..."
 python3 -m venv /opt/slemp-venv

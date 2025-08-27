@@ -11,9 +11,9 @@ apt-get install -y --no-install-recommends \
 apt-get clean && rm -rf /var/lib/apt/lists/*
 
 echo "===> Download panel.zip..."
-wget https://github.com/basoro/slemp/archive/refs/heads/sabrina.zip  -O /tmp/panel.zip
-unzip /tmp/panel.zip -d /opt
-mv /opt/slemp-sabrina /opt/slemp
+wget https://github.com/basoro/slemp/archive/refs/heads/sabrina.zip  -O ~/slemp.zip
+unzip ~/slemp.zip -d ~/slemp
+mv ~/slemp/slemp-sabrina /opt/slemp 
 mkdir /opt/slemp/data/www
 
 echo "===> Setup Python Virtual Environment..."
