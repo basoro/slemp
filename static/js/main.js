@@ -767,7 +767,7 @@ function formatDate(timestamp) {
     return new Date(timestamp * 1000).toLocaleString();
 }
 
-async function loadFiles(path = '/var/www/html') {
+async function loadFiles(path = '/opt/slemp/data/www') {
     try {
         const response = await fetch(`/api/files?path=${encodeURIComponent(path)}`);
         const files = await response.json();
@@ -2121,7 +2121,7 @@ async function createVirtualHost() {
     const domain = await showPrompt('Enter domain name:', '', 'Add Virtual Host');
     if (!domain) return;
 
-    const rootDir = await showPrompt('Enter root directory:', '/var/www/html/' + domain, 'Root Directory');
+    const rootDir = await showPrompt('Enter root directory:', '/opt/slemp/data/www/' + domain, 'Root Directory');
     if (!rootDir) return;
 
     try {

@@ -233,11 +233,20 @@ async function updateServiceStatus() {
         
         // Update status Nginx
         const nginxStatus = document.getElementById('nginx-status');
+        const nginxStatusBadge = document.getElementById('nginx-status-badge');
         const nginxButtons = document.querySelector('#nginx-buttons');
         if (nginxStatus && nginxButtons) {
             if (data.nginx.installed) {
                 nginxStatus.textContent = `Status: ${data.nginx.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.nginx.version} | PID: ${data.nginx.pid || 'N/A'}`;
                 nginxStatus.className = `text-sm ${data.nginx.running ? 'text-green-600' : 'text-red-600'}`;
+                if (nginxStatusBadge) {
+                    nginxStatusBadge.textContent = data.nginx.running ? 'Running' : 'Stopped';
+                    nginxStatusBadge.className = `px-2 py-1 text-xs font-medium rounded-full ${
+                        data.nginx.running 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                    }`;
+                }
                 nginxButtons.innerHTML = `
                     <button onclick="startService('nginx')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                         <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -268,6 +277,10 @@ async function updateServiceStatus() {
             } else {
                 nginxStatus.textContent = 'Status: Tidak Terinstall';
                 nginxStatus.className = 'text-sm text-gray-500';
+                if (nginxStatusBadge) {
+                    nginxStatusBadge.textContent = 'Not Installed';
+                    nginxStatusBadge.className = 'px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-full';
+                }
                 nginxButtons.innerHTML = `
                     <button onclick="installService('nginx')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -281,11 +294,20 @@ async function updateServiceStatus() {
 
         // Update status PHP-FPM
         const phpStatus = document.getElementById('php-status');
+        const phpStatusBadge = document.getElementById('php-status-badge');
         const phpButtons = document.querySelector('#php-buttons');
         if (phpStatus && phpButtons) {
             if (data.php_fpm.installed) {
                 phpStatus.textContent = `Status: ${data.php_fpm.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.php_fpm.version} | PID: ${data.php_fpm.pid || 'N/A'}`;
                 phpStatus.className = `text-sm ${data.php_fpm.running ? 'text-green-600' : 'text-red-600'}`;
+                if (phpStatusBadge) {
+                    phpStatusBadge.textContent = data.php_fpm.running ? 'Running' : 'Stopped';
+                    phpStatusBadge.className = `px-2 py-1 text-xs font-medium rounded-full ${
+                        data.php_fpm.running 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                    }`;
+                }
                 phpButtons.innerHTML = `
                     <button onclick="startService('php-fpm')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                         <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -316,6 +338,10 @@ async function updateServiceStatus() {
             } else {
                 phpStatus.textContent = 'Status: Tidak Terinstall';
                 phpStatus.className = 'text-sm text-gray-500';
+                if (phpStatusBadge) {
+                    phpStatusBadge.textContent = 'Not Installed';
+                    phpStatusBadge.className = 'px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-full';
+                }
                 phpButtons.innerHTML = `
                     <button onclick="installService('php-fpm')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -329,11 +355,20 @@ async function updateServiceStatus() {
 
         // Update status MySQL
         const mysqlStatus = document.getElementById('mysql-status');
+        const mysqlStatusBadge = document.getElementById('mysql-status-badge');
         const mysqlButtons = document.querySelector('#mysql-buttons');
         if (mysqlStatus && mysqlButtons) {
             if (data.mysql.installed) {
                 mysqlStatus.textContent = `Status: ${data.mysql.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.mysql.version} | PID: ${data.mysql.pid || 'N/A'}`;
                 mysqlStatus.className = `text-sm ${data.mysql.running ? 'text-green-600' : 'text-red-600'}`;
+                if (mysqlStatusBadge) {
+                    mysqlStatusBadge.textContent = data.mysql.running ? 'Running' : 'Stopped';
+                    mysqlStatusBadge.className = `px-2 py-1 text-xs font-medium rounded-full ${
+                        data.mysql.running 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                    }`;
+                }
                 mysqlButtons.innerHTML = `
                     <button onclick="startService('mysql')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                         <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -364,6 +399,10 @@ async function updateServiceStatus() {
             } else {
                 mysqlStatus.textContent = 'Status: Tidak Terinstall';
                 mysqlStatus.className = 'text-sm text-gray-500';
+                if (mysqlStatusBadge) {
+                    mysqlStatusBadge.textContent = 'Not Installed';
+                    mysqlStatusBadge.className = 'px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-full';
+                }
                 mysqlButtons.innerHTML = `
                     <button onclick="installService('mysql')" class="service-btn px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -426,6 +465,14 @@ async function updateServiceStatus() {
             if (element) {
                 element.textContent = 'Error: Tidak dapat memuat status';
                 element.className = 'text-sm text-red-600';
+            }
+        });
+        // Set status badges to error state
+        ['nginx-status-badge', 'php-status-badge', 'mysql-status-badge'].forEach(id => {
+            const badge = document.getElementById(id);
+            if (badge) {
+                badge.textContent = 'Error';
+                badge.className = 'px-2 py-1 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full';
             }
         });
     }

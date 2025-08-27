@@ -246,7 +246,7 @@ async function createVirtualHost() {
     const domain = await showPrompt('Enter domain name:', '', 'Add Virtual Host');
     if (!domain) return;
 
-    const rootDir = await showPrompt('Enter root directory:', '/var/www/html/' + domain, 'Root Directory');
+    const rootDir = await showPrompt('Enter root directory:', '/opt/slemp/data/www/' + domain, 'Root Directory');
     if (!rootDir) return;
 
     try {

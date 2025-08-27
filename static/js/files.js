@@ -3,7 +3,7 @@ let currentPath = '/';
 let allFiles = []; // Store all files for search functionality
 let isSearchActive = false;
 
-async function loadFiles(path = '/var/www/html') {
+async function loadFiles(path = '/opt/slemp/data/www') {
     try {
         const response = await fetch(`/api/files?path=${encodeURIComponent(path)}`);
         const files = await response.json();

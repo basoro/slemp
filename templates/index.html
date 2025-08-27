@@ -96,20 +96,16 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Version: 1.21.6</p>
                                 </div>
                             </div>
-                            <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full" id="nginx-status-badge">Running</span>
+                            <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-full" id="nginx-status-badge">Loading...</span>
                         </div>
                         <div class="space-y-2">
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-600 dark:text-gray-400">Uptime:</span>
-                                <span class="text-gray-900 dark:text-white" id="nginx-uptime">3d 19h 26m</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600 dark:text-gray-400">PID:</span>
-                                <span class="text-gray-900 dark:text-white" id="nginx-pid">1234</span>
+                                <span class="text-gray-600 dark:text-gray-400">Status:</span>
+                                <span class="text-gray-900 dark:text-white" id="nginx-status">Loading...</span>
                             </div>
                         </div>
-                        <div class="mt-4 flex space-x-2">
-                            <button onclick="manageService('nginx', 'start')" class="flex-1 px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">Manage</button>
+                        <div class="mt-4 flex space-x-2" id="nginx-buttons">
+                            <button class="flex-1 px-3 py-1 text-xs bg-gray-400 text-white rounded cursor-not-allowed">Loading...</button>
                         </div>
                     </div>
 
@@ -127,20 +123,16 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Version: 8.2</p>
                                 </div>
                             </div>
-                            <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full" id="php-status-badge">Running</span>
+                            <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-full" id="php-status-badge">Loading...</span>
                         </div>
                         <div class="space-y-2">
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-600 dark:text-gray-400">Uptime:</span>
-                                <span class="text-gray-900 dark:text-white" id="php-uptime">3d 19h 14m</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600 dark:text-gray-400">PID:</span>
-                                <span class="text-gray-900 dark:text-white" id="php-pid">5678</span>
+                                <span class="text-gray-600 dark:text-gray-400">Status:</span>
+                                <span class="text-gray-900 dark:text-white" id="php-status">Loading...</span>
                             </div>
                         </div>
-                        <div class="mt-4 flex space-x-2">
-                            <button onclick="manageService('php-fpm', 'start')" class="flex-1 px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">Manage</button>
+                        <div class="mt-4 flex space-x-2" id="php-buttons">
+                            <button class="flex-1 px-3 py-1 text-xs bg-gray-400 text-white rounded cursor-not-allowed">Loading...</button>
                         </div>
                     </div>
 
@@ -158,20 +150,16 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Version: 8.0.33</p>
                                 </div>
                             </div>
-                            <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full" id="mysql-status-badge">Running</span>
+                            <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-full" id="mysql-status-badge">Loading...</span>
                         </div>
                         <div class="space-y-2">
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-600 dark:text-gray-400">Uptime:</span>
-                                <span class="text-gray-900 dark:text-white" id="mysql-uptime">3d 19h 44m</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600 dark:text-gray-400">PID:</span>
-                                <span class="text-gray-900 dark:text-white" id="mysql-pid">9012</span>
+                                <span class="text-gray-600 dark:text-gray-400">Status:</span>
+                                <span class="text-gray-900 dark:text-white" id="mysql-status">Loading...</span>
                             </div>
                         </div>
-                        <div class="mt-4 flex space-x-2">
-                            <button onclick="manageService('mysql', 'start')" class="flex-1 px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">Manage</button>
+                        <div class="mt-4 flex space-x-2" id="mysql-buttons">
+                            <button class="flex-1 px-3 py-1 text-xs bg-gray-400 text-white rounded cursor-not-allowed">Loading...</button>
                         </div>
                     </div>
                 </div>

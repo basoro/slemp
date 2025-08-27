@@ -717,24 +717,24 @@ autorestart=true\n"""
                     socketio.emit('install_output', {'output': '$ chmod 755 /run/mysqld', 'type': 'command'})
                     subprocess.run(['chmod', '755', '/run/mysqld'], capture_output=True, text=True, timeout=10)
                     # Check if mysql folder exists and rename it with datetime if it does
-                    mysql_data_path = '/var/www/panel/data/mysql'
+                    mysql_data_path = '/opt/slemp/data/mysql'
                     if os.path.exists(mysql_data_path):
                         from datetime import datetime
                         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                        backup_path = f'/var/www/panel/data/mysql-{timestamp}'
+                        backup_path = f'/opt/slemp/data/mysql-{timestamp}'
                         socketio.emit('install_output', {'output': f'Folder mysql sudah ada, memindahkan ke mysql-{timestamp}', 'type': 'info'})
                         subprocess.run(['mv', mysql_data_path, backup_path], capture_output=True, text=True)
                     
-                    subprocess.run(['mkdir', '-p', '/var/www/panel/data/mysql'], capture_output=True, text=True)
-                    subprocess.run(['chown', 'mysql:mysql', '/var/www/panel/data/mysql'], capture_output=True, text=True)
-                    subprocess.run(['mysql_install_db', '--user=mysql', '--basedir=/usr', '--datadir=/var/www/panel/data/mysql'])
+                    subprocess.run(['mkdir', '-p', '/opt/slemp/data/mysql'], capture_output=True, text=True)
+                    subprocess.run(['chown', 'mysql:mysql', '/opt/slemp/data/mysql'], capture_output=True, text=True)
+                    subprocess.run(['mysql_install_db', '--user=mysql', '--basedir=/usr', '--datadir=/opt/slemp/data/mysql'])
 
                     # MariaDB specific configuration
                     socketio.emit('install_output', {'output': 'Mengkonfigurasi MariaDB untuk supervisord...', 'type': 'info'})
                     
                     # Add MariaDB configuration to supervisord.conf
                     mariadb_config = """\n[program:mariadb]
-command=/usr/sbin/mariadbd --basedir=/usr --datadir=/var/www/panel/data/mysql --plugin-dir=/usr/lib/mysql/plugin --user=mysql --skip-log-error --pid-file=/run/mysqld/mysqld.pid --socket=/run/mysqld/mysqld.sock
+command=/usr/sbin/mariadbd --basedir=/usr --datadir=/opt/slemp/data/mysql --plugin-dir=/usr/lib/mysql/plugin --user=mysql --skip-log-error --pid-file=/run/mysqld/mysqld.pid --socket=/run/mysqld/mysqld.sock
 autostart=true
 autorestart=true
 killasgroup=true
@@ -1409,21 +1409,21 @@ autorestart=true\n"""
                 subprocess.run(['chown', 'mysql:mysql', '/run/mysqld'], capture_output=True, text=True)
                 subprocess.run(['chmod', '755', '/run/mysqld'], capture_output=True, text=True)
                 # Check if mysql folder exists and rename it with datetime if it does
-                mysql_data_path = '/var/www/panel/data/mysql'
+                mysql_data_path = '/opt/slemp/data/mysql'
                 if os.path.exists(mysql_data_path):
                     from datetime import datetime
                     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                    backup_path = f'/var/www/panel/data/mysql-{timestamp}'
+                    backup_path = f'/opt/slemp/data/mysql-{timestamp}'
                     socketio.emit('install_output', {'output': f'Folder mysql sudah ada, memindahkan ke mysql-{timestamp}', 'type': 'info'})
                     subprocess.run(['mv', mysql_data_path, backup_path], capture_output=True, text=True)
                     
-                subprocess.run(['mkdir', '-p', '/var/www/panel/data/mysql'], capture_output=True, text=True)
-                subprocess.run(['chown', 'mysql:mysql', '/var/www/panel/data/mysql'], capture_output=True, text=True)
-                subprocess.run(['mysql_install_db', '--user=mysql', '--basedir=/usr', '--datadir=/var/www/panel/data/mysql'])
+                subprocess.run(['mkdir', '-p', '/opt/slemp/data/mysql'], capture_output=True, text=True)
+                subprocess.run(['chown', 'mysql:mysql', '/opt/slemp/data/mysql'], capture_output=True, text=True)
+                subprocess.run(['mysql_install_db', '--user=mysql', '--basedir=/usr', '--datadir=/opt/slemp/data/mysql'])
                 
                 # Add MariaDB configuration to supervisord.conf
                 mariadb_config = """\n[program:mariadb]
-command=/usr/sbin/mariadbd --basedir=/usr --datadir=/var/www/panel/data/mysql --plugin-dir=/usr/lib/mysql/plugin --user=mysql --skip-log-error --pid-file=/run/mysqld/mysqld.pid --socket=/run/mysqld/mysqld.sock
+command=/usr/sbin/mariadbd --basedir=/usr --datadir=/opt/slemp/data/mysql --plugin-dir=/usr/lib/mysql/plugin --user=mysql --skip-log-error --pid-file=/run/mysqld/mysqld.pid --socket=/run/mysqld/mysqld.sock
 autostart=true
 autorestart=true
 killasgroup=true
@@ -4142,7 +4142,7 @@ def update_app():
         
         # Restart SLEMP menggunakan supervisorctl
         result = subprocess.run(
-            ['bash', '/var/www/panel/update.sh'],
+            ['bash', '/opt/slemp/update.sh'],
             capture_output=True,
             text=True,
             timeout=300  # Increased timeout to 5 minutes for update process
@@ -6522,8 +6522,8 @@ class TerminalNamespace(Namespace):
                 os.environ['TERM'] = 'xterm-256color'
                 os.environ['PS1'] = '\[\033[01;32m\]slemp@container\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$ '
                 
-                # Set default working directory to /var/www/html
-                os.chdir('/var/www/html')
+                # Set default working directory to /opt/slemp/data/wwwl
+                os.chdir('/opt/slemp/data/www')
                 
                 # Execute bash
                 os.execvp('/bin/bash', ['/bin/bash'])
