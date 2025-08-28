@@ -1164,7 +1164,12 @@ def get_services_status():
                 else:
                     status_cmd = subprocess.run(['pgrep', process_name], capture_output=True, text=True)
                     running = status_cmd.returncode == 0
-                    pid = status_cmd.stdout.strip() if running else None
+                    if running and status_cmd.stdout.strip():
+                        # Split PIDs by newline and take only first 2
+                        pids = status_cmd.stdout.strip().split('\n')
+                        pid = pids[:2]  # Take only first 2 PIDs
+                    else:
+                        pid = None
 
                 # Dapatkan versi
                 if service_name == 'nginx':
@@ -2429,10 +2434,7 @@ def toggle_php_module():
                     
                     # Try different naming conventions for PHP modules
                     module_variants = [
-                        f"php-{actual_module}",
-                        f"php8.1-{actual_module}",
-                        f"php8.2-{actual_module}",
-                        f"php8.3-{actual_module}"
+                        f"php-{actual_module}"
                     ]
                     
                     installed = False
@@ -5316,7 +5318,7 @@ def handle_install_php_module(data):
             actual_module = module_mappings.get(module_name, module_name)
             
             # Try different package naming conventions
-            package_names = [f'php-{actual_module}', f'php8.3-{actual_module}', f'php8.2-{actual_module}', f'php8.3-{actual_module}']
+            package_names = [f'php-{actual_module}']
             installed = False
             
             for package_name in package_names:
@@ -5490,7 +5492,7 @@ def install_php_module():
                 actual_module = module_mappings.get(module_name, module_name)
                 
                 # Try different package naming conventions
-                package_names = [f'php-{actual_module}', f'php8.3-{actual_module}', f'php8.2-{actual_module}', f'php8.3-{actual_module}']
+                package_names = [f'php-{actual_module}']
                 installed = False
                 
                 for package_name in package_names:

@@ -237,7 +237,23 @@ async function updateServiceStatus() {
         const nginxButtons = document.querySelector('#nginx-buttons');
         if (nginxStatus && nginxButtons) {
             if (data.nginx.installed) {
-                nginxStatus.textContent = `Status: ${data.nginx.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.nginx.version}`;
+                nginxStatus.innerHTML = `
+                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                        <div>Version: ${data.nginx.version}</div>
+                        <div class="flex items-center mt-1">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Uptime: ${data.nginx.uptime || ''}
+                        </div>
+                        <div class="flex items-center mt-1">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            PID: ${data.nginx.pid ? (Array.isArray(data.nginx.pid) ? data.nginx.pid.join(', ') : data.nginx.pid) : '-'}
+                        </div>
+                    </div>
+                `;
                 nginxStatus.className = `text-sm ${data.nginx.running ? 'text-green-600' : 'text-red-600'}`;
                 if (nginxStatusBadge) {
                     nginxStatusBadge.textContent = data.nginx.running ? 'Running' : 'Stopped';
@@ -298,7 +314,23 @@ async function updateServiceStatus() {
         const phpButtons = document.querySelector('#php-buttons');
         if (phpStatus && phpButtons) {
             if (data.php_fpm.installed) {
-                phpStatus.textContent = `Status: ${data.php_fpm.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.php_fpm.version}`;
+                phpStatus.innerHTML = `
+                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                        <div>Version: ${data.php_fpm.version}</div>
+                        <div class="flex items-center mt-1">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Uptime: ${data.php_fpm.uptime || ''}
+                        </div>
+                        <div class="flex items-center mt-1">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            PID: ${data.php_fpm.pid ? (Array.isArray(data.php_fpm.pid) ? data.php_fpm.pid.join(', ') : data.php_fpm.pid) : '-'}
+                        </div>
+                    </div>
+                `;
                 phpStatus.className = `text-sm ${data.php_fpm.running ? 'text-green-600' : 'text-red-600'}`;
                 if (phpStatusBadge) {
                     phpStatusBadge.textContent = data.php_fpm.running ? 'Running' : 'Stopped';
@@ -359,7 +391,23 @@ async function updateServiceStatus() {
         const mysqlButtons = document.querySelector('#mysql-buttons');
         if (mysqlStatus && mysqlButtons) {
             if (data.mysql.installed) {
-                mysqlStatus.textContent = `Status: ${data.mysql.running ? 'Berjalan' : 'Berhenti'} | Version: ${data.mysql.version}`;
+                mysqlStatus.innerHTML = `
+                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                        <div>Version: ${data.mysql.version}</div>
+                        <div class="flex items-center mt-1">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Uptime: ${data.mysql.uptime || ''}
+                        </div>
+                        <div class="flex items-center mt-1">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            PID: ${data.mysql.pid ? (Array.isArray(data.mysql.pid) ? data.mysql.pid.join(', ') : data.mysql.pid) : '-'}
+                        </div>
+                    </div>
+                `;
                 mysqlStatus.className = `text-sm ${data.mysql.running ? 'text-green-600' : 'text-red-600'}`;
                 if (mysqlStatusBadge) {
                     mysqlStatusBadge.textContent = data.mysql.running ? 'Running' : 'Stopped';
