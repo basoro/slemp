@@ -1,0 +1,1185 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Header -->
+        <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+            <div class="px-5 pb-1 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">                            
+                        <div class="flex items-center" onclick="toggleSidebarCollapse()" style="cursor: pointer;">
+                            <svg class="h-7 w-7 text-gray-600 dark:text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Theme Toggle -->
+                        <div class="relative" id="theme-dropdown">
+                            <button onclick="toggleThemeDropdown()" id="theme-toggle" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <svg id="theme-icon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path id="theme-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                            </button>
+                            <div id="theme-dropdown-menu" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                                <div class="py-1">
+                                    <button onclick="setTheme('light')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                        </svg>
+                                        Light
+                                    </button>
+                                    <button onclick="setTheme('dark')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                        </svg>
+                                        Dark
+                                    </button>
+                                    <button onclick="setTheme('system')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                        </svg>
+                                        System
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Password Change -->
+                        <button onclick="showChangePasswordModal()" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0 1 21 9z"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Logout -->
+                        <a href="{{ url_for('logout') }}" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+         
+       <main class="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
+            <!-- Header -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg p-6 mb-8 transition-colors duration-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 text-red-600 dark:text-red-400 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1Z"/>
+                        </svg>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Fail2ban Manager</h1>
+                            <p class="text-gray-600 dark:text-gray-400">Monitor and manage intrusion prevention system</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="refreshData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                            </svg>
+                            Refresh
+                        </button>
+                        <button onclick="showBanIpModal()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M14.5,9L12,11.5L9.5,9L8,10.5L10.5,13L8,15.5L9.5,17L12,14.5L14.5,17L16,15.5L13.5,13L16,10.5L14.5,9Z"/>
+                            </svg>
+                            Ban IP
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+                <!-- Service Status -->
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm dark:shadow-lg p-6 transition-all duration-200 hover:shadow-md dark:hover:shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Service Status</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white" id="service-status">-</p>
+                            <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Fail2ban service</p>
+                        </div>
+                        <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-full">
+                            <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Jails -->
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm dark:shadow-lg p-6 transition-all duration-200 hover:shadow-md dark:hover:shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Total Jails</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="total-jails">0</p>
+                            <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Configured jails</p>
+                        </div>
+                        <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full">
+                            <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M19,19H5V5H19V19Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Jails -->
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm dark:shadow-lg p-6 transition-all duration-200 hover:shadow-md dark:hover:shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Active Jails</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="active-jails">0</p>
+                            <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Running jails</p>
+                        </div>
+                        <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-full">
+                            <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Banned -->
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm dark:shadow-lg p-6 transition-all duration-200 hover:shadow-md dark:hover:shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Banned IPs</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="total-banned">0</p>
+                            <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Currently banned</p>
+                        </div>
+                        <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded-full">
+                            <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M14.5,9L12,11.5L9.5,9L8,10.5L10.5,13L8,15.5L9.5,17L12,14.5L14.5,17L16,15.5L13.5,13L16,10.5L14.5,9Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Version -->
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm dark:shadow-lg p-6 transition-all duration-200 hover:shadow-md dark:hover:shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Version</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white" id="fail2ban-version">-</p>
+                            <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Fail2ban version</p>
+                        </div>
+                        <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-full">
+                            <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button id="install-fail2ban-btn" onclick="installFail2ban()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                            Install Fail2ban
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auto Monitoring Status -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg p-6 mb-8 transition-colors duration-200">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Auto Monitoring Service</h2>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 mr-2">Status:</span>
+                                <span id="monitoringStatus" class="px-2 py-1 rounded-full text-xs font-medium">Unknown</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 mr-2">Auto-start:</span>
+                                <span id="monitoringEnabled" class="px-2 py-1 rounded-full text-xs font-medium">Unknown</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button id="startMonitoringBtn" onclick="startAutoMonitoring()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15M9 10v4a1 1 0 001 1h4M9 10V9a1 1 0 011-1h4a1 1 0 011 1v1M9 10H8a1 1 0 00-1 1v3a1 1 0 001 1h1m0-4h4m0 0v4m0-4V9m0 4h1m-1 0H9"></path>
+                            </svg>
+                            Start
+                        </button>
+                        <button id="stopMonitoringBtn" onclick="stopAutoMonitoring()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+                            </svg>
+                            Stop
+                        </button>
+                        <button onclick="runManualMonitoring()" class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors text-sm">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Run Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jails Table -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg mb-8 transition-colors duration-200">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Jails Status</h2>
+                    <p class="text-gray-600 dark:text-gray-400 mt-1">Monitor and manage fail2ban jails</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Jail Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Filter</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Failed</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Banned</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jails-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <!-- Jails will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Banned IPs Table -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg mb-8 transition-colors duration-200">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Banned IP Addresses</h2>
+                    <p class="text-gray-600 dark:text-gray-400 mt-1">Currently banned IP addresses across all jails</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">IP Address</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Jail</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="banned-ips-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <!-- Banned IPs will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Logs Section -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg transition-colors duration-200">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Fail2ban Logs</h2>
+                            <p class="text-gray-600 dark:text-gray-400 mt-1">Recent fail2ban activity logs</p>
+                        </div>
+                        <button onclick="refreshLogs()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                            </svg>
+                            Refresh Logs
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm max-h-96 overflow-y-auto" id="logs-container">
+                        <!-- Logs will be populated here -->
+                    </div>
+                </div>
+            </div>
+       </main>
+    </div>
+
+    <!-- Ban IP Modal -->
+    <div id="banIpModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Ban IP Address</h3>
+            <form id="banIpForm">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jail</label>
+                    <select id="banJailSelect" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                        <!-- Jails will be populated here -->
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">IP Address</label>
+                    <input type="text" id="banIpInput" placeholder="192.168.1.100" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="hideBanIpModal()" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Cancel</button>
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">Ban IP</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+    <!-- Auto Config Modal -->
+    <div id="autoConfigModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Auto Config Jail: <span id="autoConfigJailName" class="text-blue-600 dark:text-blue-400"></span></h3>
+                <button onclick="hideAutoConfigModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <input type="checkbox" id="autoEnabled" class="mr-2">
+                    <label for="autoEnabled" class="text-sm font-medium text-gray-700 dark:text-gray-300">Enable Auto Activation</label>
+                </div>
+                
+                <div>
+                    <label for="autoMaxRetry" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Retry (attempts before ban)</label>
+                    <input type="number" id="autoMaxRetry" min="1" max="100" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                </div>
+                
+                <div>
+                    <label for="autoFindTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Find Time (seconds to count failures)</label>
+                    <input type="number" id="autoFindTime" min="60" max="86400" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                </div>
+                
+                <div>
+                    <label for="autoBanTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ban Time (seconds to ban IP)</label>
+                    <input type="number" id="autoBanTime" min="60" max="86400" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                </div>
+                
+                <div>
+                    <label for="autoBanAction" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ban Action (firewall backend)</label>
+                    <select id="autoBanAction" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                        <option value="ufw">UFW (Uncomplicated Firewall)</option>
+                        <option value="iptables">iptables</option>
+                        <option value="iptables-multiport">iptables-multiport</option>
+                        <option value="iptables-allports">iptables-allports</option>
+                        <option value="firewallcmd-ipset">firewalld (ipset)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3 mt-6">
+                <button onclick="hideAutoConfigModal()" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Cancel</button>
+                <button id="saveAutoConfigBtn" onclick="saveAutoJailConfig()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentData = {};
+
+        // Refresh all data
+        function refreshData() {
+            getSystemInfo();
+            getJailsStatus();
+            refreshLogs();
+            updateMonitoringStatus();
+        }
+        
+        // Make refreshData globally accessible
+        window.refreshData = refreshData;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded - initializing page');
+            console.log('About to call getSystemInfo');
+            getSystemInfo();
+            console.log('About to call refreshData');
+            refreshData();
+        });
+        
+        // Get system info
+        function getSystemInfo() {
+            console.log('getSystemInfo called');
+            const installBtn = document.getElementById('install-fail2ban-btn');
+            console.log('Install button found:', installBtn);
+            
+            fetch('/api/plugins/fail2ban/get_system_info', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: ''
+                })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                
+                // Check if fail2ban is not installed (either error or service_status indicates not installed)
+                const isNotInstalled = data.error || 
+                                        (data.service_status && (data.service_status.includes('Not installed') || 
+                                                                data.service_status.includes('not installed') ||
+                                                                data.service_status.includes('not found')));
+                
+                if (isNotInstalled) {
+                    console.log('Fail2ban not installed, showing install button');
+                    
+                    // Set error status display
+                    document.getElementById('service-status').textContent = 'Not installed';
+                    document.getElementById('total-jails').textContent = '0';
+                    document.getElementById('active-jails').textContent = '0';
+                    document.getElementById('total-banned').textContent = '0';
+                    document.getElementById('fail2ban-version').textContent = 'Not installed';
+                    
+                    // Show install button
+                    const installBtn = document.getElementById('install-fail2ban-btn');
+                    if (installBtn) {
+                        console.log('Showing install button');
+                        installBtn.classList.remove('hidden');
+                        installBtn.classList.add('show-install-btn');
+                        installBtn.style.display = 'block';
+                        installBtn.style.visibility = 'visible';
+                    } else {
+                        console.error('Install button not found');
+                    }
+                    return;
+                }
+                
+                console.log('Fail2ban is installed and working, hiding install button');
+                document.getElementById('service-status').textContent = data.service_status || 'Unknown';
+                document.getElementById('total-jails').textContent = data.total_jails || 0;
+                document.getElementById('active-jails').textContent = data.active_jails || 0;
+                document.getElementById('total-banned').textContent = data.total_banned || 0;
+                document.getElementById('fail2ban-version').textContent = data.version || 'Unknown';
+                
+                // Hide install button if fail2ban is working
+                const installBtn = document.getElementById('install-fail2ban-btn');
+                if (installBtn) {
+                    installBtn.classList.add('hidden');
+                    installBtn.classList.remove('show-install-btn');
+                    installBtn.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                // Show install button on network/connection errors
+                const installBtn = document.getElementById('install-fail2ban-btn');
+                if (installBtn) {
+                    console.log('Network error, showing install button');
+                    installBtn.classList.remove('hidden');
+                    installBtn.classList.add('show-install-btn');
+                    installBtn.style.display = 'block';
+                    installBtn.style.visibility = 'visible';
+                }
+            });
+        }
+
+        // Get jails status
+        function getJailsStatus() {
+            fetch('/api/plugins/fail2ban/get_jail_status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: ''
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Error:', data.error);
+                    return;
+                }
+                
+                currentData.jails = data;
+                updateJailsTable(data);
+                updateBannedIpsTable(data);
+                updateJailSelect(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        // Update jails table
+        function updateJailsTable(jails) {
+            const tbody = document.getElementById('jails-table-body');
+            tbody.innerHTML = '';
+            
+            if (!Array.isArray(jails)) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No jails found</td></tr>';
+                return;
+            }
+            
+            // Filter to show only SSHD, Nginx, and MySQL jails
+            const allowedJails = ['sshd', 'nginx', 'mysql', 'nginx-http-auth', 'nginx-limit-req', 'mysqld-auth'];
+            const filteredJails = jails.filter(jail => {
+                return allowedJails.some(allowed => jail.name.toLowerCase().includes(allowed.toLowerCase()));
+            });
+            
+            if (filteredJails.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No SSHD, Nginx, or MySQL jails found</td></tr>';
+                return;
+            }
+            
+            filteredJails.forEach(jail => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">${jail.name}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            jail.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                        }">
+                            ${jail.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${jail.filter || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        <div>Current: ${jail.currently_failed || 0}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Total: ${jail.total_failed || 0}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        <div>Current: ${jail.currently_banned || 0}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Total: ${jail.total_banned || 0}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        ${jail.status === 'active' ? `
+                            <button onclick="manageJail('restart', '${jail.name}')" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3">Restart</button>
+                            <button onclick="manageJail('stop', '${jail.name}')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 mr-3">Stop</button>
+                        ` : `
+                            <button onclick="manageJail('start', '${jail.name}')" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 mr-3">Start</button>
+                        `}
+                        <button onclick="showAutoConfigModal('${jail.name}')" class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300">Auto Config</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update banned IPs table
+        function updateBannedIpsTable(jails) {
+            const tbody = document.getElementById('banned-ips-table-body');
+            tbody.innerHTML = '';
+            
+            if (!Array.isArray(jails)) {
+                tbody.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No banned IPs found</td></tr>';
+                return;
+            }
+            
+            let hasBannedIps = false;
+            
+            jails.forEach(jail => {
+                if (jail.banned_ips && jail.banned_ips.length > 0) {
+                    jail.banned_ips.forEach(ip => {
+                        hasBannedIps = true;
+                        const row = document.createElement('tr');
+                        row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
+                        
+                        row.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${ip}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${jail.name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button onclick="unbanIp('${jail.name}', '${ip}')" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">Unban</button>
+                            </td>
+                        `;
+                        
+                        tbody.appendChild(row);
+                    });
+                }
+            });
+            
+            if (!hasBannedIps) {
+                tbody.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No banned IPs found</td></tr>';
+            }
+        }
+
+        // Update jail select for ban IP modal
+        function updateJailSelect(jails) {
+            const select = document.getElementById('banJailSelect');
+            select.innerHTML = '';
+            
+            if (Array.isArray(jails)) {
+                jails.forEach(jail => {
+                    const option = document.createElement('option');
+                    option.value = jail.name;
+                    option.textContent = jail.name;
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        // Manage jail (start, stop, restart)
+        function manageJail(action, jailName) {
+            if (!showConfirm(`Are you sure you want to ${action} jail '${jailName}'?`)) {
+                return;
+            }
+            
+            fetch('/api/plugins/fail2ban/manage_jail', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `jail_action=${action}&jail_name=${jailName}`
+                })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(data.message);
+                    refreshData();
+                } else {
+                    showAlert('Error: ' + data.message, 'Error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error managing jail', 'Error');
+            });
+        }
+        
+        // Make manageJail globally accessible
+        window.manageJail = manageJail;
+
+        // Unban IP
+        function unbanIp(jailName, ipAddress) {
+            if (!showConfirm(`Are you sure you want to unban IP '${ipAddress}' from jail '${jailName}'?`)) {
+                return;
+            }
+            
+            fetch('/api/plugins/fail2ban/unban_ip', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `jail_name=${jailName}&ip_address=${ipAddress}`
+                })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(data.message, 'Success');
+                    refreshData();
+                } else {
+                    showAlert('Error: ' + data.message, 'Error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error unbanning IP', 'Error');
+            });
+        }
+        
+        // Make unbanIp globally accessible
+        window.unbanIp = unbanIp;
+
+        // Show ban IP modal
+        function showBanIpModal() {
+            document.getElementById('banIpModal').classList.remove('hidden');
+            document.getElementById('banIpModal').classList.add('flex');
+        }
+        
+        // Make showBanIpModal globally accessible
+        window.showBanIpModal = showBanIpModal;
+
+        // Hide ban IP modal
+        function hideBanIpModal() {
+            document.getElementById('banIpModal').classList.add('hidden');
+            document.getElementById('banIpModal').classList.remove('flex');
+            document.getElementById('banIpForm').reset();
+        }
+        
+        // Make hideBanIpModal globally accessible
+        window.hideBanIpModal = hideBanIpModal;
+
+        // Handle ban IP form submission
+        document.getElementById('banIpForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const jailName = document.getElementById('banJailSelect').value;
+            const ipAddress = document.getElementById('banIpInput').value;
+            
+            if (!jailName || !ipAddress) {
+                showAlert('Please fill in all fields', 'Warning');
+                return;
+            }
+            
+            fetch('/api/plugins/fail2ban/ban_ip', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `jail_name=${jailName}&ip_address=${ipAddress}`
+                })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(data.message, 'Success');
+                    hideBanIpModal();
+                    refreshData();
+                } else {
+                    showAlert('Error: ' + data.message, 'Error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error banning IP', 'Error');
+            });
+        });
+
+        // Refresh logs
+        function refreshLogs() {
+            fetch('/api/plugins/fail2ban/get_fail2ban_logs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'lines=50'
+            })
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('logs-container');
+                
+                if (data.error) {
+                    container.innerHTML = `<div class="text-red-400">Error loading logs: ${data.error}</div>`;
+                    return;
+                }
+                
+                if (data.logs && data.logs.length > 0) {
+                    container.innerHTML = data.logs.map(line => `<div>${line}</div>`).join('');
+                } else {
+                    container.innerHTML = '<div class="text-gray-400">No logs available</div>';
+                }
+                
+                // Scroll to bottom
+                container.scrollTop = container.scrollHeight;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('logs-container').innerHTML = '<div class="text-red-400">Error loading logs</div>';
+            });
+        }
+        
+        // Make refreshLogs globally accessible
+        window.refreshLogs = refreshLogs;
+
+        // Install Fail2ban
+        function installFail2ban() {
+            if (!showConfirm('Are you sure you want to install Fail2ban? This will install the package and start the service.')) {
+                return;
+            }
+
+            const installBtn = document.getElementById('install-fail2ban-btn');
+            installBtn.disabled = true;
+            installBtn.textContent = 'Installing...';
+
+            fetch('/api/plugins/fail2ban/install_fail2ban', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: ''
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Fail2ban installed successfully!', 'Success');
+                    // Refresh the page to update status
+                    location.reload();
+                } else {
+                    showAlert('Error installing Fail2ban: ' + (data.message || data.error), 'Error');
+                    installBtn.disabled = false;
+                    installBtn.textContent = 'Install Fail2ban';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error installing Fail2ban', 'Error');
+                installBtn.disabled = false;
+                installBtn.textContent = 'Install Fail2ban';
+            });
+        }
+        
+        // Make installFail2ban globally accessible
+        window.installFail2ban = installFail2ban;
+
+        // Close modal when clicking outside
+        document.getElementById('banIpModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideBanIpModal();
+            }
+        });
+        
+        // Auto Config Modal Functions
+        function showAutoConfigModal(jailName) {
+            document.getElementById('autoConfigJailName').textContent = jailName;
+            document.getElementById('autoConfigModal').classList.remove('hidden');
+            
+            // Load current configuration
+            loadAutoJailConfig(jailName);
+        }
+        
+        function hideAutoConfigModal() {
+            document.getElementById('autoConfigModal').classList.add('hidden');
+        }
+        
+        function loadAutoJailConfig(jailName) {
+            fetch('/api/plugins/fail2ban/get_auto_jail_config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `jail_name=${encodeURIComponent(jailName)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.config) {
+                    document.getElementById('autoEnabled').checked = data.config.enabled;
+                    document.getElementById('autoMaxRetry').value = data.config.maxretry;
+                    document.getElementById('autoFindTime').value = data.config.findtime;
+                    document.getElementById('autoBanTime').value = data.config.bantime;
+                    document.getElementById('autoBanAction').value = data.config.banaction || 'ufw';
+                } else {
+                    // Set default values
+                    document.getElementById('autoEnabled').checked = true;
+                    document.getElementById('autoMaxRetry').value = 5;
+                    document.getElementById('autoFindTime').value = 600;
+                    document.getElementById('autoBanTime').value = 3600;
+                    document.getElementById('autoBanAction').value = 'ufw';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading auto config:', error);
+                // Set default values on error
+                document.getElementById('autoEnabled').checked = true;
+                document.getElementById('autoMaxRetry').value = 5;
+                document.getElementById('autoFindTime').value = 600;
+                document.getElementById('autoBanTime').value = 3600;
+                document.getElementById('autoBanAction').value = 'ufw';
+            });
+        }
+        
+        function saveAutoJailConfig() {
+            const jailName = document.getElementById('autoConfigJailName').textContent;
+            const enabled = document.getElementById('autoEnabled').checked;
+            const maxRetry = document.getElementById('autoMaxRetry').value;
+            const findTime = document.getElementById('autoFindTime').value;
+            const banTime = document.getElementById('autoBanTime').value;
+            const banAction = document.getElementById('autoBanAction').value;
+            
+            const saveBtn = document.getElementById('saveAutoConfigBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+            
+            fetch('/api/plugins/fail2ban/configure_auto_jail', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `jail_name=${encodeURIComponent(jailName)}&enabled=${enabled}&maxretry=${maxRetry}&findtime=${findTime}&bantime=${banTime}&banaction=${encodeURIComponent(banAction)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Auto jail configuration saved successfully!\n\n' + data.message, 'Success');
+                    hideAutoConfigModal();
+                    refreshData(); // Refresh jail status
+                } else {
+                    showAlert('Error saving auto jail configuration: ' + (data.message || data.error), 'Error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error saving auto jail configuration', 'Error');
+            })
+            .finally(() => {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save Configuration';
+            });
+        }
+        
+        // Auto Monitoring Functions
+        function updateMonitoringStatus() {
+            fetch('/api/plugins/fail2ban/get_auto_monitoring_status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const statusElement = document.getElementById('monitoringStatus');
+                const enabledElement = document.getElementById('monitoringEnabled');
+                const startBtn = document.getElementById('startMonitoringBtn');
+                const stopBtn = document.getElementById('stopMonitoringBtn');
+                
+                if (data.success) {
+                    // Update status
+                    statusElement.textContent = data.status;
+                    statusElement.className = `px-2 py-1 rounded-full text-xs font-medium ${
+                        data.active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 
+                        'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                    }`;
+                    
+                    // Update enabled status
+                    enabledElement.textContent = data.enabled ? 'Enabled' : 'Disabled';
+                    enabledElement.className = `px-2 py-1 rounded-full text-xs font-medium ${
+                        data.enabled ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 
+                        'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                    }`;
+                    
+                    // Update button states
+                    startBtn.disabled = data.active;
+                    stopBtn.disabled = !data.active;
+                    
+                    if (data.active) {
+                        startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                        stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    }
+                } else {
+                    statusElement.textContent = 'Error';
+                    statusElement.className = 'px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+                    enabledElement.textContent = 'Unknown';
+                    enabledElement.className = 'px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+                }
+            })
+            .catch(error => {
+                console.error('Error getting monitoring status:', error);
+            });
+        }
+        
+        function startAutoMonitoring() {
+            const startBtn = document.getElementById('startMonitoringBtn');
+            startBtn.disabled = true;
+            startBtn.textContent = 'Starting...';
+            
+            fetch('/api/plugins/fail2ban/start_auto_monitoring', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(data.message, 'Success');
+                    updateMonitoringStatus();
+                } else {
+                    showAlert('Error starting auto monitoring service: ' + (data.message || data.error), 'Error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error starting auto monitoring service', 'Error');
+            })
+            .finally(() => {
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15M9 10v4a1 1 0 001 1h4M9 10V9a1 1 0 011-1h4a1 1 0 011 1v1M9 10H8a1 1 0 00-1 1v3a1 1 0 001 1h1m0-4h4m0 0v4m0-4V9m0 4h1m-1 0H9"></path></svg>Start';
+            });
+        }
+        
+        function stopAutoMonitoring() {
+            const stopBtn = document.getElementById('stopMonitoringBtn');
+            stopBtn.disabled = true;
+            stopBtn.textContent = 'Stopping...';
+            
+            fetch('/api/plugins/fail2ban/stop_auto_monitoring', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Auto monitoring service stopped successfully!\n\n' + data.message, 'Success');
+                    updateMonitoringStatus();
+                } else {
+                    showAlert('Error stopping auto monitoring service: ' + (data.message || data.error), 'Error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error stopping auto monitoring service', 'Error');
+            })
+            .finally(() => {
+                stopBtn.disabled = false;
+                stopBtn.innerHTML = '<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path></svg>Stop';
+            });
+        }
+        
+        function runManualMonitoring() {
+            const runBtn = event.target;
+            runBtn.disabled = true;
+            runBtn.textContent = 'Running...';
+            
+            fetch('/api/plugins/fail2ban/monitor_and_auto_activate_jails', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let message = data.message;
+                    if (data.activated_jails && data.activated_jails.length > 0) {
+                        message += '\n\nActivated jails:';
+                        data.activated_jails.forEach(jail => {
+                            message += `\n- ${jail.jail}: ${jail.reason}`;
+                        });
+                    }
+                    showAlert(message, 'Success');
+                    refreshData(); // Refresh jail status
+                } else {
+                    showAlert('Error running manual monitoring: ' + (data.message || data.error), 'Error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error running manual monitoring', 'Error');
+            })
+            .finally(() => {
+                runBtn.disabled = false;
+                runBtn.innerHTML = '<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>Run Now';
+            });
+        }
+        
+        // Make functions globally accessible
+        window.showAutoConfigModal = showAutoConfigModal;
+        window.hideAutoConfigModal = hideAutoConfigModal;
+        window.saveAutoJailConfig = saveAutoJailConfig;
+        window.updateMonitoringStatus = updateMonitoringStatus;
+        window.startAutoMonitoring = startAutoMonitoring;
+        window.stopAutoMonitoring = stopAutoMonitoring;
+        window.runManualMonitoring = runManualMonitoring;
+        
+        // Event listener will be added in DOMContentLoaded
+        
+        // Theme management functions
+        function setTheme(theme) {
+            // Normalize 'system' to 'system' for consistency
+            if (theme === 'system') {
+                theme = 'system';
+            }
+            
+            localStorage.setItem('theme', theme);
+            
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else if (theme === 'light') {
+                document.documentElement.classList.remove('dark');
+            } else if (theme === 'system') {
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+            
+            // Update theme text display
+            const themeText = document.getElementById('theme-text');
+            if (themeText) {
+                if (theme === 'light') {
+                    themeText.textContent = 'Light';
+                } else if (theme === 'dark') {
+                    themeText.textContent = 'Dark';
+                } else if (theme === 'system') {
+                    themeText.textContent = 'System';
+                }
+            }
+        }
+        
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'system';
+            setTheme(savedTheme);
+        }
+        
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        }
+        
+        function toggleThemeDropdown() {
+            const dropdown = document.getElementById('theme-dropdown-menu');
+            dropdown.classList.toggle('hidden');
+        }
+        
+        function toggleActionsDropdown() {
+            const dropdown = document.getElementById('actions-dropdown-menu');
+            dropdown.classList.toggle('hidden');
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            const themeDropdown = document.getElementById('theme-dropdown-menu');
+            const actionsDropdown = document.getElementById('actions-dropdown-menu');
+            const themeButton = document.querySelector('[onclick="toggleThemeDropdown()"]');
+            const actionsButton = document.querySelector('[onclick="toggleActionsDropdown()"]');
+            
+            if (themeButton && themeDropdown && !themeButton.contains(event.target) && !themeDropdown.contains(event.target)) {
+                themeDropdown.classList.add('hidden');
+            }
+            
+            if (actionsButton && actionsDropdown && !actionsButton.contains(event.target) && !actionsDropdown.contains(event.target)) {
+                actionsDropdown.classList.add('hidden');
+            }
+        });
+        
+        // Navbar state management function
+        function setNavbarStateFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const section = urlParams.get('section');
+            
+            // Remove active class from all navigation buttons
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to current section
+            if (section) {
+                // Look for buttons with onclick containing the section
+                const activeBtn = document.querySelector(`nav button[onclick*="section=${section}"]`);
+                if (activeBtn) {
+                    activeBtn.classList.add('active');
+                }
+            } else {
+                // If no section parameter, check if we're in a plugin page
+                const currentPath = window.location.pathname;
+                if (currentPath.includes('/plugins/')) {
+                    // Set plugins button as active
+                    const pluginsBtn = document.querySelector('nav button[onclick*="section=plugins"]');
+                    if (pluginsBtn) {
+                        pluginsBtn.classList.add('active');
+                    }
+                }
+            }
+        }
+
+        // Initialize theme when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTheme();
+            setNavbarStateFromURL();
+            
+            // Close auto config modal when clicking outside
+            const autoConfigModal = document.getElementById('autoConfigModal');
+            if (autoConfigModal) {
+                autoConfigModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        hideAutoConfigModal();
+                    }
+                });
+            }
+        });
+        
+        // Make theme functions globally accessible
+        window.setTheme = setTheme;
+        window.toggleMobileMenu = toggleMobileMenu;
+        window.toggleThemeDropdown = toggleThemeDropdown;
+        window.toggleActionsDropdown = toggleActionsDropdown;
+    </script>
+    
+{% endblock %}

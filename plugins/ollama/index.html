@@ -1,0 +1,1953 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Header -->
+        <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+            <div class="px-5 pb-1 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">                            
+                        <div class="flex items-center" onclick="toggleSidebarCollapse()" style="cursor: pointer;">
+                            <svg class="h-7 w-7 text-gray-600 dark:text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Theme Toggle -->
+                        <div class="relative" id="theme-dropdown">
+                            <button onclick="toggleThemeDropdown()" id="theme-toggle" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <svg id="theme-icon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path id="theme-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                            </button>
+                            <div id="theme-dropdown-menu" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                                <div class="py-1">
+                                    <button onclick="setTheme('light')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                        </svg>
+                                        Light
+                                    </button>
+                                    <button onclick="setTheme('dark')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                        </svg>
+                                        Dark
+                                    </button>
+                                    <button onclick="setTheme('system')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                        </svg>
+                                        System
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Password Change -->
+                        <button onclick="showChangePasswordModal()" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0 1 21 9z"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Logout -->
+                        <a href="{{ url_for('logout') }}" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+         
+       <main class="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
+            <!-- Header -->
+            <div class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+                <div class="flex items-center">
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-3 rounded-lg mr-4">
+                        <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Ollama Manager</h1>
+                        <p class="text-gray-600 dark:text-gray-400">Manage your Ollama models and configurations</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                <nav class="tab-navigation flex space-x-8 px-6" aria-label="Tabs">
+                    <button onclick="switchTab('chat')" id="tab-chat" class="tab-btn active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm focus:outline-none transition-colors">
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                            </svg>
+                            <span>Chat</span>
+                        </div>
+                    </button>
+                    <button onclick="switchTab('models')" id="tab-models" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm focus:outline-none transition-colors">
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                            <span>Models</span>
+                        </div>
+                    </button>
+                    <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm focus:outline-none transition-colors">
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span>HTTP API Settings</span>
+                        </div>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="flex-1 overflow-auto">
+                <!-- Chat Tab Content -->
+                <div id="tab-content-chat" class="tab-content active p-6">
+                    <!-- Chat Interface -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md flex flex-col" style="height: calc(100vh - 200px);">
+                        <!-- Chat Header -->
+                        <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750 rounded-t-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Chat with Ollama</h2>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400" id="chat-status">Select a model to start chatting</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <select id="chat-model-select" class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                    <option value="">Select model...</option>
+                                </select>
+                                <button onclick="clearChat()" class="px-3 py-1.5 text-sm bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Chat Messages -->
+                        <div id="chat-messages" class="flex-1 overflow-y-auto p-0 bg-gray-50 dark:bg-gray-900">
+                            <div class="flex flex-col items-center justify-center h-full text-center p-8">
+                                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
+                                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Start a conversation</h3>
+                                <p class="text-gray-500 dark:text-gray-400 text-sm max-w-md">
+                                    Select a model above and start chatting with your AI assistant. Ask questions, get help with coding, or have a casual conversation.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Chat Input -->
+                        <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                            <div class="flex space-x-3">
+                                <div class="flex-1 relative">
+                                    <textarea id="chat-input" rows="1" class="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" placeholder="Kirim pesan ke Ollama..." onkeydown="handleChatKeydown(event)" style="min-height: 44px; max-height: 120px;"></textarea>
+                                    <button id="send-btn" onclick="sendMessage()" class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                <span>Press Enter to send, Shift+Enter for new line</span>
+                                <span id="char-count">0 characters</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Models Tab Content -->
+                <div id="tab-content-models" class="tab-content p-6">
+                    <!-- Status Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <!-- Ollama Status -->
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Ollama Status</h3>
+                                    <p id="ollama-status-text" class="text-sm text-gray-600 dark:text-gray-400 mt-1">Checking...</p>
+                                </div>
+                                <div id="status-indicator-running" class="w-3 h-3 bg-green-500 rounded-full hidden"></div>
+                                <div id="status-indicator-not-running" class="w-3 h-3 bg-red-500 rounded-full hidden"></div>
+                                <div id="status-indicator-not-installed" class="w-3 h-3 bg-gray-500 rounded-full hidden"></div>
+                            </div>
+                        </div>
+
+                        <!-- Models Count -->
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Models</h3>
+                                    <p id="models-count" class="text-sm text-gray-600 dark:text-gray-400 mt-1">0 installed</p>
+                                </div>
+                                <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- System Info -->
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">System</h3>
+                                    <p id="system-version" class="text-sm text-gray-600 dark:text-gray-400 mt-1">Unknown</p>
+                                </div>
+                                <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Installation Warning -->
+                    <div id="installation-warning" class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6 hidden">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-yellow-800 dark:text-yellow-200 font-medium">Ollama is not installed on this system</span>
+                        </div>
+                        <p class="text-yellow-700 dark:text-yellow-300 mt-2 text-sm">Click the install button below to install Ollama automatically.</p>
+                        <div class="mt-4 flex gap-2">
+                            <button onclick="refreshStatus()" id="refresh-status-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors">
+                                Refresh Status
+                            </button>
+                            <button onclick="installOllama()" id="install-ollama-btn" class="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-md transition-colors">
+                                <span id="install-btn-text">Install Ollama</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Actions</h2>
+                        <div class="flex justify-between items-center">
+                            <div class="flex flex-wrap gap-3">
+                                <button id="pull-model-btn" onclick="showPullModal()" class="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-md transition-colors">
+                                    Pull New Model
+                                </button>
+                                <button id="refresh-models-btn" onclick="refreshModels()" class="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-md transition-colors">
+                                    Refresh Models
+                                </button>
+                                <button id="start-service-btn" onclick="startOllama()" class="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-md transition-colors hidden">
+                                    Start Service
+                                </button>
+                                <button id="stop-service-btn" onclick="stopOllama()" class="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-md transition-colors hidden">
+                                    Stop Service
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Models Management -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Models</h2>
+                        </div>
+
+                        <!-- Models List -->
+                        <div id="no-models-message" class="text-center py-8 text-gray-500 dark:text-gray-400">
+                            No models installed
+                        </div>
+                        
+                        <div id="models-table-container" class="overflow-x-auto hidden">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Size</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Modified</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="models-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    <!-- Models will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab Content -->
+                <div id="tab-content-settings" class="tab-content p-6">
+                    <!-- HTTP API Configuration -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+                        <div class="flex items-center mb-6">
+                            <div class="bg-gradient-to-r from-purple-500 to-pink-600 p-3 rounded-lg mr-4">
+                                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">HTTP API Server</h2>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm">Kelola server HTTP API untuk akses eksternal ke Ollama</p>
+                            </div>
+                        </div>
+                        
+                        <!-- API Status Card -->
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div id="http-api-status-indicator" class="w-3 h-3 bg-gray-500 rounded-full"></div>
+                                    <div>
+                                        <h3 class="text-sm font-medium text-gray-900 dark:text-white">HTTP API Status</h3>
+                                        <p id="http-api-status-text" class="text-xs text-gray-500 dark:text-gray-400">Tidak aktif</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Port: 5001</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Endpoint: /api/plugins/ollama/*</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- API Information -->
+                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+                            <div class="flex items-start">
+                                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                </svg>
+                                <div>
+                                    <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">Tentang HTTP API</h4>
+                                    <p class="text-sm text-blue-700 dark:text-blue-300">HTTP API memungkinkan akses ke Ollama melalui REST endpoints di port 5001. API ini menyediakan akses ke semua fungsi Ollama termasuk chat, model management, dan konfigurasi.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Available Endpoints -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-3">Available Endpoints</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                    <div>
+                                        <code class="text-sm font-mono text-green-600 dark:text-green-400">POST /api/plugins/ollama/generate</code>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Generate response dari model</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                    <div>
+                                        <code class="text-sm font-mono text-blue-600 dark:text-blue-400">GET /api/plugins/ollama/models</code>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Dapatkan daftar model yang tersedia</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                    <div>
+                                        <code class="text-sm font-mono text-orange-600 dark:text-orange-400">POST /api/plugins/ollama/models</code>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Download model baru</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                    <div>
+                                        <code class="text-sm font-mono text-red-600 dark:text-red-400">DELETE /api/plugins/ollama/models</code>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Hapus model</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Control Buttons -->
+                        <div class="flex gap-3 flex-wrap">
+                            <button id="api-toggle-btn" onclick="toggleHttpApi()" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-md transition-colors flex items-center justify-center space-x-2">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
+                                <span id="api-toggle-text" class="leading-none">Start HTTP API</span>
+                            </button>
+                            <button id="test-api-btn" onclick="testHttpApi()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md transition-colors flex items-center justify-center space-x-2">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span class="leading-none">Test API</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Install Confirmation Dialog -->
+            <div id="install-dialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Install Ollama</h3>
+                    
+                    <div id="install-dialog-content">
+                        <p class="text-gray-600 dark:text-gray-300 mb-4">
+                            This will install Ollama on your system. The installation process may take a few minutes.
+                        </p>
+                        <p class="text-sm text-yellow-600 dark:text-yellow-400 mb-6">
+                            <strong>Note:</strong> On macOS, you'll need to install manually from the official website.
+                        </p>
+                        
+                        <div class="flex justify-end space-x-3">
+                            <button onclick="hideInstallDialog()" class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors">
+                                Cancel
+                            </button>
+                            <button onclick="confirmInstall()" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors">
+                                Install
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="install-dialog-progress" class="hidden">
+                        <div class="mb-4">
+                            <div class="flex items-center mb-2">
+                                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500 mr-2"></div>
+                                <span class="text-gray-900 dark:text-white font-medium">Installing Ollama...</span>
+                            </div>
+                            <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
+                                <div id="install-progress-bar" class="bg-green-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <p id="install-progress-text" class="text-sm text-gray-600 dark:text-gray-300"></p>
+                        </div>
+                        
+                        <div class="flex justify-end">
+                            <button onclick="hideInstallDialog()" class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pull Model Modal -->
+            <div id="pull-model-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+                <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+                    <div class="mt-3">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Pull New Model</h3>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Model Name</label>
+                            <input id="new-model-name" type="text" placeholder="e.g., llama2, codellama, mistral" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Popular models: llama2, codellama, mistral, neural-chat</p>
+                        </div>
+                        <div class="flex justify-end space-x-2">
+                            <button onclick="hidePullModal()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500">
+                                Cancel
+                            </button>
+                            <button id="pull-model-submit-btn" onclick="pullModel()" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400">
+                                <span id="pull-btn-text">Pull Model</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div id="loading-overlay" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="spinner"></div>
+                        <span id="loading-text" class="text-gray-700 dark:text-gray-300">Processing...</span>
+                    </div>
+                </div>
+            </div>
+       </main>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            const selectedContent = document.getElementById(`tab-content-${tabName}`);
+            if (selectedContent) {
+                selectedContent.classList.add('active');
+            }
+            
+            // Add active class to selected tab
+            const selectedTab = document.querySelector(`[onclick="switchTab('${tabName}')"]`);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+        }
+
+        function testHttpApi() {
+            const testBtn = document.getElementById('test-api-btn');
+            const originalText = testBtn.textContent;
+            
+            testBtn.textContent = 'Testing...';
+            testBtn.disabled = true;
+            
+            fetch(`http://${window.location.hostname}:5001/status`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'running') {
+                        showNotification('HTTP API test successful! API is running on port 5001.', 'success');
+                    } else {
+                        showNotification('HTTP API test failed: Unexpected response.', 'error');
+                    }
+                })
+                .catch(error => {
+                    showNotification('HTTP API test failed: Cannot connect to port 5001. Make sure the HTTP API is running.', 'error');
+                })
+                .finally(() => {
+                    testBtn.textContent = originalText;
+                    testBtn.disabled = false;
+                });
+        }
+ 
+         // Global variables
+        let status = {
+            installed: false,
+            running: false,
+            ollama_api_available: false,
+            http_api_available: false,
+            install_required: false,
+            version: null,
+            ollama_port: 11434,
+            http_api_port: 5001
+        };
+        
+        let models = [];
+        let selectedModel = '';
+        let prompt = '';
+        let response = '';
+        let loading = false;
+        let newModelName = '';
+        let pulling = false;
+        let installing = false;
+        let installProgress = '';
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize with Chat tab active
+            switchTab('chat');
+            
+            refreshStatus();
+            updateHttpApiButtonState();
+            loadModels().then(() => {
+                // Update chat model select after models are loaded
+                updateChatModelSelect();
+            });
+            
+            // Update HTTP API status every 5 seconds
+            setInterval(updateHttpApiButtonState, 5000);
+        });
+
+        async function refreshStatus() {
+             try {
+                const response = await fetch('/api/plugins/ollama/status');
+                const data = await response.json();
+                
+                if (data.success) {
+                    status = data.status;
+                    // Set httpApiProcess if HTTP API is running
+                    if (status.http_api_available && status.http_api_process_id) {
+                        httpApiProcess = status.http_api_process_id;
+                    } else {
+                        httpApiProcess = null;
+                    }
+                    updateStatusUI();
+                }
+            } catch (error) {
+                console.error('Error fetching status:', error);
+            }
+        }
+
+        function updateStatusUI() {
+             // Update status indicators
+             const runningIndicator = document.getElementById('status-indicator-running');
+             const notRunningIndicator = document.getElementById('status-indicator-not-running');
+             const notInstalledIndicator = document.getElementById('status-indicator-not-installed');
+             const statusText = document.getElementById('ollama-status-text');
+             const installWarning = document.getElementById('installation-warning');
+             
+             console.log('Updating status UI with:', status);
+             console.log('Installation warning element:', installWarning);
+             
+             // Hide all indicators first
+             runningIndicator.classList.add('hidden');
+             notRunningIndicator.classList.add('hidden');
+             notInstalledIndicator.classList.add('hidden');
+             
+             if (!status.installed) {
+                 console.log('Ollama not installed - showing warning');
+                 notInstalledIndicator.classList.remove('hidden');
+                 statusText.textContent = 'Not Installed';
+                 installWarning.classList.remove('hidden');
+                 // Force visibility with inline style as backup
+                 installWarning.style.display = 'block';
+             } else if (status.running) {
+                 console.log('Ollama running - hiding warning');
+                 runningIndicator.classList.remove('hidden');
+                 statusText.textContent = 'Running';
+                 installWarning.classList.add('hidden');
+                 installWarning.style.display = 'none';
+             } else {
+                 console.log('Ollama installed but not running - hiding warning');
+                 notRunningIndicator.classList.remove('hidden');
+                 statusText.textContent = 'Installed but not running';
+                 installWarning.classList.add('hidden');
+                 installWarning.style.display = 'none';
+             }
+             
+             // Update models count
+             document.getElementById('models-count').textContent = `${models.length} installed`;
+             
+             // Update system version
+             document.getElementById('system-version').textContent = status.version || 'Unknown';
+             
+             // Update button visibility
+             updateButtonVisibility();
+             updateHttpApiButtonState();
+         }
+
+        function confirmInstall() {
+            const modal = document.getElementById('install-modal');
+            const progressModal = createProgressModal();
+            
+            modal.classList.add('hidden');
+            document.body.appendChild(progressModal);
+            
+            // Start streaming installation
+            const eventSource = new EventSource('/api/plugins/ollama/install-stream');
+            
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    updateProgressModal(progressModal, data);
+                    
+                    if (data.success !== undefined) {
+                        eventSource.close();
+                        
+                        setTimeout(() => {
+                            document.body.removeChild(progressModal);
+                            
+                            if (data.success) {
+                                if (data.already_installed) {
+                                    showAlert('Ollama is already installed!', 'warning');
+                                } else if (data.manual_install) {
+                                    showAlert('Please download and install Ollama manually from https://ollama.com/download', 'info');
+                                } else if (data.unsupported_os) {
+                                    showAlert('Unsupported operating system. Please install manually from https://ollama.com/download', 'warning');
+                                } else {
+                                    showAlert('Ollama installed successfully!', 'success');
+                                    refreshStatus();
+                                }
+                            } else {
+                                showAlert('Installation failed: ' + data.message, 'error');
+                            }
+                        }, 2000);
+                    }
+                } catch (e) {
+                    console.error('Error parsing progress data:', e);
+                }
+            };
+            
+            eventSource.onerror = function(event) {
+                eventSource.close();
+                document.body.removeChild(progressModal);
+                showAlert('Installation error occurred. Please try again.', 'error');
+            };
+        }
+
+        function showInstallProgress() {
+            document.getElementById('install-dialog-content').classList.add('hidden');
+            document.getElementById('install-dialog-progress').classList.remove('hidden');
+            document.getElementById('install-progress-text').textContent = installProgress;
+        }
+
+        async function installOllama() {
+            if (status.installed) {
+                showAlert('Ollama is already installed', 'warning');
+                installing = false;
+                hideInstallDialog();
+                return;
+            }
+
+            try {
+                installProgress = 'Downloading Ollama installer...';
+                document.getElementById('install-progress-text').textContent = installProgress;
+                
+                const response = await fetch('/api/plugins/ollama/install', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    if (data.already_installed) {
+                        installProgress = 'Ollama is already installed!';
+                        document.getElementById('install-progress-text').textContent = installProgress;
+                        setTimeout(() => {
+                            installing = false;
+                            hideInstallDialog();
+                            showAlert('Ollama is already installed!', 'warning');
+                        }, 1000);
+                    } else if (data.manual_install) {
+                        installProgress = 'Manual installation required';
+                        document.getElementById('install-progress-text').textContent = installProgress;
+                        installing = false;
+                        showAlert('Please install Ollama manually on macOS from https://ollama.com/download', 'info');
+                    } else if (data.unsupported_os) {
+                        installProgress = 'OS not supported';
+                        document.getElementById('install-progress-text').textContent = installProgress;
+                        installing = false;
+                        showAlert('Unsupported operating system. Please install Ollama manually.', 'warning');
+                    } else {
+                        installProgress = 'Installation completed successfully!';
+                        document.getElementById('install-progress-text').textContent = installProgress;
+                        setTimeout(async () => {
+                            await refreshStatus();
+                            installing = false;
+                            hideInstallDialog();
+                            showAlert('Ollama has been installed successfully!', 'success');
+                        }, 2000);
+                    }
+                } else {
+                    installing = false;
+                    installProgress = 'Installation failed';
+                    document.getElementById('install-progress-text').textContent = installProgress;
+                    showAlert('Installation failed: ' + data.message, 'error');
+                }
+            } catch (error) {
+                installing = false;
+                installProgress = 'Installation error occurred';
+                document.getElementById('install-progress-text').textContent = installProgress;
+                showAlert('Error during installation: ' + error.message, 'error');
+            }
+        }
+
+        async function loadModels() {
+            try {
+                const response = await fetch('/api/plugins/ollama/models');
+                const data = await response.json();
+                if (data.success) {
+                    models = data.models;
+                    updateModelsUI();
+                }
+            } catch (error) {
+                console.error('Error loading models:', error);
+            }
+        }
+
+        function updateModelsUI() {
+             const noModelsMessage = document.getElementById('no-models-message');
+             const modelsTableContainer = document.getElementById('models-table-container');
+             const modelsTableBody = document.getElementById('models-table-body');
+             const modelSelect = document.getElementById('model-select');
+             
+             if (models.length === 0) {
+                 noModelsMessage.classList.remove('hidden');
+                 modelsTableContainer.classList.add('hidden');
+             } else {
+                 noModelsMessage.classList.add('hidden');
+                 modelsTableContainer.classList.remove('hidden');
+                 
+                 // Clear existing rows
+                 modelsTableBody.innerHTML = '';
+                 
+                 // Add model rows
+                 models.forEach(model => {
+                     const row = document.createElement('tr');
+                     row.innerHTML = `
+                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${model.name}</td>
+                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${formatBytes(model.size)}</td>
+                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${formatDate(model.modified_at)}</td>
+                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                             <button onclick="testModel('${model.name}')" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3">Test</button>
+                             <button onclick="deleteModel('${model.name}')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+                         </td>
+                     `;
+                     modelsTableBody.appendChild(row);
+                 });
+             }
+             
+             // Update chat model select
+             updateChatModelSelect();
+         }
+
+        async function pullModel() {
+            const modelNameInput = document.getElementById('new-model-name');
+            const modelName = modelNameInput.value.trim();
+            
+            if (!modelName) return;
+            
+            pulling = true;
+            const pullBtn = document.getElementById('pull-model-submit-btn');
+            const pullBtnText = document.getElementById('pull-btn-text');
+            
+            pullBtn.disabled = true;
+            pullBtnText.textContent = 'Pulling...';
+            
+            try {
+                const response = await fetch('/api/plugins/ollama/models', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model_name: modelName
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('Model pulled successfully!', 'success');
+                    hidePullModal();
+                    modelNameInput.value = '';
+                    await loadModels();
+                    updateChatModelSelect();
+                } else {
+                    showAlert('Error: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('Error pulling model: ' + error.message, 'error');
+            } finally {
+                pulling = false;
+                pullBtn.disabled = false;
+                pullBtnText.textContent = 'Pull Model';
+            }
+        }
+
+        async function deleteModel(modelName) {
+            const confirmed = await showConfirm(`Are you sure you want to delete model "${modelName}"?`);
+            if (!confirmed) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/plugins/ollama/models', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model_name: modelName
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('Model deleted successfully!', 'success');
+                    await loadModels();
+                    updateChatModelSelect();
+                } else {
+                    showAlert('Error: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('Error deleting model: ' + error.message, 'error');
+            }
+        }
+
+        function testModel(modelName) {
+             selectedModel = modelName;
+             prompt = 'Tolong perkenalkan diri Anda dalam bahasa Indonesia!';
+             
+             // Update UI
+             const modelSelect = document.getElementById('model-select');
+             const promptTextarea = document.getElementById('prompt-textarea');
+             
+             if (modelSelect) modelSelect.value = modelName;
+             if (promptTextarea) promptTextarea.value = prompt;
+         }
+
+         async function generateResponse() {
+             const modelSelect = document.getElementById('model-select');
+             const promptTextarea = document.getElementById('prompt-textarea');
+             const responseContainer = document.getElementById('response-container');
+             const responseText = document.getElementById('response-text');
+             const generateBtn = document.getElementById('generate-btn');
+             
+             selectedModel = modelSelect.value;
+             prompt = promptTextarea.value;
+             
+             if (!selectedModel || !prompt) {
+                 showAlert('Silakan pilih model dan masukkan prompt.', 'warning');
+                 return;
+             }
+             
+             loading = true;
+             response = '';
+             
+             generateBtn.disabled = true;
+             generateBtn.textContent = 'Generating...';
+             
+             try {
+                 const fetchResponse = await fetch('/api/plugins/ollama/generate', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify({
+                         model: selectedModel,
+                         prompt: 'Jawab dalam bahasa Indonesia: ' + prompt
+                     })
+                 });
+                 
+                 const data = await fetchResponse.json();
+                 if (data.success) {
+                     response = data.response;
+                     if (responseText && responseContainer) {
+                         responseText.textContent = response;
+                         responseContainer.style.display = 'block';
+                     }
+                 } else {
+                     showAlert('Kesalahan: ' + data.message, 'error');
+                 }
+             } catch (error) {
+                 showAlert('Kesalahan saat menghasilkan respons: ' + error.message, 'error');
+             } finally {
+                 loading = false;
+                 generateBtn.disabled = false;
+                 generateBtn.textContent = 'Generate Response';
+             }
+         }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            return new Date(dateString).toLocaleDateString();
+        }
+
+        // Modal functions
+        function showPullModal() {
+            document.getElementById('pull-model-modal').classList.remove('hidden');
+        }
+
+        function hidePullModal() {
+            document.getElementById('pull-model-modal').classList.add('hidden');
+        }
+
+        function showInstallDialog() {
+            document.getElementById('install-dialog').classList.remove('hidden');
+        }
+
+        function hideInstallDialog() {
+            document.getElementById('install-dialog').classList.add('hidden');
+            document.getElementById('install-dialog-content').classList.remove('hidden');
+            document.getElementById('install-dialog-progress').classList.add('hidden');
+        }
+
+        function refreshModels() {
+            loadModels();
+        }
+
+        // Service control functions
+         async function startOllama() {
+             try {
+                 const response = await fetch('/api/plugins/ollama/start', {
+                     method: 'POST'
+                 });
+                 const data = await response.json();
+                 if (data.success) {
+                     showAlert('Ollama service started successfully!', 'success');
+                     await refreshStatus();
+                 } else {
+                     showAlert('Error starting Ollama: ' + data.message, 'error');
+                 }
+             } catch (error) {
+                 showAlert('Error starting Ollama: ' + error.message, 'error');
+             }
+         }
+
+         async function stopOllama() {
+             try {
+                 const response = await fetch('/api/plugins/ollama/stop', {
+                     method: 'POST'
+                 });
+                 const data = await response.json();
+                 if (data.success) {
+                     showAlert('Ollama service stopped successfully!', 'success');
+                     await refreshStatus();
+                 } else {
+                     showAlert('Error stopping Ollama: ' + data.message, 'error');
+                 }
+             } catch (error) {
+                 showAlert('Error stopping Ollama: ' + error.message, 'error');
+             }
+         }
+
+         async function installOllama() {
+             const confirmed = await showConfirm('This will install Ollama on your system. The installation process may take a few minutes. Continue?');
+             if (!confirmed) {
+                 return;
+             }
+
+             const installBtn = document.querySelector('button[onclick="installOllama()"]');
+             const originalText = installBtn.textContent;
+             
+             try {
+                 installBtn.disabled = true;
+                 installBtn.textContent = 'Installing...';
+                 
+                 const response = await fetch('/api/plugins/ollama/install', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json'
+                     }
+                 });
+                 
+                 const data = await response.json();
+                 
+                 if (data.success) {
+                     if (data.already_installed) {
+                         showAlert('Ollama is already installed!', 'warning');
+                     } else if (data.manual_install) {
+                         showAlert('Please install Ollama manually on macOS from https://ollama.com/download', 'info');
+                     } else if (data.unsupported_os) {
+                         showAlert('Unsupported operating system. Please install Ollama manually from https://ollama.com/download', 'warning');
+                     } else {
+                         showAlert('Ollama has been installed successfully!', 'success');
+                         await refreshStatus();
+                     }
+                 } else {
+                     showAlert('Installation failed: ' + data.message, 'error');
+                 }
+             } catch (error) {
+                 showAlert('Error during installation: ' + error.message, 'error');
+             } finally {
+                 installBtn.disabled = false;
+                 installBtn.textContent = originalText;
+             }
+         }
+
+         // Update button visibility based on status
+         function updateButtonVisibility() {
+             const startBtn = document.getElementById('start-service-btn');
+             const stopBtn = document.getElementById('stop-service-btn');
+             const pullBtn = document.getElementById('pull-model-btn');
+             const refreshBtn = document.getElementById('refresh-models-btn');
+             
+             if (status.installed && !status.running) {
+                 startBtn.classList.remove('hidden');
+                 stopBtn.classList.add('hidden');
+             } else if (status.installed && status.running) {
+                 startBtn.classList.add('hidden');
+                 stopBtn.classList.remove('hidden');
+             } else {
+                 startBtn.classList.add('hidden');
+                 stopBtn.classList.add('hidden');
+             }
+             
+             // Disable buttons based on status
+             pullBtn.disabled = !status.ollama_api_available || installing;
+             refreshBtn.disabled = !status.ollama_api_available || installing;
+         }
+
+         function updateHttpApiButtonState() {
+             // Check if HTTP API is running by checking Ollama status
+             fetch('/api/plugins/ollama/status', {
+                 method: 'GET'
+             })
+             .then(response => response.json())
+             .then(data => {
+                 const toggleBtn = document.getElementById('api-toggle-btn');
+                 const toggleText = document.getElementById('api-toggle-text');
+                 const statusIndicator = document.getElementById('http-api-status-indicator');
+                 const statusText = document.getElementById('http-api-status-text');
+                 
+                 if (toggleBtn && toggleText) {
+                     if (data.success && data.status && data.status.http_api_available) {
+                         // HTTP API is running
+                         toggleText.textContent = 'Stop HTTP API';
+                         toggleBtn.className = 'bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md transition-colors flex items-center justify-center space-x-2';
+                         isApiRunning = true;
+                         // Set httpApiProcess if available
+                         if (data.status.http_api_process_id) {
+                             httpApiProcess = data.status.http_api_process_id;
+                         }
+                         // Update status indicator
+                         if (statusIndicator) {
+                             statusIndicator.className = 'w-3 h-3 bg-green-500 rounded-full';
+                         }
+                         if (statusText) {
+                             statusText.textContent = 'Aktif';
+                             statusText.className = 'text-xs text-green-600 dark:text-green-400';
+                         }
+                     } else {
+                         // HTTP API is not running
+                         toggleText.textContent = 'Start HTTP API';
+                         toggleBtn.className = 'bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-md transition-colors flex items-center justify-center space-x-2';
+                         isApiRunning = false;
+                         httpApiProcess = null;
+                         // Update status indicator
+                         if (statusIndicator) {
+                             statusIndicator.className = 'w-3 h-3 bg-gray-500 rounded-full';
+                         }
+                         if (statusText) {
+                             statusText.textContent = 'Tidak aktif';
+                             statusText.className = 'text-xs text-gray-500 dark:text-gray-400';
+                         }
+                     }
+                 }
+              })
+              .catch(error => {
+                 // API is not running
+                 const toggleBtn = document.getElementById('api-toggle-btn');
+                 const toggleText = document.getElementById('api-toggle-text');
+                 const statusIndicator = document.getElementById('http-api-status-indicator');
+                 const statusText = document.getElementById('http-api-status-text');
+                 
+                 if (toggleBtn && toggleText) {
+                     toggleText.textContent = 'Start HTTP API';
+                     toggleBtn.className = 'bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-md transition-colors flex items-center justify-center space-x-2';
+                     isApiRunning = false;
+                     // Update status indicator
+                     if (statusIndicator) {
+                         statusIndicator.className = 'w-3 h-3 bg-gray-500 rounded-full';
+                     }
+                     if (statusText) {
+                         statusText.textContent = 'Tidak aktif';
+                         statusText.className = 'text-xs text-gray-500 dark:text-gray-400';
+                     }
+                 }
+             });
+         }
+
+         // Create progress modal for installation
+         function createProgressModal() {
+             const modal = document.createElement('div');
+             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+             modal.innerHTML = `
+                 <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Installing Ollama</h3>
+                     <div class="mb-4">
+                         <div class="flex items-center mb-2">
+                             <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500 mr-2"></div>
+                             <span class="text-gray-900 dark:text-white font-medium">Installing...</span>
+                         </div>
+                         <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
+                             <div class="progress-bar bg-green-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                         </div>
+                         <p class="progress-text text-sm text-gray-600 dark:text-gray-300">Starting installation...</p>
+                     </div>
+                 </div>
+             `;
+             return modal;
+         }
+
+         // Update progress modal with new data
+         function updateProgressModal(modal, data) {
+             const progressBar = modal.querySelector('.progress-bar');
+             const progressText = modal.querySelector('.progress-text');
+             
+             if (data.progress !== undefined) {
+                 progressBar.style.width = data.progress + '%';
+             }
+             
+             if (data.message) {
+                 progressText.textContent = data.message;
+             }
+         }
+
+         // Configuration management functions
+         async function loadConfig(silent = false) {
+             try {
+                 const response = await fetch('/api/plugins/ollama/config');
+                 const data = await response.json();
+                 
+                 if (data.success) {
+                     const config = data.config;
+                     document.getElementById('api-host').value = config.host || 'localhost';
+                     document.getElementById('api-port').value = config.port || 11434;
+                     document.getElementById('api-key').value = config.api_key || '';
+                     document.getElementById('models-path').value = config.models_path || '~/.ollama/models';
+                     document.getElementById('keep-alive').value = config.keep_alive || '5m';
+                     document.getElementById('num-parallel').value = config.num_parallel || 1;
+                     
+                     if (!silent) {
+                         showAlert('Configuration loaded successfully!', 'success');
+                     }
+                 } else {
+                     if (!silent) {
+                         showAlert('Failed to load configuration: ' + data.message, 'error');
+                     }
+                 }
+             } catch (error) {
+                 if (!silent) {
+                     showAlert('Error loading configuration: ' + error.message, 'error');
+                 }
+             }
+         }
+
+         async function saveConfig() {
+             try {
+                 const config = {
+                     host: document.getElementById('api-host').value,
+                     port: parseInt(document.getElementById('api-port').value),
+                     api_key: document.getElementById('api-key').value,
+                     models_path: document.getElementById('models-path').value,
+                     keep_alive: document.getElementById('keep-alive').value,
+                     num_parallel: parseInt(document.getElementById('num-parallel').value)
+                 };
+                 
+                 const response = await fetch('/api/plugins/ollama/config', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify(config)
+                 });
+                 
+                 const data = await response.json();
+                 
+                 if (data.success) {
+                     showAlert('Configuration saved successfully!', 'success');
+                     // Refresh status after saving config
+                     await refreshStatus();
+                 } else {
+                     showAlert('Failed to save configuration: ' + data.message, 'error');
+                 }
+             } catch (error) {
+                 showAlert('Error saving configuration: ' + error.message, 'error');
+             }
+         }
+
+         async function testConnection() {
+             try {
+                 const host = document.getElementById('api-host').value;
+                 const port = document.getElementById('api-port').value;
+                 const apiKey = document.getElementById('api-key').value;
+                 
+                 const url = `http://${host}:${port}/api/tags`;
+                 const headers = {
+                     'Content-Type': 'application/json'
+                 };
+                 
+                 // Add API key to headers if provided
+                 if (apiKey) {
+                     headers['Authorization'] = `Bearer ${apiKey}`;
+                 }
+                 
+                 const response = await fetch(url, {
+                     method: 'GET',
+                     headers: headers,
+                     timeout: 5000
+                 });
+                 
+                 if (response.ok) {
+                     const data = await response.json();
+                     showAlert(`Connection successful! Found ${data.models ? data.models.length : 0} models.`, 'success');
+                 } else {
+                     showAlert(`Connection failed: HTTP ${response.status}`, 'error');
+                 }
+             } catch (error) {
+                 if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                     showAlert('Connection failed: Unable to connect to Ollama API. Please check host and port.', 'error');
+                 } else {
+                     showAlert('Connection test failed: ' + error.message, 'error');
+                 }
+             }
+         }
+
+         // HTTP API management
+         let httpApiProcess = null;
+         
+         async function toggleHttpApi() {
+             if (isApiRunning) {
+                 await stopHttpApi();
+             } else {
+                 await startHttpApi();
+             }
+         }
+         
+         async function startHttpApi() {
+             try {
+                 const toggleBtn = document.getElementById('api-toggle-btn');
+                 const toggleText = document.getElementById('api-toggle-text');
+                 
+                 toggleText.textContent = 'Starting...';
+                 toggleBtn.disabled = true;
+                 
+                 const response = await fetch('/api/plugins/ollama/start-http-api', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json'
+                     }
+                 });
+                 
+                 const data = await response.json();
+                 
+                 if (response.ok && data.success) {
+                     showAlert('HTTP API started successfully on port 5001', 'success');
+                     toggleText.textContent = 'Stop HTTP API';
+                     toggleBtn.className = 'bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md transition-colors flex items-center justify-center space-x-2';
+                     toggleBtn.disabled = false;
+                     httpApiProcess = data.process_id;
+                     isApiRunning = true;
+                     
+                     // Update status indicator
+                     const statusIndicator = document.getElementById('http-api-status-indicator');
+                     const statusText = document.getElementById('http-api-status-text');
+                     if (statusIndicator) {
+                         statusIndicator.className = 'w-3 h-3 bg-green-500 rounded-full';
+                     }
+                     if (statusText) {
+                         statusText.textContent = 'Aktif';
+                         statusText.className = 'text-xs text-green-600 dark:text-green-400';
+                     }
+                 } else {
+                     showAlert('Failed to start HTTP API: ' + (data.message || 'Unknown error'), 'error');
+                     toggleText.textContent = 'Start HTTP API';
+                     toggleBtn.className = 'bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-md transition-colors flex items-center justify-center space-x-2';
+                     toggleBtn.disabled = false;
+                     
+                     // Update status indicator
+                     const statusIndicator = document.getElementById('http-api-status-indicator');
+                     const statusText = document.getElementById('http-api-status-text');
+                     if (statusIndicator) {
+                         statusIndicator.className = 'w-3 h-3 bg-gray-500 rounded-full';
+                     }
+                     if (statusText) {
+                         statusText.textContent = 'Tidak aktif';
+                         statusText.className = 'text-xs text-gray-500 dark:text-gray-400';
+                     }
+                 }
+             } catch (error) {
+                 showAlert('Error starting HTTP API: ' + error.message, 'error');
+                 const toggleBtn = document.getElementById('api-toggle-btn');
+                 const toggleText = document.getElementById('api-toggle-text');
+                 toggleText.textContent = 'Start HTTP API';
+                 toggleBtn.className = 'bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-md transition-colors flex items-center justify-center space-x-2';
+                 toggleBtn.disabled = false;
+                 
+                 // Update status indicator
+                 const statusIndicator = document.getElementById('http-api-status-indicator');
+                 const statusText = document.getElementById('http-api-status-text');
+                 if (statusIndicator) {
+                     statusIndicator.className = 'w-3 h-3 bg-gray-500 rounded-full';
+                 }
+                 if (statusText) {
+                     statusText.textContent = 'Tidak aktif';
+                     statusText.className = 'text-xs text-gray-500 dark:text-gray-400';
+                 }
+             }
+         }
+         
+         async function stopHttpApi() {
+             try {
+                 const toggleBtn = document.getElementById('api-toggle-btn');
+                 const toggleText = document.getElementById('api-toggle-text');
+                 
+                 // Check if process ID is available
+                 if (!httpApiProcess) {
+                     showAlert('No HTTP API process to stop', 'warning');
+                     return;
+                 }
+                 
+                 const response = await fetch('/api/plugins/ollama/stop-http-api', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify({ process_id: httpApiProcess })
+                 });
+                 
+                 const data = await response.json();
+                 
+                 if (response.ok && data.success) {
+                     showAlert('HTTP API stopped successfully', 'success');
+                     toggleText.textContent = 'Start HTTP API';
+                     toggleBtn.className = 'bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-md transition-colors flex items-center justify-center space-x-2';
+                     toggleBtn.disabled = false;
+                     httpApiProcess = null;
+                     isApiRunning = false;
+                     
+                     // Update status indicator
+                     const statusIndicator = document.getElementById('http-api-status-indicator');
+                     const statusText = document.getElementById('http-api-status-text');
+                     if (statusIndicator) {
+                         statusIndicator.className = 'w-3 h-3 bg-gray-500 rounded-full';
+                     }
+                     if (statusText) {
+                         statusText.textContent = 'Tidak aktif';
+                         statusText.className = 'text-xs text-gray-500 dark:text-gray-400';
+                     }
+                 } else {
+                     showAlert('Failed to stop HTTP API: ' + (data.message || 'Unknown error'), 'error');
+                 }
+             } catch (error) {
+                 showAlert('Error stopping HTTP API: ' + error.message, 'error');
+             }
+         }
+
+         // Chat functionality
+         let chatHistory = [];
+         let isGenerating = false;
+         
+         function handleChatKeydown(event) {
+             if (event.key === 'Enter' && !event.shiftKey) {
+                 event.preventDefault();
+                 sendMessage();
+             }
+         }
+         
+         function clearChat() {
+             chatHistory = [];
+             const messagesContainer = document.getElementById('chat-messages');
+             messagesContainer.innerHTML = `
+                 <div class="flex flex-col items-center justify-center h-full text-center p-8">
+                     <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
+                         <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                         </svg>
+                     </div>
+                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Start a conversation</h3>
+                     <p class="text-gray-500 dark:text-gray-400 text-sm max-w-md">
+                         Select a model above and start chatting with your AI assistant. Ask questions, get help with coding, or have a casual conversation.
+                     </p>
+                 </div>
+             `;
+         }
+         
+         function addMessage(content, isUser = false, isStreaming = false) {
+             const messagesContainer = document.getElementById('chat-messages');
+             
+             // Remove welcome message if it exists
+             const welcomeMsg = messagesContainer.querySelector('.flex.flex-col.items-center');
+             if (welcomeMsg) {
+                 welcomeMsg.remove();
+                 messagesContainer.className = 'flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900';
+             }
+             
+             const messageWrapper = document.createElement('div');
+             messageWrapper.className = `flex items-start space-x-3 mb-6 ${isUser ? 'flex-row-reverse space-x-reverse' : ''}`;
+             
+             // Avatar
+             const avatar = document.createElement('div');
+             avatar.className = `w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isUser ? 'bg-blue-600' : 'bg-gray-600 dark:bg-gray-500'}`;
+             
+             const avatarIcon = document.createElement('svg');
+             avatarIcon.className = 'w-5 h-5 text-white';
+             avatarIcon.setAttribute('fill', 'none');
+             avatarIcon.setAttribute('stroke', 'currentColor');
+             avatarIcon.setAttribute('viewBox', '0 0 24 24');
+             
+             if (isUser) {
+                 avatarIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>';
+             } else {
+                 avatarIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>';
+             }
+             
+             avatar.appendChild(avatarIcon);
+             
+             // Message content container
+             const messageContainer = document.createElement('div');
+             messageContainer.className = 'flex-1 max-w-3xl';
+             
+             // Message header with name and timestamp
+             const messageHeader = document.createElement('div');
+             messageHeader.className = `flex items-center space-x-2 mb-1 ${isUser ? 'justify-end' : ''}`;
+             
+             const senderName = document.createElement('span');
+             senderName.className = 'text-sm font-semibold text-gray-900 dark:text-white';
+             senderName.textContent = isUser ? 'You' : 'Ollama';
+             
+             const timestamp = document.createElement('span');
+             timestamp.className = 'text-xs text-gray-500 dark:text-gray-400';
+             timestamp.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+             
+             if (isUser) {
+                 messageHeader.appendChild(timestamp);
+                 messageHeader.appendChild(senderName);
+             } else {
+                 messageHeader.appendChild(senderName);
+                 messageHeader.appendChild(timestamp);
+             }
+             
+             // Message bubble
+             const bubbleDiv = document.createElement('div');
+             bubbleDiv.className = `message-bubble px-4 py-3 rounded-2xl ${isUser 
+                 ? 'bg-blue-600 text-white ml-auto max-w-lg' 
+                 : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 shadow-sm'
+             }`;
+             
+             if (isStreaming) {
+                 bubbleDiv.id = 'streaming-message';
+                 bubbleDiv.innerHTML = content + '<span class="animate-pulse ml-1 text-gray-400">●</span>';
+             } else {
+                 // Handle markdown-like formatting
+                 const formattedContent = formatMessageContent(content);
+                 bubbleDiv.innerHTML = formattedContent;
+             }
+             
+             messageContainer.appendChild(messageHeader);
+             messageContainer.appendChild(bubbleDiv);
+             
+             messageWrapper.appendChild(avatar);
+             messageWrapper.appendChild(messageContainer);
+             
+             // Add animation class
+             messageWrapper.className += ' message-enter';
+             
+             messagesContainer.appendChild(messageWrapper);
+             
+             // Scroll to bottom
+             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+             
+             return bubbleDiv;
+         }
+         
+         function formatMessageContent(content) {
+             // Basic markdown-like formatting
+             let formatted = content
+                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+                 .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
+                 .replace(/`([^`]+)`/g, '<code class="inline-code bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-sm font-mono text-red-600 dark:text-red-400">$1</code>') // Inline code
+                 .replace(/\n/g, '<br>'); // Line breaks
+             
+             // Handle code blocks with language detection
+             formatted = formatted.replace(/```(\w+)?\n?([\s\S]*?)```/g, function(match, language, code) {
+                 const lang = language || 'text';
+                 const highlightedCode = highlightCode(code.trim(), lang);
+                 return `<pre class="code-block bg-gray-900 dark:bg-gray-800 p-4 rounded-lg mt-3 mb-3 overflow-x-auto border border-gray-200 dark:border-gray-600"><div class="code-header flex items-center justify-between mb-2 pb-2 border-b border-gray-700"><span class="text-xs text-gray-400 font-semibold uppercase">${lang}</span><button onclick="copyCode(this)" class="text-xs text-gray-400 hover:text-white transition-colors">Copy</button></div><code class="text-sm font-mono text-gray-100">${highlightedCode}</code></pre>`;
+             });
+             
+             return formatted;
+         }
+         
+         function highlightCode(code, language) {
+             // Simple syntax highlighting for common languages
+             let highlighted = code;
+             
+             switch(language.toLowerCase()) {
+                 case 'javascript':
+                 case 'js':
+                     highlighted = highlighted
+                         .replace(/(function|const|let|var|if|else|for|while|return|class|import|export|async|await)/g, '<span class="text-purple-400">$1</span>')
+                         .replace(/(\/\/.*$)/gm, '<span class="text-green-400">$1</span>')
+                         .replace(/(".*?"|'.*?'|`.*?`)/g, '<span class="text-yellow-300">$1</span>')
+                         .replace(/(\d+)/g, '<span class="text-blue-400">$1</span>');
+                     break;
+                 case 'python':
+                 case 'py':
+                     highlighted = highlighted
+                         .replace(/(def|class|if|elif|else|for|while|return|import|from|try|except|with|as)/g, '<span class="text-purple-400">$1</span>')
+                         .replace(/(#.*$)/gm, '<span class="text-green-400">$1</span>')
+                         .replace(/(".*?"|'.*?'|f".*?"|f'.*?')/g, '<span class="text-yellow-300">$1</span>')
+                         .replace(/(\d+)/g, '<span class="text-blue-400">$1</span>');
+                     break;
+                 case 'html':
+                     highlighted = highlighted
+                         .replace(/(&lt;\/?[^&gt;]+&gt;)/g, '<span class="text-blue-400">$1</span>')
+                         .replace(/(\w+)=/g, '<span class="text-yellow-300">$1</span>=');
+                     break;
+                 case 'css':
+                     highlighted = highlighted
+                         .replace(/([.#]?[\w-]+)\s*{/g, '<span class="text-yellow-300">$1</span> {')
+                         .replace(/(\w+):/g, '<span class="text-blue-400">$1</span>:')
+                         .replace(/(".*?"|'.*?')/g, '<span class="text-green-400">$1</span>');
+                     break;
+                 default:
+                     // Basic highlighting for unknown languages
+                     highlighted = highlighted
+                         .replace(/(".*?"|'.*?')/g, '<span class="text-yellow-300">$1</span>')
+                         .replace(/(\d+)/g, '<span class="text-blue-400">$1</span>');
+             }
+             
+             return highlighted;
+         }
+         
+         function copyCode(button) {
+             const codeBlock = button.closest('pre').querySelector('code');
+             const text = codeBlock.textContent;
+             
+             navigator.clipboard.writeText(text).then(() => {
+                 const originalText = button.textContent;
+                 button.textContent = 'Copied!';
+                 button.classList.add('text-green-400');
+                 
+                 setTimeout(() => {
+                     button.textContent = originalText;
+                     button.classList.remove('text-green-400');
+                 }, 2000);
+             }).catch(err => {
+                 console.error('Failed to copy code:', err);
+             });
+         }
+         
+         function updateStreamingMessage(content) {
+             const streamingMsg = document.getElementById('streaming-message');
+             if (streamingMsg) {
+                 const formattedContent = formatMessageContent(content);
+                 streamingMsg.innerHTML = formattedContent + '<span class="animate-pulse ml-1 text-gray-400">●</span>';
+                 
+                 // Scroll to bottom
+                 const messagesContainer = document.getElementById('chat-messages');
+                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
+             }
+         }
+         
+         function finishStreamingMessage(content) {
+             const streamingMsg = document.getElementById('streaming-message');
+             if (streamingMsg) {
+                 const formattedContent = formatMessageContent(content);
+                 streamingMsg.innerHTML = formattedContent;
+                 streamingMsg.removeAttribute('id');
+                 
+                 // Scroll to bottom
+                 const messagesContainer = document.getElementById('chat-messages');
+                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
+             }
+         }
+         
+         async function sendMessage() {
+             if (isGenerating) return;
+             
+             const input = document.getElementById('chat-input');
+             const sendBtn = document.getElementById('send-btn');
+             const modelSelect = document.getElementById('chat-model-select');
+             
+             const message = input.value.trim();
+             const selectedModel = modelSelect.value;
+             
+             if (!message) {
+                 showAlert('Silakan masukkan pesan', 'warning');
+                 return;
+             }
+             
+             if (!selectedModel) {
+                 showAlert('Silakan pilih model terlebih dahulu', 'warning');
+                 return;
+             }
+             
+             // Add user message
+             addMessage(message, true);
+             chatHistory.push({ role: 'user', content: message });
+             
+             // Clear input and disable send button
+             input.value = '';
+             sendBtn.disabled = true;
+             isGenerating = true;
+             
+             try {
+                 // Add AI message bubble for streaming
+                 const aiMessageBubble = addMessage('', false, true);
+                 
+                 const response = await fetch('/api/plugins/ollama/generate', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify({
+                         model: selectedModel,
+                         prompt: 'Jawab dalam bahasa Indonesia: ' + message,
+                         stream: true
+                     })
+                 });
+                 
+                 if (!response.ok) {
+                     throw new Error('Failed to generate response');
+                 }
+                 
+                 const reader = response.body.getReader();
+                 const decoder = new TextDecoder();
+                 let fullResponse = '';
+                 
+                 while (true) {
+                     const { done, value } = await reader.read();
+                     if (done) break;
+                     
+                     const chunk = decoder.decode(value);
+                     const lines = chunk.split('\n');
+                     
+                     for (const line of lines) {
+                         if (line.startsWith('data: ')) {
+                             try {
+                                 const data = JSON.parse(line.slice(6));
+                                 if (data.response) {
+                                     fullResponse += data.response;
+                                     updateStreamingMessage(fullResponse);
+                                 }
+                             } catch (e) {
+                                 // Ignore parsing errors
+                             }
+                         }
+                     }
+                 }
+                 
+                 // Finish streaming
+                 finishStreamingMessage(fullResponse);
+                 chatHistory.push({ role: 'assistant', content: fullResponse });
+                 
+             } catch (error) {
+                 console.error('Error generating response:', error);
+                 finishStreamingMessage('Maaf, terjadi kesalahan saat menghasilkan respons.');
+                 showAlert('Kesalahan saat menghasilkan respons: ' + error.message, 'error');
+             } finally {
+                 sendBtn.disabled = false;
+                 isGenerating = false;
+             }
+         }
+         
+         // Update chat model select when models are loaded
+         function updateChatModelSelect() {
+             const chatModelSelect = document.getElementById('chat-model-select');
+             
+             if (!chatModelSelect) {
+                 console.log('Chat model select element not found');
+                 return;
+             }
+             
+             console.log('Updating chat model select. Available models:', models);
+             
+             // Clear existing options and add default option
+             chatModelSelect.innerHTML = '<option value="">Select model...</option>';
+             
+             // Add model options from the models array
+             if (models && models.length > 0) {
+                 models.forEach(model => {
+                     const option = document.createElement('option');
+                     option.value = model.name;
+                     option.textContent = model.name;
+                     chatModelSelect.appendChild(option);
+                 });
+             }
+             
+             console.log('Chat model select updated. Options count:', chatModelSelect.options.length);
+         }
+
+        // Load configuration on page load
+        loadConfig(true); // Load silently on page load
+
+    </script>
+    
+    <style>
+        /* Tab navigation styling */
+        .tab-navigation {
+            border-bottom: 1px solid #ddd;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .tab-btn {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-right: 2px;
+            cursor: pointer;
+        }
+        
+        .tab-btn.active {
+            background: white;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Enhanced Chat Styling */
+         .chat-container {
+             height: 600px;
+             min-height: 400px;
+             max-height: 80vh;
+             border: 1px solid #e5e7eb;
+             border-radius: 1rem;
+             display: flex;
+             flex-direction: column;
+             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+             overflow: hidden;
+             background: white;
+             margin: 0 auto;
+             width: 100%;
+         }
+         
+         @media (max-width: 768px) {
+             .chat-container {
+                 height: 500px;
+                 border-radius: 0.5rem;
+                 margin: 0;
+             }
+         }
+        
+        .dark .chat-container {
+            border-color: #374151;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+            background: #1f2937;
+        }
+        
+        #chat-messages {
+             flex: 1;
+             overflow-y: auto;
+             padding: 1.5rem;
+             background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+             scroll-behavior: smooth;
+             min-height: 0;
+         }
+         
+         @media (max-width: 768px) {
+             #chat-messages {
+                 padding: 1rem;
+             }
+         }
+        
+        .dark #chat-messages {
+            background: linear-gradient(to bottom, #0f172a, #1e293b);
+        }
+        
+        .chat-input-container {
+             padding: 1.5rem;
+             border-top: 1px solid #e5e7eb;
+             background-color: white;
+             backdrop-filter: blur(10px);
+             flex-shrink: 0;
+         }
+         
+         @media (max-width: 768px) {
+             .chat-input-container {
+                 padding: 1rem;
+             }
+         }
+        
+        .dark .chat-input-container {
+            border-top-color: #374151;
+            background-color: #1f2937;
+        }
+        
+        /* Message animations */
+        .message-enter {
+            animation: messageSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Improved scrollbar */
+        #chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        #chat-messages::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        .dark #chat-messages::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        
+        #chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        .dark #chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        
+        /* Enhanced input styling */
+        #chat-input {
+            transition: all 0.2s ease;
+        }
+        
+        #chat-input:focus {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+        
+        /* Message bubble hover effects */
+        .message-bubble {
+            transition: all 0.2s ease;
+        }
+        
+        .message-bubble:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dark .message-bubble:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Code block styling */
+        pre {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            line-height: 1.5;
+        }
+        
+        code {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+        
+        /* Typing indicator */
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .typing-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background-color: #9ca3af;
+            margin: 0 1px;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typingAnimation {
+            0%, 80%, 100% {
+                transform: scale(0);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+
+{% endblock %}
+

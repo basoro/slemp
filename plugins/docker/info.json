@@ -1,0 +1,22 @@
+{
+  "name": "docker",
+  "title": "Docker Manager",
+  "description": "Manage Docker containers, images, networks, and volumes with ease",
+  "version": "1.0.0",
+  "author": "SLEMP Team",
+  "category": "Container Management",
+  "status": "active",
+  "icon": "docker-icon.svg",
+  "dependencies": ["docker"],
+  "permissions": ["container_management", "image_management"],
+  "install_date": "2024-01-15",
+  "last_update": "2024-01-20",
+  "size": "2.5 MB",
+  "downloads": 1250,
+  "rating": 4.8,
+  "tags": ["docker", "containers", "devops"],
+  "homepage": "https://slemp.com/plugins/docker",
+  "documentation": "https://docs.slemp.com/plugins/docker",
+  "support": "https://support.slemp.com/docker",
+  "active": true
+}

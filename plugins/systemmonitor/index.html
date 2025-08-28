@@ -1,0 +1,744 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Header -->
+        <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+            <div class="px-5 pb-1 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">                            
+                        <div class="flex items-center" onclick="toggleSidebarCollapse()" style="cursor: pointer;">
+                            <svg class="h-7 w-7 text-gray-600 dark:text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Theme Toggle -->
+                        <div class="relative" id="theme-dropdown">
+                            <button onclick="toggleThemeDropdown()" id="theme-toggle" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <svg id="theme-icon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path id="theme-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                            </button>
+                            <div id="theme-dropdown-menu" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                                <div class="py-1">
+                                    <button onclick="setTheme('light')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                        </svg>
+                                        Light
+                                    </button>
+                                    <button onclick="setTheme('dark')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                        </svg>
+                                        Dark
+                                    </button>
+                                    <button onclick="setTheme('system')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                        </svg>
+                                        System
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Password Change -->
+                        <button onclick="showChangePasswordModal()" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0 1 21 9z"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Logout -->
+                        <a href="{{ url_for('logout') }}" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
+            <div class="mb-8">
+                <!-- Header -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg p-6 mb-8 transition-colors duration-200">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                        <div class="mb-4 md:mb-0">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">System Monitor</h1>
+                                    <p class="text-gray-600 dark:text-gray-400 mt-1">Real-time system performance monitoring</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <button onclick="window.refreshData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                                </svg>
+                                Refresh
+                            </button>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-600 dark:text-gray-400">Auto-refresh:</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="auto-refresh-toggle" class="sr-only peer" checked>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Overview Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- CPU Usage -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg p-6 transition-colors duration-200 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">CPU Usage</p>
+                                <p id="cpu-usage" class="text-2xl font-bold text-gray-900 dark:text-white">0%</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div id="cpu-progress" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Memory Usage -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg p-6 transition-colors duration-200 border border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-600">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Memory Usage</p>
+                                <p id="memory-usage" class="text-2xl font-bold text-gray-900 dark:text-white">0%</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div id="memory-progress" class="bg-green-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Disk Usage -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg p-6 transition-colors duration-200 border border-gray-200 dark:border-gray-700 hover:border-yellow-300 dark:hover:border-yellow-600">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Disk Usage</p>
+                                <p id="disk-usage" class="text-2xl font-bold text-gray-900 dark:text-white">0%</p>
+                            </div>
+                            <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h8c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div id="disk-progress" class="bg-yellow-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Network Activity -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg p-6 transition-colors duration-200 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Network</p>
+                                <p id="network-activity" class="text-2xl font-bold text-gray-900 dark:text-white">0 KB/s</p>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+                                <span id="network-in">↓ 0 KB/s</span>
+                                <span id="network-out">↑ 0 KB/s</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- CPU Chart -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg p-6 transition-colors duration-200 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">CPU Usage History</h3>
+                        <div id="cpu-chart" style="width: 100%; height: 200px;"></div>
+                    </div>
+
+                    <!-- Memory Chart -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg p-6 transition-colors duration-200 border border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-600">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Memory Usage History</h3>
+                        <div id="memory-chart" style="width: 100%; height: 200px;"></div>
+                    </div>
+                </div>
+
+                <!-- System Information -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg p-6 transition-colors duration-200 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">System Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div>
+                            <h4 class="font-medium text-gray-900 dark:text-white mb-2">System</h4>
+                            <div class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                                <div>OS: <span id="system-os">-</span></div>
+                                <div>Hostname: <span id="system-hostname">-</span></div>
+                                <div>Uptime: <span id="system-uptime">-</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-900 dark:text-white mb-2">Hardware</h4>
+                            <div class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                                <div>CPU: <span id="hardware-cpu">-</span></div>
+                                <div>Cores: <span id="hardware-cores">-</span></div>
+                                <div>Total Memory: <span id="hardware-memory">-</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-900 dark:text-white mb-2">Load Average</h4>
+                            <div class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                                <div>1 min: <span id="load-1min">-</span></div>
+                                <div>5 min: <span id="load-5min">-</span></div>
+                                <div>15 min: <span id="load-15min">-</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Modal -->
+            <div id="error-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+                <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+                    <div class="mt-3 text-center">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Error</h3>
+                        <div class="mt-2 px-7 py-3">
+                            <p id="error-message" class="text-sm text-red-600 dark:text-red-400"></p>
+                        </div>
+                        <div class="items-center px-4 py-3">
+                            <button onclick="hideErrorModal()" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Initialize global variables as window properties to avoid conflicts
+        window.systemData = window.systemData || {
+            cpu: [],
+            memory: [],
+            timestamps: []
+        };
+        window.systemMonitorRefreshInterval = window.systemMonitorRefreshInterval || null;
+        window.refreshInterval = window.systemMonitorRefreshInterval; // For backward compatibility
+        window.cpuChart = window.cpuChart || null;
+        window.memoryChart = window.memoryChart || null;
+        
+        // Local references for easier access (use window properties directly to avoid conflicts)
+        // var systemData = window.systemData;
+        // var refreshInterval = window.refreshInterval;
+        // var cpuChart = window.cpuChart;
+        // var memoryChart = window.memoryChart;
+
+        // Initialize dark mode
+        function initializeDarkMode() {
+            // Check if we're running inside a modal (parent system manages theme)
+            const isInModal = window.parent !== window || document.getElementById('plugin-modal');
+            
+            if (isInModal) {
+                // If in modal, inherit theme from parent system
+                // The parent system already manages the dark class on document.documentElement
+                console.log('Plugin running in modal, inheriting theme from parent system');
+                return;
+            }
+            
+            // If running standalone, use plugin's own theme logic
+            const savedTheme = localStorage.getItem('theme') || localStorage.getItem('darkMode');
+            let isDarkMode = false;
+            
+            if (savedTheme === 'dark' || savedTheme === 'true') {
+                isDarkMode = true;
+            } else if (savedTheme === 'light' || savedTheme === 'false') {
+                isDarkMode = false;
+            } else {
+                // Default to system preference
+                isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            }
+            
+            if (isDarkMode) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        // Initialize plugin function
+        window.initializePlugin = function() {
+            console.log('Initializing System Monitor plugin...');
+            window.initializeDarkMode();
+            setNavbarStateFromURL();
+            window.initializeCharts();
+            
+            // Add small delay to ensure DOM elements are ready
+            setTimeout(function() {
+                window.systemMonitorLoadData();
+            }, 100);
+            
+            // Setup auto-refresh toggle
+            const autoRefreshToggle = document.getElementById('auto-refresh-toggle');
+            if (autoRefreshToggle) {
+                autoRefreshToggle.addEventListener('change', function() {
+                    if (this.checked) {
+                        startAutoRefresh();
+                    } else {
+                        stopAutoRefresh();
+                    }
+                });
+            }
+            
+            // Start auto-refresh by default
+            startAutoRefresh();
+        }
+
+        // Navbar state management function
+        function setNavbarStateFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const section = urlParams.get('section');
+            
+            // Remove active class from all navigation buttons
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to current section
+            if (section) {
+                // Look for buttons with onclick containing the section
+                const activeBtn = document.querySelector(`nav button[onclick*="section=${section}"]`);
+                if (activeBtn) {
+                    activeBtn.classList.add('active');
+                }
+            } else {
+                // If no section parameter, check if we're in a plugin page
+                const currentPath = window.location.pathname;
+                if (currentPath.includes('/plugins/')) {
+                    // Set plugins button as active
+                    const pluginsBtn = document.querySelector('nav button[onclick*="section=plugins"]');
+                    if (pluginsBtn) {
+                        pluginsBtn.classList.add('active');
+                    }
+                }
+            }
+        }
+
+        // Load data when page loads or when triggered by modal system
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', window.initializePlugin);
+        } else {
+            // DOM is already ready, initialize immediately
+            setTimeout(window.initializePlugin, 100);
+        }
+        
+        // Also listen for DOMContentLoaded events triggered by modal system
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOMContentLoaded event received, initializing plugin...');
+            window.initializePlugin();
+        });
+        
+        // Ensure plugin is initialized when loaded in modal
+        setTimeout(function() {
+            if (document.getElementById('plugin-modal')) {
+                console.log('Plugin loaded in modal, ensuring initialization...');
+                window.initializePlugin();
+            }
+        }, 200);
+
+        window.initializeCharts = function() {
+            console.log('Initializing charts...');
+            // Check if ECharts is available
+            if (typeof echarts === 'undefined') {
+                console.warn('ECharts not loaded yet, retrying in 500ms...');
+                setTimeout(window.initializeCharts, 500);
+                return;
+            }
+            
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#fff' : '#000';
+            const gridColor = isDark ? '#374151' : '#e5e7eb';
+
+            // CPU Chart
+            const cpuCtx = document.getElementById('cpu-chart');
+            if (cpuCtx) {
+                // Dispose existing chart if it exists
+                if (window.cpuChart) {
+                    window.cpuChart.dispose();
+                }
+                window.cpuChart = echarts.init(cpuCtx);
+                const cpuOption = {
+                    title: {
+                        text: 'CPU Usage (%)',
+                        textStyle: { color: textColor, fontSize: 14 }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        backgroundColor: isDark ? '#374151' : '#fff',
+                        textStyle: { color: textColor }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: [],
+                        axisLabel: { color: textColor },
+                        axisLine: { lineStyle: { color: gridColor } },
+                        splitLine: { lineStyle: { color: gridColor } }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        min: 0,
+                        max: 100,
+                        axisLabel: { color: textColor },
+                        axisLine: { lineStyle: { color: gridColor } },
+                        splitLine: { lineStyle: { color: gridColor } }
+                    },
+                    series: [{
+                        name: 'CPU Usage',
+                        type: 'line',
+                        data: [],
+                        smooth: true,
+                        lineStyle: { color: '#3B82F6' },
+                        areaStyle: {
+                            color: {
+                                type: 'linear',
+                                x: 0, y: 0, x2: 0, y2: 1,
+                                colorStops: [
+                                    { offset: 0, color: 'rgba(59, 130, 246, 0.3)' },
+                                    { offset: 1, color: 'rgba(59, 130, 246, 0.1)' }
+                                ]
+                            }
+                        }
+                    }]
+                };
+                window.cpuChart.setOption(cpuOption);
+            }
+
+            // Memory Chart
+            const memoryCtx = document.getElementById('memory-chart');
+            if (memoryCtx) {
+                // Dispose existing chart if it exists
+                if (window.memoryChart) {
+                    window.memoryChart.dispose();
+                }
+                window.memoryChart = echarts.init(memoryCtx);
+                const memoryOption = {
+                    title: {
+                        text: 'Memory Usage (%)',
+                        textStyle: { color: textColor, fontSize: 14 }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        backgroundColor: isDark ? '#374151' : '#fff',
+                        textStyle: { color: textColor }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: [],
+                        axisLabel: { color: textColor },
+                        axisLine: { lineStyle: { color: gridColor } },
+                        splitLine: { lineStyle: { color: gridColor } }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        min: 0,
+                        max: 100,
+                        axisLabel: { color: textColor },
+                        axisLine: { lineStyle: { color: gridColor } },
+                        splitLine: { lineStyle: { color: gridColor } }
+                    },
+                    series: [{
+                        name: 'Memory Usage',
+                        type: 'line',
+                        data: [],
+                        smooth: true,
+                        lineStyle: { color: '#10B981' },
+                        areaStyle: {
+                            color: {
+                                type: 'linear',
+                                x: 0, y: 0, x2: 0, y2: 1,
+                                colorStops: [
+                                    { offset: 0, color: 'rgba(16, 185, 129, 0.3)' },
+                                    { offset: 1, color: 'rgba(16, 185, 129, 0.1)' }
+                                ]
+                            }
+                        }
+                    }]
+                };
+                window.memoryChart.setOption(memoryOption);
+            }
+        }
+
+        window.systemMonitorLoadData = window.systemMonitorLoadData || async function() {
+            try {
+                // Check if plugin is still active (modal not closed)
+                if (!document.getElementById('cpu-usage')) {
+                    console.log('Plugin inactive, skipping data load');
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('action', 'get_system_info');
+                
+                const response = await fetch('/api/plugins/systemmonitor/get_system_info', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showErrorModal(data.error);
+                } else {
+                    // Double check functions exist before calling
+                    if (typeof window.updateSystemInfo === 'function') {
+                        window.updateSystemInfo(data);
+                    }
+                    if (typeof window.updateCharts === 'function') {
+                        window.updateCharts(data);
+                    }
+                }
+            } catch (error) {
+                // Only show error if plugin is still active
+                if (document.getElementById('cpu-usage')) {
+                    showErrorModal('Error loading system data: ' + error.message);
+                } else {
+                    console.log('Plugin inactive, ignoring error:', error.message);
+                }
+            }
+        }
+        
+        // Local reference for easier access
+        window.loadData = window.systemMonitorLoadData;
+        var loadData = window.loadData;
+
+        window.updateSystemInfo = window.updateSystemInfo || function(data) {
+            // Update overview cards
+            const cpuUsage = parseFloat(data.cpu_usage) || 0;
+            const memoryUsage = parseFloat(data.memory_usage) || 0;
+            const diskUsage = parseFloat(data.disk_usage) || 0;
+            
+            // Add null checks for DOM elements
+            const cpuUsageEl = document.getElementById('cpu-usage');
+            const cpuProgressEl = document.getElementById('cpu-progress');
+            const memoryUsageEl = document.getElementById('memory-usage');
+            const memoryProgressEl = document.getElementById('memory-progress');
+            const diskUsageEl = document.getElementById('disk-usage');
+            const diskProgressEl = document.getElementById('disk-progress');
+            
+            if (cpuUsageEl) cpuUsageEl.textContent = cpuUsage.toFixed(1) + '%';
+            if (cpuProgressEl) cpuProgressEl.style.width = cpuUsage + '%';
+            
+            if (memoryUsageEl) memoryUsageEl.textContent = memoryUsage.toFixed(1) + '%';
+            if (memoryProgressEl) memoryProgressEl.style.width = memoryUsage + '%';
+            
+            if (diskUsageEl) diskUsageEl.textContent = diskUsage.toFixed(1) + '%';
+            if (diskProgressEl) diskProgressEl.style.width = diskUsage + '%';
+            
+            // Update network info
+            if (data.network) {
+                const networkIn = window.formatBytes(data.network.bytes_recv_per_sec || 0);
+                const networkOut = window.formatBytes(data.network.bytes_sent_per_sec || 0);
+                const totalNetwork = window.formatBytes((data.network.bytes_recv_per_sec || 0) + (data.network.bytes_sent_per_sec || 0));
+                
+                const networkActivityEl = document.getElementById('network-activity');
+                const networkInEl = document.getElementById('network-in');
+                const networkOutEl = document.getElementById('network-out');
+                
+                if (networkActivityEl) networkActivityEl.textContent = totalNetwork + '/s';
+                if (networkInEl) networkInEl.textContent = '↓ ' + networkIn + '/s';
+                if (networkOutEl) networkOutEl.textContent = '↑ ' + networkOut + '/s';
+            }
+            
+            // Update system information
+            if (data.system_info) {
+                const systemOsEl = document.getElementById('system-os');
+                const systemHostnameEl = document.getElementById('system-hostname');
+                const systemUptimeEl = document.getElementById('system-uptime');
+                const hardwareCpuEl = document.getElementById('hardware-cpu');
+                const hardwareCoresEl = document.getElementById('hardware-cores');
+                const hardwareMemoryEl = document.getElementById('hardware-memory');
+                
+                if (systemOsEl) systemOsEl.textContent = data.system_info.os || '-';
+                if (systemHostnameEl) systemHostnameEl.textContent = data.system_info.hostname || '-';
+                if (systemUptimeEl) systemUptimeEl.textContent = data.system_info.uptime || '-';
+                if (hardwareCpuEl) hardwareCpuEl.textContent = data.system_info.cpu_model || '-';
+                if (hardwareCoresEl) hardwareCoresEl.textContent = data.system_info.cpu_cores || '-';
+                if (hardwareMemoryEl) hardwareMemoryEl.textContent = window.formatBytes(data.system_info.total_memory || 0);
+            }
+            
+            // Update load average
+            if (data.load_average) {
+                const load1minEl = document.getElementById('load-1min');
+                const load5minEl = document.getElementById('load-5min');
+                const load15minEl = document.getElementById('load-15min');
+                
+                if (load1minEl) load1minEl.textContent = data.load_average.load_1min || '-';
+                if (load5minEl) load5minEl.textContent = data.load_average.load_5min || '-';
+                if (load15minEl) load15minEl.textContent = data.load_average.load_15min || '-';
+            }
+        }
+
+        window.updateCharts = window.updateCharts || function(data) {
+            const currentTime = new Date().toLocaleTimeString();
+            const cpuUsage = parseFloat(data.cpu_usage) || 0;
+            const memoryUsage = parseFloat(data.memory_usage) || 0;
+            
+            // Update data arrays
+            window.systemData.timestamps.push(currentTime);
+            window.systemData.cpu.push(cpuUsage);
+            window.systemData.memory.push(memoryUsage);
+            
+            // Keep only last 20 data points
+            if (window.systemData.timestamps.length > 20) {
+                window.systemData.timestamps.shift();
+                window.systemData.cpu.shift();
+                window.systemData.memory.shift();
+            }
+            
+            // Update charts
+            if (window.cpuChart) {
+                const cpuOption = {
+                    xAxis: {
+                        data: window.systemData.timestamps
+                    },
+                    series: [{
+                        data: window.systemData.cpu
+                    }]
+                };
+                window.cpuChart.setOption(cpuOption);
+            }
+            
+            if (window.memoryChart) {
+                const memoryOption = {
+                    xAxis: {
+                        data: window.systemData.timestamps
+                    },
+                    series: [{
+                        data: window.systemData.memory
+                    }]
+                };
+                window.memoryChart.setOption(memoryOption);
+            }
+        }
+
+        window.formatBytes = window.formatBytes || function(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function startAutoRefresh() {
+            if (window.systemMonitorRefreshInterval) {
+                clearInterval(window.systemMonitorRefreshInterval);
+            }
+            // Add delay before starting interval to ensure initial load completes
+            setTimeout(function() {
+                window.systemMonitorRefreshInterval = setInterval(window.systemMonitorLoadData, 5000); // Refresh every 5 seconds
+                window.refreshInterval = window.systemMonitorRefreshInterval; // For backward compatibility
+            }, 500);
+        }
+
+        function stopAutoRefresh() {
+            if (window.systemMonitorRefreshInterval) {
+                clearInterval(window.systemMonitorRefreshInterval);
+                window.systemMonitorRefreshInterval = null;
+                window.refreshInterval = null; // For backward compatibility
+            }
+        }
+
+        window.refreshData = window.refreshData || function() {
+            window.systemMonitorLoadData();
+        }
+        
+        // Cleanup function to be called when modal is closed
+        window.systemMonitorCleanup = window.systemMonitorCleanup || function() {
+            // Stop auto-refresh
+            stopAutoRefresh();
+            
+            // Force clear any remaining intervals
+            if (window.systemMonitorRefreshInterval) {
+                clearInterval(window.systemMonitorRefreshInterval);
+                window.systemMonitorRefreshInterval = null;
+                window.refreshInterval = null; // For backward compatibility
+            }
+            
+            // Dispose charts
+            if (window.cpuChart) {
+                window.cpuChart.dispose();
+                window.cpuChart = null;
+            }
+            if (window.memoryChart) {
+                window.memoryChart.dispose();
+                window.memoryChart = null;
+            }
+            
+            console.log('System Monitor plugin cleaned up');
+        }
+        
+        // Also set as generic cleanup for backward compatibility
+        window.cleanup = window.systemMonitorCleanup;
+
+        function showErrorModal(message) {
+            const errorMessage = document.getElementById('error-message');
+            const errorModal = document.getElementById('error-modal');
+            
+            if (errorMessage && errorModal) {
+                errorMessage.textContent = message;
+                errorModal.classList.remove('hidden');
+            } else {
+                // Fallback to console if modal elements are not available
+                console.error('System Monitor Error:', message);
+                alert('Error: ' + message);
+            }
+        }
+
+        function hideErrorModal() {
+            const errorModal = document.getElementById('error-modal');
+            if (errorModal) {
+                errorModal.classList.add('hidden');
+            }
+        }
+
+    </script>
+
+{% endblock %}
+
+

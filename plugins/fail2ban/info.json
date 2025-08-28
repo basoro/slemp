@@ -1,0 +1,14 @@
+{
+    "name": "Fail2ban Manager",
+    "version": "1.0.0",
+    "description": "Plugin untuk menampilkan dan mengelola fail2ban service dan jail di server",
+    "author": "Slemp Team",
+    "category": "Security",
+    "icon": "fa-shield-alt",
+    "enabled": true,
+    "dependencies": [],
+    "permissions": [
+        "system_read",
+        "fail2ban_edit"
+    ]
+}

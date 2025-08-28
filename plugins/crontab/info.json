@@ -1,0 +1,14 @@
+{
+    "name": "Crontab Manager",
+    "version": "1.0.0",
+    "description": "Plugin untuk menampilkan dan mengelola crontab jobs di server",
+    "author": "Slemp Team",
+    "category": "System",
+    "icon": "fa-clock",
+    "enabled": true,
+    "dependencies": [],
+    "permissions": [
+        "system_read",
+        "crontab_edit"
+    ]
+}

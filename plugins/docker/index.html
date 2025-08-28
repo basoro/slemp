@@ -1,0 +1,2248 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Header -->
+        <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+            <div class="px-5 pb-1 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">                            
+                        <div class="flex items-center" onclick="toggleSidebarCollapse()" style="cursor: pointer;">
+                            <svg class="h-7 w-7 text-gray-600 dark:text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Theme Toggle -->
+                        <div class="relative" id="theme-dropdown">
+                            <button onclick="toggleThemeDropdown()" id="theme-toggle" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <svg id="theme-icon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path id="theme-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                            </button>
+                            <div id="theme-dropdown-menu" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                                <div class="py-1">
+                                    <button onclick="setTheme('light')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                        </svg>
+                                        Light
+                                    </button>
+                                    <button onclick="setTheme('dark')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                        </svg>
+                                        Dark
+                                    </button>
+                                    <button onclick="setTheme('system')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                        </svg>
+                                        System
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Password Change -->
+                        <button onclick="showChangePasswordModal()" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0 1 21 9z"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Logout -->
+                        <a href="{{ url_for('logout') }}" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
+            <div class="mb-8">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg p-6 mb-8 transition-colors duration-200">
+                    <!-- Page header -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div>
+                                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">🐳 Docker Manager</h1>
+                                <p class="text-gray-600 dark:text-gray-400">Kelola Docker containers, images, networks, dan volumes</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div id="docker-status" class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-gray-400 rounded-full"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400">Checking...</span>
+                            </div>
+                            <button onclick="refreshStatus()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                🔄 Refresh
+                            </button>
+                            <button onclick="uninstallDocker()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                🗑️ Uninstall Docker
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <!-- Docker Not Installed Warning -->
+                <div id="docker-not-installed" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 hidden">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-yellow-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div>
+                                <h3 class="text-sm font-medium text-yellow-800">Docker Not Installed</h3>
+                                <p class="text-sm text-yellow-700 mt-1">Docker is not installed on this system. Please install Docker to use this plugin.</p>
+                            </div>
+                        </div>
+                        <button onclick="installDocker()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Install Docker
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Docker Not Running Warning -->
+                <div id="docker-not-running" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 hidden">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div>
+                            <h3 class="text-sm font-medium text-red-800">Docker Not Running</h3>
+                            <p class="text-sm text-red-700 mt-1">Docker daemon is not running. Please start Docker service.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div id="main-content" class="hidden">
+                    <!-- Dashboard Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                        <!-- Total Containers Card -->
+                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-md p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-sm font-medium opacity-90">📦 Total Container</h3>
+                                    <p id="total-containers" class="text-3xl font-bold mt-2">4</p>
+                                    <p class="text-sm opacity-75 mt-1">2 berjalan</p>
+                                </div>
+                                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M13.5 3a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM15 3a3 3 0 1 0-6 0 3 3 0 0 0 6 0z"/>
+                                        <path d="M6 17.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM7.5 17.5a3 3 0 1 0-6 0 3 3 0 0 0 6 0z"/>
+                                        <path d="M13.5 17.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM15 17.5a3 3 0 1 0-6 0 3 3 0 0 0 6 0z"/>
+                                        <path d="M21 17.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM22.5 17.5a3 3 0 1 0-6 0 3 3 0 0 0 6 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Docker Images Card -->
+                        <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-md p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-sm font-medium opacity-90">🖼️ Docker Images</h3>
+                                    <p id="total-images" class="text-3xl font-bold mt-2">4</p>
+                                    <p class="text-sm opacity-75 mt-1">Siap deploy</p>
+                                </div>
+                                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CPU Usage Card -->
+                        <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg shadow-md p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-sm font-medium opacity-90">⚡ Penggunaan CPU</h3>
+                                    <p id="cpu-usage" class="text-3xl font-bold mt-2">12.5%</p>
+                                    <p class="text-sm opacity-75 mt-1">Rata-rata beban</p>
+                                </div>
+                                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Memory Usage Card -->
+                        <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-md p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-sm font-medium opacity-90">💾 Penggunaan Memory</h3>
+                                    <p id="memory-usage" class="text-3xl font-bold mt-2">240MB</p>
+                                    <p class="text-sm opacity-75 mt-1">Total dialokasikan</p>
+                                </div>
+                                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content Sections -->
+                    <div class="space-y-6">
+
+                        <!-- Containers Section -->
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">📦 Container</h2>
+                                <div class="flex space-x-2">
+                                    <div class="relative inline-block text-left">
+                                        <button onclick="toggleCreateDropdown()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                            </svg>
+                                            🆕 Buat Container
+                                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </button>
+                                        <div id="create-dropdown" class="hidden absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                                            <div class="py-1">
+                                                <button onclick="showCreateContainerModal()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                                    </svg>
+                                                    ⚡ Buat Cepat
+                                                </button>
+                                                <button onclick="showDockerfileModal()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                    </svg>
+                                                    📄 Dari Dockerfile
+                                                </button>
+                                                <button onclick="showDockerComposeModal()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                                                    </svg>
+                                                    🐙 Dari Docker Compose
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button onclick="loadContainers()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                        🔄 Refresh
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="containers-loading" class="flex justify-center py-8">
+                                <div class="spinner"></div>
+                            </div>
+                            <div id="containers-content" class="hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <thead class="bg-gray-50 dark:bg-gray-700">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">📛 Nama</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">🖼️ Image</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">📊 Status</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">🔌 Port</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">📅 Dibuat</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">⚙️ Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="containers-table" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Images Section -->
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">🖼️ Images</h2>
+                                <div class="flex space-x-2">
+                                    <button onclick="showPullImageModal()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                                        </svg>
+                                        📥 Pull Image
+                                    </button>
+                                    <button onclick="loadImages()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                        🔄 Refresh
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="images-loading" class="flex justify-center py-8">
+                                <div class="spinner"></div>
+                            </div>
+                            <div id="images-content" class="hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <thead class="bg-gray-50 dark:bg-gray-700">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">📦 Repository</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">🏷️ Tag</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">🆔 Image ID</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">📅 Dibuat</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">📏 Ukuran</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">⚙️ Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="images-table" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Networks Section -->
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">🌐 Jaringan</h2>
+                                <button onclick="loadNetworks()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                    🔄 Refresh
+                                </button>
+                            </div>
+                            <div id="networks-loading" class="flex justify-center py-8">
+                                <div class="spinner"></div>
+                            </div>
+                            <div id="networks-content" class="hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <thead class="bg-gray-50 dark:bg-gray-700">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ID Jaringan</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nama</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Driver</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Scope</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="networks-table" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Volumes Section -->
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">💾 Volume</h2>
+                                <button onclick="loadVolumes()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                    🔄 Refresh
+                                </button>
+                            </div>
+                            <div id="volumes-loading" class="flex justify-center py-8">
+                                <div class="spinner"></div>
+                            </div>
+                            <div id="volumes-content" class="hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <thead class="bg-gray-50 dark:bg-gray-700">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Driver</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nama Volume</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="volumes-table" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Section -->
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">ℹ️ Informasi Sistem</h2>
+                                <div class="flex space-x-2">
+                                    <button onclick="cleanupSystem()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                        🧹 Bersihkan Sistem
+                                    </button>
+                                    <button onclick="loadSystemInfo()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                        🔄 Refresh
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="system-loading" class="flex justify-center py-8">
+                                <div class="spinner"></div>
+                            </div>
+                            <div id="system-content" class="hidden">
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                        <h3 class="text-lg font-medium text-gray-800 dark:text-white mb-3">💾 Penggunaan Disk</h3>
+                                        <pre id="disk-usage" class="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap"></pre>
+                                    </div>
+                                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                        <h3 class="text-lg font-medium text-gray-800 dark:text-white mb-3">📋 Informasi Versi</h3>
+                                        <pre id="version-info" class="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap"></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modals -->
+            <!-- Pull Image Modal -->
+            <div id="pull-image-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">📥 Tarik Image Docker</h3>
+                    <div class="mb-4">
+                        <label for="image-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Image</label>
+                        <input type="text" id="image-name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="contoh: nginx:latest">
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="hidePullImageModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500">
+                            ❌ Batal
+                        </button>
+                        <button onclick="pullImage()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                            📥 Tarik Image
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Container Modal -->
+            <div id="create-container-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">🆕 Buat Container Baru</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="container-image" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Image</label>
+                            <input type="text" id="container-image" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="contoh: nginx:latest" required>
+                        </div>
+                        <div>
+                            <label for="container-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Container (Opsional)</label>
+                            <input type="text" id="container-name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="contoh: my-nginx">
+                        </div>
+                        <div>
+                            <label for="container-ports" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pemetaan Port (Opsional)</label>
+                            <input type="text" id="container-ports" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="contoh: 8080:80,8443:443">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Format: host_port:container_port, dipisahkan dengan koma</p>
+                        </div>
+                        <div>
+                            <label for="container-volumes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pemetaan Volume (Opsional)</label>
+                            <input type="text" id="container-volumes" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="contoh: /host/path:/container/path">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Format: host_path:container_path, dipisahkan dengan koma</p>
+                        </div>
+                        <div>
+                            <label for="container-env" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Variabel Environment (Opsional)</label>
+                            <input type="text" id="container-env" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="contoh: ENV_VAR=value,ANOTHER_VAR=value">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Format: VAR=value, dipisahkan dengan koma</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button onclick="hideCreateContainerModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500">
+                            ❌ Batal
+                        </button>
+                        <button onclick="createContainer()" class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">
+                            🆕 Buat Container
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Container Logs Modal -->
+            <div id="logs-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-screen overflow-y-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">📋 Log Container</h3>
+                        <button onclick="hideLogsModal()" class="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="bg-black text-green-400 p-4 rounded-lg font-mono text-sm max-h-96 overflow-y-auto">
+                        <pre id="container-logs"></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dockerfile Modal -->
+            <div id="dockerfile-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-screen overflow-y-auto">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">📄 Buat Container dari Dockerfile</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="dockerfile-content" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Konten Dockerfile</label>
+                            <textarea id="dockerfile-content" rows="15" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm" placeholder="FROM ubuntu:latest\nRUN apt-get update && apt-get install -y nginx\nEXPOSE 80\nCMD [\"nginx\", \"-g\", \"daemon off;\"]"></textarea>
+                        </div>
+                        <div>
+                            <label for="dockerfile-image-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Image</label>
+                            <input type="text" id="dockerfile-image-name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="contoh: my-custom-image:latest" required>
+                        </div>
+                        <div>
+                            <label for="dockerfile-container-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Container (Opsional)</label>
+                            <input type="text" id="dockerfile-container-name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="contoh: my-container">
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button onclick="hideDockerfileModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500">
+                            ❌ Batal
+                        </button>
+                        <button onclick="buildFromDockerfile()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                            🔨 Build & Jalankan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Docker Compose Modal -->
+            <div id="docker-compose-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-screen overflow-y-auto">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">🐙 Deploy dari Docker Compose</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="compose-content" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Docker Compose YAML</label>
+                            <textarea id="compose-content" rows="15" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm" placeholder="version: '3.8'\nservices:\n  web:\n    image: nginx:latest\n    ports:\n      - \"80:80\"\n    volumes:\n      - ./html:/usr/share/nginx/html"></textarea>
+                        </div>
+                        <div>
+                            <label for="compose-project-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Proyek (Opsional)</label>
+                            <input type="text" id="compose-project-name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="contoh: my-project">
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button onclick="hideDockerComposeModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500">
+                            ❌ Batal
+                        </button>
+                        <button onclick="deployFromCompose()" class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">
+                            🚀 Deploy
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Global variables
+        let currentTab = 'containers';
+        let dockerStatus = { installed: false, running: false };
+
+
+        
+        // Initialize plugin when DOM is ready
+        function initializePlugin() {
+            console.log('🚀 [Docker Plugin] Initializing Docker Manager page...');
+            console.log('🚀 [Docker Plugin] Document ready state:', document.readyState);
+            console.log('🚀 [Docker Plugin] Current location:', window.location.href);
+            
+            // Initialize theme first
+            initializeTheme();
+            setNavbarStateFromURL();
+            
+            // Check Docker status and load all content automatically
+            checkDockerStatus();
+            
+            // Setup refresh button with element existence check
+            const refreshBtn = document.querySelector('.refresh-btn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', refreshStatus);
+            }
+        }
+        
+        // Initialize when DOM is ready (for both direct load and modal load)
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializePlugin);
+        } else {
+            // DOM is already ready, initialize immediately
+            initializePlugin();
+        }
+
+        // Load all content automatically
+        function loadAllContent() {
+            console.log('Loading all Docker content...');
+            loadContainers();
+            loadImages();
+            loadNetworks();
+            loadVolumes();
+            loadSystemInfo();
+        }
+
+        // Check Docker status
+        function checkDockerStatus() {
+            console.log('Checking Docker status...');
+            fetch('/api/plugins/docker/status', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Docker status data:', data);
+                    dockerStatus = data;
+                    updateStatusDisplay();
+                    
+                    if (data.installed && data.running) {
+                        document.getElementById('main-content').classList.remove('hidden');
+                        loadAllContent(); // Load all content automatically
+                        updateDashboardCards(); // Update dashboard cards
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking Docker status:', error);
+                    showNotification('Error checking Docker status: ' + error.message, 'error');
+                    // Set default status on error
+                    dockerStatus = {
+                        installed: false,
+                        running: false,
+                        version: null,
+                        message: 'Error checking status'
+                    };
+                    updateStatusDisplay();
+                });
+        }
+
+        // Update status display
+        function updateStatusDisplay() {
+            console.log('Updating status display with:', dockerStatus);
+            const statusElement = document.getElementById('docker-status');
+            const notInstalledWarning = document.getElementById('docker-not-installed');
+            const notRunningWarning = document.getElementById('docker-not-running');
+            const uninstallButton = document.querySelector('button[onclick="uninstallDocker()"]');
+            
+            if (!statusElement) {
+                console.error('Status element not found!');
+                return;
+            }
+            
+            // Hide all warnings first
+            if (notInstalledWarning) notInstalledWarning.classList.add('hidden');
+            if (notRunningWarning) notRunningWarning.classList.add('hidden');
+            
+            if (!dockerStatus || !dockerStatus.installed) {
+                console.log('Docker not installed');
+                statusElement.innerHTML = `
+                    <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span class="text-sm text-red-600 dark:text-red-400">Not Installed</span>
+                `;
+                if (notInstalledWarning) notInstalledWarning.classList.remove('hidden');
+                // Hide uninstall button when Docker is not installed
+                if (uninstallButton) uninstallButton.style.display = 'none';
+            } else if (!dockerStatus.running) {
+                console.log('Docker not running');
+                statusElement.innerHTML = `
+                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <span class="text-sm text-yellow-600 dark:text-yellow-400">Not Running</span>
+                `;
+                if (notRunningWarning) notRunningWarning.classList.remove('hidden');
+                // Show uninstall button when Docker is installed but not running
+                if (uninstallButton) uninstallButton.style.display = 'inline-flex';
+            } else {
+                console.log('Docker running');
+                statusElement.innerHTML = `
+                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span class="text-sm text-green-600 dark:text-green-400">Running</span>
+                `;
+                // Show uninstall button when Docker is running
+                if (uninstallButton) uninstallButton.style.display = 'inline-flex';
+            }
+        }
+
+        // Refresh status
+        function refreshStatus() {
+            checkDockerStatus();
+            if (dockerStatus.running) {
+                loadAllContent();
+                updateDashboardCards();
+            }
+        }
+
+        // Update dashboard cards
+        function updateDashboardCards() {
+            if (!dockerStatus.running) return;
+            
+            // Update containers count
+            fetch('/api/plugins/docker/containers')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const totalContainers = data.containers.length;
+                        const runningContainers = data.containers.filter(c => c.status.toLowerCase().includes('up')).length;
+                        
+                        document.getElementById('total-containers').textContent = totalContainers;
+                        document.querySelector('#total-containers').nextElementSibling.textContent = `${runningContainers} running`;
+                    }
+                })
+                .catch(error => console.error('Error updating containers count:', error));
+            
+            // Update images count
+            fetch('/api/plugins/docker/images')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('total-images').textContent = data.images.length;
+                    }
+                })
+                .catch(error => console.error('Error updating images count:', error));
+            
+            // Update system info (CPU and Memory)
+            fetch('/api/plugins/docker/system')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.info) {
+                        // Update CPU usage (mock data for now)
+                        document.getElementById('cpu-usage').textContent = '12.5%';
+                        
+                        // Update memory usage (mock data for now)
+                        document.getElementById('memory-usage').textContent = '240MB';
+                    }
+                })
+                .catch(error => console.error('Error updating system info:', error));
+        }
+
+        // Load containers
+        function loadContainers() {
+            if (!dockerStatus.running) return;
+            
+            showLoading('containers');
+            
+            fetch('/api/plugins/docker/containers')
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading('containers');
+                    
+                    if (data.success) {
+                        displayContainers(data.containers);
+                        updateDashboardCards(); // Update dashboard after loading containers
+                    } else {
+                        showNotification('Error loading containers: ' + data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    hideLoading('containers');
+                    console.error('Error loading containers:', error);
+                    showNotification('Error loading containers', 'error');
+                });
+        }
+
+        // Display containers
+        function displayContainers(containers) {
+            const tbody = document.getElementById('containers-table');
+            tbody.innerHTML = '';
+            
+            if (containers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No containers found</td></tr>';
+                return;
+            }
+            
+            containers.forEach(container => {
+                const statusClass = container.status.toLowerCase().includes('up') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+                const row = `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">${container.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${container.image}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${statusClass}">${container.status}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${container.ports || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${container.created}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex space-x-2">
+                                ${container.status.toLowerCase().includes('up') ? 
+                                    '<button onclick="containerAction(\''+container.id+'\', \'stop\')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Stop</button>' :
+                                '<button onclick="containerAction(\''+container.id+'\', \'start\')" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">Start</button>'
+                                }
+                                <button onclick="containerAction('${container.id}', 'restart')" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">Restart</button>
+                                 <button onclick="showContainerLogs('${container.id}')" class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300">Logs</button>
+                                <button onclick="containerAction('${container.id}', 'remove')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Remove</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // Load images
+        function loadImages() {
+            if (!dockerStatus.running) return;
+            
+            showLoading('images');
+            
+            fetch('/api/plugins/docker/images')
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading('images');
+                    
+                    if (data.success) {
+                        displayImages(data.images);
+                        updateDashboardCards(); // Update dashboard after loading images
+                    } else {
+                        showNotification('Error loading images: ' + data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    hideLoading('images');
+                    console.error('Error loading images:', error);
+                    showNotification('Error loading images', 'error');
+                });
+        }
+
+        // Display images
+        function displayImages(images) {
+            const tbody = document.getElementById('images-table');
+            tbody.innerHTML = '';
+            
+            if (images.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No images found</td></tr>';
+                return;
+            }
+            
+            images.forEach(image => {
+                const row = `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">${image.repository}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${image.tag}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${image.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${image.created}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${image.size}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="imageAction('${image.id}', 'remove')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Remove</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // Load networks
+        function loadNetworks() {
+            if (!dockerStatus.running) return;
+            
+            showLoading('networks');
+            
+            fetch('/api/plugins/docker/networks')
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading('networks');
+                    
+                    if (data.success) {
+                        displayNetworks(data.networks);
+                    } else {
+                        showNotification('Error loading networks: ' + data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    hideLoading('networks');
+                    console.error('Error loading networks:', error);
+                    showNotification('Error loading networks', 'error');
+                });
+        }
+
+        // Display networks
+        function displayNetworks(networks) {
+            const tbody = document.getElementById('networks-table');
+            tbody.innerHTML = '';
+            
+            if (networks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No networks found</td></tr>';
+                return;
+            }
+            
+            networks.forEach(network => {
+                const canRemove = !['bridge', 'host', 'none'].includes(network.name);
+                const row = `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">${network.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${network.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${network.driver}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${network.scope}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            ${canRemove ? 
+                                '<button onclick="networkAction(\''+network.id+'\', \'remove\')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Remove</button>' :
+                                '<span class="text-gray-400 dark:text-gray-500">System Network</span>'
+                            }
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // Load volumes
+        function loadVolumes() {
+            if (!dockerStatus.running) return;
+            
+            showLoading('volumes');
+            
+            fetch('/api/plugins/docker/volumes')
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading('volumes');
+                    
+                    if (data.success) {
+                        displayVolumes(data.volumes);
+                    } else {
+                        showNotification('Error loading volumes: ' + data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    hideLoading('volumes');
+                    console.error('Error loading volumes:', error);
+                    showNotification('Error loading volumes', 'error');
+                });
+        }
+
+        // Display volumes
+        function displayVolumes(volumes) {
+            const tbody = document.getElementById('volumes-table');
+            tbody.innerHTML = '';
+            
+            if (volumes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No volumes found</td></tr>';
+                return;
+            }
+            
+            volumes.forEach(volume => {
+                const row = `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">${volume.driver}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${volume.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="volumeAction('${volume.name}', 'remove')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Remove</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // Load system info
+        function loadSystemInfo() {
+            if (!dockerStatus.running) return;
+            
+            showLoading('system');
+            
+            fetch('/api/plugins/docker/system_info')
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading('system');
+                    displaySystemInfo(data);
+                })
+                .catch(error => {
+                    hideLoading('system');
+                    console.error('Error loading system info:', error);
+                    showNotification('Error loading system info', 'error');
+                });
+        }
+
+        // Display system info
+        function displaySystemInfo(data) {
+            document.getElementById('disk-usage').textContent = data.disk_usage || 'Unable to get disk usage';
+            
+            if (data.version_info && typeof data.version_info === 'object') {
+                document.getElementById('version-info').textContent = JSON.stringify(data.version_info, null, 2);
+            } else {
+                document.getElementById('version-info').textContent = 'Unable to get version info';
+            }
+        }
+
+        // Container actions
+        async function containerAction(containerId, action) {
+            if (action === 'remove') {
+                const confirmed = await showConfirm('Are you sure you want to remove this container?', 'Confirm Container Removal');
+                if (!confirmed) {
+                    return;
+                }
+            }
+            
+            fetch('/api/plugins/docker/container_action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    container_id: containerId,
+                    action_type: action
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    loadContainers();
+                } else {
+                    showNotification('Error: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error performing container action:', error);
+                showNotification('Error performing container action', 'error');
+            });
+        }
+
+        // Image actions
+        async function imageAction(imageId, action) {
+            if (action === 'remove') {
+                const confirmed = await showConfirm('Are you sure you want to remove this image?', 'Confirm Image Removal');
+                if (!confirmed) {
+                    return;
+                }
+            }
+            
+            fetch('/api/plugins/docker/image_action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    image_id: imageId,
+                    action_type: action
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    loadImages();
+                } else {
+                    showNotification('Error: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error performing image action:', error);
+                showNotification('Error performing image action', 'error');
+            });
+        }
+
+        // Network actions
+        async function networkAction(networkId, action) {
+            if (action === 'remove') {
+                const confirmed = await showConfirm('Are you sure you want to remove this network?', 'Confirm Network Removal');
+                if (!confirmed) {
+                    return;
+                }
+            }
+            
+            fetch('/api/plugins/docker/network_action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    network_id: networkId,
+                    action_type: action
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    loadNetworks();
+                } else {
+                    showNotification('Error: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error performing network action:', error);
+                showNotification('Error performing network action', 'error');
+            });
+        }
+
+        // Volume actions
+        async function volumeAction(volumeName, action) {
+            if (action === 'remove') {
+                const confirmed = await showConfirm('Are you sure you want to remove this volume?', 'Confirm Volume Removal');
+                if (!confirmed) {
+                    return;
+                }
+            }
+            
+            fetch('/api/plugins/docker/volume_action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    volume_name: volumeName,
+                    action_type: action
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    loadVolumes();
+                } else {
+                    showNotification('Error: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error performing volume action:', error);
+                showNotification('Error performing volume action', 'error');
+            });
+        }
+
+        // Pull image modal
+        function showPullImageModal() {
+            document.getElementById('pull-image-modal').classList.remove('hidden');
+        }
+
+        function hidePullImageModal() {
+            document.getElementById('pull-image-modal').classList.add('hidden');
+            document.getElementById('image-name').value = '';
+        }
+
+        function pullImage() {
+            const imageName = document.getElementById('image-name').value.trim();
+            
+            if (!imageName) {
+                showNotification('Please enter an image name', 'error');
+                return;
+            }
+            
+            hidePullImageModal();
+            
+            fetch('/api/plugins/docker/pull_image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    image_name: imageName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    loadImages();
+                } else {
+                    showNotification('Error: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error pulling image:', error);
+                showNotification('Error pulling image', 'error');
+            });
+        }
+
+        // Create container modal
+        function showCreateContainerModal() {
+            document.getElementById('create-container-modal').classList.remove('hidden');
+        }
+
+        function hideCreateContainerModal() {
+            document.getElementById('create-container-modal').classList.add('hidden');
+            // Clear form
+            document.getElementById('container-image').value = '';
+            document.getElementById('container-name').value = '';
+            document.getElementById('container-ports').value = '';
+            document.getElementById('container-volumes').value = '';
+            document.getElementById('container-env').value = '';
+        }
+
+        // Dropdown functions
+        function toggleCreateDropdown() {
+            const dropdown = document.getElementById('create-dropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('create-dropdown');
+            const button = event.target.closest('.relative');
+            if (!button && !dropdown.classList.contains('hidden')) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Dockerfile modal functions
+        function showDockerfileModal() {
+            document.getElementById('dockerfile-modal').classList.remove('hidden');
+            document.getElementById('create-dropdown').classList.add('hidden');
+        }
+
+        function hideDockerfileModal() {
+            document.getElementById('dockerfile-modal').classList.add('hidden');
+            // Clear form
+            document.getElementById('dockerfile-content').value = '';
+            document.getElementById('dockerfile-image-name').value = '';
+            document.getElementById('dockerfile-container-name').value = '';
+        }
+
+        // Docker Compose modal functions
+        function showDockerComposeModal() {
+            document.getElementById('docker-compose-modal').classList.remove('hidden');
+            document.getElementById('create-dropdown').classList.add('hidden');
+        }
+
+        function hideDockerComposeModal() {
+            document.getElementById('docker-compose-modal').classList.add('hidden');
+            // Clear form
+            document.getElementById('compose-content').value = '';
+            document.getElementById('compose-project-name').value = '';
+        }
+
+        function createContainer() {
+            const image = document.getElementById('container-image').value.trim();
+            const name = document.getElementById('container-name').value.trim();
+            const ports = document.getElementById('container-ports').value.trim();
+            const volumes = document.getElementById('container-volumes').value.trim();
+            const envVars = document.getElementById('container-env').value.trim();
+            
+            if (!image) {
+                showNotification('Please enter an image name', 'error');
+                return;
+            }
+            
+            const requestData = { image };
+            
+            if (name) requestData.name = name;
+            if (ports) requestData.ports = ports.split(',').map(p => p.trim());
+            if (volumes) requestData.volumes = volumes.split(',').map(v => v.trim());
+            if (envVars) requestData.env_vars = envVars.split(',').map(e => e.trim());
+            
+            hideCreateContainerModal();
+            
+            fetch('/api/plugins/docker/create_container', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    loadContainers();
+                } else {
+                    showNotification('Error: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error creating container:', error);
+                showNotification('Error creating container', 'error');
+            });
+        }
+
+        // Build from Dockerfile
+        function buildFromDockerfile() {
+            const dockerfileContent = document.getElementById('dockerfile-content').value.trim();
+            const imageName = document.getElementById('dockerfile-image-name').value.trim();
+            const containerName = document.getElementById('dockerfile-container-name').value.trim();
+            
+            if (!dockerfileContent) {
+                showNotification('Please enter Dockerfile content', 'error');
+                return;
+            }
+            
+            if (!imageName) {
+                showNotification('Please enter an image name', 'error');
+                return;
+            }
+            
+            const requestData = {
+                dockerfile_content: dockerfileContent,
+                image_name: imageName
+            };
+            
+            if (containerName) {
+                requestData.container_name = containerName;
+            }
+            
+            hideDockerfileModal();
+            showNotification('Building image from Dockerfile...', 'info');
+            
+            fetch('/api/plugins/docker/build_from_dockerfile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    loadContainers();
+                    loadImages();
+                } else {
+                    showNotification('Error: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error building from Dockerfile:', error);
+                showNotification('Error building from Dockerfile', 'error');
+            });
+        }
+
+        // Deploy from Docker Compose
+        function deployFromCompose() {
+            const composeContent = document.getElementById('compose-content').value.trim();
+            const projectName = document.getElementById('compose-project-name').value.trim();
+            
+            if (!composeContent) {
+                showNotification('Please enter Docker Compose YAML content', 'error');
+                return;
+            }
+            
+            const requestData = {
+                compose_content: composeContent
+            };
+            
+            if (projectName) {
+                requestData.project_name = projectName;
+            }
+            
+            hideDockerComposeModal();
+            showNotification('Deploying from Docker Compose...', 'info');
+            
+            fetch('/api/plugins/docker/deploy_from_compose', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    loadContainers();
+                    loadImages();
+                } else {
+                    showNotification('Error: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error deploying from Docker Compose:', error);
+                showNotification('Error deploying from Docker Compose', 'error');
+            });
+        }
+
+        // Container logs
+        function showContainerLogs(containerId) {
+            fetch('/api/plugins/docker/container_logs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    container_id: containerId,
+                    lines: 100
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('container-logs').textContent = data.logs || 'No logs available';
+                    document.getElementById('logs-modal').classList.remove('hidden');
+                } else {
+                    showNotification('Error getting logs: ' + data.logs, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error getting container logs:', error);
+                showNotification('Error getting container logs', 'error');
+            });
+        }
+
+        function hideLogsModal() {
+            document.getElementById('logs-modal').classList.add('hidden');
+        }
+
+        // System cleanup
+        async function cleanupSystem() {
+            console.log('cleanupSystem function called');
+            
+            const confirmed = await showConfirm('This will remove all unused containers, networks, images, and build cache. Are you sure?', 'Confirm System Cleanup');
+            if (!confirmed) {
+                console.log('User cancelled cleanup');
+                return;
+            }
+            
+            console.log('Starting cleanup request...');
+            
+            fetch('/api/plugins/docker/cleanup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'cleanup'
+                })
+            })
+            .then(response => {
+                console.log('Response received:', response);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    showNotification(data.message + '\n' + data.details, 'success');
+                    // Refresh all tabs
+                    loadContainers();
+                    loadImages();
+                    loadNetworks();
+                    loadVolumes();
+                    loadSystemInfo();
+                } else {
+                    showNotification('Error: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error cleaning up system:', error);
+                showNotification('Error cleaning up system: ' + error.message, 'error');
+            });
+        }
+
+        // Utility functions
+        function showLoading(section) {
+            document.getElementById(section + '-loading').classList.remove('hidden');
+            document.getElementById(section + '-content').classList.add('hidden');
+        }
+
+        function hideLoading(section) {
+            document.getElementById(section + '-loading').classList.add('hidden');
+            document.getElementById(section + '-content').classList.remove('hidden');
+        }
+
+
+
+        // Install Docker function
+        async function installDocker() {
+            console.log('installDocker function called');
+            const confirmed = await showConfirm('This will install Docker on your system. This process may take several minutes. Continue?', 'Confirm Docker Installation');
+            if (!confirmed) {
+                return;
+            }
+            
+            // Show installation modal
+            showInstallationModal();
+            
+            // Start real-time installation process via SocketIO
+            if (typeof io !== 'undefined') {
+                const socket = io();
+                
+                // Listen for installation events
+                socket.on('docker_install_progress', (data) => {
+                    console.log('Received docker_install_progress:', data);
+                    updateInstallationProgress(data.percentage || 0, data.status || data.message, '');
+                });
+                
+                socket.on('docker_install_output', (data) => {
+                    console.log('Received docker_install_output:', data);
+                    addInstallationLog(data.output, data.type || 'info');
+                });
+                
+                socket.on('docker_install_complete', (data) => {
+                    console.log('Received docker_install_complete:', data);
+                    updateInstallationModal('Installation completed successfully!', 'success');
+                    addInstallationLog('✅ Docker installation completed successfully!', 'success');
+                    
+                    // Refresh status after installation
+                    setTimeout(() => {
+                        checkDockerStatus();
+                        closeInstallationModal();
+                        socket.disconnect();
+                    }, 3000);
+                });
+                
+                socket.on('docker_install_error', (data) => {
+                    console.log('Received docker_install_error:', data);
+                    updateInstallationModal('Installation failed: ' + data.message, 'error');
+                    addInstallationLog('❌ Error: ' + data.message, 'error');
+                    socket.disconnect();
+                });
+                
+                // Try API endpoint first
+                fetch('/api/plugins/docker/install', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({action: 'install'})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Installation started successfully via API
+                        console.log('Installation started via API');
+                    } else {
+                        // Show error
+                        updateInstallationModal('Installation failed: ' + (data.error || 'Unknown error'), 'error');
+                        addInstallationLog('❌ Error: ' + (data.error || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('API call failed, trying SocketIO fallback:', error);
+                    // Fallback to SocketIO if API fails
+                    socket.emit('install_docker', {action: 'install'});
+                });
+            } else {
+                // Fallback to HTTP request if SocketIO is not available
+                fetch('/api/plugins/docker/install', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({action: 'install'}),
+                    timeout: 300000 // 5 minutes timeout
+                })
+                .then(response => {
+                    console.log('Install response status:', response.status);
+                    if (response.status === 504) {
+                        throw new Error('Installation timeout. The process may still be running in the background.');
+                    }
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        // If not JSON, read as text and throw error
+                        return response.text().then(text => {
+                            throw new Error('Server returned non-JSON response: ' + text.substring(0, 100));
+                        });
+                    }
+                })
+                .then(data => {
+                    if (data.success) {
+                        updateInstallationModal('Installation completed successfully!', 'success');
+                        // Refresh status after installation
+                        setTimeout(() => {
+                            checkDockerStatus();
+                            closeInstallationModal();
+                        }, 3000);
+                    } else {
+                        updateUninstallationModal('Error: ' + (data.message || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error installing Docker:', error);
+                    if (error.message.includes('timeout')) {
+                        updateInstallationModal('Installation timeout. Please check the status manually.', 'error');
+                    } else {
+                        updateInstallationModal('Installation failed: ' + error.message, 'error');
+                    }
+                });
+            }
+        }
+        
+        // Uninstall Docker function
+        async function uninstallDocker() {
+            console.log('uninstallDocker function called');
+            const confirmed = await showConfirm(
+                'This will completely remove Docker from your system, including related packages. Continue?',
+                'Confirm Docker Uninstallation'
+            );
+            if (!confirmed) {
+                return;
+            }
+
+            // Show uninstallation modal
+            showUninstallationModal();
+            updateUninstallationModal('Starting Docker uninstallation...', 'info');
+            
+            // Initialize progress
+            updateUninstallationProgress(5, 'Preparing uninstallation...', '');
+
+            if (typeof io !== 'undefined') {
+                const socket = io();
+
+                socket.on('docker_uninstall_progress', (data) => {
+                    console.log('Received docker_uninstall_progress:', data);
+                    updateUninstallationProgress(data.percentage || 0, data.status || data.message, '');
+                });
+
+                socket.on('docker_uninstall_output', (data) => {
+                    console.log('Received docker_uninstall_output:', data);
+                    addUninstallationLog(data.output, data.type || 'info');
+                });
+
+                socket.on('docker_uninstall_complete', (data) => {
+                    console.log('Received docker_uninstall_complete:', data);
+                    updateUninstallationModal('Uninstallation completed successfully!', 'success');
+                    addUninstallationLog('✅ Docker uninstallation completed successfully!', 'success');
+                    setTimeout(() => {
+                        checkDockerStatus();
+                        closeUnInstallationModal();
+                        socket.disconnect();
+                        location.reload();
+                    }, 3000);
+                });
+
+                socket.on('docker_uninstall_error', (data) => {
+                    console.log('Received docker_uninstall_error:', data);
+                    updateUninstallationModal('Uninstallation failed: ' + data.message, 'error');
+                    addUninstallationLog('❌ Error: ' + data.message, 'error');
+                    setTimeout(() => {
+                        checkDockerStatus();
+                        closeUnInstallationModal();
+                        socket.disconnect();
+                        location.reload();
+                    }, 3000);
+                });
+
+                // Try API endpoint first
+                fetch('/api/plugins/docker/uninstall', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({action: 'uninstall'})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Uninstallation started via API');
+                    } else {
+                        updateUninstallationModal('Uninstallation failed: ' + (data.error || 'Unknown error'), 'error');
+                        addUninstallationLog('❌ Error: ' + (data.error || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('API call failed, trying SocketIO fallback:', error);
+                    socket.emit('uninstall_docker', {action: 'uninstall'});
+                });
+
+            } else {
+                // Fallback to HTTP request if SocketIO is not available
+                updateUninstallationProgress(10, 'Connecting to server...', '');
+                
+                fetch('/api/plugins/docker/uninstall', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({action: 'uninstall'}),
+                    timeout: 300000
+                })
+                .then(response => {
+                    updateUninstallationProgress(50, 'Processing uninstallation...', '');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        updateUninstallationProgress(100, 'Uninstallation completed!', '');
+                        updateUninstallationModal('Uninstallation completed successfully!', 'success');
+                        setTimeout(() => {
+                            checkDockerStatus();
+                            closeInstallationModal();
+                        }, 3000);
+                    } else {
+                        updateUninstallationModal('Error: ' + (data.message || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error uninstalling Docker:', error);
+                    updateUninstallationModal('Uninstallation failed: ' + error.message, 'error');
+                });
+            }
+        }
+
+
+        function showInstallationModal() {
+            const modal = document.createElement('div');
+            modal.id = 'installationModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 id="modalTitle" class="text-lg font-semibold text-gray-900">Installing Docker</h3>
+                        <button onclick="closeInstallationModal()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="mb-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 mr-2 animate-spin text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <span id="installationStatus" class="text-sm font-medium text-gray-700">Starting installation...</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="installationProgress" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 10%"></div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-4 max-h-48 overflow-y-auto">
+                        <pre id="installationLog" class="text-xs text-gray-800 whitespace-pre-wrap">Preparing installation...\n</pre>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Initialize real-time progress tracking
+            initializeRealTimeProgress();
+        }
+        
+        function showUninstallationModal() {
+            const modal = document.createElement('div');
+            modal.id = 'installationModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 id="modalTitle" class="text-lg font-semibold text-gray-900">Uninstalling Docker</h3>
+                        <button onclick="closeInstallationModal()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="mb-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 mr-2 animate-spin text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            <span id="uninstallationStatus" class="text-sm font-medium text-gray-700">Starting uninstallation...</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                             <div id="uninstallationProgress" class="bg-red-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                         </div>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-4 max-h-48 overflow-y-auto">
+                        <pre id="installationLog" class="text-xs text-gray-800 whitespace-pre-wrap">Preparing uninstallation...\n</pre>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Initialize real-time progress tracking
+            initializeRealTimeProgress();
+        }
+        
+        
+        function initializeRealTimeProgress() {
+            // Real-time progress will be handled by SocketIO events
+            // This function is called when the modal is shown to prepare for real-time updates
+            console.log('Real-time progress tracking initialized');
+        }
+        
+        function addInstallationLog(message, type = 'info') {
+            const logElement = document.getElementById('installationLog');
+            if (logElement) {
+                const timestamp = new Date().toLocaleTimeString();
+                let prefix = '';
+                
+                switch(type) {
+                    case 'command':
+                        prefix = '$ ';
+                        break;
+                    case 'error':
+                        prefix = '❌ ';
+                        break;
+                    case 'success':
+                        prefix = '✅ ';
+                        break;
+                    case 'info':
+                    default:
+                        prefix = '';
+                        break;
+                }
+                
+                logElement.textContent += `[${timestamp}] ${prefix}${message}\n`;
+                logElement.scrollTop = logElement.scrollHeight;
+            }
+        }
+        
+        function updateInstallationProgress(progress, status, logText) {
+            const progressBar = document.getElementById('installationProgress');
+            const statusElement = document.getElementById('installationStatus');
+            const logElement = document.getElementById('installationLog');
+            
+            if (progressBar) progressBar.style.width = progress + '%';
+            if (statusElement) statusElement.textContent = status;
+            if (logElement && logText) {
+                logElement.textContent += logText;
+                logElement.scrollTop = logElement.scrollHeight;
+            }
+        }
+        
+        function updateInstallationModal(message, type) {
+            const statusElement = document.getElementById('installationStatus');
+            const progressBar = document.getElementById('installationProgress');
+            const logElement = document.getElementById('installationLog');
+            
+            if (statusElement) {
+                statusElement.textContent = message;
+                statusElement.className = type === 'success' ? 'text-sm font-medium text-green-700 dark:text-green-400' : 'text-sm font-medium text-red-700 dark:text-red-400';
+            }
+            
+            if (progressBar) {
+                progressBar.className = type === 'success' ? 'bg-green-600 h-2 rounded-full transition-all duration-300' : 'bg-red-600 h-2 rounded-full transition-all duration-300';
+                progressBar.style.width = '100%';
+            }
+            
+            if (logElement) {
+                logElement.textContent += message + '\n';
+                logElement.scrollTop = logElement.scrollHeight;
+            }
+        }
+        
+        function updateUninstallationModal(message, type) {
+            const statusElement = document.getElementById('installationStatus');
+            const progressBar = document.getElementById('installationProgress');
+            const logElement = document.getElementById('installationLog');
+            
+            if (statusElement) {
+                statusElement.textContent = message;
+                statusElement.className = type === 'success' ? 'text-sm font-medium text-green-700 dark:text-green-400' : 
+                                         type === 'error' ? 'text-sm font-medium text-red-700 dark:text-red-400' :
+                                         'text-sm font-medium text-gray-700 dark:text-gray-400';
+            }
+            
+            if (progressBar) {
+                progressBar.className = type === 'success' ? 'bg-green-600 h-2 rounded-full transition-all duration-300' : 
+                                       type === 'error' ? 'bg-red-600 h-2 rounded-full transition-all duration-300' :
+                                       'bg-red-600 h-2 rounded-full transition-all duration-300';
+                if (type === 'success') {
+                    progressBar.style.width = '100%';
+                } else if (type === 'info') {
+                    progressBar.style.width = '5%';
+                }
+            }
+            
+            if (logElement) {
+                logElement.textContent += message + '\n';
+                logElement.scrollTop = logElement.scrollHeight;
+            }
+        }
+        
+        function addUninstallationLog(message, type = 'info') {
+            const logElement = document.getElementById('installationLog');
+            if (logElement) {
+                const timestamp = new Date().toLocaleTimeString();
+                const prefix = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+                logElement.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+                logElement.scrollTop = logElement.scrollHeight;
+            }
+        }
+        
+        function updateUninstallationProgress(progress, status, logText) {
+            const progressBar = document.getElementById('uninstallationProgress');
+            const statusElement = document.getElementById('uninstallationStatus');
+            const logElement = document.getElementById('installationLog');
+            
+            if (progressBar) {
+                progressBar.style.width = progress + '%';
+                progressBar.className = 'bg-red-600 h-2 rounded-full transition-all duration-300';
+            }
+            if (statusElement) {
+                statusElement.textContent = status;
+                statusElement.className = 'text-sm font-medium text-gray-700 dark:text-gray-400';
+            }
+            if (logElement && logText) {
+                logElement.textContent += logText;
+                logElement.scrollTop = logElement.scrollHeight;
+            }
+        }
+        
+        function closeInstallationModal() {
+            const modal = document.getElementById('installationModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        function closeUnInstallationModal() {
+            const modal = document.getElementById('uninstallationModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Make functions available globally
+        window.installDocker = installDocker;
+        window.uninstallDocker = uninstallDocker;
+        window.closeInstallationModal = closeInstallationModal;
+        window.closeUnInstallationModal = closeUnInstallationModal;
+        window.refreshStatus = refreshStatus;
+        window.containerAction = containerAction;
+        window.imageAction = imageAction;
+        window.networkAction = networkAction;
+        window.volumeAction = volumeAction;
+        window.initializePlugin = initializePlugin;
+        window.loadContainers = loadContainers;
+        window.loadImages = loadImages;
+        window.loadNetworks = loadNetworks;
+        window.loadVolumes = loadVolumes;
+        window.loadSystemInfo = loadSystemInfo;
+        window.showPullImageModal = showPullImageModal;
+        window.hidePullImageModal = hidePullImageModal;
+        window.pullImage = pullImage;
+        window.showCreateContainerModal = showCreateContainerModal;
+        window.hideCreateContainerModal = hideCreateContainerModal;
+        window.createContainer = createContainer;
+        window.hideLogsModal = hideLogsModal;
+        window.showContainerLogs = showContainerLogs;
+        window.cleanupSystem = cleanupSystem;
+        window.closeInstallationModal = closeInstallationModal;
+        
+        // Theme Management
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'auto';
+            
+            // Set initial theme text
+            const themeText = document.getElementById('theme-text');
+            if (themeText) {
+                switch(savedTheme) {
+                    case 'light':
+                        themeText.textContent = 'Light';
+                        break;
+                    case 'dark':
+                        themeText.textContent = 'Dark';
+                        break;
+                    default:
+                        themeText.textContent = 'System';
+                        break;
+                }
+            }
+            
+            setTheme(savedTheme);
+        }
+
+        function setTheme(theme) {
+            localStorage.setItem('theme', theme);
+            
+            // Update theme text display
+            const themeText = document.getElementById('theme-text');
+            if (themeText) {
+                switch(theme) {
+                    case 'light':
+                        themeText.textContent = 'Light';
+                        break;
+                    case 'dark':
+                        themeText.textContent = 'Dark';
+                        break;
+                    case 'auto':
+                    case 'system':
+                        themeText.textContent = 'System';
+                        theme = 'auto'; // Normalize to 'auto'
+                        break;
+                }
+            }
+            
+            // Apply theme
+            if (theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            
+            hideDropdowns();
+        }
+
+        // Navigation Functions
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function toggleThemeDropdown() {
+            const dropdown = document.getElementById('theme-dropdown-menu');
+            const actionsDropdown = document.getElementById('actions-dropdown-menu');
+            
+            // Hide actions dropdown if open
+            if (actionsDropdown) {
+                actionsDropdown.classList.add('hidden');
+            }
+            
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+            }
+        }
+
+        function toggleActionsDropdown() {
+            const dropdown = document.getElementById('actions-dropdown-menu');
+            const themeDropdown = document.getElementById('theme-dropdown-menu');
+            
+            // Hide theme dropdown if open
+            if (themeDropdown) {
+                themeDropdown.classList.add('hidden');
+            }
+            
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+            }
+        }
+
+        function hideDropdowns() {
+            const themeDropdown = document.getElementById('theme-dropdown-menu');
+            const actionsDropdown = document.getElementById('actions-dropdown-menu');
+            
+            if (themeDropdown) {
+                themeDropdown.classList.add('hidden');
+            }
+            if (actionsDropdown) {
+                actionsDropdown.classList.add('hidden');
+            }
+        }
+
+        function setNavbarStateFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const section = urlParams.get('section');
+            
+            // Remove active class from all navigation buttons
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to current section
+            if (section) {
+                // Look for buttons with onclick containing the section
+                const activeBtn = document.querySelector(`nav button[onclick*="section=${section}"]`);
+                if (activeBtn) {
+                    activeBtn.classList.add('active');
+                }
+            } else {
+                // If no section parameter, check if we're in a plugin page
+                const currentPath = window.location.pathname;
+                if (currentPath.includes('/plugins/')) {
+                    // Set plugins button as active
+                    const pluginsBtn = document.querySelector('nav button[onclick*="section=plugins"]');
+                    if (pluginsBtn) {
+                        pluginsBtn.classList.add('active');
+                    }
+                }
+            }
+        }
+
+        // Notification System
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            if (!container) return;
+            
+            const notification = document.createElement('div');
+            notification.className = `notification-item mb-4 p-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
+            
+            let bgColor, textColor, icon;
+            switch(type) {
+                case 'success':
+                    bgColor = 'bg-green-500';
+                    textColor = 'text-white';
+                    icon = '✅';
+                    break;
+                case 'error':
+                    bgColor = 'bg-red-500';
+                    textColor = 'text-white';
+                    icon = '❌';
+                    break;
+                case 'warning':
+                    bgColor = 'bg-yellow-500';
+                    textColor = 'text-white';
+                    icon = '⚠️';
+                    break;
+                default:
+                    bgColor = 'bg-blue-500';
+                    textColor = 'text-white';
+                    icon = 'ℹ️';
+            }
+            
+            notification.className += ` ${bgColor} ${textColor}`;
+            notification.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="mr-2">${icon}</span>
+                        <span>${message}</span>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                        ✕
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        if (notification.parentElement) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        }
+
+        function showSystemInfo() {
+            showNotification('Fitur System Info akan segera tersedia', 'info');
+        }
+        
+        // Action Functions
+        function updateApp() {
+            showNotification('Memulai update aplikasi...', 'info');
+            // Implement update logic here
+            setTimeout(() => {
+                showNotification('Update berhasil diselesaikan', 'success');
+            }, 2000);
+        }
+        
+        function restartApp() {
+            showNotification('Memulai restart aplikasi...', 'info');
+            // Implement restart logic here
+            setTimeout(() => {
+                showNotification('Aplikasi berhasil direstart', 'success');
+            }, 2000);
+        }
+        
+        function showChangePasswordModal() {
+            showNotification('Modal ganti password akan segera tersedia', 'info');
+            // Implement password change modal here
+        }
+        
+        // Theme initialization is now handled in initializePlugin()
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            const themeDropdown = document.getElementById('theme-dropdown-menu');
+            const actionsDropdown = document.getElementById('actions-dropdown-menu');
+            const themeButton = event.target.closest('[onclick="toggleThemeDropdown()"]');
+            const actionsButton = event.target.closest('[onclick="toggleActionsDropdown()"]');
+            
+            if (themeDropdown && !themeButton && !themeDropdown.contains(event.target)) {
+                themeDropdown.classList.add('hidden');
+            }
+            
+            if (actionsDropdown && !actionsButton && !actionsDropdown.contains(event.target)) {
+                actionsDropdown.classList.add('hidden');
+            }
+        });
+
+        // Handle system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+            if (localStorage.getItem('theme') === 'auto') {
+                setTheme('auto');
+            }
+        });
+        
+        // Sidebar Functions
+        function toggleSidebarCollapse() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (window.innerWidth <= 1024) {
+                // Mobile behavior
+                sidebar.classList.toggle('hidden');
+                overlay.classList.toggle('hidden');
+            } else {
+                // Desktop behavior
+                sidebar.classList.toggle('sidebar-collapsed');
+            }
+        }
+        
+        // Close sidebar on mobile when clicking overlay
+        function closeMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.add('hidden');
+                overlay.classList.add('hidden');
+            }
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (window.innerWidth > 1024) {
+                sidebar.classList.remove('hidden');
+                overlay.classList.add('hidden');
+            } else {
+                sidebar.classList.add('hidden');
+                overlay.classList.add('hidden');
+            }
+        });
+        
+        // Initialize sidebar state
+        function initializeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.add('hidden');
+                overlay.classList.add('hidden');
+            }
+        }
+        
+        // Expose functions to global scope
+        window.initializeTheme = initializeTheme;
+        window.setTheme = setTheme;
+        window.toggleMobileMenu = toggleMobileMenu;
+        window.toggleThemeDropdown = toggleThemeDropdown;
+        window.toggleActionsDropdown = toggleActionsDropdown;
+        window.hideDropdowns = hideDropdowns;
+        window.setNavbarStateFromURL = setNavbarStateFromURL;
+        window.showNotification = showNotification;
+        window.showSystemInfo = showSystemInfo;
+        window.toggleSidebarCollapse = toggleSidebarCollapse;
+        window.closeMobileSidebar = closeMobileSidebar;
+        window.initializeSidebar = initializeSidebar;
+        
+        // Initialize sidebar when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSidebar();
+        });
+    </script>
+
+
+        {% endblock %}

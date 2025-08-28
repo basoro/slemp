@@ -1,0 +1,692 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Header -->
+        <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+            <div class="px-5 pb-1 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">                            
+                        <div class="flex items-center" onclick="toggleSidebarCollapse()" style="cursor: pointer;">
+                            <svg class="h-7 w-7 text-gray-600 dark:text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Theme Toggle -->
+                        <div class="relative" id="theme-dropdown">
+                            <button onclick="toggleThemeDropdown()" id="theme-toggle" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <svg id="theme-icon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path id="theme-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                            </button>
+                            <div id="theme-dropdown-menu" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                                <div class="py-1">
+                                    <button onclick="setTheme('light')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                        </svg>
+                                        Light
+                                    </button>
+                                    <button onclick="setTheme('dark')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                        </svg>
+                                        Dark
+                                    </button>
+                                    <button onclick="setTheme('system')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                        </svg>
+                                        System
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Password Change -->
+                        <button onclick="showChangePasswordModal()" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0 1 21 9z"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Logout -->
+                        <a href="{{ url_for('logout') }}" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
+            <div class="mb-8">
+                <!-- Header -->
+                <h2 class="text-lg font-semibold mb-4 dark:text-white">Process List Manager</h2>
+
+                <!-- System Info Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-blue-500 transition-all duration-200 hover:shadow-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">CPU Usage</p>
+                                <p id="cpu-usage" class="text-xl font-bold text-gray-900 dark:text-white mt-2">0%</p>
+                                <p class="text-gray-500 dark:text-gray-400 text-xs mt-1" id="cpu-cores">0 cores</p>
+                            </div>
+                            <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
+                                <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M5 7h2V5c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2v2h2c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2h-2v2c0 1.1-.9 2-2 2H9c-1.1 0-2-.9-2-2v-2H5c-1.1 0-2-.9-2-2V9c0-1.1.9-2 2-2zm4-2v2h6V5H9zm6 14v-2H9v2h6zm4-4V9h-2v6h2zM5 15h2V9H5v6z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-green-500 transition-all duration-200 hover:shadow-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Memory Usage</p>
+                                <p id="memory-usage" class="text-xl font-bold text-gray-900 dark:text-white mt-2">0%</p>
+                                <p class="text-gray-500 dark:text-gray-400 text-xs mt-1" id="memory-info">0 GB / 0 GB</p>
+                            </div>
+                            <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full">
+                                <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h.01L18 16.01 14 12l4-4-.01-.01H18V2H6zm2 2h8v2h-8V4zm0 4h8v8H8V8zm0 10h8v2H8v-2z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-yellow-500 transition-all duration-200 hover:shadow-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Processes</p>
+                                <p id="process-count" class="text-xl font-bold text-gray-900 dark:text-white mt-2">0</p>
+                                <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Running processes</p>
+                            </div>
+                            <div class="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-full">
+                                <svg class="w-8 h-8 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-purple-500 transition-all duration-200 hover:shadow-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">System Boot Time</p>
+                                <p id="boot-time" class="text-xl font-bold text-gray-900 dark:text-white mt-2">-</p>
+                                <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Last restart</p>
+                            </div>
+                            <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
+                                <svg class="w-8 h-8 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Process Table -->
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg dark:shadow-lg transition-all duration-200">
+                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 rounded-t-lg">
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+                            <div class="flex items-center">
+                                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Daftar Proses</h3>
+                            </div>
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                                <div class="relative">
+                                    <input type="text" id="search-input" placeholder="Cari proses..." class="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200">
+                                    <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                                <select id="sort-select" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200">
+                                    <option value="cpu">Urutkan berdasarkan CPU</option>
+                                    <option value="memory">Urutkan berdasarkan Memory</option>
+                                    <option value="pid">Urutkan berdasarkan PID</option>
+                                    <option value="name">Urutkan berdasarkan Nama</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">PID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Process Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">User</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">CPU %</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Memory %</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Start Time</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Command</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="process-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <!-- Process rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+    </div>
+    <!-- Notification Container -->
+    <div id="notification-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    
+    <!-- Kill Process Modal -->
+    <div id="kill-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-gray-900 dark:bg-opacity-75 hidden items-center justify-center z-50 transition-opacity duration-300">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 m-4 max-w-md w-full transform transition-all duration-300 scale-95">
+            <div class="flex items-center mb-6">
+                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900">
+                    <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="text-center">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">⚠️ Hentikan Proses</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Apakah Anda yakin ingin menghentikan proses ini? Tindakan ini tidak dapat dibatalkan.</p>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">Proses: <span id="kill-process-name" class="font-bold"></span> (PID: <span id="kill-process-pid" class="font-bold"></span>)</p>
+                </div>
+            </div>
+            <div class="flex space-x-4">
+                <button onclick="closeKillModal()" class="flex-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-all duration-200 font-medium">
+                    ❌ Batal
+                </button>
+                <button onclick="confirmKillProcess()" class="flex-1 bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl">
+                    🗑️ Hentikan Proses
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Use window properties to avoid redeclaration errors in modal
+        window.processes = window.processes || [];
+        window.filteredProcesses = window.filteredProcesses || [];
+        window.killProcessPid = window.killProcessPid || null;
+        
+        // Local references for easier access
+        var processes = window.processes;
+        var filteredProcesses = window.filteredProcesses;
+        var killProcessPid = window.killProcessPid;
+
+        // Load data saat halaman dimuat
+        // Initialize plugin when DOM is ready
+        function initializePlugin() {
+            // Initialize theme
+            initializeTheme();
+            
+            // Set navbar state
+            setNavbarStateFromURL();
+            
+            loadSystemInfo();
+            loadProcesses();
+            
+            // Setup search with element existence check
+            const searchInput = document.getElementById('search-input');
+            const sortSelect = document.getElementById('sort-select');
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', filterProcesses);
+            }
+            
+            if (sortSelect) {
+                sortSelect.addEventListener('change', sortProcesses);
+            }
+            
+            // Auto refresh every 30 seconds
+            setInterval(() => {
+                loadSystemInfo();
+                loadProcesses();
+            }, 30000);
+        }
+        
+        // Initialize when DOM is ready (for both direct load and modal load)
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializePlugin);
+        } else {
+            // DOM is already ready, initialize immediately
+            initializePlugin();
+        }
+
+        // Theme management functions
+        function initializeTheme() {
+            // Check if we're running inside a modal (parent system manages theme)
+            const isInModal = window.parent !== window || document.getElementById('plugin-modal');
+            
+            if (isInModal) {
+                // If in modal, inherit theme from parent system
+                // The parent system already manages the dark class on document.documentElement
+                console.log('Plugin running in modal, inheriting theme from parent system');
+                return;
+            }
+            
+            // If running standalone, use plugin's own theme logic
+            const savedTheme = localStorage.getItem('theme') || localStorage.getItem('darkMode');
+            let isDarkMode = false;
+            
+            if (savedTheme === 'dark' || savedTheme === 'true') {
+                isDarkMode = true;
+            } else if (savedTheme === 'light' || savedTheme === 'false') {
+                isDarkMode = false;
+            } else {
+                // Default to system preference
+                isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            }
+            
+            if (isDarkMode) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            
+            updateThemeUI(savedTheme || 'system');
+        }
+        
+        function setTheme(theme) {
+            localStorage.setItem('theme', theme);
+            
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else if (theme === 'light') {
+                document.documentElement.classList.remove('dark');
+            } else if (theme === 'system') {
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+            
+            updateThemeUI(theme);
+            hideDropdowns();
+        }
+        
+        function updateThemeUI(theme) {
+            const themeText = document.getElementById('theme-text');
+            const themeIcon = document.getElementById('theme-icon-path');
+            
+            if (!themeText || !themeIcon) return;
+            
+            if (theme === 'dark') {
+                themeText.textContent = 'Dark';
+                themeIcon.setAttribute('d', 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z');
+            } else if (theme === 'light') {
+                themeText.textContent = 'Light';
+                themeIcon.setAttribute('d', 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z');
+            } else {
+                themeText.textContent = 'System';
+                themeIcon.setAttribute('d', 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z');
+            }
+        }
+        
+        // Navigation functions
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = document.getElementById('mobile-menu-icon');
+            const closeIcon = document.getElementById('mobile-close-icon');
+            
+            if (mobileMenu) mobileMenu.classList.toggle('hidden');
+            if (menuIcon) menuIcon.classList.toggle('hidden');
+            if (closeIcon) closeIcon.classList.toggle('hidden');
+        }
+        
+        function toggleThemeDropdown() {
+            const dropdown = document.getElementById('theme-dropdown-menu');
+            const actionsDropdown = document.getElementById('actions-dropdown-menu');
+            
+            if (dropdown) dropdown.classList.toggle('hidden');
+            if (actionsDropdown) actionsDropdown.classList.add('hidden');
+        }
+        
+        function toggleActionsDropdown() {
+            const dropdown = document.getElementById('actions-dropdown-menu');
+            const themeDropdown = document.getElementById('theme-dropdown-menu');
+            
+            if (dropdown) dropdown.classList.toggle('hidden');
+            if (themeDropdown) themeDropdown.classList.add('hidden');
+        }
+        
+        function hideDropdowns() {
+            const themeDropdown = document.getElementById('theme-dropdown-menu');
+            const actionsDropdown = document.getElementById('actions-dropdown-menu');
+            
+            if (themeDropdown) themeDropdown.classList.add('hidden');
+            if (actionsDropdown) actionsDropdown.classList.add('hidden');
+        }
+        
+        function setNavbarStateFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const section = urlParams.get('section');
+            
+            // Remove active class from all navigation buttons
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to current section
+            if (section) {
+                // Look for buttons with onclick containing the section
+                const activeBtn = document.querySelector(`nav button[onclick*="section=${section}"]`);
+                if (activeBtn) {
+                    activeBtn.classList.add('active');
+                }
+            } else {
+                // If no section parameter, check if we're in a plugin page
+                const currentPath = window.location.pathname;
+                if (currentPath.includes('/plugins/')) {
+                    // Set plugins button as active
+                    const pluginsBtn = document.querySelector('nav button[onclick*="section=plugins"]');
+                    if (pluginsBtn) {
+                        pluginsBtn.classList.add('active');
+                    }
+                }
+            }
+        }
+        
+        // Notification system
+        function showNotification(message, type = 'info', duration = 5000) {
+            const container = document.getElementById('notification-container');
+            if (!container) return;
+            
+            const notification = document.createElement('div');
+            
+            const colors = {
+                info: 'bg-blue-500',
+                success: 'bg-green-500',
+                warning: 'bg-yellow-500',
+                error: 'bg-red-500'
+            };
+            
+            const icons = {
+                info: 'ℹ️',
+                success: '✅',
+                warning: '⚠️',
+                error: '❌'
+            };
+            
+            notification.className = `${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 transform transition-all duration-300 translate-x-full opacity-0`;
+            notification.innerHTML = `
+                <span class="text-lg">${icons[type]}</span>
+                <span class="font-medium">${message}</span>
+                <button onclick="this.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full', 'opacity-0');
+            }, 100);
+            
+            // Auto remove
+            setTimeout(() => {
+                notification.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, duration);
+        }
+        
+        // Placeholder functions for missing features
+        function showChangePasswordModal() {
+            showNotification('Fitur ganti password akan segera tersedia', 'info');
+        }
+
+        function loadSystemInfo() {
+            // Check if plugin is still active (modal not closed)
+            if (!document.getElementById('cpu-usage')) {
+                console.log('Processlist plugin inactive, skipping system info load');
+                return;
+            }
+            
+            fetch('/api/plugins/processlist/get_system_info', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: ''
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Error loading system info:', data.error);
+                    return;
+                }
+                
+                // Add null checks for DOM elements
+                const cpuUsageEl = document.getElementById('cpu-usage');
+                const cpuCoresEl = document.getElementById('cpu-cores');
+                const memoryUsageEl = document.getElementById('memory-usage');
+                const memoryInfoEl = document.getElementById('memory-info');
+                const processCountEl = document.getElementById('process-count');
+                const bootTimeEl = document.getElementById('boot-time');
+                
+                if (cpuUsageEl) cpuUsageEl.textContent = data.cpu_percent + '%';
+                if (cpuCoresEl) cpuCoresEl.textContent = data.cpu_count + ' cores';
+                if (memoryUsageEl) memoryUsageEl.textContent = data.memory_percent + '%';
+                if (memoryInfoEl) memoryInfoEl.textContent = data.memory_used + ' GB / ' + data.memory_total + ' GB';
+                if (processCountEl) processCountEl.textContent = data.process_count;
+                if (bootTimeEl) bootTimeEl.textContent = data.boot_time;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function loadProcesses() {
+            // Check if plugin is still active (modal not closed)
+            if (!document.getElementById('process-table-body')) {
+                console.log('Processlist plugin inactive, skipping processes load');
+                return;
+            }
+            
+            fetch('/api/plugins/processlist/get_processes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: ''
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Error loading processes:', data.error);
+                    return;
+                }
+                
+                window.processes = data;
+                window.filteredProcesses = [...window.processes];
+                processes = window.processes;
+                filteredProcesses = window.filteredProcesses;
+                renderProcessTable();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function renderProcessTable() {
+            const tbody = document.getElementById('process-table-body');
+            if (!tbody) {
+                console.warn('Process table body not found');
+                return;
+            }
+            tbody.innerHTML = '';
+
+            window.filteredProcesses.forEach(process => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150';
+                
+                const statusColor = getStatusColor(process.status);
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${process.pid}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${process.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${process.username}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${process.cpu_percent}%</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${process.memory_percent}%</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColor}">
+                            ${process.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${process.create_time}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate" title="${process.cmdline}">${process.cmdline}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="showKillModal(${process.pid}, '${process.name}')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors">
+                            Kill
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function getStatusColor(status) {
+            switch(status.toLowerCase()) {
+                case 'running':
+                    return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+                case 'sleeping':
+                    return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+                case 'stopped':
+                    return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+                case 'zombie':
+                    return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+                default:
+                    return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+            }
+        }
+
+        function filterProcesses() {
+            const searchInput = document.getElementById('search-input');
+            if (!searchInput) return;
+            const searchTerm = searchInput.value.toLowerCase();
+            window.filteredProcesses = processes.filter(process => 
+                process.name.toLowerCase().includes(searchTerm) ||
+                process.username.toLowerCase().includes(searchTerm) ||
+                process.cmdline.toLowerCase().includes(searchTerm) ||
+                process.pid.toString().includes(searchTerm)
+            );
+            sortProcesses();
+        }
+
+        function sortProcesses() {
+            const sortSelect = document.getElementById('sort-select');
+            if (!sortSelect) return;
+            const sortBy = sortSelect.value;
+            window.filteredProcesses.sort((a, b) => {
+                switch(sortBy) {
+                    case 'cpu':
+                        return b.cpu_percent - a.cpu_percent;
+                    case 'memory':
+                        return b.memory_percent - a.memory_percent;
+                    case 'pid':
+                        return a.pid - b.pid;
+                    case 'name':
+                        return a.name.localeCompare(b.name);
+                    default:
+                        return 0;
+                }
+            });
+            renderProcessTable();
+        }
+
+        function showKillModal(pid, name) {
+            window.killProcessPid = pid;
+            killProcessPid = window.killProcessPid;
+            document.getElementById('kill-process-pid').textContent = pid;
+            document.getElementById('kill-process-name').textContent = name;
+            document.getElementById('kill-modal').classList.remove('hidden');
+            document.getElementById('kill-modal').classList.add('flex');
+        }
+
+        function closeKillModal() {
+            document.getElementById('kill-modal').classList.add('hidden');
+            document.getElementById('kill-modal').classList.remove('flex');
+            window.killProcessPid = null;
+            killProcessPid = window.killProcessPid;
+        }
+
+        function confirmKillProcess() {
+            if (!killProcessPid) return;
+            
+            fetch('/api/plugins/processlist/kill_process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `pid=${killProcessPid}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    refreshData();
+                } else {
+                    showNotification('Error: ' + data.message, 'error');
+                }
+                closeKillModal();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error killing process', 'error');
+                closeKillModal();
+            });
+        }
+
+        function refreshData() {
+            loadSystemInfo();
+            loadProcesses();
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            const themeDropdown = document.getElementById('theme-dropdown');
+            const actionsDropdown = document.getElementById('actions-dropdown');
+            
+            if (themeDropdown && !themeDropdown.contains(event.target)) {
+                const themeDropdownMenu = document.getElementById('theme-dropdown-menu');
+                if (themeDropdownMenu) themeDropdownMenu.classList.add('hidden');
+            }
+            
+            if (actionsDropdown && !actionsDropdown.contains(event.target)) {
+                const actionsDropdownMenu = document.getElementById('actions-dropdown-menu');
+                if (actionsDropdownMenu) actionsDropdownMenu.classList.add('hidden');
+            }
+        });
+        
+        // Cleanup function to be called when modal is closed
+        window.processListCleanup = window.processListCleanup || function() {
+            console.log('Process List plugin cleaned up');
+        }
+        
+        // Also set as generic cleanup for backward compatibility
+        window.cleanup = window.processListCleanup;
+
+    </script>
+
+{% endblock %}
+
+

@@ -1,0 +1,14 @@
+{
+    "name": "Process List",
+    "version": "1.0.0",
+    "description": "Plugin untuk menampilkan dan mengelola proses yang sedang berjalan di server",
+    "author": "Slemp Team",
+    "category": "System",
+    "icon": "fa-list",
+    "enabled": true,
+    "dependencies": [],
+    "permissions": [
+        "system_read",
+        "process_kill"
+    ]
+}
