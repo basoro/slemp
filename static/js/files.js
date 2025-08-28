@@ -172,6 +172,34 @@ async function createDirectory() {
     }
 }
 
+async function createNewFile() {
+    const fileName = await showPrompt('Enter file name:', '', 'Create File');
+    if (!fileName) return;
+
+    try {
+        const response = await fetch('/api/files/new', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                path: currentPath,
+                name: fileName
+            })
+        });
+
+        if (response.ok) {
+            loadFiles(currentPath);
+        } else {
+            const error = await response.json();
+            showAlert(error.error || 'Error creating file', 'Error');
+        }
+    } catch (error) {
+        console.error('Error creating file:', error);
+        showAlert('Error creating file', 'Error');
+    }
+}
+
 async function uploadFile(file) {
     if (!file) return;
 
@@ -975,5 +1003,18 @@ async function closeTab(index) {
 function initializeEditorSidebar() {
     loadEditorFileTree();
 }
+
+// Function to open terminal
+function openTerminal() {
+    // Open terminal in a new window/tab
+    const terminalUrl = '/terminal';
+    const terminalWindow = window.open(terminalUrl, 'terminal', 'width=1000,height=600,scrollbars=yes,resizable=yes');
+    
+    if (!terminalWindow) {
+        // If popup was blocked, show notification
+        showNotification('Please allow popups to open terminal', 'info');
+    }
+}
+
 
 loadFiles();
