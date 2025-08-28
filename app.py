@@ -1210,11 +1210,28 @@ def get_services_status():
                     if version_cmd.returncode == 0:
                         version = version_cmd.stdout.strip()
 
+            # Calculate uptime if service is running
+            uptime = None
+            if running and pid and service_name != 'ufw':
+                try:
+                    # Get the first PID for uptime calculation
+                    first_pid = pid[0] if isinstance(pid, list) else pid
+                    if first_pid:
+                        import psutil
+                        process = psutil.Process(int(first_pid))
+                        start_time = process.create_time()
+                        uptime_seconds = int(time.time() - start_time)
+                        uptime = format_uptime(uptime_seconds)
+                except Exception as e:
+                    logger.warning(f'Failed to calculate uptime for {service_name}: {str(e)}')
+                    uptime = 'Unable to detect'
+
             return {
                 'installed': installed,
                 'running': running,
                 'pid': pid,
-                'version': version
+                'version': version,
+                'uptime': uptime
             }
         except Exception as e:
             logger.error(f'Error checking {service_name} status: {str(e)}')

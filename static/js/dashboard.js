@@ -239,12 +239,12 @@ async function updateServiceStatus() {
             if (data.nginx.installed) {
                 nginxStatus.innerHTML = `
                     <div class="text-sm text-gray-600 dark:text-gray-400">
-                        <div>Version: ${data.nginx.version}</div>
+                        <div>Version: ${data.nginx.version ? data.nginx.version.replace(/nginx version: nginx\//,'') : 'Unknown'}</div>
                         <div class="flex items-center mt-1">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            Uptime: ${data.nginx.uptime || ''}
+                            Uptime: ${data.nginx.uptime || 'Not available'}
                         </div>
                         <div class="flex items-center mt-1">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -316,12 +316,12 @@ async function updateServiceStatus() {
             if (data.php_fpm.installed) {
                 phpStatus.innerHTML = `
                     <div class="text-sm text-gray-600 dark:text-gray-400">
-                        <div>Version: ${data.php_fpm.version}</div>
+                        <div>Version: ${data.php_fpm.version ? data.php_fpm.version.replace(/^PHP\s+/,'').replace(/\s+\(built:.*$/,'') : 'Unknown'}</div>
                         <div class="flex items-center mt-1">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            Uptime: ${data.php_fpm.uptime || ''}
+                            Uptime: ${data.php_fpm.uptime || 'Not available'}
                         </div>
                         <div class="flex items-center mt-1">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -393,12 +393,12 @@ async function updateServiceStatus() {
             if (data.mysql.installed) {
                 mysqlStatus.innerHTML = `
                     <div class="text-sm text-gray-600 dark:text-gray-400">
-                        <div>Version: ${data.mysql.version}</div>
+                        <div>Version: ${data.mysql.version ? data.mysql.version.replace(/^mysql\s+Ver\s+/,'').replace(/\s+for\s+.*$/,'') : 'Unknown'}</div>
                         <div class="flex items-center mt-1">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            Uptime: ${data.mysql.uptime || ''}
+                            Uptime: ${data.mysql.uptime || 'Not available'}
                         </div>
                         <div class="flex items-center mt-1">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
