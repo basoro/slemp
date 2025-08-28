@@ -7,7 +7,7 @@ wget https://github.com/basoro/slemp/archive/refs/heads/sabrina.zip  -O ~/slemp.
 unzip ~/slemp.zip -d ~/
 rm -f ~/slemp-sabrina/data/config.json
 cp -aR ~/slemp-sabrina/* /opt/slemp/
-rm -rf ~/slemp-sabrina
+rm -rf ~/slemp*
 
 echo "===> Setup Python Virtual Environment..."
 python3 -m venv /opt/slemp-venv
