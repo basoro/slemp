@@ -1030,6 +1030,22 @@ function openTerminal() {
 
 // Chmod and Chown functions
 function openChmodDialog(filePath) {
+    // Find the file data from allFiles
+    const fileData = allFiles.find(file => file.path === filePath);
+    const currentMode = fileData ? fileData.permissions : '644';
+    const currentOwner = fileData ? fileData.owner : 'root';
+    
+    // Parse current permissions
+    let ownerPerms = 6, groupPerms = 4, publicPerms = 4; // default 644
+    if (currentMode && currentMode.length >= 3) {
+        const modeStr = currentMode.replace(/[^0-7]/g, ''); // Remove non-numeric chars
+        if (modeStr.length >= 3) {
+            ownerPerms = parseInt(modeStr[modeStr.length-3]) || 6;
+            groupPerms = parseInt(modeStr[modeStr.length-2]) || 4;
+            publicPerms = parseInt(modeStr[modeStr.length-1]) || 4;
+        }
+    }
+    
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
     modal.innerHTML = `
@@ -1044,15 +1060,15 @@ function openChmodDialog(filePath) {
                         <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Owner</h4>
                         <div class="space-y-2">
                             <label class="flex items-center">
-                                <input type="checkbox" id="owner-read" class="mr-2" checked>
+                                <input type="checkbox" id="owner-read" class="mr-2" ${(ownerPerms & 4) ? 'checked' : ''}>
                                 <span class="text-sm text-gray-700 dark:text-gray-300">Read</span>
                             </label>
                             <label class="flex items-center">
-                                <input type="checkbox" id="owner-write" class="mr-2" checked>
+                                <input type="checkbox" id="owner-write" class="mr-2" ${(ownerPerms & 2) ? 'checked' : ''}>
                                 <span class="text-sm text-gray-700 dark:text-gray-300">Write</span>
                             </label>
                             <label class="flex items-center">
-                                <input type="checkbox" id="owner-execute" class="mr-2">
+                                <input type="checkbox" id="owner-execute" class="mr-2" ${(ownerPerms & 1) ? 'checked' : ''}>
                                 <span class="text-sm text-gray-700 dark:text-gray-300">Execute</span>
                             </label>
                         </div>
@@ -1063,15 +1079,15 @@ function openChmodDialog(filePath) {
                         <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">User group</h4>
                         <div class="space-y-2">
                             <label class="flex items-center">
-                                <input type="checkbox" id="group-read" class="mr-2" checked>
+                                <input type="checkbox" id="group-read" class="mr-2" ${(groupPerms & 4) ? 'checked' : ''}>
                                 <span class="text-sm text-gray-700 dark:text-gray-300">Read</span>
                             </label>
                             <label class="flex items-center">
-                                <input type="checkbox" id="group-write" class="mr-2">
+                                <input type="checkbox" id="group-write" class="mr-2" ${(groupPerms & 2) ? 'checked' : ''}>
                                 <span class="text-sm text-gray-700 dark:text-gray-300">Write</span>
                             </label>
                             <label class="flex items-center">
-                                <input type="checkbox" id="group-execute" class="mr-2">
+                                <input type="checkbox" id="group-execute" class="mr-2" ${(groupPerms & 1) ? 'checked' : ''}>
                                 <span class="text-sm text-gray-700 dark:text-gray-300">Execute</span>
                             </label>
                         </div>
@@ -1082,15 +1098,15 @@ function openChmodDialog(filePath) {
                         <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Public</h4>
                         <div class="space-y-2">
                             <label class="flex items-center">
-                                <input type="checkbox" id="public-read" class="mr-2" checked>
+                                <input type="checkbox" id="public-read" class="mr-2" ${(publicPerms & 4) ? 'checked' : ''}>
                                 <span class="text-sm text-gray-700 dark:text-gray-300">Read</span>
                             </label>
                             <label class="flex items-center">
-                                <input type="checkbox" id="public-write" class="mr-2">
+                                <input type="checkbox" id="public-write" class="mr-2" ${(publicPerms & 2) ? 'checked' : ''}>
                                 <span class="text-sm text-gray-700 dark:text-gray-300">Write</span>
                             </label>
                             <label class="flex items-center">
-                                <input type="checkbox" id="public-execute" class="mr-2">
+                                <input type="checkbox" id="public-execute" class="mr-2" ${(publicPerms & 1) ? 'checked' : ''}>
                                 <span class="text-sm text-gray-700 dark:text-gray-300">Execute</span>
                             </label>
                         </div>
@@ -1099,12 +1115,12 @@ function openChmodDialog(filePath) {
                 
                 <!-- Bottom section -->
                 <div class="flex items-center space-x-4 mb-4">
-                    <input type="text" id="chmod-mode" class="w-16 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-center" value="644" maxlength="3">
+                    <input type="text" id="chmod-mode" class="w-16 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-center" value="${ownerPerms}${groupPerms}${publicPerms}" maxlength="3">
                     <span class="text-sm text-gray-700 dark:text-gray-300">Chmod,</span>
                     <span class="text-sm text-gray-700 dark:text-gray-300">Owner</span>
                     <select id="chmod-owner" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
-                        <option value="root">root</option>
-                        <option value="www-data">www-data</option>
+                        <option value="root" ${currentOwner === 'root' ? 'selected' : ''}>root</option>
+                        <option value="www-data" ${currentOwner === 'www-data' ? 'selected' : ''}>www-data</option>
                     </select>
                 </div>
                 
