@@ -2354,7 +2354,7 @@ def create_vhost():
         try_files $uri $uri/ /index.php?$query_string;
     }}
 
-    location ~ \.php$ {{
+    location ~ \\.php$ {{
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/run/php/php8.3-fpm.sock;
     }}
@@ -4724,7 +4724,7 @@ def generate_vhost_config(domain, root_dir, ssl=False, ssl_cert='', ssl_key='', 
         fastcgi_pass unix:/run/php/php{php_version}-fpm.sock;
     }}
 
-    location ~ /\.ht {{
+    location ~ /\\.ht {{
         deny all;
     }}
 """
@@ -6821,7 +6821,7 @@ class TerminalNamespace(Namespace):
                 
                 # Set environment variables
                 os.environ['TERM'] = 'xterm-256color'
-                os.environ['PS1'] = '\[\033[01;32m\]slemp@container\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$ '
+                os.environ['PS1'] = r'\[\033[01;32m\]slemp@container\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$ '
                 
                 # Set default working directory to /opt/slemp/data/wwwl
                 os.chdir('/opt/slemp/data/www')
