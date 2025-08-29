@@ -27,6 +27,7 @@ import fcntl
 import signal
 import requests
 import tempfile
+import stat
 
 # Environment detection
 def is_docker_environment():
@@ -1973,12 +1974,32 @@ def list_files():
         with os.scandir(base_path) as entries:
             for entry in entries:
                 try:
+                    stat_info = entry.stat()
+                    
+                    # Get file permissions
+                    mode = stat_info.st_mode
+                    permissions = stat.filemode(mode)
+                    
+                    # Get owner and group names
+                    try:
+                        import pwd
+                        import grp
+                        owner = pwd.getpwuid(stat_info.st_uid).pw_name
+                        group = grp.getgrgid(stat_info.st_gid).gr_name
+                    except (KeyError, ImportError):
+                        owner = str(stat_info.st_uid)
+                        group = str(stat_info.st_gid)
+                    
                     file_info = {
                         'name': entry.name,
                         'path': os.path.normpath(os.path.join(base_path, entry.name)),
                         'is_dir': entry.is_dir(),
                         'size': os.path.getsize(entry.path) if not entry.is_dir() else None,
-                        'modified': os.path.getmtime(entry.path)
+                        'modified': os.path.getmtime(entry.path),
+                        'permissions': permissions,
+                        'owner': owner,
+                        'group': group,
+                        'mode': oct(mode)[-3:]  # Get last 3 digits of octal mode
                     }
                     files.append(file_info)
                 except (OSError, IOError) as e:
@@ -2041,6 +2062,89 @@ def delete_file():
     except Exception as e:
         return jsonify({'error': f'Could not delete: {str(e)}'}), 400
 
+@app.route('/api/files/chmod', methods=['POST'])
+@login_required
+def chmod_file():
+    logger.info('File chmod attempt')
+    path = request.json.get('path')
+    mode = request.json.get('mode')
+    if not path or mode is None:
+        return jsonify({'error': 'Path and mode must be specified'}), 400
+    
+    path = os.path.normpath(path)
+    if path.startswith('..'):
+        return jsonify({'error': 'Invalid path'}), 400
+    
+    try:
+        if not os.path.exists(path):
+            return jsonify({'error': 'File or directory not found'}), 404
+        
+        # Convert mode to integer if it's a string
+        if isinstance(mode, str):
+            mode = int(mode, 8)  # Convert octal string to integer
+        
+        os.chmod(path, mode)
+        logger.info(f'Permissions changed successfully: {path} to {oct(mode)}')
+        return jsonify({'message': 'Permissions changed successfully'})
+    except ValueError:
+        return jsonify({'error': 'Invalid mode format'}), 400
+    except Exception as e:
+         return jsonify({'error': f'Could not change permissions: {str(e)}'}), 400
+
+@app.route('/api/files/chown', methods=['POST'])
+@login_required
+def chown_file():
+    logger.info('File chown attempt')
+    path = request.json.get('path')
+    owner = request.json.get('owner')
+    group = request.json.get('group')
+    if not path:
+        return jsonify({'error': 'Path must be specified'}), 400
+    
+    path = os.path.normpath(path)
+    if path.startswith('..'):
+        return jsonify({'error': 'Invalid path'}), 400
+    
+    try:
+        if not os.path.exists(path):
+            return jsonify({'error': 'File or directory not found'}), 404
+        
+        import pwd
+        import grp
+        
+        # Get current owner and group if not specified
+        stat_info = os.stat(path)
+        uid = stat_info.st_uid
+        gid = stat_info.st_gid
+        
+        # Convert owner name to uid if provided
+        if owner:
+            try:
+                if owner.isdigit():
+                    uid = int(owner)
+                else:
+                    uid = pwd.getpwnam(owner).pw_uid
+            except KeyError:
+                return jsonify({'error': f'User {owner} not found'}), 400
+        
+        # Convert group name to gid if provided
+        if group:
+            try:
+                if group.isdigit():
+                    gid = int(group)
+                else:
+                    gid = grp.getgrnam(group).gr_gid
+            except KeyError:
+                return jsonify({'error': f'Group {group} not found'}), 400
+        
+        os.chown(path, uid, gid)
+        logger.info(f'Ownership changed successfully: {path} to {uid}:{gid}')
+        return jsonify({'message': 'Ownership changed successfully'})
+    except ImportError:
+        return jsonify({'error': 'chown not supported on this system'}), 400
+    except Exception as e:
+        return jsonify({'error': f'Could not change ownership: {str(e)}'}), 400
+ 
 @app.route('/api/files/rename', methods=['POST'])
 @login_required
 def rename_file():

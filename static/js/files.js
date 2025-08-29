@@ -35,6 +35,8 @@ function renderFileList(files) {
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 dark:text-blue-400 cursor-pointer" onclick="loadFiles('${parentPath}')">..</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">-</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">-</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">-</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">-</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">-</td>
             </tr>`;
     }
@@ -52,6 +54,8 @@ function renderFileList(files) {
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${formatFileSize(file.size)}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${formatDate(file.modified)}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 font-mono">${file.permissions || '-'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${file.owner || '-'}:${file.group || '-'}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
                     <div class="relative inline-block text-left">
                         <button onclick="toggleDropdown('${file.path}')" class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-xs font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
@@ -86,6 +90,19 @@ function renderFileList(files) {
                                     </svg>
                                     Extract
                                 </button>` : ''}
+                                <hr class="my-1 border-gray-200 dark:border-gray-600">
+                                <button onclick="openChmodDialog('${file.path}'); hideDropdown('${file.path}')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                    </svg>
+                                    Permissions
+                                </button>
+                                <button onclick="openChownDialog('${file.path}'); hideDropdown('${file.path}')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                    Ownership
+                                </button>
                                 <hr class="my-1 border-gray-200 dark:border-gray-600">
                                 <button onclick="renameFile('${file.path}'); hideDropdown('${file.path}')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1016,5 +1033,125 @@ function openTerminal() {
     }
 }
 
+// Chmod and Chown functions
+function openChmodDialog(filePath) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+    modal.innerHTML = `
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Change Permissions</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">File: ${filePath}</p>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Permissions (octal)</label>
+                    <input type="text" id="chmod-mode" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="755" maxlength="3">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Examples: 755 (rwxr-xr-x), 644 (rw-r--r--)</p>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500">Cancel</button>
+                    <button onclick="changePermissions('${filePath}')" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Apply</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('chmod-mode').focus();
+}
+
+function openChownDialog(filePath) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+    modal.innerHTML = `
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Change Ownership</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">File: ${filePath}</p>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Owner</label>
+                    <input type="text" id="chown-owner" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="username or uid">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Group</label>
+                    <input type="text" id="chown-group" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="groupname or gid">
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500">Cancel</button>
+                    <button onclick="changeOwnership('${filePath}')" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Apply</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('chown-owner').focus();
+}
+
+async function changePermissions(filePath) {
+    const mode = document.getElementById('chmod-mode').value;
+    if (!mode || !/^[0-7]{3}$/.test(mode)) {
+        showAlert('Please enter a valid 3-digit octal permission (e.g., 755)', 'Error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/files/chmod', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                path: filePath,
+                mode: mode
+            })
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            showAlert('Permissions changed successfully', 'Success');
+            document.querySelector('.fixed').remove();
+            loadFiles(currentPath); // Refresh file list
+        } else {
+            showAlert(result.error || 'Failed to change permissions', 'Error');
+        }
+    } catch (error) {
+        console.error('Error changing permissions:', error);
+        showAlert('Error changing permissions', 'Error');
+    }
+}
+
+async function changeOwnership(filePath) {
+    const owner = document.getElementById('chown-owner').value;
+    const group = document.getElementById('chown-group').value;
+    
+    if (!owner && !group) {
+        showAlert('Please specify at least owner or group', 'Error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/files/chown', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                path: filePath,
+                owner: owner || null,
+                group: group || null
+            })
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            showAlert('Ownership changed successfully', 'Success');
+            document.querySelector('.fixed').remove();
+            loadFiles(currentPath); // Refresh file list
+        } else {
+            showAlert(result.error || 'Failed to change ownership', 'Error');
+        }
+    } catch (error) {
+        console.error('Error changing ownership:', error);
+        showAlert('Error changing ownership', 'Error');
+    }
+}
 
 loadFiles();
