@@ -2014,27 +2014,78 @@ def list_files():
 @login_required
 def upload_file():
     logger.info('File upload attempt')
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
+    
+    # Handle both single and multiple file uploads
+    files = request.files.getlist('files') if 'files' in request.files else []
+    if not files and 'file' in request.files:
+        files = [request.files['file']]
+    
+    if not files:
+        return jsonify({'error': 'No files selected'}), 400
     
     upload_path = request.form.get('path', '/')
     upload_path = os.path.normpath(upload_path)
     if upload_path.startswith('..'):
         return jsonify({'error': 'Invalid path'}), 400
 
-    filename = secure_filename(file.filename)
-    file_path = os.path.normpath(os.path.join(upload_path, filename))
-    
     try:
         os.makedirs(upload_path, exist_ok=True)
-        file.save(file_path)
-        logger.info(f'File uploaded successfully: {file_path}')
-        return jsonify({'message': 'File uploaded successfully'})
+        
+        uploaded_files = []
+        failed_files = []
+        
+        for file in files:
+            if file.filename == '':
+                continue
+                
+            try:
+                filename = secure_filename(file.filename)
+                file_path = os.path.normpath(os.path.join(upload_path, filename))
+                
+                # Handle duplicate filenames
+                counter = 1
+                original_filename = filename
+                while os.path.exists(file_path):
+                    name, ext = os.path.splitext(original_filename)
+                    filename = f"{name}_{counter}{ext}"
+                    file_path = os.path.normpath(os.path.join(upload_path, filename))
+                    counter += 1
+                
+                file.save(file_path)
+                uploaded_files.append({
+                    'original_name': file.filename,
+                    'saved_name': filename,
+                    'path': file_path,
+                    'size': os.path.getsize(file_path)
+                })
+                logger.info(f'File uploaded successfully: {file_path}')
+                
+            except Exception as e:
+                failed_files.append({
+                    'filename': file.filename,
+                    'error': str(e)
+                })
+                logger.error(f'Failed to upload {file.filename}: {str(e)}')
+        
+        response_data = {
+            'uploaded_files': uploaded_files,
+            'failed_files': failed_files,
+            'total_uploaded': len(uploaded_files),
+            'total_failed': len(failed_files)
+        }
+        
+        if uploaded_files:
+            response_data['message'] = f'Successfully uploaded {len(uploaded_files)} file(s)'
+            if failed_files:
+                response_data['message'] += f', {len(failed_files)} file(s) failed'
+        else:
+            response_data['message'] = 'No files were uploaded'
+            
+        return jsonify(response_data)
+        
     except Exception as e:
-        return jsonify({'error': f'Could not upload file: {str(e)}'}), 400
+        logger.error(f'Upload error: {str(e)}')
+        return jsonify({'error': f'Could not upload files: {str(e)}'}), 400
 
 @app.route('/api/files/delete', methods=['POST'])
 @login_required

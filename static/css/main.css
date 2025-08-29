@@ -311,3 +311,310 @@ button.active {
     width: 1rem;
     height: 1rem;
 }
+
+/* Upload Modal Styles */
+.upload-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.upload-modal-content {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    max-width: 32rem;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.dark .upload-modal-content {
+    background: #1f2937;
+    color: white;
+}
+
+/* Drop Zone Styles */
+.drop-zone {
+    border: 2px dashed #d1d5db;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #f9fafb;
+}
+
+.drop-zone:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.dark .drop-zone {
+    border-color: #4b5563;
+    background: #374151;
+}
+
+.dark .drop-zone:hover {
+    border-color: #60a5fa;
+    background: #1e3a8a;
+}
+
+.drop-zone.dragover {
+    border-color: #3b82f6;
+    background: #dbeafe;
+    transform: scale(1.02);
+}
+
+.dark .drop-zone.dragover {
+    border-color: #60a5fa;
+    background: #1e40af;
+}
+
+/* Progress Bar Styles */
+.upload-progress-container {
+    background: #f3f4f6;
+    border-radius: 0.5rem;
+    height: 1rem;
+    overflow: hidden;
+    margin: 1rem 0;
+    position: relative;
+}
+
+.dark .upload-progress-container {
+    background: #374151;
+}
+
+.upload-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #059669);
+    border-radius: 0.5rem;
+    transition: width 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* File List Styles */
+.selected-files-list {
+    max-height: 12rem;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    margin: 1rem 0;
+}
+
+.dark .selected-files-list {
+    border-color: #4b5563;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background: #f9fafb;
+    border-radius: 0.375rem;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.file-item:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.dark .file-item {
+    background: #374151;
+    border-color: #4b5563;
+}
+
+.dark .file-item:hover {
+    background: #4b5563;
+    border-color: #6b7280;
+}
+
+.file-item:last-child {
+    margin-bottom: 0;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.file-name {
+    font-size: 0.875rem;
+    color: #374151;
+    truncate: true;
+    flex: 1;
+    min-width: 0;
+}
+
+.dark .file-name {
+    color: #d1d5db;
+}
+
+.file-size {
+    font-size: 0.75rem;
+    color: #6b7280;
+    white-space: nowrap;
+}
+
+.dark .file-size {
+    color: #9ca3af;
+}
+
+.remove-file-btn {
+    color: #ef4444;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.remove-file-btn:hover {
+    color: #dc2626;
+    background: #fef2f2;
+}
+
+.dark .remove-file-btn:hover {
+    background: #7f1d1d;
+}
+
+/* Upload Status Styles */
+.upload-status {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.upload-status.success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.dark .upload-status.success {
+    background: #064e3b;
+    color: #6ee7b7;
+    border-color: #047857;
+}
+
+.upload-status.error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.dark .upload-status.error {
+    background: #7f1d1d;
+    color: #fca5a5;
+    border-color: #dc2626;
+}
+
+/* Button Styles for Upload Modal */
+.upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.upload-btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.upload-btn-primary:hover:not(:disabled) {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.upload-btn-secondary {
+    background: #6b7280;
+    color: white;
+}
+
+.upload-btn-secondary:hover:not(:disabled) {
+    background: #4b5563;
+}
+
+.upload-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Responsive adjustments for upload modal */
+@media (max-width: 640px) {
+    .upload-modal-content {
+        margin: 1rem;
+        padding: 1rem;
+        width: calc(100% - 2rem);
+    }
+    
+    .drop-zone {
+        padding: 1.5rem 1rem;
+    }
+    
+    .selected-files-list {
+        max-height: 8rem;
+    }
+}

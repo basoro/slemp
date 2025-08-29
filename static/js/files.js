@@ -1268,4 +1268,240 @@ async function changePermissions(filePath) {
 
 
 
+// Multiple Upload Variables
+let selectedFiles = [];
+let isUploading = false;
+
+// Multiple Upload Functions
+function openUploadModal() {
+    document.getElementById('uploadModal').classList.remove('hidden');
+    resetUploadModal();
+    setupDropZone();
+}
+
+function closeUploadModal() {
+    if (isUploading) {
+        if (!confirm('Upload is in progress. Are you sure you want to cancel?')) {
+            return;
+        }
+    }
+    document.getElementById('uploadModal').classList.add('hidden');
+    resetUploadModal();
+}
+
+function resetUploadModal() {
+    selectedFiles = [];
+    isUploading = false;
+    document.getElementById('selectedFilesList').classList.add('hidden');
+    document.getElementById('uploadProgress').classList.add('hidden');
+    document.getElementById('filesList').innerHTML = '';
+    document.getElementById('startUploadBtn').disabled = true;
+    document.getElementById('progressBar').style.width = '0%';
+    document.getElementById('progressText').textContent = '0%';
+    document.getElementById('uploadStatus').innerHTML = '';
+    document.getElementById('multipleFileInput').value = '';
+}
+
+function setupDropZone() {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('multipleFileInput');
+    
+    // Click to select files
+    dropZone.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        handleFileSelection(Array.from(e.target.files));
+    });
+    
+    // Drag and drop events
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-blue-400', 'bg-blue-50', 'dark:bg-blue-900');
+    });
+    
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-400', 'bg-blue-50', 'dark:bg-blue-900');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-400', 'bg-blue-50', 'dark:bg-blue-900');
+        const files = Array.from(e.dataTransfer.files);
+        handleFileSelection(files);
+    });
+}
+
+function handleFileSelection(files) {
+    if (files.length === 0) return;
+    
+    // Add new files to selected files (avoid duplicates)
+    files.forEach(file => {
+        const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
+        if (!exists) {
+            selectedFiles.push(file);
+        }
+    });
+    
+    displaySelectedFiles();
+    document.getElementById('startUploadBtn').disabled = selectedFiles.length === 0;
+}
+
+function displaySelectedFiles() {
+    const filesList = document.getElementById('filesList');
+    const selectedFilesList = document.getElementById('selectedFilesList');
+    
+    if (selectedFiles.length === 0) {
+        selectedFilesList.classList.add('hidden');
+        return;
+    }
+    
+    selectedFilesList.classList.remove('hidden');
+    filesList.innerHTML = '';
+    
+    selectedFiles.forEach((file, index) => {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded border';
+        fileItem.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span class="text-sm text-gray-700 dark:text-gray-300 truncate">${file.name}</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">(${formatFileSize(file.size)})</span>
+            </div>
+            <button onclick="removeSelectedFile(${index})" class="text-red-500 hover:text-red-700 p-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        `;
+        filesList.appendChild(fileItem);
+    });
+}
+
+function removeSelectedFile(index) {
+    selectedFiles.splice(index, 1);
+    displaySelectedFiles();
+    document.getElementById('startUploadBtn').disabled = selectedFiles.length === 0;
+}
+
+async function startMultipleUpload() {
+    if (selectedFiles.length === 0 || isUploading) return;
+    
+    isUploading = true;
+    document.getElementById('uploadProgress').classList.remove('hidden');
+    document.getElementById('startUploadBtn').disabled = true;
+    document.getElementById('cancelUploadBtn').textContent = 'Close';
+    
+    const formData = new FormData();
+    selectedFiles.forEach(file => {
+        formData.append('files', file);
+    });
+    formData.append('path', currentPath);
+    
+    try {
+        const xhr = new XMLHttpRequest();
+        
+        // Track upload progress
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+                const percentComplete = Math.round((e.loaded / e.total) * 100);
+                updateProgress(percentComplete, `Uploading... ${e.loaded} / ${e.total} bytes`);
+            }
+        });
+        
+        // Handle completion
+        xhr.addEventListener('load', () => {
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                handleUploadComplete(response);
+            } else {
+                const error = JSON.parse(xhr.responseText);
+                handleUploadError(error.error || 'Upload failed');
+            }
+        });
+        
+        // Handle errors
+        xhr.addEventListener('error', () => {
+            handleUploadError('Network error occurred during upload');
+        });
+        
+        // Start upload
+        xhr.open('POST', '/api/files/upload');
+        xhr.send(formData);
+        
+    } catch (error) {
+        handleUploadError('Error starting upload: ' + error.message);
+    }
+}
+
+function updateProgress(percentage, status) {
+    document.getElementById('progressBar').style.width = percentage + '%';
+    document.getElementById('progressText').textContent = percentage + '%';
+    document.getElementById('uploadStatus').textContent = status;
+}
+
+function handleUploadComplete(response) {
+    isUploading = false;
+    updateProgress(100, 'Upload completed!');
+    
+    let statusHtml = '';
+    if (response.total_uploaded > 0) {
+        statusHtml += `<div class="text-green-600 dark:text-green-400">✓ Successfully uploaded ${response.total_uploaded} file(s)</div>`;
+        
+        // Show uploaded files
+        if (response.uploaded_files && response.uploaded_files.length > 0) {
+            statusHtml += '<div class="mt-2 text-xs text-gray-600 dark:text-gray-400">';
+            response.uploaded_files.forEach(file => {
+                statusHtml += `<div>• ${file.original_name}`;
+                if (file.original_name !== file.saved_name) {
+                    statusHtml += ` → ${file.saved_name}`;
+                }
+                statusHtml += `</div>`;
+            });
+            statusHtml += '</div>';
+        }
+    }
+    
+    if (response.total_failed > 0) {
+        statusHtml += `<div class="text-red-600 dark:text-red-400 mt-2">✗ Failed to upload ${response.total_failed} file(s)</div>`;
+        
+        // Show failed files
+        if (response.failed_files && response.failed_files.length > 0) {
+            statusHtml += '<div class="mt-2 text-xs text-gray-600 dark:text-gray-400">';
+            response.failed_files.forEach(file => {
+                statusHtml += `<div>• ${file.filename}: ${file.error}</div>`;
+            });
+            statusHtml += '</div>';
+        }
+    }
+    
+    document.getElementById('uploadStatus').innerHTML = statusHtml;
+    
+    // Refresh file list after successful upload
+    if (response.total_uploaded > 0) {
+        setTimeout(() => {
+            loadFiles(currentPath);
+        }, 1000);
+    }
+    
+    // Auto close modal after 3 seconds if all files uploaded successfully
+    if (response.total_failed === 0) {
+        setTimeout(() => {
+            closeUploadModal();
+        }, 3000);
+    }
+}
+
+function handleUploadError(errorMessage) {
+    isUploading = false;
+    updateProgress(0, 'Upload failed');
+    document.getElementById('uploadStatus').innerHTML = `<div class="text-red-600 dark:text-red-400">✗ ${errorMessage}</div>`;
+    document.getElementById('startUploadBtn').disabled = false;
+}
+
 loadFiles();
