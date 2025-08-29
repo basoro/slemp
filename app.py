@@ -933,14 +933,11 @@ stopasgroup=true\n"""
                     if start_code == 0:
                         # Drop all users except system users
                         socketio.emit('install_output', {'output': 'Dropping non-system MySQL users', 'type': 'info'})
-                        socketio.emit('install_output', {'output': '$ mysql -u root -e "DROP USER IF EXISTS ''@\'localhost\';"', 'type': 'command'})
-                        subprocess.run(['mysql', '-u', 'root', '-e', "DROP USER IF EXISTS ''@'localhost';"], capture_output=True, text=True, timeout=30)
+                        socketio.emit('install_output', {'output': '$ mysql -u root -e "DELETE FROM mysql.user WHERE User = \'\';"', 'type': 'command'})
+                        subprocess.run(['mysql', '-u', 'root', '-e', "DELETE FROM mysql.user WHERE User = '';"], capture_output=True, text=True, timeout=30)
 
-                        socketio.emit('install_output', {'output': '$ mysql -u root -e "DROP USER IF EXISTS ''@\'$(hostname)\';"', 'type': 'command'})
-                        subprocess.run(['mysql', '-u', 'root', '-e', "DROP USER IF EXISTS ''@'$(hostname);"], capture_output=True, text=True, timeout=30)
-
-                        socketio.emit('install_output', {'output': '$ mysql -u root -e "DROP USER IF EXISTS \'PUBLIC\'@\'\';"', 'type': 'command'})
-                        subprocess.run(['mysql', '-u', 'root', '-e', "DROP USER IF EXISTS 'PUBLIC'@'';"], capture_output=True, text=True, timeout=30)
+                        socketio.emit('install_output', {'output': '$ mysql -u root -e "DELETE FROM mysql.user WHERE User = \'PUBLIC\';"', 'type': 'command'})
+                        subprocess.run(['mysql', '-u', 'root', '-e', "DELETE FROM mysql.user WHERE User = 'PUBLIC';"], capture_output=True, text=True, timeout=30)
 
                         # Drop test database
                         socketio.emit('install_output', {'output': 'Dropping test database', 'type': 'info'})
