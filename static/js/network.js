@@ -2052,3 +2052,255 @@ async function updateServiceStatus() {
         });
     }
 }
+
+// Network Configuration Modal Functions
+function showNetworkConfigModal() {
+    const modal = document.getElementById('network-config-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        loadNetworkInterfaces();
+    }
+}
+
+function hideNetworkConfigModal() {
+    const modal = document.getElementById('network-config-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+function switchNetworkTab(tabName) {
+    // Hide all sections
+    document.querySelectorAll('.network-section').forEach(section => {
+        section.classList.add('hidden');
+    });
+    
+    // Remove active class from all tabs
+    document.querySelectorAll('.network-tab-btn').forEach(tab => {
+        tab.classList.remove('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+        tab.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+    });
+    
+    // Show selected section
+    const section = document.getElementById(`${tabName}-section`);
+    if (section) {
+        section.classList.remove('hidden');
+    }
+    
+    // Add active class to selected tab
+    const tab = document.getElementById(`tab-${tabName}`);
+    if (tab) {
+        tab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+        tab.classList.add('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+    }
+}
+
+async function loadNetworkInterfaces() {
+    try {
+        const response = await fetch('/api/network/interfaces');
+        const data = await response.json();
+        
+        if (data.success) {
+            displayNetworkInterfaces(data.interfaces);
+            populateInterfaceSelect(data.interfaces);
+        } else {
+            console.error('Failed to load network interfaces:', data.message);
+        }
+    } catch (error) {
+        console.error('Error loading network interfaces:', error);
+    }
+}
+
+function displayNetworkInterfaces(interfaces) {
+    const container = document.getElementById('network-interfaces-list');
+    if (!container) return;
+    
+    let html = `
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Interface</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">IP Address</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Netmask</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+    `;
+    
+    interfaces.forEach(iface => {
+        const statusClass = iface.status === 'up' ? 'text-green-600' : 'text-red-600';
+        html += `
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${iface.name}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${iface.ip || 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${iface.netmask || 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm ${statusClass}">${iface.status}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button onclick="configureInterface('${iface.name}')" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3">Configure</button>
+                    <button onclick="toggleInterface('${iface.name}', '${iface.status}')" class="text-${iface.status === 'up' ? 'red' : 'green'}-600 hover:text-${iface.status === 'up' ? 'red' : 'green'}-900">
+                        ${iface.status === 'up' ? 'Disable' : 'Enable'}
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += `
+            </tbody>
+        </table>
+    `;
+    
+    container.innerHTML = html;
+}
+
+function populateInterfaceSelect(interfaces) {
+    const select = document.getElementById('interface-select');
+    if (!select) return;
+    
+    // Clear existing options except the first one
+    select.innerHTML = '<option value="">Select Interface</option>';
+    
+    interfaces.forEach(iface => {
+        const option = document.createElement('option');
+        option.value = iface.name;
+        option.textContent = `${iface.name} (${iface.ip || 'No IP'})`;
+        select.appendChild(option);
+    });
+}
+
+function configureInterface(interfaceName) {
+    // Switch to static configuration tab
+    switchNetworkTab('static');
+    
+    // Set the interface in the select
+    const select = document.getElementById('interface-select');
+    if (select) {
+        select.value = interfaceName;
+    }
+}
+
+async function toggleInterface(interfaceName, currentStatus) {
+    const action = currentStatus === 'up' ? 'down' : 'up';
+    
+    try {
+        const response = await fetch('/api/network/interface/toggle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                interface: interfaceName,
+                action: action
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification(`Interface ${interfaceName} ${action === 'up' ? 'enabled' : 'disabled'} successfully`, 'success');
+            loadNetworkInterfaces(); // Refresh the list
+        } else {
+            showNotification(`Failed to ${action} interface: ${data.message}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error toggling interface:', error);
+        showNotification('Error toggling interface', 'error');
+    }
+}
+
+function refreshNetworkInterfaces() {
+    loadNetworkInterfaces();
+}
+
+function resetNetworkForm() {
+    const form = document.getElementById('static-ip-form');
+    if (form) {
+        form.reset();
+    }
+}
+
+// Handle static IP form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const staticForm = document.getElementById('static-ip-form');
+    if (staticForm) {
+        staticForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(staticForm);
+            const config = {
+                interface: formData.get('interface'),
+                ip_address: formData.get('ip_address'),
+                netmask: formData.get('netmask'),
+                broadcast: formData.get('broadcast'),
+                gateway: formData.get('gateway'),
+                dns_primary: formData.get('dns_primary'),
+                dns_secondary: formData.get('dns_secondary'),
+                mtu: formData.get('mtu')
+            };
+            
+            try {
+                const response = await fetch('/api/network/configure', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Network configuration applied successfully', 'success');
+                    loadNetworkInterfaces(); // Refresh the interfaces
+                } else {
+                    showNotification(`Failed to apply configuration: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error applying network configuration:', error);
+                showNotification('Error applying network configuration', 'error');
+            }
+        });
+    }
+});
+
+function applyDhcpSettings() {
+    const dhcpEnabled = document.getElementById('dhcp-enabled').checked;
+    const hostname = document.getElementById('dhcp-hostname').value;
+    const fallback = document.getElementById('dhcp-fallback').checked;
+    
+    const config = {
+        enabled: dhcpEnabled,
+        hostname: hostname,
+        fallback: fallback
+    };
+    
+    fetch('/api/network/dhcp', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(config)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('DHCP settings applied successfully', 'success');
+        } else {
+            showNotification(`Failed to apply DHCP settings: ${data.message}`, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error applying DHCP settings:', error);
+        showNotification('Error applying DHCP settings', 'error');
+    });
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('network-config-modal');
+    if (modal && event.target === modal) {
+        hideNetworkConfigModal();
+    }
+});
