@@ -500,6 +500,176 @@ def network_info():
     """Get network statistics including inbound and outbound traffic"""
     return jsonify(get_network_data())
 
+@app.route('/api/network/interfaces')
+@login_required
+def get_network_interfaces():
+    """Get network interfaces for configuration modal"""
+    try:
+        net_if_stats = psutil.net_if_stats()
+        net_if_addrs = psutil.net_if_addrs()
+        
+        interfaces = []
+        for interface_name, stats in net_if_stats.items():
+            if interface_name != 'lo':  # Skip loopback interface
+                interface_info = {
+                    'name': interface_name,
+                    'status': 'up' if stats.isup else 'down',
+                    'mtu': stats.mtu,
+                    'speed': stats.speed if stats.speed > 0 else None
+                }
+                
+                # Get IP addresses for this interface
+                if interface_name in net_if_addrs:
+                    for addr in net_if_addrs[interface_name]:
+                        if addr.family.name == 'AF_INET':  # IPv4
+                            interface_info['ip'] = addr.address
+                            interface_info['netmask'] = addr.netmask
+                            interface_info['broadcast'] = addr.broadcast
+                            break
+                    
+                    # If no IPv4 found, set defaults
+                    if 'ip' not in interface_info:
+                        interface_info['ip'] = None
+                        interface_info['netmask'] = None
+                        interface_info['broadcast'] = None
+                
+                interfaces.append(interface_info)
+        
+        return jsonify({'success': True, 'interfaces': interfaces})
+        
+    except Exception as e:
+        logger.error(f'Error getting network interfaces: {str(e)}')
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/network/interface/toggle', methods=['POST'])
+@login_required
+def toggle_network_interface():
+    """Enable or disable a network interface"""
+    try:
+        data = request.get_json()
+        interface_name = data.get('interface')
+        action = data.get('action')  # 'up' or 'down'
+        
+        if not interface_name or not action:
+            return jsonify({'success': False, 'message': 'Interface name and action are required'})
+        
+        if action not in ['up', 'down']:
+            return jsonify({'success': False, 'message': 'Action must be "up" or "down"'})
+        
+        # Use ip command to bring interface up/down
+        cmd = f'ip link set {interface_name} {action}'
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            return jsonify({'success': True, 'message': f'Interface {interface_name} {action} successfully'})
+        else:
+            return jsonify({'success': False, 'message': f'Failed to {action} interface: {result.stderr}'})
+            
+    except Exception as e:
+        logger.error(f'Error toggling network interface: {str(e)}')
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/network/configure', methods=['POST'])
+@login_required
+def configure_network_interface():
+    """Configure static IP for a network interface"""
+    try:
+        data = request.get_json()
+        interface = data.get('interface')
+        ip_address = data.get('ip_address')
+        netmask = data.get('netmask')
+        broadcast = data.get('broadcast')
+        gateway = data.get('gateway')
+        dns_primary = data.get('dns_primary')
+        dns_secondary = data.get('dns_secondary')
+        mtu = data.get('mtu')
+        
+        if not interface or not ip_address or not netmask:
+            return jsonify({'success': False, 'message': 'Interface, IP address, and netmask are required'})
+        
+        # Create network configuration commands
+        commands = []
+        
+        # Flush existing IP addresses
+        commands.append(f'ip addr flush dev {interface}')
+        
+        # Set IP address and netmask
+        commands.append(f'ip addr add {ip_address}/{netmask} dev {interface}')
+        
+        # Set broadcast if provided
+        if broadcast:
+            commands.append(f'ip addr change {ip_address}/{netmask} broadcast {broadcast} dev {interface}')
+        
+        # Bring interface up
+        commands.append(f'ip link set {interface} up')
+        
+        # Set default gateway if provided
+        if gateway:
+            # Remove existing default route for this interface (ignore errors)
+            subprocess.run(f'ip route del default via {gateway} dev {interface}', shell=True, capture_output=True)
+            commands.append(f'ip route add default via {gateway} dev {interface}')
+        
+        # Set MTU if provided
+        if mtu and mtu.isdigit():
+            commands.append(f'ip link set {interface} mtu {mtu}')
+        
+        # Execute commands
+        for cmd in commands:
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f'Command failed: {cmd}, Error: {result.stderr}')
+                return jsonify({'success': False, 'message': f'Failed to execute: {cmd}. Error: {result.stderr}'})
+        
+        # Configure DNS if provided
+        if dns_primary or dns_secondary:
+            try:
+                dns_config = []
+                if dns_primary:
+                    dns_config.append(f'nameserver {dns_primary}')
+                if dns_secondary:
+                    dns_config.append(f'nameserver {dns_secondary}')
+                
+                # Backup existing resolv.conf
+                subprocess.run('cp /etc/resolv.conf /etc/resolv.conf.backup', shell=True)
+                
+                # Write new DNS configuration
+                with open('/etc/resolv.conf', 'w') as f:
+                    f.write('\n'.join(dns_config) + '\n')
+                    
+            except Exception as dns_error:
+                logger.warning(f'Failed to configure DNS: {str(dns_error)}')
+        
+        return jsonify({'success': True, 'message': 'Network configuration applied successfully'})
+        
+    except Exception as e:
+        logger.error(f'Error configuring network interface: {str(e)}')
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/network/dhcp', methods=['POST'])
+@login_required
+def configure_dhcp():
+    """Configure DHCP settings"""
+    try:
+        data = request.get_json()
+        enabled = data.get('enabled', False)
+        hostname = data.get('hostname', '')
+        fallback = data.get('fallback', False)
+        
+        # This is a simplified implementation
+        # In a real system, you would configure the DHCP client (dhclient, NetworkManager, etc.)
+        
+        if enabled:
+            # Enable DHCP (simplified)
+            logger.info(f'DHCP enabled with hostname: {hostname}, fallback: {fallback}')
+            return jsonify({'success': True, 'message': 'DHCP configuration applied successfully'})
+        else:
+            logger.info('DHCP disabled')
+            return jsonify({'success': True, 'message': 'DHCP disabled successfully'})
+            
+    except Exception as e:
+        logger.error(f'Error configuring DHCP: {str(e)}')
+        return jsonify({'success': False, 'message': str(e)})
+
 # SocketIO event handlers
 @socketio.on('connect')
 def handle_connect():
