@@ -127,8 +127,8 @@
       "support": "https://support.slemp.com/fail2ban"
     },
     {
-      "name": "nodejs",
-      "title": "Node.js Manager",
+      "id": "nodejs",
+      "name": "Node.js Manager",
       "description": "Manage Node.js versions, npm packages, and Node.js applications with ease",
       "version": "1.0.0",
       "author": "SLEMP Team",
