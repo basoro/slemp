@@ -97,12 +97,7 @@ function renderFileList(files) {
                                     </svg>
                                     Permissions
                                 </button>
-                                <button onclick="openChownDialog('${file.path}'); hideDropdown('${file.path}')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                    </svg>
-                                    Ownership
-                                </button>
+
                                 <hr class="my-1 border-gray-200 dark:border-gray-600">
                                 <button onclick="renameFile('${file.path}'); hideDropdown('${file.path}')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1038,62 +1033,154 @@ function openChmodDialog(filePath) {
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
     modal.innerHTML = `
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="relative top-20 mx-auto p-5 border w-[500px] shadow-lg rounded-md bg-white dark:bg-gray-800">
             <div class="mt-3">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Change Permissions</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">File: ${filePath}</p>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Permissions (octal)</label>
-                    <input type="text" id="chmod-mode" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="755" maxlength="3">
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Examples: 755 (rwxr-xr-x), 644 (rw-r--r--)</p>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Setting permissions ${filePath}</h3>
+                
+                <!-- Permission Checkboxes -->
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    <!-- Owner -->
+                    <div class="border border-gray-300 dark:border-gray-600 rounded p-3">
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Owner</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="owner-read" class="mr-2" checked>
+                                <span class="text-sm text-gray-700 dark:text-gray-300">Read</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="owner-write" class="mr-2" checked>
+                                <span class="text-sm text-gray-700 dark:text-gray-300">Write</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="owner-execute" class="mr-2">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">Execute</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- User group -->
+                    <div class="border border-gray-300 dark:border-gray-600 rounded p-3">
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">User group</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="group-read" class="mr-2" checked>
+                                <span class="text-sm text-gray-700 dark:text-gray-300">Read</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="group-write" class="mr-2">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">Write</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="group-execute" class="mr-2">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">Execute</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Public -->
+                    <div class="border border-gray-300 dark:border-gray-600 rounded p-3">
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Public</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="public-read" class="mr-2" checked>
+                                <span class="text-sm text-gray-700 dark:text-gray-300">Read</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="public-write" class="mr-2">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">Write</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="public-execute" class="mr-2">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">Execute</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
+                
+                <!-- Bottom section -->
+                <div class="flex items-center space-x-4 mb-4">
+                    <input type="text" id="chmod-mode" class="w-16 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-center" value="644" maxlength="3">
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Chmod,</span>
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Owner</span>
+                    <select id="chmod-owner" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                        <option value="root">root</option>
+                        <option value="www-data">www-data</option>
+                    </select>
+                </div>
+                
                 <div class="flex justify-end space-x-3">
-                    <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500">Cancel</button>
-                    <button onclick="changePermissions('${filePath}')" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Apply</button>
+                    <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Cancel</button>
+                    <button onclick="changePermissions('${filePath}')" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Submit</button>
                 </div>
             </div>
         </div>
     `;
     document.body.appendChild(modal);
-    document.getElementById('chmod-mode').focus();
+    
+    // Add event listeners to update chmod value when checkboxes change
+    const updateChmodValue = () => {
+        let owner = 0, group = 0, public = 0;
+        
+        if (document.getElementById('owner-read').checked) owner += 4;
+        if (document.getElementById('owner-write').checked) owner += 2;
+        if (document.getElementById('owner-execute').checked) owner += 1;
+        
+        if (document.getElementById('group-read').checked) group += 4;
+        if (document.getElementById('group-write').checked) group += 2;
+        if (document.getElementById('group-execute').checked) group += 1;
+        
+        if (document.getElementById('public-read').checked) public += 4;
+        if (document.getElementById('public-write').checked) public += 2;
+        if (document.getElementById('public-execute').checked) public += 1;
+        
+        document.getElementById('chmod-mode').value = `${owner}${group}${public}`;
+    };
+    
+    // Add event listeners to all checkboxes
+    ['owner', 'group', 'public'].forEach(type => {
+        ['read', 'write', 'execute'].forEach(perm => {
+            document.getElementById(`${type}-${perm}`).addEventListener('change', updateChmodValue);
+        });
+    });
+    
+    // Add event listener to chmod input to update checkboxes
+    document.getElementById('chmod-mode').addEventListener('input', (e) => {
+        const value = e.target.value;
+        if (value.length === 3 && /^[0-7]{3}$/.test(value)) {
+            const [ownerVal, groupVal, publicVal] = value.split('').map(Number);
+            
+            // Update owner checkboxes
+            document.getElementById('owner-read').checked = (ownerVal & 4) !== 0;
+            document.getElementById('owner-write').checked = (ownerVal & 2) !== 0;
+            document.getElementById('owner-execute').checked = (ownerVal & 1) !== 0;
+            
+            // Update group checkboxes
+            document.getElementById('group-read').checked = (groupVal & 4) !== 0;
+            document.getElementById('group-write').checked = (groupVal & 2) !== 0;
+            document.getElementById('group-execute').checked = (groupVal & 1) !== 0;
+            
+            // Update public checkboxes
+            document.getElementById('public-read').checked = (publicVal & 4) !== 0;
+            document.getElementById('public-write').checked = (publicVal & 2) !== 0;
+            document.getElementById('public-execute').checked = (publicVal & 1) !== 0;
+        }
+    });
 }
 
-function openChownDialog(filePath) {
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
-    modal.innerHTML = `
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
-            <div class="mt-3">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Change Ownership</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">File: ${filePath}</p>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Owner</label>
-                    <input type="text" id="chown-owner" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="username or uid">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Group</label>
-                    <input type="text" id="chown-group" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="groupname or gid">
-                </div>
-                <div class="flex justify-end space-x-3">
-                    <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500">Cancel</button>
-                    <button onclick="changeOwnership('${filePath}')" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Apply</button>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    document.getElementById('chown-owner').focus();
-}
+
 
 async function changePermissions(filePath) {
     const mode = document.getElementById('chmod-mode').value;
+    const owner = document.getElementById('chmod-owner') ? document.getElementById('chmod-owner').value : null;
+    
     if (!mode || !/^[0-7]{3}$/.test(mode)) {
         showAlert('Please enter a valid 3-digit octal permission (e.g., 755)', 'Error');
         return;
     }
 
     try {
-        const response = await fetch('/api/files/chmod', {
+        // First change permissions
+        const chmodResponse = await fetch('/api/files/chmod', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1104,54 +1191,43 @@ async function changePermissions(filePath) {
             })
         });
 
-        const result = await response.json();
-        if (response.ok) {
-            showAlert('Permissions changed successfully', 'Success');
-            document.querySelector('.fixed').remove();
-            loadFiles(currentPath); // Refresh file list
-        } else {
-            showAlert(result.error || 'Failed to change permissions', 'Error');
+        const chmodResult = await chmodResponse.json();
+        if (!chmodResponse.ok) {
+            showAlert(chmodResult.error || 'Failed to change permissions', 'Error');
+            return;
         }
+        
+        // If owner is specified, also change ownership
+        if (owner) {
+            const chownResponse = await fetch('/api/files/chown', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    path: filePath,
+                    owner: owner,
+                    group: owner // Use same value for group
+                })
+            });
+
+            const chownResult = await chownResponse.json();
+            if (!chownResponse.ok) {
+                showAlert(chownResult.error || 'Failed to change ownership', 'Error');
+                return;
+            }
+        }
+        
+        showAlert('Permissions and ownership changed successfully', 'Success');
+        document.querySelector('.fixed').remove();
+        loadFiles(currentPath); // Refresh file list
+        
     } catch (error) {
         console.error('Error changing permissions:', error);
         showAlert('Error changing permissions', 'Error');
     }
 }
 
-async function changeOwnership(filePath) {
-    const owner = document.getElementById('chown-owner').value;
-    const group = document.getElementById('chown-group').value;
-    
-    if (!owner && !group) {
-        showAlert('Please specify at least owner or group', 'Error');
-        return;
-    }
 
-    try {
-        const response = await fetch('/api/files/chown', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                path: filePath,
-                owner: owner || null,
-                group: group || null
-            })
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            showAlert('Ownership changed successfully', 'Success');
-            document.querySelector('.fixed').remove();
-            loadFiles(currentPath); // Refresh file list
-        } else {
-            showAlert(result.error || 'Failed to change ownership', 'Error');
-        }
-    } catch (error) {
-        console.error('Error changing ownership:', error);
-        showAlert('Error changing ownership', 'Error');
-    }
-}
 
 loadFiles();

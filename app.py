@@ -2144,7 +2144,7 @@ def chown_file():
         return jsonify({'error': 'chown not supported on this system'}), 400
     except Exception as e:
         return jsonify({'error': f'Could not change ownership: {str(e)}'}), 400
- 
+
 @app.route('/api/files/rename', methods=['POST'])
 @login_required
 def rename_file():
