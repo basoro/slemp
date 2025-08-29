@@ -105,61 +105,49 @@
                             
                             <!-- Network Action Buttons Demo -->
                             <div class="mt-4 flex flex-wrap gap-2">
-                                <button onclick="showSection('network', 'monitor')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                    Monitor Network
-                                </button>
                                 <button onclick="showSection('network', 'configure')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                     Configure Network
-                                </button>
-                                <button onclick="showSection('network', 'troubleshoot')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
-                                    Troubleshoot
-                                </button>
-                                <button onclick="showSection('network', 'reset')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                    Reset Network
                                 </button>
                             </div>
                         </div>
                     </div>
 
                     <!-- Network Management Cards -->
-                    <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg transition-colors duration-200 mt-6">
-                        <div class="px-4 py-5 sm:p-6">
-                            <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                                <!-- DNS Manager Card -->
-                                <div class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200">
-                                    <div class="flex-1 min-w-0">
-                                        <div class="flex justify-between items-center mb-2">
-                                            <p class="text-sm font-medium text-gray-900 dark:text-white">DNS Manager</p>
-                                            <button onclick="showDnsManagerModal()" class="px-3 py-1 text-sm font-medium text-white bg-purple-600 rounded hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Manage</button>
-                                        </div>
-                                        <p class="text-sm text-gray-500 dark:text-gray-300" id="dns-status">PowerDNS Management</p>
-                                        <div class="mt-3 flex space-x-2" id="dns-buttons">
-                                            <button onclick="startService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
-                                            <button onclick="stopService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
-                                            <button onclick="restartService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Restart</button>
-                                            <button onclick="installService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install</button>
-                                        </div>
-                                    </div>
+                    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 mt-4">
+                        <!-- DNS Manager Card -->
+                        <div class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 shadow-sm flex items-center space-x-3 hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-center mb-2">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">DNS Manager</p>
+                                    <button onclick="showDnsManagerModal()" class="px-3 py-1 text-sm font-medium text-white bg-purple-600 rounded hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Manage</button>
                                 </div>
-
-                                <!-- Firewall Card -->
-                                <div class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200">
-                                    <div class="flex-1 min-w-0">
-                                        <div class="flex justify-between items-center mb-2">
-                                            <p class="text-sm font-medium text-gray-900 dark:text-white">Firewall</p>
-                                            <button onclick="showFirewallModal()" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Manage</button>
-                                        </div>
-                                        <p class="text-sm text-gray-500 dark:text-gray-300" id="firewall-status">UFW Firewall Management</p>
-                                        <div class="mt-3 flex space-x-2" id="firewall-buttons">
-                                            <button onclick="startService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Enable</button>
-                                            <button onclick="stopService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Disable</button>
-                                            <button onclick="restartService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Restart</button>
-                                            <button onclick="installService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install</button>
-                                        </div>
-                                    </div>
+                                <p class="text-sm text-gray-500 dark:text-gray-300" id="dns-status">PowerDNS Management</p>
+                                <div class="mt-3 flex space-x-2" id="dns-buttons">
+                                    <button onclick="startService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Start</button>
+                                    <button onclick="stopService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Stop</button>
+                                    <button onclick="restartService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Restart</button>
+                                    <button onclick="installService('powerdns')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install</button>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Firewall Card -->
+                        <div class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 shadow-sm flex items-center space-x-3 hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-center mb-2">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">Firewall</p>
+                                    <button onclick="showFirewallModal()" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Manage</button>
+                                </div>
+                                <p class="text-sm text-gray-500 dark:text-gray-300" id="firewall-status">UFW Firewall Management</p>
+                                <div class="mt-3 flex space-x-2" id="firewall-buttons">
+                                    <button onclick="startService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Enable</button>
+                                    <button onclick="stopService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Disable</button>
+                                    <button onclick="restartService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-orange-600 rounded hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Restart</button>
+                                    <button onclick="installService('ufw')" class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Install</button>
+                                </div>
+                            </div>
+                        </div>
+                        
                     </div>
                     
                 </div>

@@ -52,6 +52,7 @@ button.active {
 
 /* Sidebar collapsed state - center icons */
 .sidebar-collapsed nav button,
+.sidebar-collapsed nav a,
 .sidebar-collapsed .border-t button {
     display: flex !important;
     align-items: center !important;
@@ -60,6 +61,7 @@ button.active {
 }
 
 .sidebar-collapsed nav button svg,
+.sidebar-collapsed nav a svg,
 .sidebar-collapsed .border-t button svg {
     margin: 0 !important;
 }
