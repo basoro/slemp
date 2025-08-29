@@ -1542,6 +1542,102 @@ def install_service(service):
                 # Nginx specific configuration
                 logger.info('Configuring Nginx for supervisord')
                 
+                # Create nginx sites-enabled directory if it doesn't exist
+                subprocess.run(['mkdir', '-p', '/etc/nginx/sites-enabled'], capture_output=True, text=True)
+                
+                # Create web root directory
+                subprocess.run(['mkdir', '-p', '/var/www/html'], capture_output=True, text=True)
+                
+                # Add nginx_status to existing or create new default configuration
+                default_config_path = '/etc/nginx/sites-enabled/default'
+                nginx_status_block = """\n    location /nginx_status {
+        stub_status on;
+        access_log off;
+        allow 127.0.0.1;
+        deny all;
+    }
+"""
+                
+                if os.path.exists(default_config_path):
+                    # Read existing configuration
+                    with open(default_config_path, 'r') as f:
+                        existing_config = f.read()
+                    
+                    # Check if nginx_status already exists
+                    if '/nginx_status' not in existing_config:
+                        # Find the location / block and add nginx_status after it
+                        location_pattern = r'location\s+/\s*\{[^}]*\}'
+                        location_match = re.search(location_pattern, existing_config, re.DOTALL)
+                        
+                        if location_match:
+                            # Insert nginx_status block after the location / block
+                            insert_pos = location_match.end()
+                            modified_config = existing_config[:insert_pos] + nginx_status_block + existing_config[insert_pos:]
+                            with open(default_config_path, 'w') as f:
+                                f.write(modified_config)
+                            logger.info('Added nginx_status after location / block in existing configuration')
+                        else:
+                            # Fallback: Find the last closing brace of server block and add nginx_status before it
+                            if 'server {' in existing_config and '}' in existing_config:
+                                last_brace_pos = existing_config.rfind('}')
+                                if last_brace_pos != -1:
+                                    modified_config = existing_config[:last_brace_pos] + nginx_status_block + existing_config[last_brace_pos:]
+                                    with open(default_config_path, 'w') as f:
+                                        f.write(modified_config)
+                                    logger.info('Added nginx_status to existing default configuration (fallback method)')
+                                else:
+                                    logger.warning('Could not find server block closing brace in existing config')
+                            else:
+                                logger.warning('Existing config does not contain proper server block structure')
+                    else:
+                        logger.info('nginx_status already exists in configuration')
+                else:
+                    # Create new default configuration
+                    default_nginx_config = """server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+
+    server_name _;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    location /nginx_status {
+        stub_status on;
+        access_log off;
+        allow 127.0.0.1;
+        deny all;
+    }
+}
+"""
+                    
+                    with open(default_config_path, 'w') as f:
+                        f.write(default_nginx_config)
+                    
+                    logger.info('Created new default Nginx configuration with nginx_status')
+                
+                # Ensure nginx.conf includes sites-enabled
+                nginx_conf_path = '/etc/nginx/nginx.conf'
+                if os.path.exists(nginx_conf_path):
+                    with open(nginx_conf_path, 'r') as f:
+                        nginx_conf_content = f.read()
+                    
+                    # Check if sites-enabled is already included
+                    if 'include /etc/nginx/sites-enabled/*;' not in nginx_conf_content:
+                        # Add include directive in http block
+                        if 'http {' in nginx_conf_content:
+                            nginx_conf_content = nginx_conf_content.replace(
+                                'http {',
+                                'http {\n\tinclude /etc/nginx/sites-enabled/*;'
+                            )
+                            with open(nginx_conf_path, 'w') as f:
+                                f.write(nginx_conf_content)
+                            logger.info('Added sites-enabled include to nginx.conf')
+                
                 # Add Nginx configuration to supervisord.conf
                 nginx_config = """\n[program:nginx]
 command=/usr/sbin/nginx -g 'daemon off;'
