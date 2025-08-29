@@ -1035,10 +1035,32 @@ function openChmodDialog(filePath) {
     const currentMode = fileData ? fileData.permissions : '644';
     const currentOwner = fileData ? fileData.owner : 'root';
     
-    // Parse current permissions
+    // Parse current permissions from format like 'drwxr-xr-x' or '-rw-r--r--'
     let ownerPerms = 6, groupPerms = 4, publicPerms = 4; // default 644
-    if (currentMode && currentMode.length >= 3) {
-        const modeStr = currentMode.replace(/[^0-7]/g, ''); // Remove non-numeric chars
+    if (currentMode && currentMode.length >= 10) {
+        // Extract permission bits (skip first character which is file type)
+        const permStr = currentMode.substring(1); // Remove first char (d, -, l, etc.)
+        
+        // Owner permissions (positions 0-2)
+        ownerPerms = 0;
+        if (permStr[0] === 'r') ownerPerms += 4;
+        if (permStr[1] === 'w') ownerPerms += 2;
+        if (permStr[2] === 'x') ownerPerms += 1;
+        
+        // Group permissions (positions 3-5)
+        groupPerms = 0;
+        if (permStr[3] === 'r') groupPerms += 4;
+        if (permStr[4] === 'w') groupPerms += 2;
+        if (permStr[5] === 'x') groupPerms += 1;
+        
+        // Public permissions (positions 6-8)
+        publicPerms = 0;
+        if (permStr[6] === 'r') publicPerms += 4;
+        if (permStr[7] === 'w') publicPerms += 2;
+        if (permStr[8] === 'x') publicPerms += 1;
+    } else if (currentMode && /^[0-7]{3,4}$/.test(currentMode)) {
+        // Handle numeric format like '644' or '0644'
+        const modeStr = currentMode.replace(/^0+/, ''); // Remove leading zeros
         if (modeStr.length >= 3) {
             ownerPerms = parseInt(modeStr[modeStr.length-3]) || 6;
             groupPerms = parseInt(modeStr[modeStr.length-2]) || 4;
