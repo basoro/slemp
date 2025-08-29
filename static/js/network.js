@@ -2093,6 +2093,12 @@ function switchNetworkTab(tabName) {
         tab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
         tab.classList.add('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
     }
+    
+    // If switching to static tab, ensure interface select is populated
+    if (tabName === 'static') {
+        // Re-load interfaces to ensure select is populated
+        loadNetworkInterfaces();
+    }
 }
 
 async function loadNetworkInterfaces() {
@@ -2166,19 +2172,140 @@ function populateInterfaceSelect(interfaces) {
         const option = document.createElement('option');
         option.value = iface.name;
         option.textContent = `${iface.name} (${iface.ip || 'No IP'})`;
+        option.dataset.interfaceData = JSON.stringify(iface);
         select.appendChild(option);
     });
+    
+    // Add event listener for interface selection
+    select.removeEventListener('change', handleInterfaceSelection);
+    select.addEventListener('change', handleInterfaceSelection);
+}
+
+function handleInterfaceSelection(event) {
+    const selectedOption = event.target.selectedOptions[0];
+    if (!selectedOption || !selectedOption.dataset.interfaceData) {
+        // Clear all inputs if no interface selected
+        clearNetworkInputs();
+        return;
+    }
+    
+    try {
+        const interfaceData = JSON.parse(selectedOption.dataset.interfaceData);
+        fillNetworkInputs(interfaceData);
+    } catch (error) {
+        console.error('Error parsing interface data:', error);
+    }
+}
+
+function fillNetworkInputs(interfaceData) {
+    // Fill IP Address
+    const ipInput = document.getElementById('ip-address');
+    if (ipInput && interfaceData.ip) {
+        ipInput.value = interfaceData.ip;
+    }
+    
+    // Fill Netmask (default to 255.255.255.0 if not available)
+    const netmaskInput = document.getElementById('netmask');
+    if (netmaskInput) {
+        netmaskInput.value = interfaceData.netmask || '255.255.255.0';
+    }
+    
+    // Fill Broadcast (calculate from IP and netmask if not available)
+    const broadcastInput = document.getElementById('broadcast');
+    if (broadcastInput && interfaceData.ip) {
+        const broadcast = calculateBroadcast(interfaceData.ip, interfaceData.netmask || '255.255.255.0');
+        broadcastInput.value = broadcast;
+    }
+    
+    // Fill Gateway (assume it's the first IP in the network)
+    const gatewayInput = document.getElementById('gateway');
+    if (gatewayInput && interfaceData.ip) {
+        const gateway = calculateGateway(interfaceData.ip, interfaceData.netmask || '255.255.255.0');
+        gatewayInput.value = gateway;
+    }
+    
+    // Fill DNS servers with common defaults
+    const primaryDnsInput = document.getElementById('dns-primary');
+    if (primaryDnsInput) {
+        primaryDnsInput.value = '8.8.8.8';
+    }
+    
+    const secondaryDnsInput = document.getElementById('dns-secondary');
+    if (secondaryDnsInput) {
+        secondaryDnsInput.value = '8.8.4.4';
+    }
+    
+    // Fill MTU
+    const mtuInput = document.getElementById('mtu');
+    if (mtuInput) {
+        mtuInput.value = interfaceData.mtu || '1500';
+    }
+}
+
+function clearNetworkInputs() {
+    const inputs = ['ip-address', 'netmask', 'broadcast', 'gateway', 'dns-primary', 'dns-secondary', 'mtu'];
+    inputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.value = '';
+        }
+    });
+}
+
+function calculateBroadcast(ip, netmask) {
+    try {
+        const ipParts = ip.split('.').map(Number);
+        const maskParts = netmask.split('.').map(Number);
+        
+        const broadcast = ipParts.map((part, index) => {
+            return part | (255 - maskParts[index]);
+        });
+        
+        return broadcast.join('.');
+    } catch (error) {
+        // Default broadcast for common networks
+        const ipParts = ip.split('.').map(Number);
+        return `${ipParts[0]}.${ipParts[1]}.${ipParts[2]}.255`;
+    }
+}
+
+function calculateGateway(ip, netmask) {
+    try {
+        // Assume gateway is the first usable IP in the network
+        const ipParts = ip.split('.').map(Number);
+        const maskParts = netmask.split('.').map(Number);
+        
+        const network = ipParts.map((part, index) => {
+            return part & maskParts[index];
+        });
+        
+        // Gateway is typically network + 1
+        network[3] = network[3] + 1;
+        return network.join('.');
+    } catch (error) {
+        // Default gateway for common networks
+        const ipParts = ip.split('.').map(Number);
+        return `${ipParts[0]}.${ipParts[1]}.${ipParts[2]}.1`;
+    }
 }
 
 function configureInterface(interfaceName) {
     // Switch to static configuration tab
     switchNetworkTab('static');
     
-    // Set the interface in the select
-    const select = document.getElementById('interface-select');
-    if (select) {
-        select.value = interfaceName;
-    }
+    // Show the modal first if not already shown
+    showNetworkConfigModal();
+    
+    // Wait a bit for the interfaces to load, then set the interface
+    setTimeout(() => {
+        const select = document.getElementById('interface-select');
+        if (select) {
+            select.value = interfaceName;
+            // Trigger the change event to fill the inputs
+            const event = new Event('change', { bubbles: true });
+            select.dispatchEvent(event);
+        }
+    }, 500);
 }
 
 async function toggleInterface(interfaceName, currentStatus) {
