@@ -1,0 +1,43 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="nodeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8CC84B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#5FA04E;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Node.js hexagon shape -->
+  <path d="M32 4 L54 16 L54 40 L32 52 L10 40 L10 16 Z" 
+        fill="url(#nodeGradient)" 
+        stroke="#3C7A3C" 
+        stroke-width="1"/>
+  
+  <!-- Node.js logo elements -->
+  <g transform="translate(32,32)">
+    <!-- Left part -->
+    <path d="M-12,-8 L-12,8 L-6,12 L-6,-4 L0,0 L-6,-4 Z" 
+          fill="#FFFFFF" 
+          opacity="0.9"/>
+    
+    <!-- Right part -->
+    <path d="M6,-12 L12,-8 L12,8 L6,12 L0,0 L6,-4 Z" 
+          fill="#FFFFFF" 
+          opacity="0.9"/>
+    
+    <!-- Center connector -->
+    <circle cx="0" cy="0" r="2" fill="#FFFFFF" opacity="0.9"/>
+  </g>
+  
+  <!-- Subtle highlight -->
+  <path d="M32 4 L54 16 L54 20 L32 8 L10 20 L10 16 Z" 
+        fill="#FFFFFF" 
+        opacity="0.2"/>
+  
+  <!-- Text label -->
+  <text x="32" y="58" 
+        font-family="Arial, sans-serif" 
+        font-size="8" 
+        font-weight="bold" 
+        text-anchor="middle" 
+        fill="#3C7A3C">NODE</text>
+</svg>

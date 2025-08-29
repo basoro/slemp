@@ -1,0 +1,22 @@
+{
+  "name": "nodejs",
+  "title": "Node.js Manager",
+  "description": "Manage Node.js versions, npm packages, and Node.js applications with ease",
+  "version": "1.0.0",
+  "author": "SLEMP Team",
+  "category": "Development",
+  "status": "active",
+  "icon": "nodejs-icon.svg",
+  "dependencies": ["nodejs", "npm"],
+  "permissions": ["nodejs_management", "package_management"],
+  "install_date": "2024-01-30",
+  "last_update": "2024-01-30",
+  "size": "3.2 MB",
+  "downloads": 0,
+  "rating": 5.0,
+  "tags": ["nodejs", "npm", "javascript", "development"],
+  "homepage": "https://slemp.com/plugins/nodejs",
+  "documentation": "https://docs.slemp.com/plugins/nodejs",
+  "support": "https://support.slemp.com/nodejs",
+  "active": true
+}

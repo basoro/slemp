@@ -1,0 +1,681 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col overflow-hidden">
+    <!-- Top Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div class="px-5 pb-1 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">                            
+                    <div class="flex items-center" onclick="toggleSidebarCollapse()" style="cursor: pointer;">
+                        <svg class="h-7 w-7 text-gray-600 dark:text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Theme Toggle -->
+                    <div class="relative" id="theme-dropdown">
+                        <button onclick="toggleThemeDropdown()" id="theme-toggle" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg id="theme-icon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path id="theme-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            </svg>
+                        </button>
+                        <div id="theme-dropdown-menu" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                            <div class="py-1">
+                                <button onclick="setTheme('light')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                    <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                    </svg>
+                                    Light
+                                </button>
+                                <button onclick="setTheme('dark')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                    <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                    </svg>
+                                    Dark
+                                </button>
+                                <button onclick="setTheme('system')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                    <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                    </svg>
+                                    System
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Password Change -->
+                    <button onclick="showChangePasswordModal()" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0 1 21 9z"></path>
+                        </svg>
+                    </button>
+                    
+                    <!-- Logout -->
+                    <a href="{{ url_for('logout') }}" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
+
+        <!-- Plugin Header -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg p-6 mb-8 transition-colors duration-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full mr-4">
+                        <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Node.js Manager</h1>
+                        <p class="text-gray-600 dark:text-gray-400">Manage Node.js versions, packages, and projects</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Node.js Status -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Node.js Status</h3>
+                <button class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors duration-200" onclick="refreshStatus()">
+                    <i class="fas fa-sync-alt mr-2"></i> Refresh
+                </button>
+            </div>
+            <div class="p-6">
+                <div id="nodejs-status" class="status-info">
+                    <div class="flex items-center justify-center py-8 text-gray-500 dark:text-gray-400">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Version Management -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Version Management</h3>
+                <div class="flex space-x-3">
+                    <button class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors duration-200" onclick="showInstallVersionModal()">
+                        <i class="fas fa-plus mr-2"></i> Install Version
+                    </button>
+                    <button class="inline-flex items-center px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-md transition-colors duration-200" onclick="showSwitchVersionModal()">
+                        <i class="fas fa-exchange-alt mr-2"></i> Switch Version
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div id="versions-list" class="versions-container">
+                    <div class="flex items-center justify-center py-8 text-gray-500 dark:text-gray-400">Loading versions...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Package Management -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Package Management</h3>
+                <button class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors duration-200" onclick="showInstallPackageModal()">
+                    <i class="fas fa-download mr-2"></i> Install Package
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="flex space-x-3 mb-4">
+                    <input type="text" id="package-search" placeholder="Search packages..." onkeyup="filterPackages()" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <button class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-md transition-colors duration-200" onclick="refreshPackages()">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div id="packages-list" class="packages-container">
+                    <div class="flex items-center justify-center py-8 text-gray-500 dark:text-gray-400">Loading packages...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Management -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Project Management</h3>
+                <button class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors duration-200" onclick="showCreateProjectModal()">
+                    <i class="fas fa-folder-plus mr-2"></i> Create Project
+                </button>
+            </div>
+            <div class="p-6">
+                <div id="projects-list" class="projects-container">
+                    <div class="flex items-center justify-center py-8 text-gray-500 dark:text-gray-400">Loading projects...</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- Install Version Modal -->
+<div id="installVersionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-700">
+            <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Install Node.js Version</h4>
+            <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" onclick="closeModal('installVersionModal')">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="py-4">
+            <div class="mb-4">
+                <label for="version-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Version:</label>
+                <select id="version-select" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Loading available versions...</option>
+                </select>
+            </div>
+        </div>
+        <div class="flex justify-end space-x-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <button class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-md transition-colors duration-200" onclick="closeModal('installVersionModal')">Cancel</button>
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors duration-200" onclick="installVersion()">Install</button>
+        </div>
+    </div>
+</div>
+
+<!-- Switch Version Modal -->
+<div id="switchVersionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-700">
+            <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Switch Node.js Version</h4>
+            <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" onclick="closeModal('switchVersionModal')">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="py-4">
+            <div class="mb-4">
+                <label for="switch-version-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Version:</label>
+                <select id="switch-version-select" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Loading installed versions...</option>
+                </select>
+            </div>
+        </div>
+        <div class="flex justify-end space-x-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <button class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-md transition-colors duration-200" onclick="closeModal('switchVersionModal')">Cancel</button>
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors duration-200" onclick="switchVersion()">Switch</button>
+        </div>
+    </div>
+</div>
+
+<!-- Install Package Modal -->
+<div id="installPackageModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-700">
+            <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Install NPM Package</h4>
+            <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" onclick="closeModal('installPackageModal')">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="py-4">
+            <div class="mb-4">
+                <label for="package-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Package Name:</label>
+                <input type="text" id="package-name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., express, lodash, react">
+            </div>
+            <div class="mb-4">
+                <label class="flex items-center">
+                    <input type="checkbox" id="global-install" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Install globally</span>
+                </label>
+            </div>
+            <div class="mb-4">
+                <label class="flex items-center">
+                    <input type="checkbox" id="dev-dependency" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Install as dev dependency</span>
+                </label>
+            </div>
+        </div>
+        <div class="flex justify-end space-x-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <button class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-md transition-colors duration-200" onclick="closeModal('installPackageModal')">Cancel</button>
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors duration-200" onclick="installPackage()">Install</button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Project Modal -->
+<div id="createProjectModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-700">
+            <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Create Node.js Project</h4>
+            <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" onclick="closeModal('createProjectModal')">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="py-4">
+            <div class="mb-4">
+                <label for="project-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Project Name:</label>
+                <input type="text" id="project-name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="my-node-project">
+            </div>
+            <div class="mb-4">
+                <label for="project-path" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Project Path:</label>
+                <input type="text" id="project-path" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="/path/to/project" value="/opt/slemp/data/www/">
+            </div>
+            <div class="mb-4">
+                <label for="project-template" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Template:</label>
+                <select id="project-template" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="basic">Basic Node.js</option>
+                    <option value="express">Express.js</option>
+                    <option value="react">React App</option>
+                    <option value="vue">Vue.js App</option>
+                    <option value="next">Next.js App</option>
+                </select>
+            </div>
+        </div>
+        <div class="flex justify-end space-x-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <button class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-md transition-colors duration-200" onclick="closeModal('createProjectModal')">Cancel</button>
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors duration-200" onclick="createProject()">Create</button>
+        </div>
+    </div>
+</div>
+
+<!-- Progress Modal -->
+<div id="progressModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="pb-3 border-b border-gray-200 dark:border-gray-700">
+            <h4 id="progress-title" class="text-lg font-semibold text-gray-900 dark:text-white">Processing...</h4>
+        </div>
+        <div class="py-4">
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">
+                <div id="progress-fill" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" style="width: 0%" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div id="progress-text" class="text-sm text-gray-600 dark:text-gray-400 mb-4">Please wait...</div>
+            <div id="progress-output" class="bg-gray-100 dark:bg-gray-900 p-3 rounded-md text-xs font-mono text-gray-800 dark:text-gray-200 max-h-32 overflow-y-auto"></div>
+        </div>
+    </div>
+</div>    
+
+
+<script>
+// Node.js Manager JavaScript
+
+// Global variables
+let currentVersions = [];
+let currentPackages = [];
+let currentProjects = [];
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    refreshStatus();
+    loadVersions();
+    loadPackages();
+    loadProjects();
+});
+
+// Status functions
+function refreshStatus() {
+    const statusDiv = document.getElementById('nodejs-status');
+    statusDiv.innerHTML = '<div class="text-blue-600 dark:text-blue-400 animate-pulse">Loading...</div>';
+    
+    fetch('/api/plugins/nodejs/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayStatus(data);
+            } else {
+                statusDiv.innerHTML = `<div class="text-red-600 dark:text-red-400">Error: ${data.message}</div>`;
+            }
+        })
+        .catch(error => {
+            statusDiv.innerHTML = `<div class="text-red-600 dark:text-red-400">Error: ${error.message}</div>`;
+        });
+}
+
+function displayStatus(status) {
+    const statusDiv = document.getElementById('nodejs-status');
+    const isInstalled = status.installed;
+    
+    let html = `
+        <div class="status-grid">
+            <div class="status-item">
+                <span class="status-label">Status:</span>
+                <span class="status-value ${isInstalled ? 'success' : 'error'}">
+                    ${isInstalled ? 'Installed' : 'Not Installed'}
+                </span>
+            </div>
+    `;
+    
+    if (isInstalled) {
+        html += `
+            <div class="status-item">
+                <span class="status-label">Node Version:</span>
+                <span class="status-value">${status.node_version || 'Unknown'}</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">NPM Version:</span>
+                <span class="status-value">${status.npm_version || 'Unknown'}</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Last Updated:</span>
+                <span class="status-value">${status.timestamp ? new Date(status.timestamp).toLocaleString() : 'Unknown'}</span>
+            </div>
+        `;
+    }
+    
+    html += '</div>';
+    
+    if (!isInstalled) {
+        html += `
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="installNodeJS()">
+                    <i class="fas fa-download"></i> Install Node.js
+                </button>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="action-buttons">
+                <button class="btn btn-danger" onclick="uninstallNodeJS()">
+                    <i class="fas fa-trash"></i> Uninstall Node.js
+                </button>
+            </div>
+        `;
+    }
+    
+    statusDiv.innerHTML = html;
+}
+
+// Version management functions
+function loadVersions() {
+    const versionsDiv = document.getElementById('versions-list');
+    versionsDiv.innerHTML = '<div class="text-blue-600 dark:text-blue-400 animate-pulse">Loading versions...</div>';
+    
+    fetch('/api/plugins/nodejs/versions')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentVersions = data.versions || [];
+                displayVersions(currentVersions, data.available || []);
+            } else {
+                versionsDiv.innerHTML = `<div class="text-red-600 dark:text-red-400">Error: ${data.message}</div>`;
+            }
+        })
+        .catch(error => {
+            versionsDiv.innerHTML = `<div class="text-red-600 dark:text-red-400">Error: ${error.message}</div>`;
+        });
+}
+
+function displayVersions(versions) {
+    const versionsDiv = document.getElementById('versions-list');
+    
+    if (!versions || versions.length === 0) {
+        versionsDiv.innerHTML = '<div class="empty-state">No versions installed</div>';
+        return;
+    }
+    
+    let html = '<div class="versions-grid">';
+    versions.forEach(version => {
+        html += `
+            <div class="version-item ${version.current ? 'current' : ''}">
+                <div class="version-info">
+                    <span class="version-number">${version.version}</span>
+                    ${version.current ? '<span class="current-badge">Current</span>' : ''}
+                </div>
+                <div class="version-actions">
+                    ${!version.current ? `<button class="btn btn-sm btn-primary" onclick="switchToVersion('${version.version}')">Switch</button>` : ''}
+                    <button class="btn btn-sm btn-danger" onclick="removeVersion('${version.version}')">Remove</button>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    versionsDiv.innerHTML = html;
+}
+
+// Package management functions
+function loadPackages() {
+    const packagesDiv = document.getElementById('packages-list');
+    packagesDiv.innerHTML = '<div class="loading">Loading packages...</div>';
+    
+    fetch('/api/plugins/nodejs/packages')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                currentPackages = data.data;
+                displayPackages(currentPackages);
+            } else {
+                packagesDiv.innerHTML = `<div class="error">Error: ${data.message}</div>`;
+            }
+        })
+        .catch(error => {
+            packagesDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+        });
+}
+
+function displayPackages(packages) {
+    const packagesDiv = document.getElementById('packages-list');
+    
+    if (!packages || packages.length === 0) {
+        packagesDiv.innerHTML = '<div class="empty-state">No packages installed</div>';
+        return;
+    }
+    
+    let html = '<div class="packages-grid">';
+    packages.forEach(pkg => {
+        html += `
+            <div class="package-item">
+                <div class="package-info">
+                    <span class="package-name">${pkg.name}</span>
+                    <span class="package-version">${pkg.version}</span>
+                    ${pkg.global ? '<span class="global-badge">Global</span>' : ''}
+                </div>
+                <div class="package-actions">
+                    <button class="btn btn-sm btn-warning" onclick="updatePackage('${pkg.name}', ${pkg.global})">Update</button>
+                    <button class="btn btn-sm btn-danger" onclick="removePackage('${pkg.name}', ${pkg.global})">Remove</button>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    packagesDiv.innerHTML = html;
+}
+
+function filterPackages() {
+    const searchTerm = document.getElementById('package-search').value.toLowerCase();
+    const filteredPackages = currentPackages.filter(pkg => 
+        pkg.name.toLowerCase().includes(searchTerm)
+    );
+    displayPackages(filteredPackages);
+}
+
+function refreshPackages() {
+    loadPackages();
+}
+
+// Project management functions
+function loadProjects() {
+    const projectsDiv = document.getElementById('projects-list');
+    projectsDiv.innerHTML = '<div class="loading">Loading projects...</div>';
+    
+    fetch('/api/plugins/nodejs/projects')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                currentProjects = data.data;
+                displayProjects(currentProjects);
+            } else {
+                projectsDiv.innerHTML = `<div class="error">Error: ${data.message}</div>`;
+            }
+        })
+        .catch(error => {
+            projectsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+        });
+}
+
+function displayProjects(projects) {
+    const projectsDiv = document.getElementById('projects-list');
+    
+    if (!projects || projects.length === 0) {
+        projectsDiv.innerHTML = '<div class="empty-state">No projects found</div>';
+        return;
+    }
+    
+    let html = '<div class="projects-grid">';
+    projects.forEach(project => {
+        html += `
+            <div class="project-item">
+                <div class="project-info">
+                    <span class="project-name">${project.name}</span>
+                    <span class="project-path">${project.path}</span>
+                    <span class="project-type">${project.type || 'Node.js'}</span>
+                </div>
+                <div class="project-actions">
+                    <button class="btn btn-sm btn-primary" onclick="openProject('${project.path}')">Open</button>
+                    <button class="btn btn-sm btn-success" onclick="runProject('${project.path}')">Run</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteProject('${project.path}')">Delete</button>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    projectsDiv.innerHTML = html;
+}
+
+// Modal functions
+function showInstallVersionModal() {
+    loadAvailableVersions();
+    showModal('installVersionModal');
+}
+
+function showSwitchVersionModal() {
+    loadInstalledVersions();
+    showModal('switchVersionModal');
+}
+
+function showInstallPackageModal() {
+    showModal('installPackageModal');
+}
+
+function showCreateProjectModal() {
+    showModal('createProjectModal');
+}
+
+function showModal(modalId) {
+    document.getElementById(modalId).classList.remove('hidden');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+}
+
+// Action functions
+function installNodeJS() {
+    showProgressModal('Installing Node.js...');
+    
+    fetch('/api/plugins/nodejs/install', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideProgressModal();
+        if (data.status === 'success') {
+            showNotification('Node.js installed successfully', 'success');
+            refreshStatus();
+        } else {
+            showNotification('Failed to install Node.js: ' + data.message, 'error');
+        }
+    })
+    .catch(error => {
+        hideProgressModal();
+        showNotification('Error: ' + error.message, 'error');
+    });
+}
+
+function uninstallNodeJS() {
+    if (!confirm('Are you sure you want to uninstall Node.js?')) return;
+    
+    showProgressModal('Uninstalling Node.js...');
+    
+    fetch('/api/plugins/nodejs/uninstall', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideProgressModal();
+        if (data.status === 'success') {
+            showNotification('Node.js uninstalled successfully', 'success');
+            refreshStatus();
+        } else {
+            showNotification('Failed to uninstall Node.js: ' + data.message, 'error');
+        }
+    })
+    .catch(error => {
+        hideProgressModal();
+        showNotification('Error: ' + error.message, 'error');
+    });
+}
+
+// Progress modal functions
+function showProgressModal(title) {
+    document.getElementById('progress-title').textContent = title;
+    document.getElementById('progress-text').textContent = 'Please wait...';
+    document.getElementById('progress-fill').style.width = '0%';
+    document.getElementById('progress-output').innerHTML = '';
+    showModal('progressModal');
+}
+
+function hideProgressModal() {
+    closeModal('progressModal');
+}
+
+// Notification function
+function showNotification(message, type) {
+    // This would typically integrate with the main notification system
+    alert(message);
+}
+
+// Helper functions
+function loadAvailableVersions() {
+    const select = document.getElementById('version-select');
+    select.innerHTML = '<option value="">Loading...</option>';
+    
+    // This would fetch available versions from Node.js API
+    // For now, we'll use some common versions
+    const versions = ['18.19.0', '20.10.0', '21.5.0'];
+    select.innerHTML = versions.map(v => `<option value="${v}">${v}</option>`).join('');
+}
+
+function loadInstalledVersions() {
+    const select = document.getElementById('switch-version-select');
+    select.innerHTML = currentVersions.map(v => 
+        `<option value="${v.version}">${v.version}${v.current ? ' (current)' : ''}</option>`
+    ).join('');
+}
+
+// Close modals when clicking outside
+window.onclick = function(event) {
+    const modals = document.querySelectorAll('[id$="Modal"]');
+    modals.forEach(modal => {
+        if (event.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+}    
+</script>
+
+{% endblock %}
