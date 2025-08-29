@@ -800,6 +800,165 @@
             </div>
         </div>
 
+        <!-- Network Configuration Modal -->
+        <div id="network-config-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-8 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/5 xl:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800 min-h-[80vh]">
+                <div class="mt-3">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Network Configuration</h3>
+                        <button onclick="hideNetworkConfigModal()" class="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Tab Navigation -->
+                    <div class="border-b border-gray-200 dark:border-gray-600 mb-4">
+                        <nav class="-mb-px flex space-x-8">
+                            <button onclick="switchNetworkTab('interfaces')" id="tab-interfaces" class="network-tab-btn py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                                Network Interfaces
+                            </button>
+                            <button onclick="switchNetworkTab('static')" id="tab-static" class="network-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                                Static IP Configuration
+                            </button>
+                            <button onclick="switchNetworkTab('dhcp')" id="tab-dhcp" class="network-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                                DHCP Settings
+                            </button>
+                        </nav>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content">
+                        <!-- Network Interfaces Section -->
+                        <div id="interfaces-section" class="network-section">
+                            <div class="flex justify-between items-center mb-6">
+                                <div>
+                                    <h4 class="text-xl font-semibold text-gray-900 dark:text-white">Network Interfaces</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">View and manage network interfaces</p>
+                                </div>
+                                <button onclick="refreshNetworkInterfaces()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                    Refresh
+                                </button>
+                            </div>
+                            
+                            <div id="network-interfaces-list" class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+                                <!-- Network interfaces will be loaded here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Static IP Configuration Section -->
+                        <div id="static-section" class="network-section hidden">
+                            <h4 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Static IP Configuration</h4>
+                            
+                            <form id="static-ip-form" class="space-y-6">
+                                <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label for="interface-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Network Interface</label>
+                                            <select id="interface-select" name="interface" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" required>
+                                                <option value="">Select Interface</option>
+                                                <option value="eth0">eth0</option>
+                                                <option value="eth1">eth1</option>
+                                                <option value="wlan0">wlan0</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="ip-address" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">IP Address</label>
+                                            <input type="text" id="ip-address" name="ip_address" placeholder="192.168.1.100" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" required>
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="netmask" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Netmask</label>
+                                            <input type="text" id="netmask" name="netmask" placeholder="255.255.255.0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" required>
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="broadcast" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Broadcast</label>
+                                            <input type="text" id="broadcast" name="broadcast" placeholder="192.168.1.255" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="gateway" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Gateway</label>
+                                            <input type="text" id="gateway" name="gateway" placeholder="192.168.1.1" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" required>
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="dns-primary" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Primary DNS</label>
+                                            <input type="text" id="dns-primary" name="dns_primary" placeholder="8.8.8.8" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" required>
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="dns-secondary" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Secondary DNS</label>
+                                            <input type="text" id="dns-secondary" name="dns_secondary" placeholder="8.8.4.4" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="mtu" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">MTU</label>
+                                            <input type="number" id="mtu" name="mtu" placeholder="1500" min="68" max="9000" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-6 flex justify-end space-x-3">
+                                        <button type="button" onclick="resetNetworkForm()" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            Reset
+                                        </button>
+                                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            Apply Configuration
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- DHCP Settings Section -->
+                        <div id="dhcp-section" class="network-section hidden">
+                            <h4 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">DHCP Settings</h4>
+                            
+                            <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6">
+                                <div class="space-y-6">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h5 class="text-lg font-medium text-gray-900 dark:text-white">Enable DHCP</h5>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Automatically obtain IP address from DHCP server</p>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="dhcp-enabled" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    
+                                    <div id="dhcp-options" class="space-y-4">
+                                        <div>
+                                            <label for="dhcp-hostname" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Hostname</label>
+                                            <input type="text" id="dhcp-hostname" name="hostname" placeholder="my-server" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                        </div>
+                                        
+                                        <div class="flex items-center">
+                                            <input type="checkbox" id="dhcp-fallback" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded">
+                                            <label for="dhcp-fallback" class="ml-2 block text-sm text-gray-900 dark:text-white">
+                                                Use static IP as fallback if DHCP fails
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-6 flex justify-end">
+                                        <button onclick="applyDhcpSettings()" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                            Apply DHCP Settings
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 {% endblock %}
 
 {% block scripts %}
