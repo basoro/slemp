@@ -5324,7 +5324,7 @@ def nginx_status():
         writing = 0
         waiting = 0
         try:
-            stub_result = subprocess.run(['curl', '-s', 'http://localhost/nginx_status'],
+            stub_result = subprocess.run(['curl', '-s', 'http://127.0.0.1/nginx_status'],
                                          capture_output=True, text=True, timeout=5)
             if stub_result.returncode == 0 and stub_result.stdout:
                 lines = stub_result.stdout.strip().split('\n')
