@@ -1987,7 +1987,6 @@ async function loadDefaultNameServers() {
 }
 
 setInterval(updateServiceStatus, 3000);
-setInterval(updateNetworkInfo, 3000);
 
 // Fungsi untuk memperbarui status layanan
 async function updateServiceStatus() {
@@ -2355,6 +2354,8 @@ const updateNetworkInfo = async () => {
         console.error('Error fetching network info:', error);
     }
 };
+
+setInterval(updateNetworkInfo, 3000);
 
 // Close modal when clicking outside
 document.addEventListener('click', function(event) {
