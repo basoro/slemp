@@ -266,7 +266,7 @@ def php():
 
 @app.route('/mysql')
 @login_required
-def mysql():
+def mysql_page():
     return render_template('mysql.html')
 
 @app.route('/files')
