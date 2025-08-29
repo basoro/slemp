@@ -1740,15 +1740,6 @@ stopasgroup=true\n"""
                 if start_result.returncode == 0:
                     # Drop all users except system users
                     logger.info('Dropping non-system MySQL users')
-                    drop_users_query = "SELECT CONCAT('DROP USER IF EXISTS \'', user, '\'@\'', host, '\';') FROM mysql.user WHERE user NOT IN ('root','mysql','mariadb.sys');"
-                    result = subprocess.run(['mysql', '-u', 'root', '-e', drop_users_query], capture_output=True, text=True, timeout=30)
-                    if result.stdout:
-                        # Execute the generated DROP USER statements
-                        drop_statements = result.stdout.strip().split('\n')[1:]  # Skip header
-                        for statement in drop_statements:
-                            if statement.strip():
-                                subprocess.run(['mysql', '-u', 'root', '-e', statement.strip()], capture_output=True, text=True, timeout=30)
-                    
                     # Drop test database
                     logger.info('Dropping test database')
                     subprocess.run(['mysql', '-u', 'root', '-e', 'DROP DATABASE IF EXISTS test;'], capture_output=True, text=True, timeout=30)
