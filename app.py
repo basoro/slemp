@@ -933,21 +933,18 @@ stopasgroup=true\n"""
                     if start_code == 0:
                         # Drop all users except system users
                         socketio.emit('install_output', {'output': 'Dropping non-system MySQL users', 'type': 'info'})
-                        drop_users_query = "SELECT CONCAT('DROP USER IF EXISTS \'', user, '\'@\'', host, '\';') FROM mysql.user WHERE user NOT IN ('root','mysql','mariadb.sys');"
-                        result = subprocess.run(['mysql', '-u', 'root', '-e', drop_users_query], capture_output=True, text=True, timeout=30)
-                        if result.stdout:
-                            # Execute the generated DROP USER statements
-                            drop_statements = result.stdout.strip().split('\n')[1:]  # Skip header
-                            for statement in drop_statements:
-                                if statement.strip():
-                                    subprocess.run(['mysql', '-u', 'root', '-e', statement.strip()], capture_output=True, text=True, timeout=30)
-                        
+                        socketio.emit('install_output', {'output': '$ mysql -u root -e "DROP USER IF EXISTS ''@\'localhost\';"', 'type': 'command'})
+                        subprocess.run(['mysql', '-u', 'root', '-e', "DROP USER IF EXISTS ''@'localhost';"], capture_output=True, text=True, timeout=30)
+
+                        socketio.emit('install_output', {'output': '$ mysql -u root -e "DROP USER IF EXISTS ''@\'$(hostname)\';"', 'type': 'command'})
+                        subprocess.run(['mysql', '-u', 'root', '-e', "DROP USER IF EXISTS ''@'$(hostname);"], capture_output=True, text=True, timeout=30)
+
+                        socketio.emit('install_output', {'output': '$ mysql -u root -e "DROP USER IF EXISTS \'PUBLIC\'@\'\';"', 'type': 'command'})
+                        subprocess.run(['mysql', '-u', 'root', '-e', "DROP USER IF EXISTS 'PUBLIC'@'';"], capture_output=True, text=True, timeout=30)
+
                         # Drop test database
                         socketio.emit('install_output', {'output': 'Dropping test database', 'type': 'info'})
-                        subprocess.run(['mysql', '-u', 'root', '-e', 'DROP DATABASE IF EXISTS test;'], capture_output=True, text=True, timeout=30)
-                        # Drop test user
-                        socketio.emit('install_output', {'output': 'Dropping test user', 'type': 'info'})
-                        subprocess.run(['mysql', '-u', 'root', '-e', 'DROP USER IF EXISTS test@localhost;'], capture_output=True, text=True, timeout=30)
+                        subprocess.run(['mysql', '-u', 'root', '-e', "DROP DATABASE IF EXISTS test;"], capture_output=True, text=True, timeout=30)
                         
                         socketio.emit('install_output', {'output': 'Mengatur ulang kata sandi root MySQL...', 'type': 'info'})
                         socketio.emit('install_output', {'output': '$ mysql -u root -e "ALTER USER \'root\'@\'localhost\' IDENTIFIED BY \'\';"', 'type': 'command'})
