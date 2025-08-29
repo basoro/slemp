@@ -1987,6 +1987,7 @@ async function loadDefaultNameServers() {
 }
 
 setInterval(updateServiceStatus, 3000);
+setInterval(updateNetworkInfo, 3000);
 
 // Fungsi untuk memperbarui status layanan
 async function updateServiceStatus() {
@@ -2296,6 +2297,64 @@ function applyDhcpSettings() {
         showNotification('Error applying DHCP settings', 'error');
     });
 }
+
+// Update network information (now handled by SocketIO)
+const updateNetworkInfo = async () => {
+    try {
+        const response = await fetch('/api/network-info');
+        const data = await response.json();
+
+        if (data.error) {
+            console.error('Error fetching network info:', data.error);
+            return;
+        }
+
+        // Update active connections and interfaces (non-real-time data)
+        const activeConnections = document.getElementById('active-connections');
+        if (activeConnections && data.connections !== undefined) {
+            activeConnections.textContent = data.connections;
+        }
+
+        // Update network interfaces table
+        const tableBody = document.getElementById('network-interfaces-table');
+        if (tableBody) {
+            tableBody.innerHTML = '';
+        }
+
+        if (data.interfaces && Array.isArray(data.interfaces)) {
+            data.interfaces.forEach(interface => {
+            // Only show interfaces that are up and have meaningful data
+            if (interface.is_up && interface.addresses.length > 0) {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${interface.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">-</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">-</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">-</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">-</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            interface.is_up ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'
+                        }">
+                            ${interface.is_up ? 'Up' : 'Down'}
+                        </span>
+                    </td>
+                `;
+                if (tableBody) {
+                    tableBody.appendChild(row);
+                }
+            }
+            });
+        }
+
+        // Charts are now updated via SocketIO in updateNetworkCharts function
+        // No need to update charts here as they use ECharts, not Chart.js
+
+    } catch (error) {
+        console.error('Error fetching network info:', error);
+    }
+};
 
 // Close modal when clicking outside
 document.addEventListener('click', function(event) {
