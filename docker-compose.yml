@@ -7,7 +7,7 @@ services:
     container_name: fullstack_slemp
     volumes:
       - ./htdocs:/opt/slemp/data/www
-      - ./panel:/opt/slemp
+      - .:/opt/slemp
     ports:
       - "80:80"    # Akses PHP site
       - "3306:3306"  # Akses MariaDB
