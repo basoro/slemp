@@ -1400,12 +1400,18 @@ def main():
                 else:
                     message = "ModSecurity installed in basic mode (detection only)"
                 
+                # Calculate rule count
+                rule_count = 0
+                if rules_info.get('success', False) and 'rules' in rules_info:
+                    rule_count = len(rules_info['rules'])
+                
                 return jsonify({
                      'message': message,
                      'module_loaded': modsec_status.get('module_loaded', False),
                      'success': True,
                      'status': modsec_status,
                      'rules': rules_info,
+                     'rule_count': rule_count,
                      'version': owasp_info['version'],
                      'last_update': owasp_info['last_update'],
                      'owasp_status': owasp_info['status']

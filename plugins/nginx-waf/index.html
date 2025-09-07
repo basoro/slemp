@@ -134,32 +134,32 @@
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                     <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">⚡ Quick Actions</h2>
                     <div class="space-y-3">
-                        <button onclick="showAddRuleModal()" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors text-left">
+                        <button onclick="showAddRuleModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors text-left">
                             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
                             Add Custom Rule
                         </button>
-                        <button onclick="updateRules()" class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors text-left">
+                        <button onclick="updateRules()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors text-left">
                             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
                             Update OWASP Rules
                         </button>
-                        <button onclick="exportConfig()" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors text-left">
+                        <button onclick="exportConfig()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors text-left">
                             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
                             Export Config
                         </button>
-                        <button onclick="document.getElementById('import-file').click()" class="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors text-left">
+                        <button onclick="document.getElementById('import-file').click()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors text-left">
                             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
                             </svg>
                             Import Config
                         </button>
                         <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importConfig(event)">
-                        <button onclick="clearLogs()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors text-left">
+                        <button onclick="clearLogs()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors text-left">
                             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -1129,7 +1129,7 @@
             
             console.log('Initializing Leaflet map...');
             // Initialize Leaflet map
-            attackMap = L.map('attack-map').setView([10, 120], 2);
+            attackMap = L.map('attack-map').setView([20, 0], 2);
             console.log('Leaflet map initialized:', attackMap);
             
             // Add tile layer
@@ -1337,10 +1337,7 @@
                 </div>
             `);
 
-            // Center map on server location if it's the first load
-            if (attackData.length === 0) {
-                attackMap.setView([localServerInfo.latitude, localServerInfo.longitude], 6);
-            }
+            // Keep global view as default - don't auto-center on server location
         }
         
         // Load attack arrows data
@@ -1454,7 +1451,7 @@
             
             // Add animated marker that moves from source to target (no line)
             const animatedMarker = L.circleMarker(sourceLatLng, {
-                radius: 6,
+                radius: 4,
                 fillColor: getSeverityColor(arrow.severity),
                 color: '#ffffff',
                 weight: 2,
@@ -1530,7 +1527,7 @@
             
             // Add animated marker that moves from source to target with fade-in effect (no line)
             const animatedMarker = L.circleMarker(sourceLatLng, {
-                radius: 6,
+                radius: 4,
                 fillColor: getSeverityColor(arrow.severity),
                 color: '#ffffff',
                 weight: 2,
@@ -1628,11 +1625,11 @@
         // Get severity radius
         function getSeverityRadius(severity) {
             switch (severity) {
-                case 'critical': return 12;
-                case 'high': return 10;
-                case 'medium': return 8;
-                case 'low': return 6;
-                default: return 5;
+                case 'critical': return 8;
+                case 'high': return 6;
+                case 'medium': return 5;
+                case 'low': return 4;
+                default: return 3;
             }
         }
         
