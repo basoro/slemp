@@ -1,0 +1,2160 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Header -->
+        <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+            <div class="px-5 pb-1 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">                            
+                        <div class="flex items-center" onclick="toggleSidebarCollapse()" style="cursor: pointer;">
+                            <svg class="h-7 w-7 text-gray-600 dark:text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Theme Toggle -->
+                        <div class="relative" id="theme-dropdown">
+                            <button onclick="toggleThemeDropdown()" id="theme-toggle" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <svg id="theme-icon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path id="theme-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                            </button>
+                            <div id="theme-dropdown-menu" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                                <div class="py-1">
+                                    <button onclick="setTheme('light')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                        </svg>
+                                        Light
+                                    </button>
+                                    <button onclick="setTheme('dark')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                        </svg>
+                                        Dark
+                                    </button>
+                                    <button onclick="setTheme('system')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                                        <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                        </svg>
+                                        System
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Password Change -->
+                        <button onclick="showChangePasswordModal()" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0 1 21 9z"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Logout -->
+                        <a href="{{ url_for('logout') }}" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
+            <div class="mb-8">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-lg p-6 mb-8 transition-colors duration-200">
+                    <!-- Page header -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div>
+                                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">🛡️ Nginx WAF Manager</h1>
+                                <p class="text-gray-600 dark:text-gray-400">Kelola Web Application Firewall dengan ModSecurity</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div id="waf-status" class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-gray-400 rounded-full"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400">Checking...</span>
+                            </div>
+                            <button onclick="refreshStatus()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                🔄 Refresh
+                            </button>
+                            <button id="toggle-waf-btn" onclick="toggleWAF()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span id="toggle-waf-text">🛡️ Enable WAF</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Installation Section -->
+            <div id="installation-section" class="mb-8">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">📦 Install ModSecurity</h2>
+                    <p class="text-gray-600 dark:text-gray-400 mb-4">ModSecurity belum terinstall. Klik tombol di bawah untuk menginstall ModSecurity dan OWASP Core Rule Set.</p>
+                    <button onclick="installModSecurity()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Install ModSecurity
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Dashboard -->
+            <div id="main-dashboard" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- WAF Statistics -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">📊 WAF Statistics</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                            <div class="text-2xl font-bold text-red-600 dark:text-red-400" id="blocked-attacks">0</div>
+                            <div class="text-sm text-red-600 dark:text-red-400">Blocked Attacks</div>
+                        </div>
+                        <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600 dark:text-green-400" id="active-rules">0</div>
+                            <div class="text-sm text-green-600 dark:text-green-400">Active Rules</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">⚡ Quick Actions</h2>
+                    <div class="space-y-3">
+                        <button onclick="showAddRuleModal()" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors text-left">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Add Custom Rule
+                        </button>
+                        <button onclick="updateRules()" class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors text-left">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            Update OWASP Rules
+                        </button>
+                        <button onclick="exportConfig()" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors text-left">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Export Config
+                        </button>
+                        <button onclick="document.getElementById('import-file').click()" class="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors text-left">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                            </svg>
+                            Import Config
+                        </button>
+                        <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importConfig(event)">
+                        <button onclick="clearLogs()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors text-left">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            Clear Attack Logs
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                <div class="border-b border-gray-200 dark:border-gray-700">
+                    <nav class="-mb-px flex space-x-8 px-6">
+                        <button onclick="switchTab('rules')" class="tab-button active py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600 dark:text-blue-400">
+                            📋 WAF Rules
+                        </button>
+                        <button onclick="switchTab('logs')" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300">
+                            📊 Attack Logs
+                        </button>
+                        <button onclick="switchTab('whitelist')" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300">
+                            ✅ Whitelist
+                        </button>
+                        <button onclick="switchTab('settings')" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300">
+                            ⚙️ Settings
+                        </button>
+                        <button onclick="switchTab('attack-map')" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300">
+                            🗺️ Attack Map
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="p-6">
+                    <!-- Rules Tab -->
+                    <div id="rules-tab" class="tab-content">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Active WAF Rules</h3>
+                            <button onclick="loadRules()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                🔄 Reload Rules
+                            </button>
+                        </div>
+                        <div id="rules-list" class="space-y-3">
+                            <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                                Loading rules...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logs Tab -->
+                    <div id="logs-tab" class="tab-content hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Attack Logs</h3>
+                            <button onclick="loadLogs()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                🔄 Reload Logs
+                            </button>
+                        </div>
+                        <div id="logs-list" class="space-y-2">
+                            <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                                Loading logs...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Whitelist Tab -->
+                    <div id="whitelist-tab" class="tab-content hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">IP Whitelist</h3>
+                            <button onclick="showAddWhitelistModal()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                ➕ Add IP
+                            </button>
+                        </div>
+                        <div id="whitelist-list" class="space-y-3">
+                            <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                                No whitelisted IPs
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Tab -->
+                    <div id="settings-tab" class="tab-content hidden">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">WAF Settings</h3>
+                        <div class="space-y-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Paranoia Level</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Higher levels provide more protection but may cause false positives</p>
+                                </div>
+                                <select id="paranoia-level" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2">
+                                    <option value="1">Level 1 (Basic)</option>
+                                    <option value="2">Level 2 (Standard)</option>
+                                    <option value="3">Level 3 (High)</option>
+                                    <option value="4">Level 4 (Maximum)</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Inbound Anomaly Threshold</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Score threshold for blocking inbound requests</p>
+                                </div>
+                                <input type="number" id="inbound-threshold" min="1" max="100" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 w-20" value="5">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Outbound Anomaly Threshold</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Score threshold for blocking outbound responses</p>
+                                </div>
+                                <input type="number" id="outbound-threshold" min="1" max="100" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 w-20" value="4">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Request Body Limit</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Maximum request body size in bytes</p>
+                                </div>
+                                <input type="number" id="request-body-limit" min="1024" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 w-32" value="13107200">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Response Body Limit</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Maximum response body size in bytes</p>
+                                </div>
+                                <input type="number" id="response-body-limit" min="1024" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 w-32" value="524288">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Audit Logging</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Log all requests for analysis</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="audit-log-enabled" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <button onclick="saveSettings()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
+                                💾 Save Settings
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Attack Map Tab -->
+                    <div id="attack-map-tab" class="tab-content hidden">
+                        <div class="space-y-6">
+                            <!-- Map Controls -->
+                            <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                    <div class="control-group">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Time Range</label>
+                                        <select id="time-range" class="w-full bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md px-3 py-2 text-sm">
+                                            <option value="1">Last 1 Hour</option>
+                                            <option value="6">Last 6 Hours</option>
+                                            <option value="24" selected>Last 24 Hours</option>
+                                            <option value="168">Last 7 Days</option>
+                                            <option value="720">Last 30 Days</option>
+                                        </select>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attack Type</label>
+                                        <select id="attack-type-filter" class="w-full bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md px-3 py-2 text-sm">
+                                            <option value="">All Types</option>
+                                        </select>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Severity</label>
+                                        <select id="severity-filter" class="w-full bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md px-3 py-2 text-sm">
+                                            <option value="">All Severities</option>
+                                            <option value="critical">Critical</option>
+                                            <option value="high">High</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="low">Low</option>
+                                        </select>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Country</label>
+                                        <select id="country-filter" class="w-full bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md px-3 py-2 text-sm">
+                                            <option value="">All Countries</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2 flex-wrap">
+                                    <button id="sync-data" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                        🔄 Sync Data
+                                    </button>
+                                    <button id="refresh-map" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                        🔄 Refresh Map
+                                    </button>
+                                    <button id="start-monitoring" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                        ▶️ Start Monitor
+                                    </button>
+                                    <button id="stop-monitoring" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                        ⏹️ Stop Monitor
+                                    </button>
+                                    <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                        <input type="checkbox" id="auto-refresh" class="rounded border-gray-300 dark:border-gray-600">
+                                        Auto-refresh (30s)
+                                    </label>
+                                    <span id="monitoring-status" class="flex items-center gap-1 text-sm px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-700">
+                                        <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+                                        <span>Unknown</span>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- World Map -->
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+                                <div id="attack-map" class="w-full h-96 rounded-lg border border-gray-200 dark:border-gray-600" style="height: 400px; min-height: 400px;"></div>
+                            </div>
+                            
+                            <!-- Statistics Grid -->
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <!-- Attack Summary -->
+                                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📊 Attack Summary</h3>
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Total Attacks</span>
+                                            <span id="total-attacks" class="text-lg font-bold text-red-600 dark:text-red-400">0</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Unique IPs</span>
+                                            <span id="unique-ips" class="text-lg font-bold text-orange-600 dark:text-orange-400">0</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Countries</span>
+                                            <span id="unique-countries" class="text-lg font-bold text-blue-600 dark:text-blue-400">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Attack Types -->
+                                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">🎯 Attack Types</h3>
+                                    <div id="attack-types-list" class="space-y-2">
+                                        <!-- Attack types will be populated here -->
+                                    </div>
+                                </div>
+                                
+                                <!-- Top Countries -->
+                                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">🌍 Top Countries</h3>
+                                    <div id="top-countries-list" class="space-y-2">
+                                        <!-- Top countries will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Live Feed -->
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📡 Live Attack Feed</h3>
+                                <div id="live-feed" class="space-y-2 max-h-64 overflow-y-auto">
+                                    <!-- Live attacks will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Rule Modal -->
+    <div id="add-rule-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Add Custom WAF Rule</h3>
+                    
+                    <!-- Existing Custom Rules Preview -->
+                    <div class="mb-4">
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Existing Custom Rules:</h4>
+                        <div id="existing-rules" class="text-sm text-gray-600 dark:text-gray-400">
+                            Loading existing rules...
+                        </div>
+                    </div>
+                    
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">New Custom Rule:</label>
+                    <textarea id="custom-rule" rows="6" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="SecRule ARGS \"@detectSQLi\" \"id:1001,phase:2,block,msg:'SQL Injection Attack',logdata:'Matched Data: %{MATCHED_VAR} found within %{MATCHED_VAR_NAME}',tag:'application-multi',tag:'language-multi',tag:'platform-multi',tag:'attack-sqli'\""></textarea>
+                    <div class="flex justify-end space-x-3 mt-4">
+                        <button onclick="closeAddRuleModal()" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                            Cancel
+                        </button>
+                        <button onclick="addCustomRule()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            Add Rule
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Whitelist Modal -->
+    <div id="add-whitelist-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Add IP to Whitelist</h3>
+                    <input type="text" id="whitelist-ip" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="192.168.1.100">
+                    <div class="flex justify-end space-x-3 mt-4">
+                        <button onclick="closeAddWhitelistModal()" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                            Cancel
+                        </button>
+                        <button onclick="addWhitelistIP()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            Add IP
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let wafEnabled = false;
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshStatus();
+            loadRules();
+            loadLogs();
+            loadStatistics();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                loadLogs();
+                loadStatistics();
+            }, 30000);
+        });
+        
+        // Initialize page data when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            loadWhitelist();
+        });
+        
+        // Refresh WAF status
+        function refreshStatus() {
+            const formData = new FormData();
+            formData.append('action', 'status');
+            
+            fetch('/api/plugins/nginx-waf/status', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    updateStatusDisplay(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('waf-status').innerHTML = `
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <span class="text-sm text-red-600">Error</span>
+                    `;
+                });
+        }
+        
+        // Update status display
+        function updateStatusDisplay(data) {
+            const statusEl = document.getElementById('waf-status');
+            const toggleBtn = document.getElementById('toggle-waf-btn');
+            const toggleText = document.getElementById('toggle-waf-text');
+            const installSection = document.getElementById('installation-section');
+            const mainDashboard = document.getElementById('main-dashboard');
+            
+            console.log('Raw status data:', data);
+            
+            // Check if data is valid
+            if (!data || !data.nginx || !data.modsecurity) {
+                statusEl.innerHTML = `
+                    <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span class="text-sm text-red-600">Error loading status</span>
+                `;
+                return;
+            }
+            
+            if (!data.nginx.installed) {
+                statusEl.innerHTML = `
+                    <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span class="text-sm text-red-600">Nginx not installed</span>
+                `;
+                return;
+            }
+            
+            if (!data.modsecurity.installed) {
+                statusEl.innerHTML = `
+                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <span class="text-sm text-yellow-600">ModSecurity not installed</span>
+                `;
+                installSection.classList.remove('hidden');
+                mainDashboard.classList.add('hidden');
+                return;
+            }
+            
+            installSection.classList.add('hidden');
+            mainDashboard.classList.remove('hidden');
+            
+            if (data.nginx.running && data.modsecurity.modules_enabled) {
+                statusEl.innerHTML = `
+                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span class="text-sm text-green-600">WAF Active</span>
+                `;
+                wafEnabled = true;
+                toggleBtn.className = 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors';
+                toggleText.textContent = '🛑 Disable WAF';
+            } else {
+                statusEl.innerHTML = `
+                    <div class="w-3 h-3 bg-gray-500 rounded-full"></div>
+                    <span class="text-sm text-gray-600">WAF Inactive</span>
+                `;
+                wafEnabled = false;
+                toggleBtn.className = 'bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors';
+                toggleText.textContent = '🛡️ Enable WAF';
+            }
+        }
+        
+        // Install ModSecurity
+        function installModSecurity() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Installing...';
+            
+            const formData = new FormData();
+            formData.append('action', 'install');
+            
+            fetch('/api/plugins/nginx-waf/toggle', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('ModSecurity installed successfully!');
+                    refreshStatus();
+                } else {
+                    alert('Installation failed: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Installation failed: ' + error.message);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>Install ModSecurity';
+            });
+        }
+        
+        // Toggle WAF
+        function toggleWAF() {
+            const newState = !wafEnabled;
+            
+            const formData = new FormData();
+            formData.append('action', 'toggle');
+            formData.append('enabled', newState);
+            
+            fetch('/api/plugins/nginx-waf/toggle', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                if (data.success) {
+                    refreshStatus();
+                } else {
+                    alert('Failed to toggle WAF: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to toggle WAF: ' + error.message);
+            });
+        }
+        
+        // Switch tabs
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active', 'border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+                btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300', 'dark:text-gray-400', 'dark:hover:text-gray-300');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+            
+            // Add active class to selected tab button
+            event.target.classList.add('active', 'border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+            event.target.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300', 'dark:text-gray-400', 'dark:hover:text-gray-300');
+        }
+        
+        // Load WAF rules
+        function loadRules() {
+            const formData = new FormData();
+            formData.append('action', 'rules-status');
+            
+            fetch('/api/plugins/nginx-waf/rules-status', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const rulesList = document.getElementById('rules-list');
+                    if (data.success) {
+                        const lastUpdate = data.last_update ? new Date(data.last_update).toLocaleString() : 'Never';
+                        const version = data.version || 'Unknown';
+                        
+                        rulesList.innerHTML = `
+                            <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                <h4 class="font-semibold text-gray-900 dark:text-white mb-2">OWASP Core Rule Set</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Version:</span>
+                                        <span class="text-gray-900 dark:text-white">${version}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Last Updated:</span>
+                                        <span class="text-gray-900 dark:text-white">${lastUpdate}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Status:</span>
+                                        <span class="text-green-600 dark:text-green-400">Active</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        document.getElementById('active-rules').textContent = data.rule_count || 0;
+                    } else {
+                        rulesList.innerHTML = '<div class="text-center py-8 text-red-500">Error loading rules status</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('rules-list').innerHTML = '<div class="text-center py-8 text-red-500">Error loading rules status</div>';
+                });
+        }
+        
+        // Load attack logs
+        function loadLogs() {
+            const formData = new FormData();
+            formData.append('action', 'attack-logs');
+            
+            fetch('/api/plugins/nginx-waf/attack-logs', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const logsList = document.getElementById('logs-list');
+                    if (data.success && data.attacks && data.attacks.length > 0) {
+                        logsList.innerHTML = data.attacks.map(attack => `
+                            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <div class="text-sm font-medium text-red-800 dark:text-red-200">${attack.ip}</div>
+                                        <div class="text-xs text-red-600 dark:text-red-300 mt-1">${attack.timestamp}</div>
+                                        <div class="text-xs text-gray-600 dark:text-gray-300 mt-1">Rule ID: ${attack.rule_id}</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1" title="${attack.message}">${attack.message.substring(0, 100)}${attack.message.length > 100 ? '...' : ''}</div>
+                                    </div>
+                                    <span class="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-xs px-2 py-1 rounded">Blocked</span>
+                                </div>
+                            </div>
+                        `).join('');
+                        document.getElementById('blocked-attacks').textContent = data.attacks.length;
+                    } else {
+                        logsList.innerHTML = '<div class="text-center py-8 text-gray-500 dark:text-gray-400">No attack logs</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('logs-list').innerHTML = '<div class="text-center py-8 text-red-500">Error loading logs</div>';
+                });
+        }
+        
+        // Load WAF statistics
+        function loadStatistics() {
+            const formData = new FormData();
+            formData.append('action', 'statistics');
+            
+            fetch('/api/plugins/nginx-waf/statistics', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.stats) {
+                    const stats = data.stats;
+                    
+                    // Update main statistics
+                    document.getElementById('blocked-attacks').textContent = stats.blocked_requests || 0;
+                    document.getElementById('active-rules').textContent = stats.active_rules || 0;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading statistics:', error);
+            });
+        }
+        
+        // Load whitelist IPs
+        function loadWhitelist() {
+            const formData = new FormData();
+            formData.append('action', 'whitelist');
+            
+            fetch('/api/plugins/nginx-waf/whitelist', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const whitelistList = document.getElementById('whitelist-list');
+                    if (data.success && data.ips.length > 0) {
+                        whitelistList.innerHTML = data.ips.map(ip => `
+                            <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg flex justify-between items-center">
+                                <div>
+                                    <div class="text-sm font-medium text-green-800 dark:text-green-200">${ip}</div>
+                                    <div class="text-xs text-green-600 dark:text-green-400">Whitelisted IP</div>
+                                </div>
+                                <button onclick="removeWhitelistIP('${ip}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition-colors">
+                                    Remove
+                                </button>
+                            </div>
+                        `).join('');
+                    } else {
+                        whitelistList.innerHTML = '<div class="text-center py-8 text-gray-500 dark:text-gray-400">No whitelisted IPs</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('whitelist-list').innerHTML = '<div class="text-center py-8 text-red-500">Error loading whitelist</div>';
+                });
+        }
+        
+        // Show add rule modal
+        function showAddRuleModal() {
+            document.getElementById('add-rule-modal').classList.remove('hidden');
+            loadCustomRules();
+        }
+        
+        // Load existing custom rules
+        function loadCustomRules() {
+            const formData = new FormData();
+            formData.append('action', 'custom-rules');
+            
+            fetch('/api/plugins/nginx-waf/custom-rules', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show existing rules in a preview area
+                    const existingRulesDiv = document.getElementById('existing-rules');
+                    if (existingRulesDiv) {
+                        existingRulesDiv.innerHTML = `<pre class="text-sm bg-gray-100 dark:bg-gray-700 p-3 rounded border max-h-40 overflow-y-auto">${data.content}</pre>`;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error loading custom rules:', error);
+            });
+        }
+        
+        // Close add rule modal
+        function closeAddRuleModal() {
+            document.getElementById('add-rule-modal').classList.add('hidden');
+            document.getElementById('custom-rule').value = '';
+        }
+        
+        // Add custom rule
+        function addCustomRule() {
+            const rule = document.getElementById('custom-rule').value;
+            if (!rule.trim()) {
+                alert('Please enter a rule');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('action', 'add-rule');
+            formData.append('rule', rule);
+            
+            fetch('/api/plugins/nginx-waf/add-rule', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Rule added successfully!');
+                    closeAddRuleModal();
+                    loadRules();
+                } else {
+                    alert('Failed to add rule: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to add rule: ' + error.message);
+            });
+        }
+        
+        // Show add whitelist modal
+        function showAddWhitelistModal() {
+            document.getElementById('add-whitelist-modal').classList.remove('hidden');
+        }
+        
+        // Close add whitelist modal
+        function closeAddWhitelistModal() {
+            document.getElementById('add-whitelist-modal').classList.add('hidden');
+            document.getElementById('whitelist-ip').value = '';
+        }
+        
+        // Add whitelist IP
+        function addWhitelistIP() {
+            const ip = document.getElementById('whitelist-ip').value;
+            if (!ip.trim()) {
+                alert('Please enter an IP address');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('action', 'whitelist-add');
+            formData.append('ip', ip);
+            
+            fetch('/api/plugins/nginx-waf/whitelist-add', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('IP added to whitelist successfully!');
+                    closeAddWhitelistModal();
+                    loadWhitelist();
+                } else {
+                    alert('Failed to add IP to whitelist: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to add IP to whitelist: ' + error.message);
+            });
+        }
+        
+        // Remove whitelist IP
+        function removeWhitelistIP(ip) {
+            if (!confirm(`Are you sure you want to remove ${ip} from whitelist?`)) {
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('action', 'whitelist-remove');
+            formData.append('ip', ip);
+            
+            fetch('/api/plugins/nginx-waf/whitelist-remove', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('IP removed from whitelist successfully!');
+                    loadWhitelist();
+                } else {
+                    alert('Failed to remove IP from whitelist: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to remove IP from whitelist: ' + error.message);
+            });
+        }
+        
+        // Update OWASP rules
+        function updateRules() {
+            if (!confirm('This will update OWASP Core Rule Set to the latest version. Continue?')) {
+                return;
+            }
+            
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Updating...';
+            
+            const formData = new FormData();
+            formData.append('action', 'update-rules');
+            
+            fetch('/api/plugins/nginx-waf/update-rules', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('OWASP rules updated successfully!');
+                    loadRules();
+                } else {
+                    alert('Failed to update rules: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to update rules: ' + error.message);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        }
+        
+        // Export configuration
+        function exportConfig() {
+            const formData = new FormData();
+            formData.append('action', 'export-config');
+            
+            fetch('/api/plugins/nginx-waf/export-config', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const blob = new Blob([JSON.stringify(data.config, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `waf-config-${new Date().toISOString().split('T')[0]}.json`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        alert('Configuration exported successfully!');
+                    } else {
+                        alert('Failed to export configuration: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to export configuration: ' + error.message);
+                });
+        }
+        
+        // Import configuration
+        function importConfig(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const config = JSON.parse(e.target.result);
+                    
+                    if (!confirm('This will replace your current WAF configuration. Continue?')) {
+                        return;
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append('action', 'import-config');
+                    formData.append('config', file);
+                    
+                    fetch('/api/plugins/nginx-waf/import-config', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Configuration imported successfully!');
+                            refreshStatus();
+                            loadRules();
+                            loadWhitelist();
+                        } else {
+                            alert('Failed to import configuration: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to import configuration: ' + error.message);
+                    });
+                } catch (error) {
+                    alert('Invalid configuration file format');
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset file input
+            event.target.value = '';
+        }
+        
+        // Clear logs
+        function clearLogs() {
+            if (confirm('Are you sure you want to clear all attack logs?')) {
+                // This would require implementing a clear logs endpoint
+                alert('Log clearing functionality will be implemented in future version');
+            }
+        }
+        
+        // Load WAF settings
+        function loadSettings() {
+            const formData = new FormData();
+            formData.append('action', 'get-settings');
+            
+            fetch('/api/plugins/nginx-waf/get-settings', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const settings = data.settings;
+                    document.getElementById('paranoia-level').value = settings.paranoia_level || '1';
+                    document.getElementById('inbound-threshold').value = settings.inbound_threshold || '5';
+                    document.getElementById('outbound-threshold').value = settings.outbound_threshold || '4';
+                    document.getElementById('request-body-limit').value = settings.request_body_limit || '13107200';
+                    document.getElementById('response-body-limit').value = settings.response_body_limit || '524288';
+                    document.getElementById('audit-log-enabled').checked = settings.audit_log_enabled !== false;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading settings:', error);
+            });
+        }
+        
+        // Save settings
+        function saveSettings() {
+            const formData = new FormData();
+            formData.append('action', 'save-settings');
+            formData.append('paranoia_level', document.getElementById('paranoia-level').value);
+            formData.append('inbound_threshold', document.getElementById('inbound-threshold').value);
+            formData.append('outbound_threshold', document.getElementById('outbound-threshold').value);
+            formData.append('request_body_limit', document.getElementById('request-body-limit').value);
+            formData.append('response_body_limit', document.getElementById('response-body-limit').value);
+            formData.append('audit_log_enabled', document.getElementById('audit-log-enabled').checked);
+            
+            fetch('/api/plugins/nginx-waf/save-settings', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Settings saved successfully!');
+                } else {
+                    alert('Failed to save settings: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to save settings: ' + error.message);
+            });
+        }
+        
+        // Attack Map functionality
+        let attackMap = null;
+        let attackMarkers = [];
+        let attackData = [];
+        let liveFeedInterval = null;
+        let autoRefreshInterval = null;
+        
+        // Initialize Attack Map when tab is shown
+        function initializeAttackMap() {
+            console.log('initializeAttackMap called', { attackMap, L: typeof L });
+            if (attackMap || typeof L === 'undefined') {
+                console.log('Skipping initialization:', { attackMap: !!attackMap, L: typeof L });
+                return;
+            }
+            
+            console.log('Initializing Leaflet map...');
+            // Initialize Leaflet map
+            attackMap = L.map('attack-map').setView([10, 120], 2);
+            console.log('Leaflet map initialized:', attackMap);
+            
+            // Add tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(attackMap);
+            
+            // Add local server marker first
+            addLocalServerMarker();
+            
+            // Load initial data
+            loadAttackData();
+            
+            // Start live feed
+            startLiveFeed();
+            
+            // Setup event listeners
+            document.getElementById('refresh-map').addEventListener('click', loadAttackData);
+            document.getElementById('sync-data').addEventListener('click', syncAttackData);
+            document.getElementById('auto-refresh').addEventListener('change', toggleAutoRefresh);
+            document.getElementById('start-monitoring').addEventListener('click', startBackgroundMonitoring);
+            document.getElementById('stop-monitoring').addEventListener('click', stopBackgroundMonitoring);
+            document.getElementById('time-range').addEventListener('change', loadAttackData);
+            document.getElementById('attack-type-filter').addEventListener('change', filterAttacks);
+            document.getElementById('severity-filter').addEventListener('change', filterAttacks);
+            document.getElementById('country-filter').addEventListener('change', filterAttacks);
+            
+            // Check initial monitoring status
+            checkMonitoringStatus();
+        }
+        
+        // Load attack data from API
+        function loadAttackData() {
+            console.log('Loading attack data...');
+            const timeRange = document.getElementById('time-range').value;
+            
+            const formData = new FormData();
+            formData.append('action', 'get-attack-data');
+            formData.append('time_range', timeRange);
+            
+            fetch('/api/plugins/nginx-waf/attack-data', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('API response received:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Attack data received:', data);
+                if (data.success) {
+                    attackData = data.attacks || [];
+                    console.log('Attack data loaded:', attackData.length, 'attacks');
+                    updateMap();
+                    updateStatistics();
+                    updateFilters();
+                } else {
+                    console.error('Failed to load attack data:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading attack data:', error);
+            });
+        }
+        
+        // Update map with attack markers and arrows
+        function updateMap() {
+            console.log('Updating map with', attackData.length, 'attacks');
+            if (!attackMap) {
+                console.error('Attack map not initialized');
+                return;
+            }
+
+            // Clear existing markers
+            attackMarkers.forEach(marker => attackMap.removeLayer(marker));
+            attackMarkers = [];
+
+            // Add local server marker first
+            addLocalServerMarker();
+
+            // Add new attack markers
+            let markersAdded = 0;
+            attackData.forEach(attack => {
+                if (attack.latitude && attack.longitude) {
+                    const marker = L.circleMarker([attack.latitude, attack.longitude], {
+                        radius: getSeverityRadius(attack.severity),
+                        fillColor: getSeverityColor(attack.severity),
+                        color: '#fff',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.7
+                    }).addTo(attackMap);
+                    
+                    // Add popup with attack details
+                    marker.bindPopup(`
+                        <div class="attack-popup">
+                            <h4><strong>${attack.country || 'Unknown'}</strong></h4>
+                            <p><strong>IP:</strong> ${attack.ip}</p>
+                            <p><strong>Type:</strong> ${attack.attack_type}</p>
+                            <p><strong>Severity:</strong> ${attack.severity}</p>
+                            <p><strong>Time:</strong> ${new Date(attack.timestamp).toLocaleString()}</p>
+                            <p><strong>URL:</strong> ${attack.url}</p>
+                        </div>
+                    `);
+                    
+                    attackMarkers.push(marker);
+                    markersAdded++;
+                }
+            });
+            console.log('Markers added to map:', markersAdded);
+
+            // Load and display attack arrows
+            loadAttackArrows();
+        }
+        
+        // Global variables for arrows and local server marker
+        let attackArrows = [];
+        let arrowAnimationInterval = null;
+        let localServerMarker = null;
+        let localServerInfo = null;
+
+        // Add local server marker to map
+        function addLocalServerMarker() {
+            // Remove existing local server marker
+            if (localServerMarker) {
+                attackMap.removeLayer(localServerMarker);
+                localServerMarker = null;
+            }
+
+            // Get local server info from attack data
+            if (attackData.length > 0) {
+                // Try to find target IP info from recent attacks
+                const recentAttack = attackData.find(attack => 
+                    attack.target_latitude && attack.target_longitude && attack.target_ip
+                );
+                
+                if (recentAttack) {
+                    localServerInfo = {
+                        ip: recentAttack.target_ip,
+                        latitude: recentAttack.target_latitude,
+                        longitude: recentAttack.target_longitude,
+                        country: recentAttack.target_country || 'Unknown',
+                        city: recentAttack.target_city || 'Unknown'
+                    };
+                }
+            }
+
+            // Use default server location if no target info available
+            if (!localServerInfo) {
+                // Default to Indonesia (approximate server location)
+                localServerInfo = {
+                    ip: '103.181.142.156', // Default server IP
+                    latitude: -6.2088,
+                    longitude: 106.8456,
+                    country: 'Indonesia',
+                    city: 'Jakarta'
+                };
+            }
+
+            // Create local server marker with distinctive style
+            localServerMarker = L.marker([localServerInfo.latitude, localServerInfo.longitude], {
+                icon: L.divIcon({
+                    className: 'local-server-marker',
+                    html: `
+                        <div style="
+                            background: linear-gradient(45deg, #10b981, #059669);
+                            border: 3px solid #ffffff;
+                            border-radius: 50%;
+                            width: 24px;
+                            height: 24px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                            animation: pulse 2s infinite;
+                        ">
+                            <div style="
+                                background: #ffffff;
+                                border-radius: 50%;
+                                width: 8px;
+                                height: 8px;
+                            "></div>
+                        </div>
+                        <style>
+                            @keyframes pulse {
+                                0% { transform: scale(1); }
+                                50% { transform: scale(1.1); }
+                                100% { transform: scale(1); }
+                            }
+                        </style>
+                    `,
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                })
+            }).addTo(attackMap);
+
+            // Add popup for local server
+            localServerMarker.bindPopup(`
+                <div class="local-server-popup">
+                    <h4><strong>🏠 Local Server</strong></h4>
+                    <p><strong>IP:</strong> ${localServerInfo.ip}</p>
+                    <p><strong>Location:</strong> ${localServerInfo.city}, ${localServerInfo.country}</p>
+                    <p><strong>Status:</strong> <span style="color: #10b981;">Online</span></p>
+                    <p><strong>Role:</strong> Target Server</p>
+                </div>
+            `);
+
+            // Center map on server location if it's the first load
+            if (attackData.length === 0) {
+                attackMap.setView([localServerInfo.latitude, localServerInfo.longitude], 6);
+            }
+        }
+        
+        // Load attack arrows data
+        function loadAttackArrows() {
+            console.log('Loading attack arrows...');
+            fetch('/api/plugins/nginx-waf/attack-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=get-attack-arrows&limit=20&since_minutes=60'
+            })
+            .then(response => {
+                console.log('Attack arrows response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Attack arrows API response:', data);
+                if (data.success && data.arrows && data.arrows.length > 0) {
+                    console.log('Loaded', data.arrows.length, 'attack arrows');
+                    displayAttackArrows(data.arrows);
+                } else {
+                    console.log('No attack arrows data available:', data);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading attack arrows:', error);
+            });
+        }
+        
+        // Display animated attack arrows
+        function displayAttackArrows(arrows) {
+            // Clear existing arrows
+            clearAttackArrows();
+            
+            arrows.forEach((arrow, index) => {
+                // Add delay for staggered animation
+                setTimeout(() => {
+                    animateAttackArrow(arrow);
+                }, index * 200); // 200ms delay between arrows
+            });
+        }
+        
+        // Display attack arrows seamlessly (without clearing existing ones immediately)
+        function displayAttackArrowsSeamless(arrows) {
+            // Track existing arrow IDs to avoid duplicates
+            const existingIds = new Set(attackArrows.map(arrow => arrow.id));
+            
+            // Filter out arrows that are already being displayed
+            const newArrows = arrows.filter(arrow => {
+                const arrowId = `${arrow.source.ip}_${arrow.target.ip}_${arrow.timestamp}`;
+                return !existingIds.has(arrowId);
+            });
+            
+            console.log(`Displaying ${newArrows.length} new arrows (${arrows.length - newArrows.length} already exist)`);
+            
+            // Gradually fade out old arrows that are older than 10 seconds
+            const now = new Date();
+            const oldArrows = attackArrows.filter(arrow => {
+                if (!arrow.timestamp) return false;
+                const arrowTime = new Date(arrow.timestamp);
+                return (now - arrowTime) > 10000; // 10 seconds
+            });
+            
+            // Remove old arrows with fade effect
+            oldArrows.forEach(arrow => {
+                setTimeout(() => {
+                    fadeOutArrow(arrow);
+                }, Math.random() * 1000); // Random delay up to 1 second
+            });
+            
+            // Add new arrows with staggered animation
+            newArrows.forEach((arrow, index) => {
+                setTimeout(() => {
+                    animateAttackArrowSeamless(arrow);
+                }, index * 150); // 150ms delay between new arrows
+            });
+        }
+        
+        // Fade out arrow smoothly
+        function fadeOutArrow(arrowComponents) {
+            if (!arrowComponents.marker) return;
+            
+            let opacity = 0.9;
+            const fadeInterval = setInterval(() => {
+                opacity -= 0.1;
+                if (opacity <= 0) {
+                    clearInterval(fadeInterval);
+                    removeArrowComponents(arrowComponents);
+                    return;
+                }
+                
+                if (arrowComponents.marker) {
+                    arrowComponents.marker.setStyle({ 
+                        opacity: opacity > 0.3 ? 1 : opacity * 3,
+                        fillOpacity: opacity 
+                    });
+                }
+            }, 100);
+        }
+        
+        // Animate single attack arrow
+        function animateAttackArrow(arrow) {
+            if (!attackMap || !arrow.source.latitude || !arrow.source.longitude || 
+                !arrow.target.latitude || !arrow.target.longitude) {
+                return;
+            }
+            
+            const sourceLatLng = [arrow.source.latitude, arrow.source.longitude];
+            const targetLatLng = [arrow.target.latitude, arrow.target.longitude];
+            
+            // Add animated marker that moves from source to target (no line)
+            const animatedMarker = L.circleMarker(sourceLatLng, {
+                radius: 6,
+                fillColor: getSeverityColor(arrow.severity),
+                color: '#ffffff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.9
+            }).addTo(attackMap);
+            
+            // Add popup to marker
+            animatedMarker.bindPopup(`
+                <div class="arrow-popup">
+                    <h4><strong>Attack Flow</strong></h4>
+                    <p><strong>From:</strong> ${arrow.source.ip} (${arrow.source.country})</p>
+                    <p><strong>To:</strong> ${arrow.target.ip} (${arrow.target.country})</p>
+                    <p><strong>Type:</strong> ${arrow.attack_type}</p>
+                    <p><strong>Severity:</strong> ${arrow.severity}</p>
+                    <p><strong>Time:</strong> ${new Date(arrow.timestamp).toLocaleString()}</p>
+                    <p><strong>Target URL:</strong> ${arrow.target_url}</p>
+                </div>
+            `);
+            
+            // Store marker components (no line)
+            const arrowComponents = {
+                line: null,
+                marker: animatedMarker,
+                id: arrow.id
+            };
+            attackArrows.push(arrowComponents);
+            
+            // Start animation
+             startMarkerAnimation(arrowComponents, sourceLatLng, targetLatLng);
+         }
+         
+         // Start marker animation from source to target
+         function startMarkerAnimation(arrowComponents, sourceLatLng, targetLatLng) {
+             // Animate marker movement
+             let progress = 0;
+             const animationDuration = 2500; // 2.5 seconds for smoother animation
+             const animationStep = 50; // 50ms intervals
+             const totalSteps = animationDuration / animationStep;
+             
+             const animationInterval = setInterval(() => {
+                 progress += 1 / totalSteps;
+                 
+                 if (progress >= 1) {
+                     progress = 1;
+                     clearInterval(animationInterval);
+                     
+                     // Don't auto-remove markers in seamless mode
+                     // They will be removed by the fade-out mechanism
+                     return;
+                 }
+                 
+                 // Calculate intermediate position
+                 const lat = sourceLatLng[0] + (targetLatLng[0] - sourceLatLng[0]) * progress;
+                 const lng = sourceLatLng[1] + (targetLatLng[1] - sourceLatLng[1]) * progress;
+                 
+                 // Update marker position
+                 if (arrowComponents.marker) {
+                     arrowComponents.marker.setLatLng([lat, lng]);
+                 }
+             }, animationStep);
+         }
+        
+        // Animate single attack arrow seamlessly
+        function animateAttackArrowSeamless(arrow) {
+            if (!attackMap || !arrow.source.latitude || !arrow.source.longitude || 
+                !arrow.target.latitude || !arrow.target.longitude) {
+                return;
+            }
+            
+            const sourceLatLng = [arrow.source.latitude, arrow.source.longitude];
+            const targetLatLng = [arrow.target.latitude, arrow.target.longitude];
+            
+            // Add animated marker that moves from source to target with fade-in effect (no line)
+            const animatedMarker = L.circleMarker(sourceLatLng, {
+                radius: 6,
+                fillColor: getSeverityColor(arrow.severity),
+                color: '#ffffff',
+                weight: 2,
+                opacity: 0, // Start invisible
+                fillOpacity: 0
+            }).addTo(attackMap);
+            
+            // Add popup to marker
+            animatedMarker.bindPopup(`
+                <div class="arrow-popup">
+                    <h4><strong>Attack Flow</strong></h4>
+                    <p><strong>From:</strong> ${arrow.source.ip} (${arrow.source.country})</p>
+                    <p><strong>To:</strong> ${arrow.target.ip} (${arrow.target.country})</p>
+                    <p><strong>Type:</strong> ${arrow.attack_type}</p>
+                    <p><strong>Severity:</strong> ${arrow.severity}</p>
+                    <p><strong>Time:</strong> ${new Date(arrow.timestamp).toLocaleString()}</p>
+                    <p><strong>Target URL:</strong> ${arrow.target_url}</p>
+                </div>
+            `);
+            
+            // Store marker components with timestamp (no line)
+            const arrowComponents = {
+                line: null,
+                marker: animatedMarker,
+                id: `${arrow.source.ip}_${arrow.target.ip}_${arrow.timestamp}`,
+                timestamp: arrow.timestamp
+            };
+            attackArrows.push(arrowComponents);
+            
+            // Fade in the marker and start animation
+            fadeInArrow(arrowComponents, () => {
+                startMarkerAnimation(arrowComponents, sourceLatLng, targetLatLng);
+            });
+        }
+        
+        // Fade in marker smoothly
+        function fadeInArrow(arrowComponents, callback) {
+            let opacity = 0;
+            const fadeInterval = setInterval(() => {
+                opacity += 0.1;
+                if (opacity >= 0.9) {
+                    opacity = 0.9;
+                    clearInterval(fadeInterval);
+                    if (callback) callback();
+                }
+                
+                if (arrowComponents.marker) {
+                    arrowComponents.marker.setStyle({ 
+                        opacity: 1,
+                        fillOpacity: opacity 
+                    });
+                }
+            }, 50);
+        }
+        
+
+        
+        // Remove arrow components from map
+        function removeArrowComponents(components) {
+            if (components.marker) {
+                attackMap.removeLayer(components.marker);
+            }
+            
+            // Remove from arrows array
+            const index = attackArrows.findIndex(arrow => arrow.id === components.id);
+            if (index > -1) {
+                attackArrows.splice(index, 1);
+            }
+        }
+        
+        // Clear all attack arrows
+        function clearAttackArrows() {
+            attackArrows.forEach(arrow => {
+                if (arrow.marker) attackMap.removeLayer(arrow.marker);
+            });
+            attackArrows = [];
+            
+            if (arrowAnimationInterval) {
+                clearInterval(arrowAnimationInterval);
+                arrowAnimationInterval = null;
+            }
+        }
+        
+        // Get severity color
+        function getSeverityColor(severity) {
+            switch (severity) {
+                case 'critical': return '#dc2626';
+                case 'high': return '#ea580c';
+                case 'medium': return '#d97706';
+                case 'low': return '#65a30d';
+                default: return '#6b7280';
+            }
+        }
+        
+        // Get severity radius
+        function getSeverityRadius(severity) {
+            switch (severity) {
+                case 'critical': return 12;
+                case 'high': return 10;
+                case 'medium': return 8;
+                case 'low': return 6;
+                default: return 5;
+            }
+        }
+        
+        // Update statistics
+        function updateStatistics() {
+            const totalAttacks = attackData.length;
+            const uniqueIPs = new Set(attackData.map(a => a.ip)).size;
+            const uniqueCountries = new Set(attackData.map(a => a.country)).size;
+            
+            document.getElementById('total-attacks').textContent = totalAttacks;
+            document.getElementById('unique-ips').textContent = uniqueIPs;
+            document.getElementById('unique-countries').textContent = uniqueCountries;
+            
+            // Update attack types
+            const attackTypes = {};
+            attackData.forEach(attack => {
+                attackTypes[attack.attack_type] = (attackTypes[attack.attack_type] || 0) + 1;
+            });
+            
+            const attackTypesList = document.getElementById('attack-types-list');
+            attackTypesList.innerHTML = '';
+            Object.entries(attackTypes)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .forEach(([type, count]) => {
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center text-sm';
+                    div.innerHTML = `
+                        <span class="text-gray-600 dark:text-gray-400">${type}</span>
+                        <span class="font-semibold text-gray-900 dark:text-white">${count}</span>
+                    `;
+                    attackTypesList.appendChild(div);
+                });
+            
+            // Update top countries
+            const countries = {};
+            attackData.forEach(attack => {
+                if (attack.country) {
+                    countries[attack.country] = (countries[attack.country] || 0) + 1;
+                }
+            });
+            
+            const topCountriesList = document.getElementById('top-countries-list');
+            topCountriesList.innerHTML = '';
+            Object.entries(countries)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .forEach(([country, count]) => {
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center text-sm';
+                    div.innerHTML = `
+                        <span class="text-gray-600 dark:text-gray-400">${country}</span>
+                        <span class="font-semibold text-gray-900 dark:text-white">${count}</span>
+                    `;
+                    topCountriesList.appendChild(div);
+                });
+        }
+        
+        // Update filter options
+        function updateFilters() {
+            // Update attack type filter
+            const attackTypeFilter = document.getElementById('attack-type-filter');
+            const attackTypes = [...new Set(attackData.map(a => a.attack_type))].sort();
+            attackTypeFilter.innerHTML = '<option value="">All Types</option>';
+            attackTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                attackTypeFilter.appendChild(option);
+            });
+            
+            // Update country filter
+            const countryFilter = document.getElementById('country-filter');
+            const countries = [...new Set(attackData.map(a => a.country).filter(c => c))].sort();
+            countryFilter.innerHTML = '<option value="">All Countries</option>';
+            countries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country;
+                option.textContent = country;
+                countryFilter.appendChild(option);
+            });
+        }
+        
+        // Filter attacks based on selected criteria
+        function filterAttacks() {
+            // This would filter the displayed attacks based on the selected filters
+            // For now, we'll just reload the data
+            loadAttackData();
+        }
+        
+        // Start live feed
+        function startLiveFeed() {
+            if (liveFeedInterval) clearInterval(liveFeedInterval);
+            
+            // Start live feed for attacks list
+            liveFeedInterval = setInterval(() => {
+                loadLatestAttacks();
+            }, 5000); // Update every 5 seconds
+            
+            // Start seamless arrow refresh every 3 seconds
+            startSeamlessArrowRefresh();
+        }
+        
+        // Seamless arrow refresh mechanism
+        let seamlessArrowInterval = null;
+        
+        function startSeamlessArrowRefresh() {
+            if (seamlessArrowInterval) clearInterval(seamlessArrowInterval);
+            
+            // Initial load
+            loadAttackArrows();
+            
+            // Refresh arrows every 3 seconds seamlessly
+            seamlessArrowInterval = setInterval(() => {
+                loadAttackArrowsSeamless();
+            }, 3000);
+        }
+        
+        // Load attack arrows seamlessly without clearing existing ones immediately
+        function loadAttackArrowsSeamless() {
+            console.log('Loading attack arrows seamlessly...');
+            fetch('/api/plugins/nginx-waf/attack-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=get-attack-arrows&limit=20&since_minutes=1440'
+            })
+            .then(response => {
+                console.log('Seamless attack arrows response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Seamless attack arrows API response:', data);
+                if (data.success && data.arrows && data.arrows.length > 0) {
+                    console.log('Loaded', data.arrows.length, 'attack arrows seamlessly');
+                    displayAttackArrowsSeamless(data.arrows);
+                } else {
+                    console.log('No new attack arrows data available:', data);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading seamless attack arrows:', error);
+            });
+        }
+        
+        // Load latest attacks for live feed
+        function loadLatestAttacks() {
+            const formData = new FormData();
+            formData.append('action', 'get-latest-attacks');
+            formData.append('limit', '10');
+            
+            fetch('/api/plugins/nginx-waf/latest-attacks', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateLiveFeed(data.attacks || []);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading latest attacks:', error);
+            });
+        }
+        
+        // Update live feed display
+        function updateLiveFeed(attacks) {
+            const liveFeed = document.getElementById('live-feed');
+            
+            attacks.forEach(attack => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-50 dark:bg-gray-700 p-3 rounded-lg text-sm border-l-4 border-red-500';
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="font-semibold text-red-600 dark:text-red-400">${attack.attack_type}</span>
+                            <span class="text-gray-600 dark:text-gray-400">from</span>
+                            <span class="font-medium">${attack.ip}</span>
+                            <span class="text-gray-600 dark:text-gray-400">(${attack.country || 'Unknown'})</span>
+                        </div>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">${new Date(attack.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <div class="mt-1 text-gray-600 dark:text-gray-400 truncate">${attack.url}</div>
+                `;
+                
+                liveFeed.insertBefore(div, liveFeed.firstChild);
+                
+                // Keep only last 20 entries
+                while (liveFeed.children.length > 20) {
+                    liveFeed.removeChild(liveFeed.lastChild);
+                }
+            });
+        }
+        
+        // Sync attack data from log files
+        function syncAttackData() {
+            const btn = document.getElementById('sync-data');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Syncing...';
+            
+            const formData = new FormData();
+            formData.append('action', 'sync-attack-data');
+            
+            fetch('/api/plugins/nginx-waf/sync-attack-data', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`✅ ${data.message}`);
+                    // Refresh map data after sync
+                    loadAttackData();
+                } else {
+                    alert('❌ Failed to sync data: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error syncing data:', error);
+                alert('❌ Failed to sync data: ' + error.message);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        }
+        
+        // Toggle auto-refresh mechanism
+        function toggleAutoRefresh() {
+            const checkbox = document.getElementById('auto-refresh');
+            
+            if (checkbox.checked) {
+                // Start auto-refresh every 30 seconds
+                autoRefreshInterval = setInterval(() => {
+                    console.log('Auto-refreshing attack map data...');
+                    loadAttackData();
+                    loadAttackArrows();
+                }, 30000);
+                console.log('Auto-refresh enabled (30s interval)');
+            } else {
+                // Stop auto-refresh
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+                console.log('Auto-refresh disabled');
+            }
+        }
+        
+        // Start background monitoring
+        function startBackgroundMonitoring() {
+            const btn = document.getElementById('start-monitoring');
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Starting...';
+            
+            const formData = new FormData();
+            formData.append('action', 'start-monitoring');
+            
+            fetch('/api/plugins/nginx-waf/attack-data', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateMonitoringStatus(data.monitoring);
+                    alert(`✅ ${data.message}`);
+                } else {
+                    alert('❌ Failed to start monitoring: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error starting monitoring:', error);
+                alert('❌ Failed to start monitoring: ' + error.message);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        }
+        
+        // Stop background monitoring
+        function stopBackgroundMonitoring() {
+            const btn = document.getElementById('stop-monitoring');
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Stopping...';
+            
+            const formData = new FormData();
+            formData.append('action', 'stop-monitoring');
+            
+            fetch('/api/plugins/nginx-waf/attack-data', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateMonitoringStatus(data.monitoring);
+                    alert(`✅ ${data.message}`);
+                } else {
+                    alert('❌ Failed to stop monitoring: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error stopping monitoring:', error);
+                alert('❌ Failed to stop monitoring: ' + error.message);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        }
+        
+        // Check monitoring status
+        function checkMonitoringStatus() {
+            const formData = new FormData();
+            formData.append('action', 'monitoring-status');
+            
+            fetch('/api/plugins/nginx-waf/attack-data', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateMonitoringStatus(data.monitoring);
+                }
+            })
+            .catch(error => {
+                console.error('Error checking monitoring status:', error);
+            });
+        }
+        
+        // Update monitoring status display
+        function updateMonitoringStatus(isActive) {
+            const statusElement = document.getElementById('monitoring-status');
+            const indicator = statusElement.querySelector('.w-2.h-2');
+            const text = statusElement.querySelector('span:last-child');
+            
+            if (isActive) {
+                indicator.className = 'w-2 h-2 rounded-full bg-green-500';
+                text.textContent = 'Active';
+                statusElement.className = 'flex items-center gap-1 text-sm px-2 py-1 rounded-md bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200';
+            } else {
+                indicator.className = 'w-2 h-2 rounded-full bg-red-500';
+                text.textContent = 'Inactive';
+                statusElement.className = 'flex items-center gap-1 text-sm px-2 py-1 rounded-md bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200';
+            }
+        }
+        
+        // Stop live feed when leaving attack map tab
+        function stopLiveFeed() {
+            if (liveFeedInterval) {
+                clearInterval(liveFeedInterval);
+                liveFeedInterval = null;
+            }
+            // Stop seamless arrow refresh
+            if (seamlessArrowInterval) {
+                clearInterval(seamlessArrowInterval);
+                seamlessArrowInterval = null;
+            }
+            // Also stop auto-refresh
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                document.getElementById('auto-refresh').checked = false;
+            }
+        }
+        
+        // Enhanced switchTab function to handle Attack Map initialization
+        const originalSwitchTab = switchTab;
+        switchTab = function(tabName) {
+            // Call original function
+            originalSwitchTab(tabName);
+            
+            // Initialize attack map if switching to attack-map tab
+            if (tabName === 'attack-map') {
+                console.log('Switching to attack-map tab', { leafletLoaded: window.leafletLoaded, L: typeof L });
+                setTimeout(() => {
+                    if (window.leafletLoaded || typeof L !== 'undefined') {
+                        initializeAttackMap();
+                    } else {
+                        console.log('Waiting for Leaflet to load...');
+                        // Wait for Leaflet to load
+                        const checkLeaflet = setInterval(() => {
+                            if (typeof L !== 'undefined') {
+                                console.log('Leaflet loaded, initializing map...');
+                                clearInterval(checkLeaflet);
+                                initializeAttackMap();
+                            }
+                        }, 100);
+                    }
+                }, 100);
+            } else {
+                // Stop live feed when leaving attack map
+                stopLiveFeed();
+            }
+        };
+        
+        // Add Leaflet CSS and JS
+        const leafletCSS = document.createElement('link');
+        leafletCSS.rel = 'stylesheet';
+        leafletCSS.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        leafletCSS.onload = function() {
+            console.log('Leaflet CSS loaded successfully');
+        };
+        leafletCSS.onerror = function() {
+            console.error('Failed to load Leaflet CSS from unpkg, trying fallback...');
+            // Load fallback CSS
+            const fallbackCSS = document.createElement('link');
+            fallbackCSS.rel = 'stylesheet';
+            fallbackCSS.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+            fallbackCSS.onload = function() {
+                console.log('Fallback Leaflet CSS loaded successfully');
+            };
+            fallbackCSS.onerror = function() {
+                console.error('Fallback Leaflet CSS also failed to load');
+            };
+            document.head.appendChild(fallbackCSS);
+        };
+        document.head.appendChild(leafletCSS);
+        
+        // Clear any existing AMD define to avoid conflicts
+        const originalDefine = window.define;
+        window.define = undefined;
+        
+        const leafletJS = document.createElement('script');
+        leafletJS.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        leafletJS.onload = function() {
+            console.log('Leaflet JS loaded successfully');
+            // Restore original define
+            window.define = originalDefine;
+            
+            // Double check if L is actually available
+            if (typeof L !== 'undefined') {
+                console.log('Leaflet L object is available');
+                window.leafletLoaded = true;
+                // Initialize attack map if we're already on the attack-map tab
+                const attackMapTab = document.getElementById('attack-map-tab');
+                if (attackMapTab && !attackMapTab.classList.contains('hidden')) {
+                    console.log('Attack map tab is visible, initializing...');
+                    initializeAttackMap();
+                }
+            } else {
+                console.error('Leaflet script loaded but L object is not available');
+                // Try fallback CDN
+                loadLeafletFallback();
+            }
+        };
+        leafletJS.onerror = function() {
+            console.error('Failed to load Leaflet JS from unpkg, trying fallback...');
+            // Restore original define
+            window.define = originalDefine;
+            loadLeafletFallback();
+        };
+        
+        // Fallback function to load from different CDN
+        function loadLeafletFallback() {
+            console.log('Loading Leaflet from fallback CDN...');
+            // Clear any existing AMD define to avoid conflicts
+            const originalDefine = window.define;
+            window.define = undefined;
+            
+            const fallbackJS = document.createElement('script');
+            fallbackJS.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
+            fallbackJS.onload = function() {
+                console.log('Fallback Leaflet JS loaded successfully');
+                // Restore original define
+                window.define = originalDefine;
+                
+                if (typeof L !== 'undefined') {
+                    console.log('Fallback Leaflet L object is available');
+                    window.leafletLoaded = true;
+                    const attackMapTab = document.getElementById('attack-map-tab');
+                    if (attackMapTab && !attackMapTab.classList.contains('hidden')) {
+                        initializeAttackMap();
+                    }
+                } else {
+                    console.error('Fallback Leaflet also failed to provide L object');
+                    // Try loading from jsdelivr as last resort
+                    loadLeafletLastResort();
+                }
+            };
+            fallbackJS.onerror = function() {
+                console.error('Fallback Leaflet JS also failed to load');
+                // Restore original define
+                window.define = originalDefine;
+                loadLeafletLastResort();
+            };
+            document.head.appendChild(fallbackJS);
+        }
+        
+        // Last resort function to load from jsdelivr
+        function loadLeafletLastResort() {
+            console.log('Loading Leaflet from last resort CDN (jsdelivr)...');
+            const lastResortJS = document.createElement('script');
+            lastResortJS.src = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';
+            lastResortJS.onload = function() {
+                console.log('Last resort Leaflet JS loaded successfully');
+                if (typeof L !== 'undefined') {
+                    console.log('Last resort Leaflet L object is available');
+                    window.leafletLoaded = true;
+                    const attackMapTab = document.getElementById('attack-map-tab');
+                    if (attackMapTab && !attackMapTab.classList.contains('hidden')) {
+                        initializeAttackMap();
+                    }
+                } else {
+                    console.error('All Leaflet CDNs failed to provide L object');
+                }
+            };
+            lastResortJS.onerror = function() {
+                console.error('Last resort Leaflet JS also failed to load');
+            };
+            document.head.appendChild(lastResortJS);
+        }
+        document.head.appendChild(leafletJS);
+    </script>
+{% endblock %}

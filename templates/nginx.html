@@ -298,6 +298,9 @@
                             <button onclick="switchVHostTab('proxy')" id="tab-proxy" class="vhost-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
                                 Proxy
                             </button>
+                            <button onclick="switchVHostTab('waf')" id="tab-waf" class="vhost-tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap">
+                                WAF
+                            </button>
                         </nav>
                     </div>
 
@@ -488,6 +491,37 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Proxy Headers</label>
                                 <textarea id="vhost-proxy-headers" rows="6" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm" placeholder="proxy_set_header Host $host;\nproxy_set_header X-Real-IP $remote_addr;\nproxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\nproxy_set_header X-Forwarded-Proto $scheme;"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- WAF Tab -->
+                        <div id="content-waf" class="vhost-tab-content space-y-4 hidden">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <input type="checkbox" id="vhost-modsecurity-enabled" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                <label for="vhost-modsecurity-enabled" class="text-sm font-medium text-gray-700 dark:text-gray-300">Enable ModSecurity WAF</label>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ModSecurity Rules File</label>
+                                <input type="text" id="vhost-modsecurity-rules" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="/etc/nginx/modsec/main.conf" value="/etc/nginx/modsec/main.conf">
+                            </div>
+                            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">ModSecurity WAF</h3>
+                                        <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                                            <p>ModSecurity is a web application firewall that helps protect your website from various attacks. When enabled, it will add the following directives to your vhost configuration:</p>
+                                            <ul class="mt-2 list-disc list-inside">
+                                                <li><code class="bg-blue-100 dark:bg-blue-800 px-1 rounded">modsecurity on;</code></li>
+                                                <li><code class="bg-blue-100 dark:bg-blue-800 px-1 rounded">modsecurity_rules_file /etc/nginx/modsec/main.conf;</code></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -824,6 +824,26 @@ def handle_install_service(data):
                 socketio.emit('install_progress', progress_data)
                 
                 if service_name == 'nginx':
+
+                    socketio.emit('install_output', {'output': 'Menambahkan include /opt/slemp/panel/data/nginx/*.conf; ke nginx.conf...', 'type': 'info'})
+                    socketio.emit('install_output', {'output': 'Membuat direktori /opt/slemp/panel/data/nginx...', 'type': 'info'})
+                    subprocess.run(['mkdir', '-p', '/opt/slemp/panel/data/nginx'], capture_output=True, text=True, timeout=30)
+
+                    nginx_conf = "/etc/nginx/nginx.conf"
+                    with open(nginx_conf, "r") as f:
+                        lines = f.readlines()
+
+                    new_lines = []
+                    for line in lines:
+                        if "include /etc/nginx/conf.d/*.conf;" in line:
+                            new_lines.append("    include /opt/slemp/panel/data/nginx/*.conf;\n")
+                        new_lines.append(line)
+
+                    with open(nginx_conf, "w") as f:
+                        f.writelines(new_lines)
+
+                    socketio.emit('install_output', {'output': 'Include tambahan berhasil ditambahkan ke nginx.conf', 'type': 'success'})
+
                     # Nginx specific configuration
                     socketio.emit('install_output', {'output': 'Mengkonfigurasi Nginx untuk supervisord...', 'type': 'info'})
                     
@@ -4800,7 +4820,8 @@ def nginx_config():
         }), 500
 
 def generate_vhost_config(domain, root_dir, ssl=False, ssl_cert='', ssl_key='', force_https=False, php_version='8.3', 
-                          proxy_enabled=False, proxy_pass='', proxy_headers='', rewrite_rules='', 
+                          proxy_enabled=False, proxy_pass='', proxy_headers='', modsecurity_enabled=True, 
+                          modsecurity_rules='/etc/nginx/modsec/main.conf', rewrite_rules='', 
                           index_files='index.html index.htm index.php', error_404='', error_500=''):
     """Generate nginx virtual host configuration"""
     config = f"""server {{
@@ -4823,6 +4844,14 @@ def generate_vhost_config(domain, root_dir, ssl=False, ssl_cert='', ssl_key='', 
     root {root_dir};
 
     index {index_files};
+"""
+    
+    # Add ModSecurity configuration if enabled
+    if modsecurity_enabled:
+        config += f"""
+    # ModSecurity WAF
+    modsecurity on;
+    modsecurity_rules_file {modsecurity_rules};
 """
     
     # Add HTTPS redirect if force_https is enabled
@@ -4921,6 +4950,10 @@ def update_vhost():
         proxy_pass = data.get('proxy_pass', '')
         proxy_headers = data.get('proxy_headers', '')
         
+        # Get ModSecurity settings
+        modsecurity_enabled = data.get('modsecurity_enabled', True)
+        modsecurity_rules = data.get('modsecurity_rules', '/etc/nginx/modsec/main.conf')
+        
         # Get rewrite settings
         rewrite_rules = data.get('rewrite_rules', '')
         
@@ -4954,6 +4987,8 @@ def update_vhost():
                 proxy_enabled=proxy_enabled,
                 proxy_pass=proxy_pass,
                 proxy_headers=proxy_headers,
+                modsecurity_enabled=modsecurity_enabled,
+                modsecurity_rules=modsecurity_rules,
                 rewrite_rules=rewrite_rules,
                 index_files=index_files,
                 error_404=error_404,
@@ -5001,6 +5036,46 @@ def update_vhost():
         return jsonify({
             'success': False,
             'error': f'Error updating settings: {str(e)}'
+        }), 500
+
+@app.route('/api/nginx/vhost-settings/<domain>', methods=['GET'])
+@login_required
+def get_vhost_settings(domain):
+    """Get virtual host settings including ModSecurity status"""
+    config_file = f'/etc/nginx/sites-available/{domain}'
+    
+    try:
+        settings = {
+            'modsecurity_enabled': True,  # Default to enabled
+            'modsecurity_rules': '/etc/nginx/modsec/main.conf'
+        }
+        
+        if os.path.exists(config_file):
+            with open(config_file, 'r') as f:
+                content = f.read()
+                
+            # Check if ModSecurity is enabled in the config
+            if 'modsecurity on;' in content:
+                settings['modsecurity_enabled'] = True
+                
+                # Extract rules file path if present
+                import re
+                rules_match = re.search(r'modsecurity_rules_file\s+([^;]+);', content)
+                if rules_match:
+                    settings['modsecurity_rules'] = rules_match.group(1).strip()
+            else:
+                settings['modsecurity_enabled'] = False
+        
+        return jsonify({
+            'success': True,
+            'settings': settings
+        })
+        
+    except Exception as e:
+        logger.error(f'Error getting vhost settings for {domain}: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': f'Error getting settings: {str(e)}'
         }), 500
 
 @app.route('/api/nginx/config/<domain>', methods=['GET'])
@@ -9017,10 +9092,12 @@ def plugin_api(plugin_name, endpoint):
             
             # Check if plugin has main() function (new standard approach)
             if hasattr(plugin_module, 'main'):
-                # Set the action in form data based on endpoint
+                # Set the action in form data based on endpoint only if endpoint is not empty
+                # and action is not already set in form data
                 from werkzeug.datastructures import ImmutableMultiDict
                 form_data = dict(request.form)
-                form_data['action'] = endpoint
+                if endpoint and 'action' not in form_data:
+                    form_data['action'] = endpoint
                 request.form = ImmutableMultiDict(form_data)
                 
                 # Call the main function directly

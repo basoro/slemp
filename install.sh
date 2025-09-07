@@ -13,15 +13,17 @@ apt-get clean && rm -rf /var/lib/apt/lists/*
 echo "===> Download panel.zip..."
 wget https://github.com/basoro/slemp/archive/refs/heads/sabrina.zip  -O ~/slemp.zip
 unzip ~/slemp.zip -d ~/slemp
-mv ~/slemp/slemp-sabrina /opt/slemp 
-mkdir /opt/slemp/data/www
+mv ~/slemp/slemp-sabrina /opt/slemp /panel
+mkdir /opt/slemp/www
+mkdir /opt/slemp/mysql
+mkdir /opt/slemp/logs
 
 echo "===> Setup Python Virtual Environment..."
-python3 -m venv /opt/slemp-venv
-/opt/slemp-venv/bin/pip install --upgrade pip
+python3 -m venv /opt/slemp/venv
+/opt/slemp/venv/bin/pip install --upgrade pip
 
 echo "===> Install Python Requirements..."
-/opt/slemp-venv/bin/pip install -r /opt/slemp/requirements.txt
+/opt/slemp/venv/bin/pip install -r /opt/slemp/panel/requirements.txt
 
 systemctl start supervisor
 systemctl enable supervisor
@@ -32,7 +34,7 @@ cat <<EOF > /etc/supervisor/conf.d/supervisord.conf
 nodaemon=true 
 
 [program:slemp]
-command=/opt/slemp-venv/bin/gunicorn app:app --chdir /opt/slemp --bind 0.0.0.0:7777 --worker-class eventlet --workers 1 --timeout 300
+command=/opt/slemp/venv/bin/gunicorn app:app --chdir /opt/slemp/panel --bind 0.0.0.0:7777 --worker-class eventlet --workers 1 --timeout 300
 autostart=true
 autorestart=true
 EOF

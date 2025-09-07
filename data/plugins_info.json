@@ -147,6 +147,28 @@
       "documentation": "https://docs.slemp.com/plugins/nodejs",
       "support": "https://support.slemp.com/nodejs",
       "active": true
+    },
+    {
+      "id": "nginx-waf",
+      "name": "Nginx WAF Manager",
+      "version": "1.0.0",
+      "description": "Plugin untuk mengelola Web Application Firewall (WAF) dengan ModSecurity dan OWASP Core Rule Set",
+      "author": "SLEMP Team",
+      "category": "Security",
+      "status": "active",
+      "icon": "nginx-waf-icon.svg",
+      "dependencies": ["nginx", "modsecurity"],
+      "permissions": ["nginx_management", "waf_management", "security_config"],
+      "install_date": "2024-02-01",
+      "last_update": "2024-02-01",
+      "size": "5.2 MB",
+      "downloads": 0,
+      "rating": 5.0,
+      "tags": ["nginx", "waf", "modsecurity", "owasp", "security"],
+      "homepage": "https://slemp.com/plugins/nginx-waf",
+      "documentation": "https://docs.slemp.com/plugins/nginx-waf",
+      "support": "https://support.slemp.com/nginx-waf",
+      "active": true
     }    
   ]
 }

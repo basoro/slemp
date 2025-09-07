@@ -530,6 +530,8 @@ function resetVHostForm() {
     document.getElementById('vhost-proxy-enabled').checked = false;
     document.getElementById('vhost-proxy-pass').value = '';
     document.getElementById('vhost-proxy-headers').value = '';
+    document.getElementById('vhost-modsecurity-enabled').checked = true;
+    document.getElementById('vhost-modsecurity-rules').value = '/etc/nginx/modsec/main.conf';
     document.getElementById('vhost-custom-config').value = '';
     
     // Reset config textarea flags
@@ -651,6 +653,10 @@ async function saveVHostSettings(showSuccessAlert = true, closeModal = true) {
     const proxyPass = document.getElementById('vhost-proxy-pass').value;
     const proxyHeaders = document.getElementById('vhost-proxy-headers').value;
     
+    // Collect WAF settings
+    const modsecurityEnabled = document.getElementById('vhost-modsecurity-enabled').checked;
+    const modsecurityRules = document.getElementById('vhost-modsecurity-rules').value;
+    
     // Collect rewrite settings
     const rewriteRules = document.getElementById('vhost-rewrite-rules').value;
     
@@ -678,6 +684,8 @@ async function saveVHostSettings(showSuccessAlert = true, closeModal = true) {
                 proxy_enabled: proxyEnabled,
                 proxy_pass: proxyPass,
                 proxy_headers: proxyHeaders,
+                modsecurity_enabled: modsecurityEnabled,
+                modsecurity_rules: modsecurityRules,
                 rewrite_rules: rewriteRules,
                 index_files: indexFiles,
                 error_404: error404,
@@ -942,6 +950,8 @@ function generateVHostConfig() {
     const proxyEnabled = document.getElementById('vhost-proxy-enabled').checked;
     const proxyPass = document.getElementById('vhost-proxy-pass').value;
     const proxyHeaders = document.getElementById('vhost-proxy-headers').value;
+    const modsecurity = document.getElementById('vhost-modsecurity-enabled').checked;
+    const modsecurityRules = document.getElementById('vhost-modsecurity-rules').value;
 
     let config = `server {\n    listen 80;`;
 
@@ -951,6 +961,11 @@ function generateVHostConfig() {
     }
 
     config += `\n    server_name ${domain};\n    root ${rootDir};\n\n    index ${indexFiles};\n`;
+
+    // Add ModSecurity configuration if enabled
+    if (modsecurity) {
+        config += `\n    # ModSecurity WAF\n    modsecurity on;\n    modsecurity_rules_file ${modsecurityRules || '/etc/nginx/modsec/main.conf'};\n`;
+    }
 
     // Add HTTPS redirect if force_https is enabled
     if (ssl && forceHttps) {
@@ -1050,7 +1065,8 @@ function initVHostFormListeners() {
             'vhost-domain', 'vhost-root-dir', 'vhost-ssl-cert', 'vhost-ssl-key',
             'vhost-force-https', 'vhost-php-version', 'vhost-rewrite-rules',
             'vhost-index-files', 'vhost-error-404', 'vhost-error-500',
-            'vhost-proxy-enabled', 'vhost-proxy-pass', 'vhost-proxy-headers'
+            'vhost-proxy-enabled', 'vhost-proxy-pass', 'vhost-proxy-headers',
+            'vhost-modsecurity-enabled', 'vhost-modsecurity-rules'
         ];
 
     inputs.forEach(inputId => {
@@ -1065,7 +1081,7 @@ function initVHostFormListeners() {
     });
 
     // Special handlers for key checkboxes to trigger config update
-    const triggerCheckboxes = ['vhost-ssl', 'vhost-proxy-enabled', 'vhost-force-https'];
+    const triggerCheckboxes = ['vhost-ssl', 'vhost-proxy-enabled', 'vhost-force-https', 'vhost-modsecurity-enabled'];
     triggerCheckboxes.forEach(checkboxId => {
         const checkbox = document.getElementById(checkboxId);
         if (checkbox) {
@@ -1081,7 +1097,7 @@ function initVHostFormListeners() {
     });
 
     // Special handlers for key input fields to trigger config update
-    const triggerInputs = ['vhost-rewrite-rules', 'vhost-proxy-pass', 'vhost-proxy-headers', 'vhost-ssl-cert', 'vhost-ssl-key'];
+    const triggerInputs = ['vhost-rewrite-rules', 'vhost-proxy-pass', 'vhost-proxy-headers', 'vhost-ssl-cert', 'vhost-ssl-key', 'vhost-modsecurity-rules'];
     triggerInputs.forEach(inputId => {
         const inputElement = document.getElementById(inputId);
         if (inputElement) {
@@ -1107,6 +1123,26 @@ function initVHostFormListeners() {
     }
 }
 
+// Load vhost settings including WAF configuration
+async function loadVHostSettings(domain) {
+    try {
+        const response = await fetch(`/api/nginx/vhost-settings/${domain}`);
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.settings) {
+                // Set ModSecurity settings
+                document.getElementById('vhost-modsecurity-enabled').checked = result.settings.modsecurity_enabled;
+                document.getElementById('vhost-modsecurity-rules').value = result.settings.modsecurity_rules || '/etc/nginx/modsec/main.conf';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading vhost settings:', error);
+        // Set defaults on error
+        document.getElementById('vhost-modsecurity-enabled').checked = true;
+        document.getElementById('vhost-modsecurity-rules').value = '/etc/nginx/modsec/main.conf';
+    }
+}
+
 // Initialize form listeners when modal opens
 function openVHostSettings(domain, rootDir, enabled) {
     document.getElementById('vhost-domain').value = domain;
@@ -1128,6 +1164,9 @@ function openVHostSettings(domain, rootDir, enabled) {
     
     // Initialize form listeners
     setTimeout(initVHostFormListeners, 100);
+    
+    // Load vhost settings including WAF configuration
+    loadVHostSettings(domain);
     
     // Load existing config from file once when modal opens
     setTimeout(() => {

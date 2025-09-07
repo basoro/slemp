@@ -16,13 +16,13 @@ restart:
 	docker-compose restart
 
 shell:
-	docker exec -it fullstack_slemp bash
+	docker exec -it slemp bash
 
 logs:
 	docker-compose logs -f
 
 supervisorctl:
-	docker exec -it fullstack_slemp supervisorctl $(filter-out $@,$(MAKECMDGOALS))
+	docker exec -it slemp supervisorctl $(filter-out $@,$(MAKECMDGOALS))
 
 # Usage:
 # make supervisorctl start nginx

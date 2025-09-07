@@ -16,16 +16,16 @@ RUN apt-get update && \
 
 # Setup Python virtual environment and install dependencies
 COPY requirements.txt /tmp/requirements.txt
-RUN python3 -m venv /opt/slemp-venv && \
-    /opt/slemp-venv/bin/pip install --upgrade pip && \
-    /opt/slemp-venv/bin/pip install -r /tmp/requirements.txt
+RUN python3 -m venv /opt/venv && \
+    /opt/venv/bin/pip install --upgrade pip && \
+    /opt/venv/bin/pip install -r /tmp/requirements.txt
 
 # Buat supervisord.conf langsung di Dockerfile
 RUN echo "[supervisord]\n\
 nodaemon=true\n\
 \n\
 [program:slemp]\n\
-command=/opt/slemp-venv/bin/gunicorn app:app --chdir /opt/slemp --bind 0.0.0.0:7777 --worker-class eventlet --workers 1 --timeout 300\n\
+command=/opt/venv/bin/gunicorn app:app --chdir /opt/slemp/panel --bind 0.0.0.0:7777 --worker-class eventlet --workers 1 --timeout 300\n\
 autostart=true\n\
 autorestart=true" \
 > /etc/supervisor/conf.d/supervisord.conf
