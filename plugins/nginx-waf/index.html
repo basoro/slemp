@@ -1052,8 +1052,29 @@
         // Clear logs
         function clearLogs() {
             if (confirm('Are you sure you want to clear all attack logs?')) {
-                // This would require implementing a clear logs endpoint
-                alert('Log clearing functionality will be implemented in future version');
+                const formData = new FormData();
+                formData.append('action', 'clear-attack-data');
+                
+                fetch('/api/plugins/nginx-waf/clear-attack-data', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Attack logs cleared successfully!');
+                        // Refresh the attack map and statistics
+                        loadAttackData();
+                        loadStatistics();
+                        clearAttackArrows();
+                    } else {
+                        alert('Error clearing logs: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error clearing logs: ' + error.message);
+                });
             }
         }
         

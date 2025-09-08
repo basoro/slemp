@@ -1283,6 +1283,46 @@ def get_waf_statistics():
             logger.error(error_msg)
         return {'success': False, 'error': error_msg}
 
+def clear_attack_data():
+    """Clear all attack data from attack_map.db"""
+    try:
+        import sqlite3
+        plugin_dir = os.path.dirname(os.path.abspath(__file__))
+        db_path = os.path.join(plugin_dir, "data", "attack_map.db")
+        
+        if os.path.exists(db_path):
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Delete all records from attacks table
+            cursor.execute('DELETE FROM attacks')
+            
+            # Reset auto-increment counter
+            cursor.execute('DELETE FROM sqlite_sequence WHERE name="attacks"')
+            
+            conn.commit()
+            conn.close()
+            
+            if logger:
+                logger.info("Attack data cleared successfully")
+            
+            return {
+                'success': True,
+                'message': 'All attack data has been cleared successfully'
+            }
+        else:
+            return {
+                'success': True,
+                'message': 'No attack database found to clear'
+            }
+    except Exception as e:
+        if logger:
+            logger.error(f"Error clearing attack data: {e}")
+        return {
+            'success': False,
+            'error': str(e)
+        }
+
 def export_waf_config():
     """Export WAF configuration to JSON format"""
     try:
@@ -1897,6 +1937,19 @@ def main():
                 return jsonify({
                     'success': False,
                     'error': 'Failed to get attack arrows data',
+                    'details': str(e) if hasattr(e, '__str__') else 'Unknown error'
+                })
+        
+        elif action == 'clear-attack-data':
+            try:
+                result = clear_attack_data()
+                return jsonify(result)
+            except Exception as e:
+                if logger:
+                    logger.error(f'Error clearing attack data: {e}')
+                return jsonify({
+                    'success': False,
+                    'error': 'Failed to clear attack data',
                     'details': str(e) if hasattr(e, '__str__') else 'Unknown error'
                 })
         
