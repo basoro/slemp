@@ -13,6 +13,7 @@ apt-get clean && rm -rf /var/lib/apt/lists/*
 echo "===> Download panel.zip..."
 wget https://github.com/basoro/slemp/archive/refs/heads/sabrina.zip  -O ~/slemp.zip
 unzip ~/slemp.zip -d ~/slemp
+mkdir /opt/slemp
 mv ~/slemp/slemp-sabrina /opt/slemp/panel
 mkdir /opt/slemp/www
 mkdir /opt/slemp/mysql
