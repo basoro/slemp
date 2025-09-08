@@ -31,55 +31,63 @@ except ImportError:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class LogFileHandler(FileSystemEventHandler):
-    """Handler for log file changes"""
-    
-    def __init__(self, log_file_path, callback):
-        super().__init__()
-        self.log_file_path = log_file_path
-        self.callback = callback
-        self.last_position = 0
+if WATCHDOG_AVAILABLE:
+    class LogFileHandler(FileSystemEventHandler):
+        """Handler for log file changes"""
         
-        # Get initial file size
-        if os.path.exists(log_file_path):
-            self.last_position = os.path.getsize(log_file_path)
-    
-    def on_modified(self, event):
-        """Called when log file is modified"""
-        if event.is_directory:
-            return
+        def __init__(self, log_file_path, callback):
+            super().__init__()
+            self.log_file_path = log_file_path
+            self.callback = callback
+else:
+    class LogFileHandler:
+        """Dummy handler when watchdog is not available"""
+        
+        def __init__(self, log_file_path, callback):
+            self.log_file_path = log_file_path
+            self.callback = callback
+            self.last_position = 0
             
-        if event.src_path == self.log_file_path:
-            logger.info(f"Log file modified: {event.src_path}")
-            self.process_new_entries()
-    
-    def process_new_entries(self):
-        """Process new log entries since last check"""
-        try:
-            if not os.path.exists(self.log_file_path):
+            # Get initial file size
+            if os.path.exists(log_file_path):
+                self.last_position = os.path.getsize(log_file_path)
+        
+        def on_modified(self, event):
+            """Called when log file is modified"""
+            if event.is_directory:
                 return
                 
-            current_size = os.path.getsize(self.log_file_path)
-            
-            # Check if file was truncated (log rotation)
-            if current_size < self.last_position:
-                logger.info("Log file was rotated, resetting position")
-                self.last_position = 0
-            
-            # Read new content
-            if current_size > self.last_position:
-                with open(self.log_file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                    f.seek(self.last_position)
-                    new_content = f.read()
+            if event.src_path == self.log_file_path:
+                logger.info(f"Log file modified: {event.src_path}")
+                self.process_new_entries()
+        
+        def process_new_entries(self):
+            """Process new log entries since last check"""
+            try:
+                if not os.path.exists(self.log_file_path):
+                    return
                     
-                if new_content.strip():
-                    logger.info(f"Processing {len(new_content)} new bytes from log")
-                    self.callback(new_content)
+                current_size = os.path.getsize(self.log_file_path)
+                
+                # Check if file was truncated (log rotation)
+                if current_size < self.last_position:
+                    logger.info("Log file was rotated, resetting position")
+                    self.last_position = 0
+                
+                # Read new content
+                if current_size > self.last_position:
+                    with open(self.log_file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                        f.seek(self.last_position)
+                        new_content = f.read()
+                        
+                    if new_content.strip():
+                        logger.info(f"Processing {len(new_content)} new bytes from log")
+                        self.callback(new_content)
                     
                 self.last_position = current_size
                 
-        except Exception as e:
-            logger.error(f"Error processing new log entries: {e}")
+            except Exception as e:
+                logger.error(f"Error processing new log entries: {e}")
 
 class LogMonitor:
     """Real-time log file monitor"""

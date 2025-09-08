@@ -159,8 +159,9 @@ def install_modsecurity():
         run_command('cd /etc/nginx/modsec && mv coreruleset-3.3.4 owasp-crs')
         run_command('cd /etc/nginx/modsec && rm v3.3.4.tar.gz')
         
-        # Create main ModSecurity configuration
-        main_conf = '''# ModSecurity configuration
+        # Create main ModSecurity configuration using tee command
+        main_conf_cmd = '''sudo tee /etc/nginx/modsec/main.conf > /dev/null << 'EOF'
+# ModSecurity configuration
 SecRuleEngine On
 SecRequestBodyAccess On
 SecResponseBodyAccess Off
@@ -181,13 +182,12 @@ SecArgumentSeparator &
 SecCookieFormat 0
 SecUnicodeMapFile unicode.mapping 20127
 
-# Include OWASP Core Rule Set
-Include /etc/nginx/modsec/owasp-crs/crs-setup.conf
-Include /etc/nginx/modsec/owasp-crs/rules/*.conf
-'''
+# Include OWASP Core Rule Set from system location
+Include /usr/share/modsecurity-crs/crs-setup.conf.example
+Include /usr/share/modsecurity-crs/rules/*.conf
+EOF'''
         
-        with open('/etc/nginx/modsec/main.conf', 'w') as f:
-            f.write(main_conf)
+        run_command(main_conf_cmd)
         
         # Copy CRS setup file
         run_command('cp /etc/nginx/modsec/owasp-crs/crs-setup.conf.example /etc/nginx/modsec/owasp-crs/crs-setup.conf')
@@ -282,13 +282,20 @@ def check_modsecurity_status():
     try:
         # Check if ModSecurity library is installed
         lib_check = subprocess.run(['dpkg', '-l', 'libmodsecurity3t64'], capture_output=True, text=True)
+        if lib_check.returncode != 0:
+            # Try alternative package name
+            lib_check = subprocess.run(['dpkg', '-l', 'libmodsecurity3'], capture_output=True, text=True)
         library_installed = lib_check.returncode == 0
         
-        # Check if ModSecurity module is available
-        module_file_exists = os.path.exists('/usr/lib/nginx/modules/ngx_http_modsecurity_module.so')
+        # Check if ModSecurity module is available - look for actual installed files
+        module_file_exists = (os.path.exists('/usr/lib/nginx/modules/ngx_http_modsecurity_module.so') or 
+                             os.path.exists('/usr/share/nginx/modules/mod-http-modsecurity.conf') or
+                             os.path.exists('/usr/share/nginx/modules-available/mod-http-modsecurity.conf'))
         
         # Check if module is enabled in modules-enabled
-        modules_enabled = os.path.exists('/etc/nginx/modules-enabled/50-mod-http-modsecurity.conf')
+        modules_enabled = (os.path.exists('/etc/nginx/modules-enabled/50-mod-http-modsecurity.conf') or
+                          os.path.exists('/etc/nginx/modules-available/mod-http-modsecurity.conf') or
+                          os.path.exists('/usr/share/nginx/modules-available/mod-http-modsecurity.conf'))
         
         # Test nginx configuration to see if ModSecurity is actually loaded
         nginx_test = subprocess.run(['nginx', '-t'], capture_output=True, text=True)
@@ -297,11 +304,12 @@ def check_modsecurity_status():
         # Check if ModSecurity config exists
         config_exists = os.path.exists('/etc/nginx/modsec/main.conf')
         
-        # Check OWASP CRS
-        owasp_crs_exists = os.path.exists('/etc/nginx/modsec/owasp-crs')
+        # Check OWASP CRS - look in both locations
+        owasp_crs_exists = (os.path.exists('/etc/nginx/modsec/owasp-crs') or 
+                           os.path.exists('/usr/share/modsecurity-crs'))
         
-        # Consider installed if library, module file, and config all exist
-        installed = library_installed and module_file_exists and config_exists
+        # Consider installed if library and module file exist (config may not be set up yet)
+        installed = library_installed and module_file_exists
         
         return {
             'installed': installed,
@@ -366,8 +374,9 @@ def install_modsecurity():
         run_command('cd /etc/nginx/modsec && mv coreruleset-3.3.4 owasp-crs')
         run_command('cd /etc/nginx/modsec && rm v3.3.4.tar.gz')
         
-        # Create main ModSecurity configuration
-        main_conf = '''# ModSecurity configuration
+        # Create main ModSecurity configuration using tee command
+        main_conf_cmd = '''sudo tee /etc/nginx/modsec/main.conf > /dev/null << 'EOF'
+# ModSecurity configuration
 SecRuleEngine On
 SecRequestBodyAccess On
 SecResponseBodyAccess Off
@@ -388,13 +397,12 @@ SecArgumentSeparator &
 SecCookieFormat 0
 SecUnicodeMapFile unicode.mapping 20127
 
-# Include OWASP Core Rule Set
-Include /etc/nginx/modsec/owasp-crs/crs-setup.conf
-Include /etc/nginx/modsec/owasp-crs/rules/*.conf
-'''
+# Include OWASP Core Rule Set from system location
+Include /usr/share/modsecurity-crs/crs-setup.conf.example
+Include /usr/share/modsecurity-crs/rules/*.conf
+EOF'''
         
-        with open('/etc/nginx/modsec/main.conf', 'w') as f:
-            f.write(main_conf)
+        run_command(main_conf_cmd)
         
         # Copy CRS setup file
         run_command('cp /etc/nginx/modsec/owasp-crs/crs-setup.conf.example /etc/nginx/modsec/owasp-crs/crs-setup.conf')
@@ -463,28 +471,81 @@ def get_owasp_version_info():
         version = 'Unknown'
         last_update = 'Never'
         
-        version_file = '/etc/nginx/modsec/owasp-crs/CHANGES'
-        if os.path.exists(version_file):
+        # Check for version file in both locations
+        version_files = ['/etc/nginx/modsec/owasp-crs/CHANGES', '/usr/share/modsecurity-crs/CHANGES']
+        for version_file in version_files:
+            if os.path.exists(version_file):
+                try:
+                    with open(version_file, 'r') as f:
+                        content = f.read()
+                        # Extract version from first version entry
+                        version_match = re.search(r'== Version ([0-9.]+) - ([0-9-]+) ==', content)
+                        if version_match:
+                            version = version_match.group(1)
+                            last_update = version_match.group(2)
+                        
+                        # Get file modification time as fallback
+                        if last_update == 'Never':
+                            stat = os.stat(version_file)
+                            last_update = datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d')
+                        break  # Stop after finding first valid version file
+                except Exception:
+                    continue
+        
+        # If no version file found, try to get version from package info or directory timestamp
+        if version == 'Unknown':
             try:
-                with open(version_file, 'r') as f:
-                    content = f.read()
-                    # Extract version from first version entry
-                    version_match = re.search(r'== Version ([0-9.]+) - ([0-9-]+) ==', content)
-                    if version_match:
-                        version = version_match.group(1)
-                        last_update = version_match.group(2)
-                    
-                    # Get file modification time as fallback
-                    if last_update == 'Never':
-                        stat = os.stat(version_file)
-                        last_update = datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d')
+                # Try to get version from dpkg if available - check multiple package names
+                package_names = ['modsecurity-crs', 'libmodsecurity-crs', 'modsecurity-core-rule-set']
+                for pkg_name in package_names:
+                    try:
+                        result = subprocess.run(['dpkg', '-l', pkg_name], capture_output=True, text=True, check=False)
+                        if result.returncode == 0 and result.stdout:
+                            lines = result.stdout.split('\n')
+                            for line in lines:
+                                if line.startswith('ii') and pkg_name in line:
+                                    parts = line.split()
+                                    if len(parts) >= 3 and parts[1] == pkg_name:
+                                        version = parts[2]
+                                        # Get package install date or use current date
+                                        try:
+                                            # Try to get package install date
+                                            date_result = subprocess.run(['stat', '-c', '%Y', f'/var/lib/dpkg/info/{pkg_name}.list'], 
+                                                                       capture_output=True, text=True, check=False)
+                                            if date_result.returncode == 0 and date_result.stdout.strip():
+                                                timestamp = int(date_result.stdout.strip())
+                                                last_update = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
+                                            else:
+                                                last_update = datetime.now().strftime('%Y-%m-%d')
+                                        except Exception:
+                                            last_update = datetime.now().strftime('%Y-%m-%d')
+                                        break
+                            if version != 'Unknown':
+                                break
+                    except Exception as e:
+                        # If dpkg fails, continue to next package
+                        continue
+                
+                # Fallback: use directory modification time and set version
+                if last_update == 'Never':
+                    for rules_dir in ['/etc/nginx/modsec/owasp-crs/rules', '/usr/share/modsecurity-crs/rules']:
+                        if os.path.exists(rules_dir):
+                            stat = os.stat(rules_dir)
+                            last_update = datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d')
+                            if version == 'Unknown':
+                                version = 'System Package'
+                            break
             except Exception:
                 pass
+        
+        # Check if rules directory exists in either location
+        rules_active = (os.path.exists('/etc/nginx/modsec/owasp-crs/rules') or 
+                       os.path.exists('/usr/share/modsecurity-crs/rules'))
         
         return {
             'version': version,
             'last_update': last_update,
-            'status': 'Active' if os.path.exists('/etc/nginx/modsec/owasp-crs/rules') else 'Inactive'
+            'status': 'Active' if rules_active else 'Inactive'
         }
     except Exception as e:
         return {
@@ -499,24 +560,30 @@ def get_waf_rules():
     try:
         rules = []
         
-        # Get OWASP CRS rules
-        rules_dir = '/etc/nginx/modsec/owasp-crs/rules'
-        if os.path.exists(rules_dir):
-            for filename in os.listdir(rules_dir):
-                if filename.endswith('.conf'):
-                    filepath = os.path.join(rules_dir, filename)
-                    with open(filepath, 'r') as f:
-                        content = f.read()
-                        # Extract rule information
-                        rule_matches = re.findall(r'SecRule\s+([^"]+)\s+"([^"]+)"\s+"([^"]+)"', content)
-                        for match in rule_matches:
-                            rules.append({
-                                'file': filename,
-                                'type': 'OWASP CRS',
-                                'variable': match[0].strip(),
-                                'operator': match[1].strip(),
-                                'actions': match[2].strip()
-                            })
+        # Get OWASP CRS rules - check both locations
+        rules_dirs = ['/etc/nginx/modsec/owasp-crs/rules', '/usr/share/modsecurity-crs/rules']
+        for rules_dir in rules_dirs:
+            if os.path.exists(rules_dir):
+                for filename in os.listdir(rules_dir):
+                    if filename.endswith('.conf'):
+                        filepath = os.path.join(rules_dir, filename)
+                        try:
+                            with open(filepath, 'r') as f:
+                                content = f.read()
+                                # Extract rule information
+                                rule_matches = re.findall(r'SecRule\s+([^"]+)\s+"([^"]+)"\s+"([^"]+)"', content)
+                                for match in rule_matches:
+                                    rules.append({
+                                        'file': filename,
+                                        'type': 'OWASP CRS',
+                                        'variable': match[0].strip(),
+                                        'operator': match[1].strip(),
+                                        'actions': match[2].strip()
+                                    })
+                        except Exception as e:
+                            # Skip files that can't be read
+                            continue
+                break  # Only process the first directory that exists
         
         # Get custom rules
         plugin_dir = os.path.dirname(os.path.abspath(__file__))
