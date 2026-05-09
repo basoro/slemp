@@ -2388,7 +2388,7 @@ location ^~ {from} {\n\
             else:
                 pre_path = self.setupPath + "/php/conf"
                 re_path = "include\s+" + pre_path + "/enable-php-"
-                rconf = '''#SECURITY-START Anti-leech configuration
+                rconf = r'''#SECURITY-START Anti-leech configuration
     location ~ .*\.(%s)$
     {
         expires      30d;
@@ -2428,7 +2428,7 @@ location ^~ {from} {\n\
             os.makedirs(conf_dir)
         conf_list = os.listdir(conf_dir)
         l = len(conf_list)
-        rep = "enable-php-(.*?)\.conf"
+        rep = r"enable-php-(.*?)\.conf"
         for name in conf_list:
             tmp = {}
             try:
@@ -2482,14 +2482,14 @@ location ^~ {from} {\n\
         if not conf:
             return
 
-        rep = "server_name\s*(.*);"
+        rep = r"server_name\s*(.*);"
         tmp = re.search(rep, conf).group()
         domains = tmp.split(' ')
         if not slemp.inArray(domains, domain):
             newServerName = tmp.replace(';', ' ' + domain + ';')
             conf = conf.replace(tmp, newServerName)
 
-        rep = "listen\s+([0-9]+)\s*[default_server]*\s*;"
+        rep = r"listen\s+([0-9]+)\s*[default_server]*\s*;"
         tmp = re.findall(rep, conf)
         if not slemp.inArray(tmp, port):
             listen = re.search(rep, conf).group()
@@ -2662,7 +2662,7 @@ location ^~ {from} {\n\
 
             conf = conf.replace('#error_page 404/404.html;', sslStr)
 
-            rep = "listen\s+([0-9]+)\s*[default_server]*;"
+            rep = r"listen\s+([0-9]+)\s*[default_server]*;"
             tmp = re.findall(rep, conf)
             if not slemp.inArray(tmp, '443'):
                 listen = re.search(rep, conf).group()
