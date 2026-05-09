@@ -227,7 +227,7 @@ def isInstalledWeb():
 
 def isIpAddr(ip):
     check_ip = re.compile(
-        '^(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|[1-9])\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)$')
+        r'^(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|[1-9])\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)$')
     if check_ip.match(ip):
         return True
     else:
@@ -948,10 +948,10 @@ def getLocalIpBack():
             url = 'http://pv.sohu.com/cityjson?ie=utf-8'
             req = urllib.request.urlopen(url, timeout=10)
             content = req.read().decode('utf-8')
-            ipaddress = re.search('\d+.\d+.\d+.\d+', content).group(0)
+            ipaddress = re.search(r'\d+.\d+.\d+.\d+', content).group(0)
             writeFile(filename, ipaddress)
 
-        ipaddress = re.search('\d+.\d+.\d+.\d+', ipaddress).group(0)
+        ipaddress = re.search(r'\d+.\d+.\d+.\d+', ipaddress).group(0)
         return ipaddress
     except Exception as ex:
         # print(ex)
@@ -1029,7 +1029,7 @@ def strfToTime(sdate):
 def checkIp(ip):
     import re
     p = re.compile(
-        '^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$')
+        r'^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$')
     if p.match(ip):
         return True
     else:
@@ -1155,13 +1155,13 @@ def getCpuType():
         return cpuinfo[0].strip()
 
     cpuinfo = open('/proc/cpuinfo', 'r').read()
-    rep = "model\s+name\s+:\s+(.+)"
+    rep = r"model\s+name\s+:\s+(.+)"
     tmp = re.search(rep, cpuinfo, re.I)
     if tmp:
         cpuType = tmp.groups()[0]
     else:
         cpuinfo = execShell('LANG="en_US.UTF-8" && lscpu')[0]
-        rep = "Model\s+name:\s+(.+)"
+        rep = r"Model\s+name:\s+(.+)"
         tmp = re.search(rep, cpuinfo, re.I)
         if tmp:
             cpuType = tmp.groups()[0]
@@ -1516,7 +1516,7 @@ def getSSHPort():
     try:
         file = '/etc/ssh/sshd_config'
         conf = readFile(file)
-        rep = "(#*)?Port\s+([0-9]+)\s*\n"
+        rep = r"(#*)?Port\s+([0-9]+)\s*\n"
         port = re.search(rep, conf).groups(0)[1]
         return int(port)
     except:

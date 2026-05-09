@@ -36,7 +36,7 @@ class firewall_api:
         port = request.form.get('port', '').strip()
         ps = request.form.get('ps', '').strip()
 
-        rep = "^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(\/\d{1,2})?$"
+        rep = r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(\/\d{1,2})?$"
         if not re.search(rep, port):
             return slemp.returnJson(False, 'The IP address you entered is invalid!')
         address = port
@@ -80,7 +80,7 @@ class firewall_api:
         if not self.getFwStatus():
             self.setFw(0)
 
-        rep = "^\d{1,5}(:\d{1,5})?$"
+        rep = r"^\d{1,5}(:\d{1,5})?$"
         if not re.search(rep, port):
             return slemp.returnData(False, 'Incorrect port range!')
 
@@ -168,7 +168,7 @@ class firewall_api:
 
         file = '/etc/ssh/sshd_config'
         conf = slemp.readFile(file)
-        rep = "#*Port\s+([0-9]+)\s*\n"
+        rep = r"#*Port\s+([0-9]+)\s*\n"
         port = re.search(rep, conf).groups(0)[0]
 
         isPing = True
@@ -178,7 +178,7 @@ class firewall_api:
             else:
                 file = '/etc/sysctl.conf'
                 sys_conf = slemp.readFile(file)
-                rep = "#*net\.ipv4\.icmp_echo_ignore_all\s*=\s*([0-9]+)"
+                rep = r"#*net\.ipv4\.icmp_echo_ignore_all\s*=\s*([0-9]+)"
                 tmp = re.search(rep, sys_conf).groups(0)[0]
                 if tmp == '1':
                     isPing = False
@@ -197,13 +197,13 @@ class firewall_api:
             status = False
 
         data['pass_prohibit_status'] = False
-        pass_rep = "#PasswordAuthentication\s+(\w*)\s*\n"
+        pass_rep = r"#PasswordAuthentication\s+(\w*)\s*\n"
         pass_status = re.search(pass_rep, conf)
         if pass_status:
             data['pass_prohibit_status'] = True
 
         if not data['pass_prohibit_status']:
-            pass_rep = "PasswordAuthentication\s+(\w*)\s*\n"
+            pass_rep = r"PasswordAuthentication\s+(\w*)\s*\n"
             pass_status = re.search(pass_rep, conf)
             if pass_status and pass_status.groups(0)[0].strip() == 'no':
                 data['pass_prohibit_status'] = True
@@ -229,7 +229,7 @@ class firewall_api:
         file = '/etc/ssh/sshd_config'
         conf = slemp.readFile(file)
 
-        rep = "#*Port\s+([0-9]+)\s*\n"
+        rep = r"#*Port\s+([0-9]+)\s*\n"
         conf = re.sub(rep, "Port " + port + "\n", conf)
         slemp.writeFile(file, conf)
 
@@ -283,10 +283,10 @@ class firewall_api:
         conf = slemp.readFile(file)
 
         if status == '1':
-            rep = "(#)?PasswordAuthentication\s+(\w*)\s*\n"
+            rep = r"(#)?PasswordAuthentication\s+(\w*)\s*\n"
             conf = re.sub(rep, "PasswordAuthentication yes\n", conf)
         else:
-            rep = "(#)?PasswordAuthentication\s+(\w*)\s*\n"
+            rep = r"(#)?PasswordAuthentication\s+(\w*)\s*\n"
             conf = re.sub(rep, "PasswordAuthentication no\n", conf)
         slemp.writeFile(file, conf)
         slemp.execShell("systemctl restart sshd.service")
@@ -301,7 +301,7 @@ class firewall_api:
         filename = '/etc/sysctl.conf'
         conf = slemp.readFile(filename)
         if conf.find('net.ipv4.icmp_echo') != -1:
-            rep = u"net\.ipv4\.icmp_echo.*"
+            rep = r"net\.ipv4\.icmp_echo.*"
             conf = re.sub(rep, 'net.ipv4.icmp_echo_ignore_all=' + status, conf)
         else:
             conf += "\nnet.ipv4.icmp_echo_ignore_all=" + status

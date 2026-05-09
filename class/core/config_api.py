@@ -206,7 +206,7 @@ class config_api:
         backup_path = request.form.get('backup_path', '')
 
         if domain != '':
-            reg = "^([\w\-\*]{1,100}\.){1,4}(\w{1,10}|\w{1,10}\.\w{1,10})$"
+            reg = r"^([\w\-\*]{1,100}\.){1,4}(\w{1,10}|\w{1,10}\.\w{1,10})$"
             if not re.match(reg, domain):
                 return slemp.returnJson(False, 'Format nama domain utama salah')
 
@@ -268,7 +268,7 @@ class config_api:
                 return slemp.returnJson(False, 'Panjang alamat login tidak boleh kurang dari 6 karakter!')
             if admin_path in admin_path_checks:
                 return slemp.returnJson(False, 'Path login sudah digunakan oleh panel, silakan gunakan alamat login yang lain!')
-            if not re.match("^/[\w\./-_]+$", admin_path):
+            if not re.match(r"^/[\w\./-_]+$", admin_path):
                 return slemp.returnJson(False, 'Format alamat login salah, contoh: /random_string')
 
         admin_path_file = 'data/admin_path.pl'
@@ -397,9 +397,9 @@ class config_api:
         else:
             conf = slemp.readFile(panel_ssl)
             if conf:
-                rep = "\n\s*#HTTP_TO_HTTPS_START(.|\n){1,300}#HTTP_TO_HTTPS_END"
+                rep = r"\n\s*#HTTP_TO_HTTPS_START(.|\n){1,300}#HTTP_TO_HTTPS_END"
                 conf = re.sub(rep, '', conf)
-                rep = "\s+if.+server_port.+\n.+\n\s+\s*}"
+                rep = r"\s+if.+server_port.+\n.+\n\s+\s*}"
                 conf = re.sub(rep, '', conf)
                 slemp.writeFile(panel_ssl, conf)
 
@@ -534,35 +534,35 @@ class config_api:
 
             conf = slemp.readFile(dst_panel_path)
             if conf:
-                rep = "\s+ssl_certificate\s+.+;\s+ssl_certificate_key\s+.+;"
+                rep = r"\s+ssl_certificate\s+.+;\s+ssl_certificate_key\s+.+;"
                 conf = re.sub(rep, '', conf)
-                rep = "\s+ssl_protocols\s+.+;\n"
+                rep = r"\s+ssl_protocols\s+.+;\n"
                 conf = re.sub(rep, '', conf)
-                rep = "\s+ssl_ciphers\s+.+;\n"
+                rep = r"\s+ssl_ciphers\s+.+;\n"
                 conf = re.sub(rep, '', conf)
-                rep = "\s+ssl_prefer_server_ciphers\s+.+;\n"
+                rep = r"\s+ssl_prefer_server_ciphers\s+.+;\n"
                 conf = re.sub(rep, '', conf)
-                rep = "\s+ssl_session_cache\s+.+;\n"
+                rep = r"\s+ssl_session_cache\s+.+;\n"
                 conf = re.sub(rep, '', conf)
-                rep = "\s+ssl_session_timeout\s+.+;\n"
+                rep = r"\s+ssl_session_timeout\s+.+;\n"
                 conf = re.sub(rep, '', conf)
-                rep = "\s+ssl_ecdh_curve\s+.+;\n"
+                rep = r"\s+ssl_ecdh_curve\s+.+;\n"
                 conf = re.sub(rep, '', conf)
-                rep = "\s+ssl_session_tickets\s+.+;\n"
+                rep = r"\s+ssl_session_tickets\s+.+;\n"
                 conf = re.sub(rep, '', conf)
-                rep = "\s+ssl_stapling\s+.+;\n"
+                rep = r"\s+ssl_stapling\s+.+;\n"
                 conf = re.sub(rep, '', conf)
-                rep = "\s+ssl_stapling_verify\s+.+;\n"
+                rep = r"\s+ssl_stapling_verify\s+.+;\n"
                 conf = re.sub(rep, '', conf)
-                rep = "\s+ssl\s+on;"
+                rep = r"\s+ssl\s+on;"
                 conf = re.sub(rep, '', conf)
-                rep = "\s+error_page\s497.+;"
+                rep = r"\s+error_page\s497.+;"
                 conf = re.sub(rep, '', conf)
-                rep = "\s+if.+server_port.+\n.+\n\s+\s*}"
+                rep = r"\s+if.+server_port.+\n.+\n\s+\s*}"
                 conf = re.sub(rep, '', conf)
-                rep = "\s+listen\s+443.*;"
+                rep = r"\s+listen\s+443.*;"
                 conf = re.sub(rep, '', conf)
-                rep = "\s+listen\s+\[\:\:\]\:443.*;"
+                rep = r"\s+listen\s+\[\:\:\]\:443.*;"
                 conf = re.sub(rep, '', conf)
                 slemp.writeFile(dst_panel_path, conf)
 
@@ -595,7 +595,7 @@ class config_api:
 
                     conf = conf.replace('#error_page 404/404.html;', sslStr)
 
-                    rep = "listen\s+([0-9]+)\s*[default_server]*;"
+                    rep = r"listen\s+([0-9]+)\s*[default_server]*;"
                     tmp = re.findall(rep, conf)
                     if not slemp.inArray(tmp, '443'):
                         listen = re.search(rep, conf).group()
@@ -709,7 +709,7 @@ class config_api:
 
     def setStatusCodeApi(self):
         status_code = request.form.get('status_code', '').strip()
-        if re.match("^\d+$", status_code):
+        if re.match(r"^\d+$", status_code):
             status_code = int(status_code)
             if status_code != 0:
                 if status_code < 100 or status_code > 999:
