@@ -935,8 +935,8 @@ def installPreInspection(version):
     sys = slemp.execShell(
         "cat /etc/*-release | grep PRETTY_NAME |awk -F = '{print $2}' | awk -F '\"' '{print $2}'| awk '{print $1}'")
 
-    if sys[1] != '':
-        return 'Does not support changing the system'
+    if sys[0].strip() == '':
+        return 'Unable to detect system version'
 
     sys_id = slemp.execShell(
         "cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F '\"' '{print $2}'")
