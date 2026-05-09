@@ -3,7 +3,13 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 # LANG=en_US.UTF-8
 is64bit=`getconf LONG_BIT`
-PANEL_DIR=$(cd "$(dirname "$0")/../"; pwd)
+# Set PANEL_DIR to the directory where the script is located (repo root)
+# If running from a standalone script, it will default to the current directory or a fixed path
+if [ -f "$(dirname "$0")/../cli.sh" ]; then
+    PANEL_DIR=$(cd "$(dirname "$0")/../"; pwd)
+else
+    PANEL_DIR="/opt/slemp/server/panel"
+fi
 DEV=$(dirname "$PANEL_DIR")
 
 {
@@ -45,12 +51,12 @@ elif grep -Eqi "AlmaLinux" /etc/issue || grep -Eqi "AlmaLinux" /etc/*-release; t
 elif grep -Eqi "Amazon Linux" /etc/issue || grep -Eqi "Amazon Linux" /etc/*-release; then
 	OSNAME='amazon'
 	yum install -y wget curl zip unzip tar crontabs
-elif grep -Eqi "Debian" /etc/issue || grep -Eqi "Debian" /etc/os-release; then
-	OSNAME='debian'
-	apt update -y
-	apt install -y wget curl zip unzip tar cron
 elif grep -Eqi "Ubuntu" /etc/issue || grep -Eqi "Ubuntu" /etc/os-release; then
 	OSNAME='ubuntu'
+	apt update -y
+	apt install -y wget curl zip unzip tar cron
+elif grep -Eqi "Debian" /etc/issue || grep -Eqi "Debian" /etc/os-release; then
+	OSNAME='debian'
 	apt update -y
 	apt install -y wget curl zip unzip tar cron
 else
@@ -73,12 +79,14 @@ if [ $OSNAME != "macos" ];then
 	mkdir -p $DEV/backup/site
 
 	if [ ! -d $PANEL_DIR ];then
+		echo "Downloading SLEMP Panel..."
 		curl --insecure -sSLo /tmp/master.zip https://codeload.github.com/basoro/slemp/zip/master
-
-		cd /tmp && unzip /tmp/master.zip
-		mv -f /tmp/slemp-master $PANEL_DIR
-		rm -rf /tmp/master.zip
-		rm -rf /tmp/slemp-master
+		(
+			cd /tmp
+			unzip -q master.zip
+			mv -f slemp-master "$PANEL_DIR"
+			rm -rf master.zip
+		)
 	fi
 
 	# install acme.sh
@@ -86,9 +94,7 @@ if [ $OSNAME != "macos" ];then
 	    if [ ! -z "$cn" ];then
 	        curl --insecure -sSL -o /tmp/acme.tar.gz https://ghproxy.com/github.com/acmesh-official/acme.sh/archive/master.tar.gz
 	        tar xvzf /tmp/acme.tar.gz -C /tmp
-	        cd /tmp/acme.sh-master
-	        bash acme.sh install
-	        cd -
+	        (cd /tmp/acme.sh-master && bash acme.sh install)
 	    fi
 
 	    if [ ! -d /root/.acme.sh ];then
