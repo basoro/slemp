@@ -18,7 +18,7 @@ if ! command -v brew &> /dev/null; then
 	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
-brew install libzip bzip2 gcc openssl re2c cmake
+brew install libzip bzip2 gcc openssl re2c cmake wget
 
 if [ ! -d $DEV/server/lib ]; then
 	cd $PANEL_DIR/scripts && bash lib.sh

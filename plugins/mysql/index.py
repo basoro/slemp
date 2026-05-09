@@ -532,7 +532,7 @@ def my8cmd(version, method):
     try:
         if version == '5.7':
             isInited = initMysql57Data()
-        elif version == '8.0':
+        elif version == '8.0' or version == '8.4' or version == '9.7':
             isInited = initMysql8Data()
 
         if not isInited:
@@ -574,7 +574,7 @@ def my8cmd(version, method):
 
 def appCMD(version, action):
     makeInitRsaKey(version)
-    if version == '8.0' or version == '5.7':
+    if version == '8.0' or version == '8.4' or version == '9.7' or version == '5.7':
         status = my8cmd(version, action)
     else:
         status = myOp(version, action)
@@ -746,7 +746,7 @@ def myDbStatus(version):
     gets = ['table_open_cache', 'thread_cache_size', 'key_buffer_size', 'tmp_table_size', 'max_heap_table_size', 'innodb_buffer_pool_size',
             'innodb_additional_mem_pool_size', 'innodb_log_buffer_size', 'max_connections', 'sort_buffer_size', 'read_buffer_size', 'read_rnd_buffer_size', 'join_buffer_size', 'thread_stack', 'binlog_cache_size']
 
-    if version != "8.0":
+    if version != "8.0" and version != "8.4" and version != "9.7":
         gets.append('query_cache_size')
 
     result['mem'] = {}
@@ -763,7 +763,7 @@ def setDbStatus(version):
     gets = ['key_buffer_size', 'tmp_table_size', 'max_heap_table_size', 'innodb_buffer_pool_size', 'innodb_log_buffer_size', 'max_connections',
             'table_open_cache', 'thread_cache_size', 'sort_buffer_size', 'read_buffer_size', 'read_rnd_buffer_size', 'join_buffer_size', 'thread_stack', 'binlog_cache_size']
 
-    if version != "8.0":
+    if version != "8.0" and version != "8.4" and version != "9.7":
         # gets.append('query_cache_size')
         gets = ['key_buffer_size', 'query_cache_size', 'tmp_table_size', 'max_heap_table_size', 'innodb_buffer_pool_size', 'innodb_log_buffer_size', 'max_connections',
                 'table_open_cache', 'thread_cache_size', 'sort_buffer_size', 'read_buffer_size', 'read_rnd_buffer_size', 'join_buffer_size', 'thread_stack', 'binlog_cache_size']
@@ -1220,7 +1220,7 @@ def setRootPwd(version=''):
         if isError != None:
             return isError
 
-        if version.find('5.7') > -1 or version.find('8.0') > -1:
+        if version.find('5.7') > -1 or version.find('8.0') > -1 or version.find('8.4') > -1 or version.find('9.7') > -1:
             pdb.execute(
                 "UPDATE mysql.user SET authentication_string='' WHERE user='root'")
             pdb.execute(
@@ -1251,7 +1251,7 @@ def setUserPwd(version=''):
         psdb = pSqliteDb('databases')
         name = psdb.where('id=?', (uid,)).getField('name')
 
-        if version.find('5.7') > -1 or version.find('8.0') > -1:
+        if version.find('5.7') > -1 or version.find('8.0') > -1 or version.find('8.4') > -1 or version.find('9.7') > -1:
             accept = pdb.query(
                 "select Host from mysql.user where User='" + name + "' AND Host!='localhost'")
             t1 = pdb.execute(
@@ -1996,7 +1996,7 @@ def addMasterRepSlaveUser(version=''):
     if psdb.where("username=?", (username)).count() > 0:
         return slemp.returnJson(False, 'User already exists!')
 
-    if version == "8.0":
+    if version == "8.0" or version == "8.4" or version == "9.7":
         sql = "CREATE USER '" + username + \
             "'  IDENTIFIED WITH mysql_native_password BY '" + password + "';"
         pdb.execute(sql)
@@ -2063,7 +2063,7 @@ def getMasterRepSlaveUserCmd(version):
         sql = "CHANGE MASTER TO MASTER_HOST='" + ip + "', MASTER_PORT=" + port + ", MASTER_USER='" + \
             clist[0]['username'] + "', MASTER_PASSWORD='" + \
             clist[0]['password'] + "', MASTER_AUTO_POSITION=1" + channel_name
-        if version == '8.0':
+        if version == '8.0' or version == '8.4' or version == '9.7':
             sql = "CHANGE REPLICATION SOURCE TO SOURCE_HOST='" + ip + "', SOURCE_PORT=" + port + ", SOURCE_USER='" + \
                 clist[0]['username']  + "', SOURCE_PASSWORD='" + \
                 clist[0]['password'] + \
@@ -2075,7 +2075,7 @@ def getMasterRepSlaveUserCmd(version):
             "', MASTER_LOG_FILE='" + mstatus[0]["File"] + \
             "',MASTER_LOG_POS=" + str(mstatus[0]["Position"]) + channel_name
 
-        if version == "8.0":
+        if version == "8.0" or version == "8.4" or version == "9.7":
             sql = "CHANGE REPLICATION SOURCE TO SOURCE_HOST='" + ip + "', SOURCE_PORT=" + port + ", SOURCE_USER='" + \
                 clist[0]['username']  + "', SOURCE_PASSWORD='" + \
                 clist[0]['password'] + \
@@ -2395,7 +2395,7 @@ def makeSyncUsercmd(u, version=''):
         sql = "CHANGE MASTER TO MASTER_HOST='" + ip + "', MASTER_PORT=" + port + ", MASTER_USER='" + \
             username + "', MASTER_PASSWORD='" + \
             password + "', MASTER_AUTO_POSITION=1"
-        if version == '8.0':
+        if version == '8.0' or version == '8.4' or version == '9.7':
             sql = "CHANGE REPLICATION SOURCE TO SOURCE_HOST='" + ip  + "', SOURCE_PORT=" + port + ", SOURCE_USER='" + \
                 username  + "', SOURCE_PASSWORD='" + \
                 password + "', MASTER_AUTO_POSITION=1"
@@ -2695,7 +2695,7 @@ def doFullSyncUser(version=''):
             ' ' + sync_db_import + ' < ' + bak_file
         slemp.execShell(my_import_cmd)
 
-    if version == '8.0':
+    if version == '8.0' or version == '8.4' or version == '9.7':
         db.query("start slave user='{}' password='{}';".format(user, apass))
     else:
         db.query("start slave")

@@ -7,7 +7,7 @@ export PATH
 DIR=$(cd "$(dirname "$0")"; pwd)
 rootPath=$(dirname "$DIR")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server/server
+serverPath=$(dirname "$rootPath")/server
 sourceLibPath=$serverPath/source/lib
 
 action=$1
