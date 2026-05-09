@@ -2,9 +2,8 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
 export PATH
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
+script_dir=$(cd "$(dirname "$0")" && pwd)
+rootPath=$(dirname "$(dirname "$script_dir")")
 serverPath=$(dirname "$rootPath")/server
 
 install_tmp=${rootPath}/tmp/slemp_install.pl
@@ -26,7 +25,7 @@ if [ "${2}" == "" ];then
 	exit 0
 fi
 
-if [ ! -d $curPath/versions/$2 ];then
+if [ ! -d $script_dir/versions/$2 ];then
 	echo 'Missing installation script 2...' > $install_tmp
 	exit 0
 fi
@@ -47,7 +46,7 @@ if [ "${action}" == "uninstall" ];then
 	fi
 fi
 
-cd ${curPath} && sh -x $curPath/versions/$2/install.sh $1
+cd ${script_dir} && sh -x $script_dir/versions/$2/install.sh $1
 
 if [ "${action}" == "install" ] && [ -d ${serverPath}/php/${type} ];then
 

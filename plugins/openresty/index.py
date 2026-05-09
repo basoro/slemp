@@ -128,6 +128,9 @@ def confReplace():
     else:
         content = content.replace('{$EVENT_MODEL}', 'epoll')
 
+    if slemp.getOs() == 'darwin':
+        content = content.replace('user  {$OS_USER} {$OS_USER_GROUP};', '#user  {$OS_USER} {$OS_USER_GROUP};')
+
     content = content.replace('{$OS_USER}', user)
     content = content.replace('{$OS_USER_GROUP}', user_group)
 
@@ -305,7 +308,7 @@ def reload():
 def initdStatus():
 
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     shell_cmd = 'systemctl status openresty | grep loaded | grep "enabled;"'
     data = slemp.execShell(shell_cmd)
@@ -316,7 +319,7 @@ def initdStatus():
 
 def initdInstall():
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     slemp.execShell('systemctl enable openresty')
     return 'ok'
@@ -324,7 +327,7 @@ def initdInstall():
 
 def initdUinstall():
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     slemp.execShell('systemctl disable openresty')
     return 'ok'

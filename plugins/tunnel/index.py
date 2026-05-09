@@ -22,7 +22,7 @@ def getServerDir():
 
 def initdStatus():
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     shell_cmd = 'systemctl status tunnel | grep loaded | grep "enabled;"'
     data = slemp.execShell(shell_cmd)
@@ -33,7 +33,7 @@ def initdStatus():
 
 def initdInstall():
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     slemp.execShell('systemctl enable tunnel')
     return 'ok'
@@ -41,7 +41,7 @@ def initdInstall():
 
 def initdUinstall():
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     slemp.execShell('systemctl disable tunnel')
     return 'ok'

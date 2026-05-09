@@ -10,8 +10,8 @@ rootPath=$(dirname "$rootPath")
 opensslVersion="1.1.1p"
 # echo $rootPath
 
-SERVER_ROOT=$rootPath/lib
-SOURCE_ROOT=$rootPath/source/lib
+SERVER_ROOT=$rootPath/server/lib
+SOURCE_ROOT=$rootPath/server/source/lib
 mkdir -p $SOURCE_ROOT
 
 if [ ! -d ${SERVER_ROOT}/openssl11 ];then

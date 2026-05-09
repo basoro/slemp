@@ -10,8 +10,8 @@ rootPath=$(dirname "$rootPath")
 
 # echo $rootPath
 
-SERVER_ROOT=$rootPath/lib
-SOURCE_ROOT=$rootPath/source/lib
+SERVER_ROOT=$rootPath/server/lib
+SOURCE_ROOT=$rootPath/server/source/lib
 
 if [ ! -d ${SERVER_ROOT}/freetype_old ];then
     cd $SOURCE_ROOT

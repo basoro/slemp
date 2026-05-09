@@ -480,7 +480,7 @@ def reload(version=''):
 
 def initdStatus():
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     shell_cmd = 'systemctl status mariadb | grep loaded | grep "enabled;"'
     data = slemp.execShell(shell_cmd)
@@ -491,7 +491,7 @@ def initdStatus():
 
 def initdInstall():
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     slemp.execShell('systemctl enable mariadb')
     return 'ok'
@@ -499,7 +499,7 @@ def initdInstall():
 
 def initdUinstall():
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     slemp.execShell('systemctl disable mariadb')
     return 'ok'

@@ -334,7 +334,7 @@ def reload(version):
 
 def initdStatus(version):
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     shell_cmd = 'systemctl status php' + version + ' | grep loaded | grep "enabled;"'
     data = slemp.execShell(shell_cmd)
@@ -345,7 +345,7 @@ def initdStatus(version):
 
 def initdInstall(version):
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     slemp.execShell('systemctl enable php' + version)
     return 'ok'
@@ -353,7 +353,7 @@ def initdInstall(version):
 
 def initdUinstall(version):
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     slemp.execShell('systemctl disable php' + version)
     return 'ok'

@@ -599,7 +599,7 @@ def reload(version=''):
 
 def initdStatus():
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     shell_cmd = 'systemctl status mysql | grep loaded | grep "enabled;"'
     data = slemp.execShell(shell_cmd)
@@ -610,7 +610,7 @@ def initdStatus():
 
 def initdInstall():
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     slemp.execShell('systemctl enable mysql')
     return 'ok'
@@ -618,7 +618,7 @@ def initdInstall():
 
 def initdUinstall():
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     slemp.execShell('systemctl disable mysql')
     return 'ok'

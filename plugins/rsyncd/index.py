@@ -293,7 +293,7 @@ def reload():
 
 def initdStatus():
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     shell_cmd = 'systemctl status rsyncd | grep loaded | grep "enabled;"'
     data = slemp.execShell(shell_cmd)
@@ -310,7 +310,7 @@ def initdStatus():
 
 def initdInstall():
     if slemp.isAppleSystem():
-        return "Apple Computer does not support"
+        return "ok"
 
     slemp.execShell('systemctl enable lsyncd')
     slemp.execShell('systemctl enable rsyncd')
@@ -320,7 +320,7 @@ def initdInstall():
 def initdUinstall():
     if not app_debug:
         if slemp.isAppleSystem():
-            return "Apple Computer does not support"
+            return "ok"
 
     slemp.execShell('systemctl diable lsyncd')
     slemp.execShell('systemctl diable rsyncd')

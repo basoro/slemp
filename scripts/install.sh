@@ -8,7 +8,7 @@ is64bit=`getconf LONG_BIT`
 if [ -f "$(dirname "$0")/../cli.sh" ]; then
     PANEL_DIR=$(cd "$(dirname "$0")/../"; pwd)
 else
-    PANEL_DIR="/opt/slemp/server/panel"
+    PANEL_DIR="/opt/slemp/panel"
 fi
 DEV=$(dirname "$PANEL_DIR")
 
