@@ -180,13 +180,13 @@ cd libxml2-2.12.5
 make -j$CPU && make install
 
 ########################################
-# CMake (REQUIRED FOR MYSQL)
+# M4 (REQUIRED FOR BISON)
 ########################################
-echo "Installing CMake..."
-download https://github.com/Kitware/CMake/releases/download/v3.29.2/cmake-3.29.2.tar.gz
-rm -rf cmake-3.29.2 && tar xf cmake-3.29.2.tar.gz
-cd cmake-3.29.2
-./bootstrap --prefix="$DEPS" -- -DCMAKE_USE_SYSTEM_ZLIB=ON
+echo "Installing M4..."
+download https://ftp.gnu.org/gnu/m4/m4-1.4.19.tar.gz
+rm -rf m4-1.4.19 && tar xf m4-1.4.19.tar.gz
+cd m4-1.4.19
+./configure --prefix="$DEPS"
 make -j$CPU && make install
 
 ########################################
@@ -197,6 +197,26 @@ download https://ftp.gnu.org/gnu/bison/bison-3.8.2.tar.gz
 rm -rf bison-3.8.2 && tar xf bison-3.8.2.tar.gz
 cd bison-3.8.2
 ./configure --prefix="$DEPS"
+make -j$CPU && make install
+
+########################################
+# RE2C (REQUIRED FOR PHP/MYSQL)
+########################################
+echo "Installing re2c..."
+download https://github.com/skvadrik/re2c/releases/download/3.1/re2c-3.1.tar.xz
+rm -rf re2c-3.1 && tar xf re2c-3.1.tar.xz
+cd re2c-3.1
+./configure --prefix="$DEPS"
+make -j$CPU && make install
+
+########################################
+# CMake (REQUIRED FOR MYSQL)
+########################################
+echo "Installing CMake..."
+download https://github.com/Kitware/CMake/releases/download/v3.29.2/cmake-3.29.2.tar.gz
+rm -rf cmake-3.29.2 && tar xf cmake-3.29.2.tar.gz
+cd cmake-3.29.2
+./bootstrap --prefix="$DEPS" -- -DCMAKE_USE_SYSTEM_ZLIB=ON
 make -j$CPU && make install
 
 echo "All core libraries installed successfully in $PREFIX"

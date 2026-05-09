@@ -17,6 +17,9 @@ sysName=`uname`
 install_tmp=${rootPath}/tmp/slemp_install.pl
 mysqlDir=${serverPath}/source/mysql
 
+# Add our isolated lib bin to PATH
+export PATH=$serverPath/lib/bin:$PATH
+
 _os=`uname`
 echo "use system: ${_os}"
 if [ ${_os} == "Darwin" ]; then
