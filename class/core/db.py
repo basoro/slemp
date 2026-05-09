@@ -20,7 +20,8 @@ class Sql():
     __OPT_PARAM = ()
 
     def __init__(self):
-        self.__DB_FILE = 'data/default.db'
+        panel_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        self.__DB_FILE = panel_path + '/data/default.db'
 
     def __getConn(self):
         try:
@@ -39,7 +40,8 @@ class Sql():
                 x, "utf-8", "ignore")
 
     def dbfile(self, name):
-        self.__DB_FILE = 'data/' + name + '.db'
+        panel_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        self.__DB_FILE = panel_path + '/data/' + name + '.db'
         return self
 
     def dbPos(self, path, name):
