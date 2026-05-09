@@ -173,7 +173,9 @@ class plugins_api:
                            'execshell', '0', time.strftime('%Y-%m-%d %H:%M:%S'), execstr)
 
                 slemp.M('tasks').add('name,type,status,addtime, execstr', taskAdd)
-            os.mkdir(slemp.getServerDir() + '/php')
+            php_dir = slemp.getServerDir() + '/php'
+            if not os.path.exists(php_dir):
+                os.makedirs(php_dir)
             slemp.triggerTask()
             return slemp.returnJson(True, 'Added successfully')
         except Exception as e:
