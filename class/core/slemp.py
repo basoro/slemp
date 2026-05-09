@@ -56,7 +56,7 @@ def getRunDir():
 
 
 def getRootDir():
-    return os.path.dirname(os.path.dirname(getRunDir()))
+    return os.path.dirname(getRunDir())
 
 
 def getPluginDir():
@@ -963,24 +963,40 @@ def getClientIp():
     return request.remote_addr.replace('::ffff:', '')
 
 
+def getIntranetIp():
+    import socket
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = '127.0.0.1'
+    finally:
+        try:
+            s.close()
+        except:
+            pass
+    return ip
+
+
 def getLocalIp():
     filename = 'data/iplist.txt'
     try:
         ipaddress = readFile(filename)
-        if not ipaddress or ipaddress == '127.0.0.1':
-            cmd = "curl --insecure -4 -sS --connect-timeout 5 -m 60 https://v6r.ipip.net/?format=text"
+        if not ipaddress or ipaddress == '127.0.0.1' or '<html' in ipaddress:
+            cmd = "curl --insecure -4 -sS --connect-timeout 5 -m 60 https://v4.ident.me"
             ip = execShell(cmd)
             result = ip[0].strip()
-            if result == '':
-                raise Exception("ipv4 is empty!")
+            if result == '' or '<html' in result:
+                raise Exception("ipv4 is empty or invalid!")
             writeFile(filename, result)
             return result
         return ipaddress
     except Exception as e:
-        cmd = "curl --insecure -6 -sS --connect-timeout 5 -m 60 https://v6r.ipip.net/?format=text"
+        cmd = "curl --insecure -6 -sS --connect-timeout 5 -m 60 https://v6.ident.me"
         ip = execShell(cmd)
         result = ip[0].strip()
-        if result == '':
+        if result == '' or '<html' in result:
             return '127.0.0.1'
         writeFile(filename, result)
         return result

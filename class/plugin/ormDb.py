@@ -15,7 +15,7 @@ class ORM:
     __DB_ERR = None
     __DB_CNF = '/etc/my.cnf'
 
-    __DB_SOCKET = '/home/slemp/server/mysql/mysql.sock'
+    __DB_SOCKET = slemp.getServerDir() + '/mysql/mysql.sock'
     __DB_CHARSET = 'utf8'
 
     def __Conn(self):

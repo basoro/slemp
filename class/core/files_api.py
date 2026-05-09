@@ -679,7 +679,7 @@ class files_api:
                  '/lib',
                  '/srv',
                  '/selinux',
-                 '/home/slemp/server',
+                 slemp.getServerDir(),
                  slemp.getRootDir())
 
         return not path in nDirs

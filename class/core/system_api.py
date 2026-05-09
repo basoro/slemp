@@ -236,7 +236,7 @@ class system_api:
         data['title'] = self.GetTitle()
         data['network'] = self.GetNetWorkApi(get)
         data['panel_status'] = not os.path.exists(
-            '/home/slemp/server/panel/data/close.pl')
+            slemp.getRunDir() + '/data/close.pl')
         import firewalls
         ssh_info = firewalls.firewalls().GetSshInfo(None)
         data['enable_ssh_status'] = ssh_info['status']
@@ -436,10 +436,10 @@ class system_api:
 
     def clearOther(self):
         clearPath = [
-            {'path': '/home/slemp/server/panel', 'find': 'testDisk_'},
-            {'path': '/home/slemp/wwwlogs', 'find': 'log'},
+            {'path': slemp.getRunDir(), 'find': 'testDisk_'},
+            {'path': slemp.getLogsDir(), 'find': 'log'},
             {'path': '/tmp', 'find': 'panelBoot.pl'},
-            {'path': '/home/slemp/server/panel/install', 'find': '.rpm'}
+            {'path': slemp.getRunDir() + '/install', 'find': '.rpm'}
         ]
 
         total = count = 0
@@ -714,23 +714,24 @@ class system_api:
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 
 P_VER=`python3 -V | awk '{print $2}'`
+PANEL_DIR="''' + slemp.getRunDir() + '''"
 
-if [ ! -f /home/slemp/server/panel/bin/activate ];then
-    cd /home/slemp/server/panel && python3 -m venv .
-    cd /home/slemp/server/panel && source /home/slemp/server/panel/bin/activate
+if [ ! -f $PANEL_DIR/bin/activate ];then
+    cd $PANEL_DIR && python3 -m venv .
+    cd $PANEL_DIR && source $PANEL_DIR/bin/activate
 else
-    cd /home/slemp/server/panel && source /home/slemp/server/panel/bin/activate
+    cd $PANEL_DIR && source $PANEL_DIR/bin/activate
 fi
 
 PIPSRC="https://pypi.python.org/simple"
 
-cd /home/slemp/server/panel && pip3 install -r /home/slemp/server/panel/requirements.txt -i $PIPSRC
+cd $PANEL_DIR && pip3 install -r $PANEL_DIR/requirements.txt -i $PIPSRC
 
 P_VER_D=`echo "$P_VER"|awk -F '.' '{print $1}'`
 P_VER_M=`echo "$P_VER"|awk -F '.' '{print $2}'`
 NEW_P_VER=${P_VER_D}.${P_VER_M}
-if [ -f /home/slemp/server/panel/version/r${NEW_P_VER}.txt ];then
-    cd /home/slemp/server/panel && pip3 install -r /home/slemp/server/panel/version/r${NEW_P_VER}.txt -i $PIPSRC
+if [ -f $PANEL_DIR/version/r${NEW_P_VER}.txt ];then
+    cd $PANEL_DIR && pip3 install -r $PANEL_DIR/version/r${NEW_P_VER}.txt -i $PIPSRC
 fi
 '''
                 os.system(update_env)
@@ -744,7 +745,7 @@ fi
 
     def repPanel(self, get):
         vp = ''
-        if slemp.readFile('/home/slemp/server/panel/class/common.py').find('checkSafe') != -1:
+        if slemp.readFile(slemp.getRunDir() + '/class/common.py').find('checkSafe') != -1:
             vp = '_pro'
         slemp.ExecShell("wget -O update.sh " + slemp.get_url() +
                      "/install/update" + vp + ".sh && bash update.sh")

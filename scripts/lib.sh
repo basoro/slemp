@@ -3,7 +3,7 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
-serverPath=$(dirname "$rootPath")
+serverPath=$(dirname "$rootPath")/server
 sourcePath=$serverPath/source/lib
 libPath=$serverPath/lib
 

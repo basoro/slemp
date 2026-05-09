@@ -585,6 +585,8 @@ echo "--------------------------------------------------------------------------
         if not os.path.exists(file):
             slemp.writeFile(file, '')
         conf = slemp.readFile(file)
+        if not conf:
+            conf = ''
         conf += str(config) + "\n"
         if slemp.writeFile(file, conf):
             if not os.path.exists(u_file):
@@ -625,6 +627,8 @@ echo "--------------------------------------------------------------------------
             return True
 
         conf = slemp.readFile(file)
+        if not conf:
+            conf = ""
         rep = ".+" + str(echo) + ".+\n"
         conf = re.sub(rep, "", conf)
         if not slemp.writeFile(file, conf):

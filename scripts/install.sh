@@ -3,6 +3,8 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 # LANG=en_US.UTF-8
 is64bit=`getconf LONG_BIT`
+PANEL_DIR=$(cd "$(dirname "$0")/../"; pwd)
+DEV=$(dirname "$PANEL_DIR")
 
 {
 
@@ -15,8 +17,8 @@ startTime=`date +%s`
 _os=`uname`
 echo "use system: ${_os}"
 
-if [ "$EUID" -ne 0 ]
-  then echo "Please run as root!"
+if [ "$EUID" -ne 0 ] && [ "${_os}" != "Darwin" ]; then
+  echo "Please run as root!"
   exit
 fi
 
@@ -64,17 +66,17 @@ if [ $OSNAME != "macos" ];then
 		useradd -g www -s /bin/bash www
 	fi
 
-	mkdir -p /home/slemp/server
-	mkdir -p /home/slemp/wwwroot
-	mkdir -p /home/slemp/wwwlogs
-	mkdir -p /home/slemp/backup/database
-	mkdir -p /home/slemp/backup/site
+	mkdir -p $DEV/server
+	mkdir -p $DEV/wwwroot
+	mkdir -p $DEV/wwwlogs
+	mkdir -p $DEV/backup/database
+	mkdir -p $DEV/backup/site
 
-	if [ ! -d /home/slemp/server/panel ];then
+	if [ ! -d $PANEL_DIR ];then
 		curl --insecure -sSLo /tmp/master.zip https://codeload.github.com/basoro/slemp/zip/master
 
 		cd /tmp && unzip /tmp/master.zip
-		mv -f /tmp/slemp-master /home/slemp/server/panel
+		mv -f /tmp/slemp-master $PANEL_DIR
 		rm -rf /tmp/master.zip
 		rm -rf /tmp/slemp-master
 	fi
@@ -99,22 +101,22 @@ fi
 
 echo "use system version: ${OSNAME}"
 
-if [ "${OSNAME}" == "macos" ];then
-	HTTP_PREFIX="https://"
-	curl -fsSL ${HTTP_PREFIX}https://raw.githubusercontent.com/basoro/slemp/master/scripts/install/macos.sh | bash
-else
-	cd /home/slemp/server/panel && bash scripts/install/${OSNAME}.sh
-fi
+cd $PANEL_DIR && bash scripts/install/${OSNAME}.sh
 
 if [ "${OSNAME}" == "macos" ];then
 	echo "macos end"
 	exit 0
 fi
 
-cd /home/slemp/server/panel && bash cli.sh start
+INIT_DIR="/etc/init.d"
+if [ -d /etc/rc.d/init.d ];then
+	INIT_DIR="/etc/rc.d/init.d"
+fi
+
+cd $PANEL_DIR && bash cli.sh start
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 n=0
-while [ ! -f /etc/rc.d/init.d/slemp ];
+while [ ! -f ${INIT_DIR}/slemp ];
 do
     echo -e ".\c"
     sleep 1
@@ -125,14 +127,14 @@ do
     fi
 done
 
-cd /home/slemp/server/panel && bash /etc/rc.d/init.d/slemp stop
-cd /home/slemp/server/panel && bash /etc/rc.d/init.d/slemp start
-cd /home/slemp/server/panel && bash /etc/rc.d/init.d/slemp default
+cd $PANEL_DIR && bash ${INIT_DIR}/slemp stop
+cd $PANEL_DIR && bash ${INIT_DIR}/slemp start
+cd $PANEL_DIR && bash ${INIT_DIR}/slemp default
 
 sleep 2
 if [ ! -e /usr/bin/slemp ]; then
-	if [ -f /etc/rc.d/init.d/slemp ];then
-		ln -s /etc/rc.d/init.d/slemp /usr/bin/slemp
+	if [ -f ${INIT_DIR}/slemp ];then
+		ln -s ${INIT_DIR}/slemp /usr/bin/slemp
 	fi
 fi
 

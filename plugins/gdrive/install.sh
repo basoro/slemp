@@ -5,7 +5,7 @@ export PATH
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")
+serverPath=$(dirname "$rootPath")/server
 sysName=`uname`
 
 install_tmp=${rootPath}/tmp/slemp_install.pl
@@ -37,15 +37,15 @@ Install_Plugin()
 
 	echo 'Installing script file...' > $install_tmp
 
-	#$serverPath/panel/bin/pip3 install -I pyOpenSSL
-	$serverPath/panel/bin/pip3 install -I google-api-python-client==2.39.0 google-auth-httplib2==0.1.0 google-auth-oauthlib==0.5.0
-	$serverPath/panel/bin/pip3 install -I httplib2==0.18.1
-	#$serverPath/panel/bin/pip3 install -I cryptography==36.0.1
+	#$rootPath/bin/pip3 install -I pyOpenSSL
+	$rootPath/bin/pip3 install -I google-api-python-client==2.39.0 google-auth-httplib2==0.1.0 google-auth-oauthlib==0.5.0
+	$rootPath/bin/pip3 install -I httplib2==0.18.1
+	#$rootPath/bin/pip3 install -I cryptography==36.0.1
 
 	mkdir -p $serverPath/gdrive
-	cp $serverPath/panel/plugins/gdrive/credentials.json $serverPath/gdrive/credentials.json
-	cp $serverPath/panel/plugins/gdrive/token.json $serverPath/gdrive/token.json
-	cp $serverPath/panel/plugins/gdrive/hook_backup.json $serverPath/panel/data/hook_backup.json
+	cp $rootPath/plugins/gdrive/credentials.json $serverPath/gdrive/credentials.json
+	cp $rootPath/plugins/gdrive/token.json $serverPath/gdrive/token.json
+	cp $rootPath/plugins/gdrive/hook_backup.json $rootPath/data/hook_backup.json
 	touch $serverPath/gdrive/authorization.pl
 	echo '0.1' > $serverPath/gdrive/version.pl
 	echo 'The installation is complete' > $install_tmp

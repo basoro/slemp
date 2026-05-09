@@ -8,7 +8,7 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")
+serverPath=$(dirname "$rootPath")/server
 sourcePath=${serverPath}/source/php
 
 # support 52-74

@@ -85,7 +85,7 @@ slemp_start()
 	slemp_start_panel
 }
 
-# /home/slemp/server/panel/tmp/panelTask.pl && service slemp restart_task
+# $slemp_path/tmp/panelTask.pl && service slemp restart_task
 slemp_stop_task()
 {
     if [ -f $slemp_path/tmp/panelTask.pl ];then
@@ -235,8 +235,8 @@ slemp_debug(){
         port=$(cat $slemp_path/data/port.pl)
     fi
 
-    if [ -d /home/slemp/server/panel ];then
-        cd /home/slemp/server/panel
+    if [ -d $slemp_path ];then
+        cd $slemp_path
     fi
     gunicorn -b :$port -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1  app:app
 }
@@ -287,6 +287,7 @@ case "$1" in
         if [ "$address" == "" ];then
             v4=$(python3 $slemp_path/tools.py getServerIp 4)
             v6=$(python3 $slemp_path/tools.py getServerIp 6)
+            local_ip=$(python3 $slemp_path/tools.py getLocalIp)
 
             if [ "$v4" != "" ] && [ "$v6" != "" ]; then
 
@@ -298,7 +299,7 @@ case "$1" in
 
                 address="SLEMP-Panel-Url-Ipv4: http://$v4:$port$auth_path \nSLEMP-Panel-Url-Ipv6: http://[$v6]:$port$auth_path"
             elif [ "$v4" != "" ]; then
-                address="SLEMP-Panel-Url: http://$v4:$port$auth_path"
+                address="SLEMP-Panel-Url-Ipv4: http://$v4:$port$auth_path"
             elif [ "$v6" != "" ]; then
 
                 if [ ! -f $slemp_path/data/ipv6.pl ];then
@@ -307,9 +308,13 @@ case "$1" in
                     slemp_stop
                     slemp_start
                 fi
-                address="SLEMP-Panel-Url: http://[$v6]:$port$auth_path"
+                address="SLEMP-Panel-Url-Ipv6: http://[$v6]:$port$auth_path"
             else
                 address="SLEMP-Panel-Url: http://you-server-ip:$port$auth_path"
+            fi
+            
+            if [ "$local_ip" != "" ] && [ "$local_ip" != "127.0.0.1" ]; then
+                address="$address \nSLEMP-Panel-Url-Local: http://$local_ip:$port$auth_path"
             fi
         else
             address="SLEMP-Panel-Url: http://$address:$port$auth_path"

@@ -6,7 +6,7 @@ export PATH
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")
+serverPath=$(dirname "$rootPath")/server
 sysName=`uname`
 
 

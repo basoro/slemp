@@ -1,4 +1,6 @@
 #!/bin/bash
+PANEL_DIR=$(cd "$(dirname "$0")/../.."; pwd)
+
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 export DEBIAN_FRONTEND=noninteractive
@@ -21,27 +23,27 @@ fi
 
 VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
 if [ "$VERSION_ID" == "9" ];then
-    sed "s/flask==2.0.3/flask==1.1.1/g" -i /home/slemp/server/panel/requirements.txt
-    sed "s/cryptography==3.3.2/cryptography==2.5/g" -i /home/slemp/server/panel/requirements.txt
-    sed "s/configparser==5.2.0/configparser==4.0.2/g" -i /home/slemp/server/panel/requirements.txt
-    sed "s/flask-socketio==5.2.0/flask-socketio==4.2.0/g" -i /home/slemp/server/panel/requirements.txt
-    sed "s/python-engineio==4.3.2/python-engineio==3.9.0/g" -i /home/slemp/server/panel/requirements.txt
-    # pip3 install -r /home/slemp/server/panel/requirements.txt
+    sed "s/flask==2.0.3/flask==1.1.1/g" -i $PANEL_DIR/requirements.txt
+    sed "s/cryptography==3.3.2/cryptography==2.5/g" -i $PANEL_DIR/requirements.txt
+    sed "s/configparser==5.2.0/configparser==4.0.2/g" -i $PANEL_DIR/requirements.txt
+    sed "s/flask-socketio==5.2.0/flask-socketio==4.2.0/g" -i $PANEL_DIR/requirements.txt
+    sed "s/python-engineio==4.3.2/python-engineio==3.9.0/g" -i $PANEL_DIR/requirements.txt
+    # pip3 install -r $PANEL_DIR/requirements.txt
 fi
 
-cd /home/slemp/server/panel/scripts && bash lib.sh
-chmod 755 /home/slemp/server/panel/data
+cd $PANEL_DIR/scripts && bash lib.sh
+chmod 755 $PANEL_DIR/data
 
 if [ -f /etc/rc.d/init.d/slemp ];then
-    bash /etc/rc.d/init.d/slemp stop && rm -rf /home/slemp/server/panel/scripts/init.d/slemp && rm -rf /etc/rc.d/init.d/slemp
+    bash /etc/rc.d/init.d/slemp stop && rm -rf $PANEL_DIR/scripts/init.d/slemp && rm -rf /etc/rc.d/init.d/slemp
 fi
 
 echo -e "stop slemp"
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 
 port=7200
-if [ -f /home/slemp/server/panel/data/port.pl ];then
-    port=$(cat /home/slemp/server/panel/data/port.pl)
+if [ -f $PANEL_DIR/data/port.pl ];then
+    port=$(cat $PANEL_DIR/data/port.pl)
 fi
 
 n=0
@@ -58,7 +60,7 @@ done
 
 
 echo -e "start slemp"
-cd /home/slemp/server/panel && bash cli.sh start
+cd $PANEL_DIR && bash cli.sh start
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 n=0
 while [[ ! -f /etc/rc.d/init.d/slemp ]];

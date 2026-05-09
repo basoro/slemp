@@ -189,15 +189,15 @@ class site_api:
         version = request.form.get('version', '')
 
         php_bin = '/usr/bin/php'
-        php_bin_src = "/home/slemp/server/php/%s/bin/php" % version
+        php_bin_src = slemp.getServerDir() + "/php/%s/bin/php" % version
         php_ize = '/usr/bin/phpize'
-        php_ize_src = "/home/slemp/server/php/%s/bin/phpize" % version
+        php_ize_src = slemp.getServerDir() + "/php/%s/bin/phpize" % version
         php_fpm = '/usr/bin/php-fpm'
-        php_fpm_src = "/home/slemp/server/php/%s/sbin/php-fpm" % version
+        php_fpm_src = slemp.getServerDir() + "/php/%s/sbin/php-fpm" % version
         php_pecl = '/usr/bin/pecl'
-        php_pecl_src = "/home/slemp/server/php/%s/bin/pecl" % version
+        php_pecl_src = slemp.getServerDir() + "/php/%s/bin/pecl" % version
         php_pear = '/usr/bin/pear'
-        php_pear_src = "/home/slemp/server/php/%s/bin/pear" % version
+        php_pear_src = slemp.getServerDir() + "/php/%s/bin/pear" % version
         if not os.path.exists(php_bin_src):
             return slemp.returnJson(False, 'The specified PHP version is not installed!')
 
@@ -2730,7 +2730,7 @@ location ^~ {from} {\n\
         if runPath == '/':
             openPath = 'open_basedir={}/'.format(sitePath)
 
-        slemp.writeFile(filename, openPath + ':/home/slemp/server/php:/tmp/:/proc/')
+        slemp.writeFile(filename, openPath + ':' + slemp.getServerDir() + '/php:/tmp/:/proc/')
         slemp.execShell("chattr +i " + filename)
 
         return slemp.returnJson(True, 'The anti-cross-site setting is turned on!')

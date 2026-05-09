@@ -230,7 +230,7 @@ def makePhpIni(version):
         # shutil.copyfile(s_ini, d_ini)
         content = slemp.readFile(src_ini)
         if version == '52':
-            content = content + "auto_prepend_file=/home/slemp/server/php/app_start.php"
+            content = content + "auto_prepend_file= + slemp.getServerDir() + "/php/app_start.php""
 
         content = contentReplace(content, version)
         slemp.writeFile(dst_ini, content)

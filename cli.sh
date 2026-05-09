@@ -44,8 +44,8 @@ slemp_start(){
 slemp_start_debug(){
 	python3 task.py >> $DIR/logs/task.log 2>&1 &
 	port=7200
-    if [ -f ${rootPath}/data/port.pl ];then
-        port=$(cat ${rootPath}/data/port.pl)
+    if [ -f ${DIR}/data/port.pl ];then
+        port=$(cat ${DIR}/data/port.pl)
     fi
     # gunicorn -b :${port} -k gevent -w 1 app:app
 	gunicorn -b :${port} -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 app:app

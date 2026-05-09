@@ -5,7 +5,8 @@ import os
 import re
 
 if sys.platform != 'darwin':
-    os.chdir('/home/slemp/server/panel')
+    panelPath = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(panelPath)
 
 
 chdir = os.getcwd()

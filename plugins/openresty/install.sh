@@ -4,11 +4,11 @@ export PATH
 
 # cd /home/slemp/server/panel/plugins/openresty && bash install.sh install 1.21.4.1
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
+DIR=$(cd "$(dirname "$0")"; pwd)
+rootPath=$(dirname "$DIR")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")
-
+serverPath=$(dirname "$rootPath")/server/server
+sourceLibPath=$serverPath/source/lib
 
 action=$1
 type=$2
@@ -17,12 +17,15 @@ VERSION=$2
 install_tmp=${rootPath}/tmp/slemp_install.pl
 openrestyDir=${serverPath}/source/openresty
 
-if id www &> /dev/null ;then
-    echo "www uid is `id -u www`"
-    echo "www shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
-else
-    groupadd www
-	useradd -g www -s /bin/bash www
+OSNAME=$(uname -s)
+if [ "$OSNAME" != "Darwin" ]; then
+    if id www &> /dev/null ;then
+        echo "www uid is `id -u www`"
+        echo "www shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
+    else
+        groupadd www
+        useradd -g www -s /bin/bash www
+    fi
 fi
 
 Install_openresty()
@@ -36,11 +39,16 @@ Install_openresty()
     	cpuCore="1"
 	fi
 
-	if [ -f /proc/cpuinfo ];then
-		cpuCore=`cat /proc/cpuinfo | grep "processor" | wc -l`
+	if [ "$OSNAME" == "Darwin" ]; then
+		cpuCore=$(sysctl -n hw.ncpu)
+		MEM_INFO=$(($(sysctl -n hw.memsize) / 1024 / 1024 / 1024))
+	else
+		if [ -f /proc/cpuinfo ];then
+			cpuCore=`cat /proc/cpuinfo | grep "processor" | wc -l`
+		fi
+		MEM_INFO=$(free -m|grep Mem|awk '{printf("%.f",($2)/1024)}')
 	fi
 
-	MEM_INFO=$(free -m|grep Mem|awk '{printf("%.f",($2)/1024)}')
 	if [ "${cpuCore}" != "1" ] && [ "${MEM_INFO}" != "0" ];then
 	    if [ "${cpuCore}" -gt "${MEM_INFO}" ];then
 	        cpuCore="${MEM_INFO}"
@@ -57,16 +65,27 @@ Install_openresty()
 	# ----- cpu end ------
 
 	mkdir -p ${openrestyDir}
+	mkdir -p ${sourceLibPath}
 	echo 'Installing script file...' > $install_tmp
 
 	if [ ! -f ${openrestyDir}/openresty-${VERSION}.tar.gz ];then
-		wget -O ${openrestyDir}/openresty-${VERSION}.tar.gz https://openresty.org/download/openresty-${VERSION}.tar.gz
+		curl -sSLo ${openrestyDir}/openresty-${VERSION}.tar.gz https://openresty.org/download/openresty-${VERSION}.tar.gz
 	fi
-
-
 	cd ${openrestyDir} && tar -zxvf openresty-${VERSION}.tar.gz
 
-	# --with-openssl=$serverPath/source/lib/openssl-1.0.2q
+	OPENSSL_VER="1.1.1w"
+	PCRE_VER="8.45"
+	
+	if [ ! -d ${sourceLibPath}/openssl-${OPENSSL_VER} ]; then
+		curl -sSLo ${sourceLibPath}/openssl-${OPENSSL_VER}.tar.gz https://www.openssl.org/source/openssl-${OPENSSL_VER}.tar.gz
+		cd ${sourceLibPath} && tar -zxvf openssl-${OPENSSL_VER}.tar.gz
+	fi
+
+	if [ ! -d ${sourceLibPath}/pcre-${PCRE_VER} ]; then
+		curl -sSLo ${sourceLibPath}/pcre-${PCRE_VER}.tar.gz https://sourceforge.net/projects/pcre/files/pcre/${PCRE_VER}/pcre-${PCRE_VER}.tar.gz/download
+		cd ${sourceLibPath} && tar -zxvf pcre-${PCRE_VER}.tar.gz
+	fi
+
 	cd ${openrestyDir}/openresty-${VERSION} && ./configure \
 	--prefix=$serverPath/openresty \
 	--with-ipv6 \
@@ -76,10 +95,9 @@ Install_openresty()
 	--with-http_slice_module \
 	--with-http_stub_status_module \
 	--with-http_sub_module \
-	--with-http_realip_module
-	# --without-luajit-gc64
-	# --with-debug
-	# for tuning
+	--with-http_realip_module \
+	--with-openssl=${sourceLibPath}/openssl-${OPENSSL_VER} \
+	--with-pcre=${sourceLibPath}/pcre-${PCRE_VER}
 
 	make -j${cpuCore} && make install && make clean
 

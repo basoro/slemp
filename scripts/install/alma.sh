@@ -1,4 +1,6 @@
 #!/bin/bash
+PANEL_DIR=$(cd "$(dirname "$0")/../../"; pwd)
+
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 LANG=C.UTF-8
@@ -108,5 +110,5 @@ do dnf --enablerepo=crb install -y $yumPack;done
 # echo "/usr/local/lib64" >> /etc/ld.so.conf
 
 
-cd /home/slemp/server/panel/scripts && bash lib.sh
-chmod 755 /home/slemp/server/panel/data
+cd $PANEL_DIR/scripts && bash lib.sh
+chmod 755 $PANEL_DIR/data

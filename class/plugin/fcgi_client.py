@@ -89,7 +89,9 @@ if __debug__:
 
     # Set non-zero to write debug output to a file.
     DEBUG = 0
-    DEBUGLOG = '/home/slemp/server/panel/logs/fastcgi.log'
+    import os
+    panelPath = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    DEBUGLOG = panelPath + '/logs/fastcgi.log'
 
     def _debug(level, msg):
         if DEBUG < level:

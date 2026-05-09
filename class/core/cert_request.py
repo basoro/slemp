@@ -12,8 +12,9 @@ import os
 import sys
 import argparse
 
-if os.path.exists('/home/slemp/server/panel'):
-    os.chdir('/home/slemp/server/panel')
+panelPath = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if os.path.exists(panelPath):
+    os.chdir(panelPath)
 
 import slemp
 
@@ -873,7 +874,7 @@ class cert_request:
 
     def subAllCert(self, key_file, pem_file):
         cert_init = self.getCertInit(pem_file)
-        paths = ['/home/slemp/server/panel/data/letsencrypt']
+        paths = [slemp.getRunDir() + '/data/letsencrypt']
         is_panel = False
         for path in paths:
             if not os.path.exists(path):

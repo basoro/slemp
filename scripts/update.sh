@@ -3,7 +3,7 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 # LANG=en_US.UTF-8
 is64bit=`getconf LONG_BIT`
-
+PANEL_DIR=$(cd "$(dirname "$0")/../"; pwd)
 startTime=`date +%s`
 
 _os=`uname`
@@ -14,8 +14,8 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
-if [ ${_os} != "Darwin" ] && [ ! -d /home/slemp/server/panel/logs ]; then
-	mkdir -p /home/slemp/server/panel/logs
+if [ ${_os} != "Darwin" ] && [ ! -d $PANEL_DIR/logs ]; then
+	mkdir -p $PANEL_DIR/logs
 fi
 
 {
@@ -60,14 +60,14 @@ CP_CMD=/usr/bin/cp
 if [ -f /bin/cp ];then
 		CP_CMD=/bin/cp
 fi
-$CP_CMD -rf /tmp/slemp-master/* /home/slemp/server/panel
+$CP_CMD -rf /tmp/slemp-master/* $PANEL_DIR
 
 rm -rf /tmp/master.zip
 rm -rf /tmp/slemp-master
 
 #pip uninstall public
 echo "use system version: ${OSNAME}"
-cd /home/slemp/server/panel && bash scripts/update/${OSNAME}.sh
+cd $PANEL_DIR && bash scripts/update/${OSNAME}.sh
 
 bash /etc/rc.d/init.d/slemp restart
 bash /etc/rc.d/init.d/slemp default
@@ -86,4 +86,4 @@ endTime=`date +%s`
 ((outTime=($endTime-$startTime)/60))
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
 
-} 1> >(tee /home/slemp/server/panel/logs/slemp-update.log) 2>&1
+} 1> >(tee $PANEL_DIR/logs/slemp-update.log) 2>&1

@@ -111,7 +111,7 @@ def checkAuthEq(file, owner='root'):
 
 
 def confReplace():
-    service_path = os.path.dirname(os.getcwd())
+    service_path = slemp.getServerDir()
     content = slemp.readFile(getConfTpl())
     content = content.replace('{$SERVER_PATH}', service_path)
 
@@ -169,13 +169,16 @@ def confReplace():
     ng_exe_bin = getServerDir() + "/nginx/sbin/nginx"
     if not checkAuthEq(ng_exe_bin, 'root'):
         args = getArgs()
-        sudoPwd = args['pwd']
-        cmd_own = 'chown -R ' + 'root:' + user_group + ' ' + ng_exe_bin
-        os.system('echo %s|sudo -S %s' % (sudoPwd, cmd_own))
-        cmd_mod = 'chmod 755 ' + ng_exe_bin
-        os.system('echo %s|sudo -S %s' % (sudoPwd, cmd_mod))
-        cmd_s = 'chmod u+s ' + ng_exe_bin
-        os.system('echo %s|sudo -S %s' % (sudoPwd, cmd_s))
+        sudoPwd = args.get('pwd', '')
+        if sudoPwd:
+            cmd_own = 'chown -R ' + 'root:' + user_group + ' ' + ng_exe_bin
+            os.system('echo %s|sudo -S %s' % (sudoPwd, cmd_own))
+            cmd_mod = 'chmod 755 ' + ng_exe_bin
+            os.system('echo %s|sudo -S %s' % (sudoPwd, cmd_mod))
+            cmd_s = 'chmod u+s ' + ng_exe_bin
+            os.system('echo %s|sudo -S %s' % (sudoPwd, cmd_s))
+        else:
+            print("Warning: Missing sudo password, skipping nginx chown/chmod. It will run as the current user.")
 
 
     # vhost
@@ -192,7 +195,7 @@ def confReplace():
 def initDreplace():
 
     file_tpl = getInitDTpl()
-    service_path = os.path.dirname(os.getcwd())
+    service_path = slemp.getServerDir()
 
     initD_path = getServerDir() + '/init.d'
 

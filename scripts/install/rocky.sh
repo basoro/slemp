@@ -1,4 +1,6 @@
 #!/bin/bash
+PANEL_DIR=$(cd "$(dirname "$0")/../../"; pwd)
+
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 LANG=en_US.UTF-8
@@ -88,7 +90,7 @@ dnf --enablerepo=powertools install -y oniguruma oniguruma-devel
 dnf --enablerepo=powertools install -y re2c bison bison-devel
 dnf install -y libjpeg-turbo libjpeg-turbo-devel
 
-cd /home/slemp/server/panel/scripts && bash lib.sh
-chmod 755 /home/slemp/server/panel/data
+cd $PANEL_DIR/scripts && bash lib.sh
+chmod 755 $PANEL_DIR/data
 
 echo "rocky ok"

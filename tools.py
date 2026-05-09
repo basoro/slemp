@@ -184,9 +184,14 @@ def set_panel_username(username=None):
 
 def getServerIp():
     version = sys.argv[2]
+    url = "https://v4.ident.me" if str(version) == "4" else "https://v6.ident.me"
     ip = slemp.execShell(
-        "curl --insecure -{} -sS --connect-timeout 5 -m 60 https://v6r.ipip.net/?format=text".format(version))
-    print(ip[0])
+        "curl --insecure -{} -sS --connect-timeout 5 -m 60 {}".format(version, url))
+    print(ip[0].strip())
+
+def getLocalIp():
+    ip = slemp.getIntranetIp()
+    print(ip)
 
 
 if __name__ == "__main__":
@@ -202,6 +207,8 @@ if __name__ == "__main__":
         show_panel_pwd()
     elif method == 'getServerIp':
         getServerIp()
+    elif method == 'getLocalIp':
+        getLocalIp()
     elif method == "cli":
         clinum = 0
         try:

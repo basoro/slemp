@@ -36,7 +36,7 @@ def getPluginDir():
     return slemp.getPluginDir() + '/' + getPluginName()
 
 def getSPluginDir():
-    return '/home/slemp/server/panel/plugins/' + getPluginName()
+    return slemp.getPluginDir() + '/' + getPluginName()
 
 def getServerDir():
     return slemp.getServerDir() + '/' + getPluginName()
@@ -386,7 +386,7 @@ def initMysqlData():
 
 def initMysql57Data():
     '''
-    cd /home/slemp/server/mysql && /home/slemp/server/mysql/bin/mysqld --defaults-file=/home/slemp/server/mysql/etc/my.cnf  --initialize-insecure --explicit_defaults_for_timestamp
+    cd  + slemp.getServerDir() + "/mysql" &&  + slemp.getServerDir() + "/mysql"/bin/mysqld --defaults-file= + slemp.getServerDir() + "/mysql"/etc/my.cnf  --initialize-insecure --explicit_defaults_for_timestamp
     '''
     datadir = getDataDir()
     if not os.path.exists(datadir + '/mysql'):
@@ -2504,7 +2504,7 @@ def initSlaveStatusSSH(version=''):
                         username='root', pkey=key)
 
             db_user = data['db_user']
-            cmd = 'cd /home/slemp/server/panel && source bin/activate && python3 ' + \
+            cmd = 'cd ' + slemp.getRunDir() + ' && source bin/activate && python3 ' + \
                 getSPluginDir() + \
                 '/index.py get_master_rep_slave_user_cmd {"username":"' + \
                 db_user + '","db":""}'
@@ -2765,7 +2765,7 @@ def doFullSyncSSH(version=''):
     writeDbSyncStatus({'code': 0, 'msg': 'Log in to Master successfully...', 'progress': 5})
 
     dbname = args['db']
-    cmd = "cd /home/slemp/server/panel && source bin/activate && python3 " + \
+    cmd = "cd " + slemp.getRunDir() + " && source bin/activate && python3 " + \
         getSPluginDir() + "/index.py dump_mysql_data {\"db\":'" + dbname + "'}"
     print(cmd)
     stdin, stdout, stderr = ssh.exec_command(cmd)
@@ -2789,7 +2789,7 @@ def doFullSyncSSH(version=''):
     if copy_status == None:
         writeDbSyncStatus({'code': 2, 'msg': 'Data synchronization is completed locally...', 'progress': 40})
 
-    cmd = 'cd /home/slemp/server/panel && source bin/activate && python3 plugins/mysql/index.py get_master_rep_slave_user_cmd {"username":"' + db_user + '","db":""}'
+    cmd = 'cd ' + slemp.getRunDir() + ' && source bin/activate && python3 plugins/mysql/index.py get_master_rep_slave_user_cmd {"username":"' + db_user + '","db":""}'
     stdin, stdout, stderr = ssh.exec_command(cmd)
     result = stdout.read()
     result = result.decode('utf-8')
