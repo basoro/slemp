@@ -1,4 +1,5 @@
-# coding:utf-8
+from gevent import monkey
+monkey.patch_all()
 
 import sys
 import io
@@ -10,9 +11,6 @@ from route import app, socketio
 
 from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
-
-from gevent import monkey
-monkey.patch_all()
 
 try:
     if __name__ == "__main__":

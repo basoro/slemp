@@ -1,3 +1,6 @@
+from gevent import monkey
+monkey.patch_all()
+
 # coding:utf-8
 
 import time
