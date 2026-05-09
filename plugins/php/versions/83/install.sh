@@ -48,10 +48,9 @@ cd $sourcePath/php/php${PHP_VER}
 
 OPTIONS=''
 if [ $sysName == 'Darwin' ]; then
-	OPTIONS='--without-iconv'
-	OPTIONS="${OPTIONS} --with-curl=${serverPath}/lib/curl"
+	OPTIONS="--with-curl=${serverPath}/lib"
 else
-	OPTIONS='--without-iconv'
+	OPTIONS='--with-iconv'
 	OPTIONS="${OPTIONS} --with-curl"
 fi
 
@@ -126,7 +125,7 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 		--enable-mysqlnd \
 		--with-mysqli=mysqlnd \
 		--with-pdo-mysql=mysqlnd \
-		--with-zlib-dir=$serverPath/lib/zlib \
+		--with-zlib \
 		$ZIP_OPTION \
 		--enable-mbstring \
 		--enable-ftp \
@@ -137,8 +136,8 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 		--enable-sysvmsg \
 		--enable-sysvsem \
 		--enable-sysvshm \
-		--disable-intl \
-		--disable-fileinfo \
+		--enable-intl \
+		--enable-fileinfo \
 		$OPTIONS \
 		--enable-fpm
 	fi
