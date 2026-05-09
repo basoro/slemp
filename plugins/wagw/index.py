@@ -18,20 +18,20 @@ def getServerDir():
     return slemp.getServerDir() + '/' + getPluginName()
 
 def status():
-    data = slemp.execShell("ps -ef | grep /home/slemp/server/wagw/app.js | grep -v grep | grep -v python | awk '{print $2}'")
+    data = slemp.execShell("ps -ef | grep " + slemp.getServerDir() + "/wagw/app.js | grep -v grep | grep -v python | awk '{print $2}'")
     if data[0] == '':
         return 'stop'
     return 'start'
 
 def start():
-    slemp.execShell('cd /home/slemp/server/wagw && source /root/.nvm/nvm.sh && pm2 start app.js --name WAGW > /dev/null 2>&1 &')
+    slemp.execShell('cd " + slemp.getServerDir() + "/wagw && source /root/.nvm/nvm.sh && pm2 start app.js --name WAGW > /dev/null 2>&1 &')
     return 'ok'
 
 def stop():
-    data = slemp.execShell("ps -ef | grep /home/slemp/server/wagw/app.js | grep -v grep | grep -v python | awk '{print $2}'")
+    data = slemp.execShell("ps -ef | grep " + slemp.getServerDir() + "/wagw/app.js | grep -v grep | grep -v python | awk '{print $2}'")
     if data[0] != '':
         # slemp.execShell("kill -9 " + data[0])
-        slemp.execShell('cd /home/slemp/server/wagw && source /root/.nvm/nvm.sh && pm2 stop WAGW > /dev/null 2>&1 &')
+        slemp.execShell('cd " + slemp.getServerDir() + "/wagw && source /root/.nvm/nvm.sh && pm2 stop WAGW > /dev/null 2>&1 &')
         return 'ok'
     return 'fail'
 

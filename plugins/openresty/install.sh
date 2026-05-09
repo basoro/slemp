@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-# cd /home/slemp/server/panel/plugins/openresty && bash install.sh install 1.21.4.1
+# cd ${rootPath}/plugins/openresty && bash install.sh install 1.21.4.1
 
 DIR=$(cd "$(dirname "$0")"; pwd)
 rootPath=$(dirname "$DIR")

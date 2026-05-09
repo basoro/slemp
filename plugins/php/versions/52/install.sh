@@ -130,8 +130,8 @@ if [ ! -d $serverPath/php/${PHP_VER}/lib/php/extensions/no-debug-non-zts-2006061
 fi
 
 # ps -ef|grep php/52 |grep -v grep |awk '{print $2}'|xargs kill
-# /home/slemp/server/php/init.d/php52 start
-# /home/slemp/server/php/52/sbin/php-fpm start
+# ${serverPath}/php/init.d/php52 start
+# ${serverPath}/php/52/sbin/php-fpm start
 mkdir -p $serverPath/php/${PHP_VER}/var/log
 mkdir -p $serverPath/php/${PHP_VER}/var/run
 

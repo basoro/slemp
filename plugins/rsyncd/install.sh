@@ -10,7 +10,7 @@ serverPath=$(dirname "$rootPath")/server
 sysName=`uname`
 
 
-# bash /home/slemp/server/mdsever-web/scripts/getos.sh
+# bash ${serverPath}/mdsever-web/scripts/getos.sh
 bash ${rootPath}/scripts/getos.sh
 OSNAME=`cat ${rootPath}/data/osname.pl`
 

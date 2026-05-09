@@ -1,8 +1,8 @@
 #! /bin/sh
 
-php_fpm_BIN=/home/slemp/server/php/52/bin/php-cgi
-php_fpm_CONF=/home/slemp/server/php/52/etc/php-fpm.conf
-php_fpm_PID=/home/slemp/server/php/52/var/run/php-fpm.pid
+php_fpm_BIN=${serverPath}/php/52/bin/php-cgi
+php_fpm_CONF=${serverPath}/php/52/etc/php-fpm.conf
+php_fpm_PID=${serverPath}/php/52/var/run/php-fpm.pid
 
 
 php_opts="--fpm-config $php_fpm_CONF"

@@ -35,7 +35,7 @@ else
 	BAK=''
 fi
 
-# export PKG_CONFIG_PATH=/home/slemp/server/lib/libzip/lib/pkgconfig
+# export PKG_CONFIG_PATH=${serverPath}/lib/libzip/lib/pkgconfig
 
 Install_lib()
 {

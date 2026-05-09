@@ -56,11 +56,11 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php/${type} ];then
 
 	echo "install PHP${type} extend start"
 
-	# cd /home/slemp/server/panel/plugins/php/versions/common  && bash iconv.sh install 53
+	# cd ${rootPath}/plugins/php/versions/common  && bash iconv.sh install 53
   # cd /www/server/mdserver-web/plugins/php/versions/common  && bash intl.sh install 73
-	# cd /home/slemp/server/panel/plugins/php/versions/common  && bash gd.sh install 56
-	# cd /home/slemp/server/panel/plugins/php/versions/common  && bash openssl.sh install 56
-	# cd /home/slemp/server/panel/plugins/php/versions/common  && bash sodium.sh install 81
+	# cd ${rootPath}/plugins/php/versions/common  && bash gd.sh install 56
+	# cd ${rootPath}/plugins/php/versions/common  && bash openssl.sh install 56
+	# cd ${rootPath}/plugins/php/versions/common  && bash sodium.sh install 81
 	cd ${rootPath}/plugins/php/versions/common && bash gd.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash iconv.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash exif.sh install ${type}
@@ -81,7 +81,7 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php/${type} ];then
 
 	if [ ! -f /usr/local/bin/composer ];then
 		cd /tmp
-		curl -sS https://getcomposer.org/installer | /home/slemp/server/php/${type}/bin/php
+		curl -sS https://getcomposer.org/installer | ${serverPath}/php/${type}/bin/php
 		mv composer.phar /usr/local/bin/composer
 	fi
 fi

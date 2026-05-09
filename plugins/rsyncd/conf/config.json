@@ -16,10 +16,10 @@
     },
     "send":{
         "default":{
-            "logfile": "/home/slemp/server/rsyncd/lsyncd.log",
+            "logfile": "${serverPath}/rsyncd/lsyncd.log",
             "inotifyMode": "CloseWrite",
             "maxProcesses": 8,
-            "statusFile": "/home/slemp/server/rsyncd/lsyncd.status"
+            "statusFile": "${serverPath}/rsyncd/lsyncd.status"
         },
         "list":[]
     }

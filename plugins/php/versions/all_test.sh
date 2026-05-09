@@ -3,12 +3,12 @@ export PATH=$PATH:/opt/local/bin:/opt/local/sbin:/opt/local/share/man:/usr/local
 DIR=$(cd "$(dirname "$0")"; pwd)
 ROOT_DIR=$(cd "$(dirname "$0")"; pwd)
 
-# cd /home/slemp/server/panel/scripts/quick && bash debug.sh
-# cd /home/slemp/server/panel/plugins/php/versions && /bin/bash all_test.sh
+# cd ${rootPath}/scripts/quick && bash debug.sh
+# cd ${rootPath}/plugins/php/versions && /bin/bash all_test.sh
 
-# cd /home/slemp/server/panel/plugins/php && bash install.sh install 55
-# cd /home/slemp/server/panel/plugins/php/versions/common && bash gd.sh install 73
-# cd /home/slemp/server/panel/plugins/php/versions/common && bash swoole.sh install 54
+# cd ${rootPath}/plugins/php && bash install.sh install 55
+# cd ${rootPath}/plugins/php/versions/common && bash gd.sh install 73
+# cd ${rootPath}/plugins/php/versions/common && bash swoole.sh install 54
 
 
 # PHP_VER=52
@@ -30,8 +30,8 @@ PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81 82)
 # PHP_VER_LIST=(81)
 for PHP_VER in ${PHP_VER_LIST[@]}; do
 	echo "php${PHP_VER} -- start"
-	if [ ! -d  /home/slemp/server/php/${PHP_VER} ];then
-		cd /home/slemp/server/panel/plugins/php && bash install.sh install ${PHP_VER}
+	if [ ! -d  ${serverPath}/php/${PHP_VER} ];then
+		cd ${rootPath}/plugins/php && bash install.sh install ${PHP_VER}
 	fi
 	echo "php${PHP_VER} -- end"
 done
@@ -45,14 +45,14 @@ PHP_EXT_LIST=(ioncube ZendGuardLoader pdo mysqlnd sqlite3 openssl pcntl opcache 
 for PHP_VER in ${PHP_VER_LIST[@]}; do
 	echo "php${PHP_VER} -- start"
 
-	if [ ! -d /home/slemp/server/php/${PHP_VER} ];then
+	if [ ! -d ${serverPath}/php/${PHP_VER} ];then
 		echo "php${PHP_VER} is not install!"
 		continue
 	fi
 
-	NON_ZTS_FILENAME=`ls /home/slemp/server/php/${PHP_VER}/lib/php/extensions | grep no-debug-non-zts`
+	NON_ZTS_FILENAME=`ls ${serverPath}/php/${PHP_VER}/lib/php/extensions | grep no-debug-non-zts`
 	for EXT in ${PHP_EXT_LIST[@]}; do
-		extFile=/home/slemp/server/php/${PHP_VER}/lib/php/extensions/${NON_ZTS_FILENAME}/${EXT}.so
+		extFile=${serverPath}/php/${PHP_VER}/lib/php/extensions/${NON_ZTS_FILENAME}/${EXT}.so
 		echo "${PHP_VER} ${EXT} start"
 		if [ ! -f $extFile ];then
 			bash common.sh  $PHP_VER  install ${EXT}
