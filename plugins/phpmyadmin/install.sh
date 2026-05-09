@@ -1,5 +1,5 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
 export PATH
 
 curPath=`pwd`
@@ -57,7 +57,11 @@ Install_phpmyadmin()
 
 
 	if [ ! -f $serverPath/source/phpmyadmin/$FILE ];then
-		wget --no-check-certificate -O $serverPath/source/phpmyadmin/$FILE $DOWNLOAD
+		if command -v wget &> /dev/null; then
+			wget --no-check-certificate -O $serverPath/source/phpmyadmin/$FILE $DOWNLOAD
+		else
+			curl -k -L -o $serverPath/source/phpmyadmin/$FILE $DOWNLOAD
+		fi
 	fi
 
 	if [ ! -d $serverPath/source/phpmyadmin/$FDIR ];then

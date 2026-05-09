@@ -8,15 +8,20 @@
                 <div class="ptb15">
                     <div class="clearfix">
                         <div class="pull-left">
-                            <button id="backBtn" class="backBtn btn btn-default btn-sm glyphicon glyphicon-arrow-left pull-left" title="" onClick="backDir()"></button>
-                            <button class="backBtn refreshBtn btn btn-default btn-sm glyphicon glyphicon-refresh pull-right" title="" style="margin-left:-1px;"></button>
+                            <button id="backBtn"
+                                class="backBtn btn btn-default btn-sm glyphicon glyphicon-arrow-left pull-left" title=""
+                                onClick="backDir()"></button>
+                            <button
+                                class="backBtn refreshBtn btn btn-default btn-sm glyphicon glyphicon-refresh pull-right"
+                                title="" style="margin-left:-1px;"></button>
                             <span id='DirPathPlace' class="pull-left"><input id="fileInputPath" type="text"></span>
                             <span id='PathPlaceBtn' class="pull-left"></span>
                         </div>
                         <div class="pull-left mlr15" style="line-height:26px"><span id='dir_info'></span></div>
                         <div class="search pull-right" style="position: absolute; top: 6px; right: 5px;">
                             <form target="hid">
-                                <input type="text" id="SearchValue" class="ser-text pull-left" placeholder="Search for files/directories" />
+                                <input type="text" id="SearchValue" class="ser-text pull-left"
+                                    placeholder="Search for files/directories" />
                                 <button type="button" class="ser-sub pull-left" onclick='searchFile(1)'></button>
                                 <div class="file_search" draggable="false">
                                     <div id="search_all" class="file_search_checked"></div>
@@ -29,7 +34,8 @@
                 </div>
                 <div class="clearfix ptb10">
                     <button class="btn btn-default btn-sm pull-left" onclick="uploadFiles()">Upload</button>
-                    <button class="btn btn-default btn-sm pull-left" onclick="downloadFile()" title="Remote download" style="margin:0 5px">Download</button>
+                    <button class="btn btn-default btn-sm pull-left" onclick="downloadFile()" title="Remote download"
+                        style="margin:0 5px">Download</button>
                     <span id='BarTools'></span>
                     <span id='Batch' style="background-color:#fff;position:absolute;right:190px;z-index:10"></span>
                     <span id='comlist' class="comlist"></span>
@@ -64,43 +70,43 @@
 <script src="/static/js/jquery.contextify.min.js?v={{config.version}}"></script>
 <script type="text/javascript">
 
-setTimeout(function() {
-    getDisk();
-}, 500);
+    setTimeout(function () {
+        getDisk();
+    }, 500);
 
 
-var xPath = getCookie('open_dir_path');
-setTimeout(function() {
-    getFiles((xPath != undefined ? xPath : '/home/slemp/wwwroot'));
-}, 800);
+    var xPath = getCookie('open_dir_path');
+    setTimeout(function () {
+        getFiles((xPath != undefined ? xPath : '/opt/slemp/wwwroot'));
+    }, 800);
 
-pathPlaceBtn((xPath != undefined ? xPath : '/home/slemp/wwwroot'));
-setCookie('uploadSize', 1024 * 1024 * 1024);
-if (getCookie('rank') == undefined || getCookie('rank') == null) {
-    setCookie('rank', 'a');
-}
+    pathPlaceBtn((xPath != undefined ? xPath : '/opt/slemp/wwwroot'));
+    setCookie('uploadSize', 1024 * 1024 * 1024);
+    if (getCookie('rank') == undefined || getCookie('rank') == null) {
+        setCookie('rank', 'a');
+    }
 
-$("#set_icon").click(function() {
-    setCookie('rank', 'b');
-    $(this).addClass("active");
-    $("#set_list").removeClass("active");
-    getFiles(getCookie('open_dir_path'));
-});
+    $("#set_icon").click(function () {
+        setCookie('rank', 'b');
+        $(this).addClass("active");
+        $("#set_list").removeClass("active");
+        getFiles(getCookie('open_dir_path'));
+    });
 
-$("#set_list").click(function() {
-    setCookie('rank', 'a');
-    $(this).addClass("active");
-    $("#set_icon").removeClass("active");
-    getFiles(getCookie('open_dir_path'));
-})
+    $("#set_list").click(function () {
+        setCookie('rank', 'a');
+        $(this).addClass("active");
+        $("#set_icon").removeClass("active");
+        getFiles(getCookie('open_dir_path'));
+    })
 
-$(".refreshBtn").click(function() {
-    getFiles(getCookie('open_dir_path'));
-})
+    $(".refreshBtn").click(function () {
+        getFiles(getCookie('open_dir_path'));
+    })
 
 
-$('#search_all').click(function(){
-    $(this).toggleClass('active');
-});
+    $('#search_all').click(function () {
+        $(this).toggleClass('active');
+    });
 </script>
 {% endblock %}

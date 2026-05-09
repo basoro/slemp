@@ -1,7 +1,7 @@
 #!/bin/bash
 PANEL_DIR=$(cd "$(dirname "$0")/../../"; pwd)
 
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
 export PATH
 LANG=C.UTF-8
 

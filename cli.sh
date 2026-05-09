@@ -1,5 +1,5 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
@@ -18,7 +18,7 @@ slemp_start_task()
     isStart=$(ps aux |grep 'task.py'|grep -v grep|awk '{print $2}')
     if [ "$isStart" == '' ];then
         echo -e "Starting slemp-tasks... \c"
-        cd $DIR && python3 task.py >> ${DIR}/logs/task.log 2>&1 &
+        cd $DIR && nohup python3 task.py >> ${DIR}/logs/task.log 2>&1 &
         sleep 0.3
         isStart=$(ps aux |grep 'task.py'|grep -v grep|awk '{print $2}')
         if [ "$isStart" == '' ];then

@@ -1,5 +1,5 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
 export PATH
 
 # php 5.2.17 + eaccelerator 0.9.5.3
@@ -74,7 +74,7 @@ Install_lib()
 	echo "${LIBNAME}.optimizer=1" >> $serverPath/php/$version/etc/php.ini
 	echo "${LIBNAME}.shm_size=64" >> $serverPath/php/$version/etc/php.ini
 	echo "${LIBNAME}.cache_dir=${EA_DIR}" >> $serverPath/php/$version/etc/php.ini
-	echo "${LIBNAME}.allowed_admin_path=/home/slemp/wwwroot/you_project_dir" >> $serverPath/php/$version/etc/php.ini
+	echo "${LIBNAME}.allowed_admin_path=/opt/slemp/slemp/wwwroot/you_project_dir" >> $serverPath/php/$version/etc/php.ini
 
 
 

@@ -2424,6 +2424,8 @@ location ^~ {from} {\n\
                 data.append(tmp)
 
         conf_dir = slemp.getServerDir() + "/web_conf/php/conf"
+        if not os.path.exists(conf_dir):
+            os.makedirs(conf_dir)
         conf_list = os.listdir(conf_dir)
         l = len(conf_list)
         rep = "enable-php-(.*?)\.conf"

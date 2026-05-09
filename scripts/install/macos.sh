@@ -1,5 +1,5 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
 export PATH
 LANG=en_US.UTF-8
 
@@ -14,9 +14,8 @@ mkdir -p $DEV/backup/database
 mkdir -p $DEV/backup/site
 
 # install brew
-if [ ! -f /usr/local/bin/brew ];then
+if ! command -v brew &> /dev/null; then
 	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-	brew install mysql
 fi
 
 brew install libzip bzip2 gcc openssl re2c cmake

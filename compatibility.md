@@ -3,8 +3,8 @@
 quick test command
 
 ```
-cd /home/slemp/server/panel/scripts/quick && bash debug.sh
-cd /home/slemp/server/panel/plugins/php/versions && bash all_test.sh
+cd /opt/slemp/server/panel/scripts/quick && bash debug.sh
+cd /opt/slemp/server/panel/plugins/php/versions && bash all_test.sh
 ```
 
 

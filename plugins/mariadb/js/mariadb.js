@@ -1,69 +1,69 @@
-function myPost(method,args,callback, title){
+function myPost(method, args, callback, title) {
 
     var _args = null;
-    if (typeof(args) == 'string'){
+    if (typeof (args) == 'string') {
         _args = JSON.stringify(toArrayObject(args));
     } else {
         _args = JSON.stringify(args);
     }
 
     var _title = 'Retrieving...';
-    if (typeof(title) != 'undefined'){
+    if (typeof (title) != 'undefined') {
         _title = title;
     }
 
     var loadT = layer.msg(_title, { icon: 16, time: 0, shade: 0.3 });
-    $.post('/plugins/run', {name:'mariadb', func:method, args:_args}, function(data) {
+    $.post('/plugins/run', { name: 'mariadb', func: method, args: _args }, function (data) {
         layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
+        if (!data.status) {
+            layer.msg(data.msg, { icon: 0, time: 2000, shade: [0.3, '#000'] });
             return;
         }
 
-        if(typeof(callback) == 'function'){
+        if (typeof (callback) == 'function') {
             callback(data);
         }
-    },'json');
+    }, 'json');
 }
 
-function myPostN(method,args,callback, title){
+function myPostN(method, args, callback, title) {
 
     var _args = null;
-    if (typeof(args) == 'string'){
+    if (typeof (args) == 'string') {
         _args = JSON.stringify(toArrayObject(args));
     } else {
         _args = JSON.stringify(args);
     }
 
     var _title = 'Retrieving...';
-    if (typeof(title) != 'undefined'){
+    if (typeof (title) != 'undefined') {
         _title = title;
     }
-    $.post('/plugins/run', {name:'mariadb', func:method, args:_args}, function(data) {
-        if(typeof(callback) == 'function'){
+    $.post('/plugins/run', { name: 'mariadb', func: method, args: _args }, function (data) {
+        if (typeof (callback) == 'function') {
             callback(data);
         }
-    },'json');
+    }, 'json');
 }
 
-function myAsyncPost(method,args){
+function myAsyncPost(method, args) {
     var _args = null;
-    if (typeof(args) == 'string'){
+    if (typeof (args) == 'string') {
         _args = JSON.stringify(toArrayObject(args));
     } else {
         _args = JSON.stringify(args);
     }
 
     var loadT = layer.msg('Retrieving...', { icon: 16, time: 0, shade: 0.3 });
-    return syncPost('/plugins/run', {name:'mysql', func:method, args:_args});
+    return syncPost('/plugins/run', { name: 'mysql', func: method, args: _args });
 }
 
-function runInfo(){
-    myPost('run_info','',function(data){
+function runInfo() {
+    myPost('run_info', '', function (data) {
 
         var rdata = $.parseJSON(data.data);
-        if (typeof(rdata['status']) != 'undefined'){
-            layer.msg(rdata['msg'],{icon:0,time:2000,shade: [0.3, '#000']});
+        if (typeof (rdata['status']) != 'undefined') {
+            layer.msg(rdata['msg'], { icon: 0, time: 2000, shade: [0.3, '#000'] });
             return;
         }
 
@@ -98,43 +98,43 @@ function runInfo(){
 }
 
 
-function myDbPos(){
-    myPost('my_db_pos','',function(data){
+function myDbPos() {
+    myPost('my_db_pos', '', function (data) {
         var con = '<div class="line ">\
             <div class="info-r  ml0">\
-            <input id="datadir" name="datadir" class="bt-input-text mr5 port" type="text" style="width:330px" value="'+data.data+'">\
+            <input id="datadir" name="datadir" class="bt-input-text mr5 port" type="text" style="width:330px" value="'+ data.data + '">\
             <span class="glyphicon cursor mr5 glyphicon-folder-open icon_datadir" onclick="changePath(\'datadir\')"></span>\
             <button id="btn_change_path" name="btn_change_path" class="btn btn-success btn-sm mr5 ml5 btn_change_port">Move</button>\
             </div></div>';
         $(".soft-man-con").html(con);
 
-        $('#btn_change_path').click(function(){
+        $('#btn_change_path').click(function () {
             var datadir = $("input[name='datadir']").val();
-            myPost('set_db_pos','datadir='+datadir,function(data){
+            myPost('set_db_pos', 'datadir=' + datadir, function (data) {
                 var rdata = $.parseJSON(data.data);
-                layer.msg(rdata.msg,{icon:rdata.status ? 1 : 5,time:2000,shade: [0.3, '#000']});
+                layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5, time: 2000, shade: [0.3, '#000'] });
             });
         });
     });
 }
 
-function myPort(){
-    myPost('my_port','',function(data){
+function myPort() {
+    myPost('my_port', '', function (data) {
         var con = '<div class="line ">\
             <div class="info-r  ml0">\
-            <input name="port" class="bt-input-text mr5 port" type="text" style="width:100px" value="'+data.data+'">\
+            <input name="port" class="bt-input-text mr5 port" type="text" style="width:100px" value="'+ data.data + '">\
             <button id="btn_change_port" name="btn_change_port" class="btn btn-success btn-sm mr5 ml5 btn_change_port">Modify</button>\
             </div></div>';
         $(".soft-man-con").html(con);
 
-        $('#btn_change_port').click(function(){
+        $('#btn_change_port').click(function () {
             var port = $("input[name='port']").val();
-            myPost('set_my_port','port='+port,function(data){
+            myPost('set_my_port', 'port=' + port, function (data) {
                 var rdata = $.parseJSON(data.data);
-                if (rdata.status){
-                    layer.msg('Successfully modified!',{icon:1,time:2000,shade: [0.3, '#000']});
+                if (rdata.status) {
+                    layer.msg('Successfully modified!', { icon: 1, time: 2000, shade: [0.3, '#000'] });
                 } else {
-                    layer.msg(rdata.msg,{icon:1,time:2000,shade: [0.3, '#000']});
+                    layer.msg(rdata.msg, { icon: 1, time: 2000, shade: [0.3, '#000'] });
                 }
             });
         });
@@ -144,11 +144,11 @@ function myPort(){
 
 function changeMySQLDataPath(act) {
     if (act != undefined) {
-        layer.confirm(lan.soft.mysql_to_msg, { closeBtn: 2, icon: 3 }, function() {
+        layer.confirm(lan.soft.mysql_to_msg, { closeBtn: 2, icon: 3 }, function () {
             var datadir = $("#datadir").val();
             var data = 'datadir=' + datadir;
             var loadT = layer.msg(lan.soft.mysql_to_msg1, { icon: 16, time: 0, shade: [0.3, '#000'] });
-            $.post('/database?action=SetDataDir', data, function(rdata) {
+            $.post('/database?action=SetDataDir', data, function (rdata) {
                 layer.close(loadT)
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
             });
@@ -156,7 +156,7 @@ function changeMySQLDataPath(act) {
         return;
     }
 
-    $.post('/database?action=GetMySQLInfo', '', function(rdata) {
+    $.post('/database?action=GetMySQLInfo', '', function (rdata) {
         var LimitCon = '<p class="conf_p">\
                             <input id="datadir" class="phpUploadLimit bt-input-text mr5" style="width:350px;" type="text" value="' + rdata.datadir + '" name="datadir">\
                             <span onclick="ChangePath(\'datadir\')" class="glyphicon glyphicon-folder-open cursor mr20" style="width:auto"></span><button class="btn btn-success btn-sm" onclick="changeMySQLDataPath(1)">' + lan.soft.mysql_to + '</button>\
@@ -167,10 +167,10 @@ function changeMySQLDataPath(act) {
 
 
 function myPerfOpt() {
-    myPost('db_status','',function(data){
+    myPost('db_status', '', function (data) {
         var rdata = $.parseJSON(data.data);
-        if ( typeof(rdata.status) != 'undefined' && !rdata.status){
-            layer.msg(rdata.msg, {icon:2});
+        if (typeof (rdata.status) != 'undefined' && !rdata.status) {
+            layer.msg(rdata.msg, { icon: 2 });
             return;
         }
 
@@ -226,31 +226,31 @@ function myPerfOpt() {
 
         $(".soft-man-con").html(memCon);
 
-        $(".conf_p input[name*='size'],.conf_p input[name='max_connections'],.conf_p input[name='thread_stack']").change(function() {
+        $(".conf_p input[name*='size'],.conf_p input[name='max_connections'],.conf_p input[name='thread_stack']").change(function () {
             comMySqlMem();
         });
 
-        $(".conf_p select[name='mysql_set']").change(function() {
+        $(".conf_p select[name='mysql_set']").change(function () {
             mySQLMemOpt($(this).val());
             comMySqlMem();
         });
     });
 }
 
-function reBootMySqld(){
-    pluginOpService('mysql','restart','');
+function reBootMySqld() {
+    pluginOpService('mysql', 'restart', '');
 }
 
 
 function setMySQLConf() {
-    $.post('/system/system_total', '', function(memInfo) {
+    $.post('/system/system_total', '', function (memInfo) {
         var memSize = memInfo['memTotal'];
         var setSize = parseInt($("input[name='memSize']").val());
 
-        if(memSize < setSize){
+        if (memSize < setSize) {
             var errMsg = "Error, memory allocation is too high!<p style='color:red;'>Physical memory: {1}MB<br>Maximum used memory: {2}MB<br>Possible consequences: cause database instability, even Unable to start MySQLd service!";
-            var msg = errMsg.replace('{1}',memSize).replace('{2}',setSize);
-            layer.msg(msg,{icon:2,time:5000});
+            var msg = errMsg.replace('{1}', memSize).replace('{2}', setSize);
+            layer.msg(msg, { icon: 2, time: 5000 });
             return;
         }
 
@@ -278,13 +278,13 @@ function setMySQLConf() {
             max_connections: parseInt($("input[name='max_connections']").val())
         };
 
-        myPost('set_db_status', data, function(data){
+        myPost('set_db_status', data, function (data) {
             var rdata = $.parseJSON(data.data);
-            showMsg(rdata.msg,function(){
+            showMsg(rdata.msg, function () {
                 reBootMySqld();
-            },{ icon: rdata.status ? 1 : 2 });
+            }, { icon: rdata.status ? 1 : 2 });
         });
-    },'json');
+    }, 'json');
 }
 
 
@@ -406,30 +406,30 @@ function comMySqlMem() {
     $("input[name='memSize']").val(memSize.toFixed(2));
 }
 
-function syncGetDatabase(){
-    myPost('sync_get_databases', null, function(data){
+function syncGetDatabase() {
+    myPost('sync_get_databases', null, function (data) {
         var rdata = $.parseJSON(data.data);
-        showMsg(rdata.msg,function(){
+        showMsg(rdata.msg, function () {
             dbList();
-        },{ icon: rdata.status ? 1 : 2 });
+        }, { icon: rdata.status ? 1 : 2 });
     });
 }
 
-function syncToDatabase(type){
+function syncToDatabase(type) {
     var data = [];
     $('input[type="checkbox"].check:checked').each(function () {
         if (!isNaN($(this).val())) data.push($(this).val());
     });
-    var postData = 'type='+type+'&ids='+JSON.stringify(data);
-    myPost('sync_to_databases', postData, function(data){
+    var postData = 'type=' + type + '&ids=' + JSON.stringify(data);
+    myPost('sync_to_databases', postData, function (data) {
         var rdata = $.parseJSON(data.data);
-        showMsg(rdata.msg,function(){
+        showMsg(rdata.msg, function () {
             dbList();
-        },{ icon: rdata.status ? 1 : 2 });
+        }, { icon: rdata.status ? 1 : 2 });
     });
 }
 
-function setRootPwd(type, pwd){
+function setRootPwd(type, pwd) {
 
     var index = layer.open({
         type: 1,
@@ -437,76 +437,76 @@ function setRootPwd(type, pwd){
         title: 'Change database password',
         closeBtn: 1,
         shift: 5,
-        btn:["Submit","Cancel"],
+        btn: ["Submit", "Cancel"],
         shadeClose: true,
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
                         <span class='tname'>root password</span>\
-                        <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+pwd+"' />\
+                        <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+ pwd + "' />\
                             <span title='random code' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span>\
                         </div>\
                     </div>\
                   </form>",
-        yes:function(index,layero){
+        yes: function (index, layero) {
             var password = $("#MyPassword").val();
-            myPost('set_root_pwd', {password:password}, function(data){
+            myPost('set_root_pwd', { password: password }, function (data) {
                 var rdata = $.parseJSON(data.data);
-                showMsg(rdata.msg,function(){
+                showMsg(rdata.msg, function () {
                     dbList();
                     layer.close(index);
-                },{icon: rdata.status ? 1 : 2});
+                }, { icon: rdata.status ? 1 : 2 });
             });
             return;
         }
     });
 }
 
-function showHidePass(obj){
+function showHidePass(obj) {
     var a = "glyphicon-eye-open";
     var b = "glyphicon-eye-close";
 
-    if($(obj).hasClass(a)){
+    if ($(obj).hasClass(a)) {
         $(obj).removeClass(a).addClass(b);
         $(obj).prev().text($(obj).prev().attr('data-pw'))
     }
-    else{
+    else {
         $(obj).removeClass(b).addClass(a);
         $(obj).prev().text('***');
     }
 }
 
-function checkSelect(){
+function checkSelect() {
     setTimeout(function () {
         var num = $('input[type="checkbox"].check:checked').length;
         if (num == 1) {
             $('button[batch="true"]').hide();
             $('button[batch="false"]').show();
-        }else if (num>1){
+        } else if (num > 1) {
             $('button[batch="true"]').show();
             $('button[batch="false"]').show();
-        }else{
+        } else {
             $('button[batch="true"]').hide();
             $('button[batch="false"]').hide();
         }
-    },5)
+    }, 5)
 }
 
-function setDbRw(id,username,val){
-    myPost('get_db_rw',{id:id,username:username,rw:val}, function(data){
+function setDbRw(id, username, val) {
+    myPost('get_db_rw', { id: id, username: username, rw: val }, function (data) {
         var rdata = $.parseJSON(data.data);
         // layer.msg(rdata.msg,{icon:rdata.status ? 1 : 5,shade: [0.3, '#000']});
-        showMsg(rdata.msg, function(){
+        showMsg(rdata.msg, function () {
             dbList();
-        },{icon:rdata.status ? 1 : 5,shade: [0.3, '#000']}, 2000);
+        }, { icon: rdata.status ? 1 : 5, shade: [0.3, '#000'] }, 2000);
 
     });
 }
 
-function setDbAccess(username){
-    myPost('get_db_access','username='+username, function(data){
+function setDbAccess(username) {
+    myPost('get_db_access', 'username=' + username, function (data) {
         var rdata = $.parseJSON(data.data);
-        if (!rdata.status){
-            layer.msg(rdata.msg,{icon:2,shade: [0.3, '#000']});
+        if (!rdata.status) {
+            layer.msg(rdata.msg, { icon: 2, shade: [0.3, '#000'] });
             return;
         }
 
@@ -516,7 +516,7 @@ function setDbAccess(username){
             title: 'Set database permissions',
             closeBtn: 1,
             shift: 5,
-            btn:["Submit","Cancel"],
+            btn: ["Submit", "Cancel"],
             shadeClose: true,
             content: "<form class='bt-form pd20' id='set_db_access'>\
                         <div class='line'>\
@@ -530,49 +530,49 @@ function setDbAccess(username){
                             </div>\
                         </div>\
                       </form>",
-            success:function(){
-                if (rdata.msg == '127.0.0.1'){
-                    $('select[name="dataAccess"]').find("option[value='127.0.0.1']").attr("selected",true);
-                } else if (rdata.msg == '%'){
-                    $('select[name="dataAccess"]').find('option[value="%"]').attr("selected",true);
-                } else if ( rdata.msg == 'ip' ){
-                    $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
+            success: function () {
+                if (rdata.msg == '127.0.0.1') {
+                    $('select[name="dataAccess"]').find("option[value='127.0.0.1']").attr("selected", true);
+                } else if (rdata.msg == '%') {
+                    $('select[name="dataAccess"]').find('option[value="%"]').attr("selected", true);
+                } else if (rdata.msg == 'ip') {
+                    $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected", true);
                     $('select[name="dataAccess"]').after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
                 } else {
-                    $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
-                    $('select[name="dataAccess"]').after("<input value='"+rdata.msg+"' id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
+                    $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected", true);
+                    $('select[name="dataAccess"]').after("<input value='" + rdata.msg + "' id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
                 }
 
-                 $('select[name="dataAccess"]').change(function(){
+                $('select[name="dataAccess"]').change(function () {
                     var v = $(this).val();
-                    if (v == 'ip'){
+                    if (v == 'ip') {
                         $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
                     } else {
                         $('#dataAccess_subid').remove();
                     }
                 });
             },
-            yes:function(index){
+            yes: function (index) {
                 var data = $("#set_db_access").serialize();
                 data = decodeURIComponent(data);
                 var dataObj = toArrayObject(data);
-                if(!dataObj['access']){
+                if (!dataObj['access']) {
                     dataObj['access'] = dataObj['dataAccess'];
-                    if ( dataObj['dataAccess'] == 'ip'){
-                        if (dataObj['address']==''){
-                            layer.msg('IP address cannot be empty!',{icon:2,shade: [0.3, '#000']});
+                    if (dataObj['dataAccess'] == 'ip') {
+                        if (dataObj['address'] == '') {
+                            layer.msg('IP address cannot be empty!', { icon: 2, shade: [0.3, '#000'] });
                             return;
                         }
                         dataObj['access'] = dataObj['address'];
                     }
                 }
                 dataObj['username'] = username;
-                myPost('set_db_access', dataObj, function(data){
+                myPost('set_db_access', dataObj, function (data) {
                     var rdata = $.parseJSON(data.data);
-                    showMsg(rdata.msg,function(){
+                    showMsg(rdata.msg, function () {
                         layer.close(index);
                         dbList();
-                    },{icon: rdata.status ? 1 : 2});
+                    }, { icon: rdata.status ? 1 : 2 });
                 });
             }
         });
@@ -580,16 +580,16 @@ function setDbAccess(username){
     });
 }
 
-function fixDbAccess(username){
-    myPost('fix_db_access', '', function(rdata){
+function fixDbAccess(username) {
+    myPost('fix_db_access', '', function (rdata) {
         var rdata = $.parseJSON(rdata.data);
-        showMsg(rdata.msg,function(){
+        showMsg(rdata.msg, function () {
             dbList();
-        },{icon: rdata.status ? 1 : 2});
+        }, { icon: rdata.status ? 1 : 2 });
     });
 }
 
-function setDbPass(id, username, password){
+function setDbPass(id, username, password) {
 
     var index = layer.open({
         type: 1,
@@ -598,37 +598,37 @@ function setDbPass(id, username, password){
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["Submit","Cancel"],
+        btn: ["Submit", "Cancel"],
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
                         <span class='tname'>Username</span>\
-                        <div class='info-r'><input readonly='readonly' name=\"name\" class='bt-input-text mr5' type='text' style='width:330px;outline:none;' value='"+username+"' /></div>\
+                        <div class='info-r'><input readonly='readonly' name=\"name\" class='bt-input-text mr5' type='text' style='width:330px;outline:none;' value='"+ username + "' /></div>\
                     </div>\
                     <div class='line'>\
                     <span class='tname'>Password</span>\
                     <div class='info-r'>\
-                        <input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+password+"' />\
+                        <input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+ password + "' />\
                         <span title='Random code' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
                     </div>\
-                    <input type='hidden' name='id' value='"+id+"'>\
+                    <input type='hidden' name='id' value='"+ id + "'>\
                   </form>",
-        yes:function(index){
+        yes: function (index) {
             var data = {};
             data['name'] = $('input[name=name]').val();
             data['password'] = $('#MyPassword').val();
             data['id'] = $('input[name=id]').val();
-            myPost('set_user_pwd', data, function(data){
+            myPost('set_user_pwd', data, function (data) {
                 var rdata = $.parseJSON(data.data);
-                showMsg(rdata.msg,function(){
+                showMsg(rdata.msg, function () {
                     layer.close(index);
                     dbList();
-                },{icon: rdata.status ? 1 : 2});
+                }, { icon: rdata.status ? 1 : 2 });
             });
         }
     });
 }
 
-function addDatabase(type){
+function addDatabase(type) {
     layer.open({
         type: 1,
         area: '500px',
@@ -636,7 +636,7 @@ function addDatabase(type){
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["Submit","Cancel"],
+        btn: ["Submit", "Cancel"],
         content: "<form class='bt-form pd20' id='add_db'>\
                     <div class='line'>\
                         <span class='tname'>Database name</span>\
@@ -652,7 +652,7 @@ function addDatabase(type){
                     <div class='line'><span class='tname'>Username</span><div class='info-r'><input name='db_user' class='bt-input-text mr5' placeholder='Database user' type='text' style='width:65%' value=''></div></div>\
                     <div class='line'>\
                     <span class='tname'>Password</span>\
-                    <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='Random code' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
+                    <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+ (randomStrPwd(16)) + "' /><span title='Random code' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
                     </div>\
                     <div class='line'>\
                         <span class='tname'>Access permission</span>\
@@ -666,210 +666,210 @@ function addDatabase(type){
                     </div>\
                     <input type='hidden' name='ps' value='' />\
                   </form>",
-        success:function(){
-            $("input[name='name']").keyup(function(){
+        success: function () {
+            $("input[name='name']").keyup(function () {
                 var v = $(this).val();
                 $("input[name='db_user']").val(v);
                 $("input[name='ps']").val(v);
             });
 
-            $('select[name="dataAccess"]').change(function(){
+            $('select[name="dataAccess"]').change(function () {
                 var v = $(this).val();
-                if (v == 'ip'){
+                if (v == 'ip') {
                     $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
                 } else {
                     $('#dataAccess_subid').remove();
                 }
             });
         },
-        yes:function(index) {
+        yes: function (index) {
             var data = $("#add_db").serialize();
             data = decodeURIComponent(data);
             var dataObj = toArrayObject(data);
-            if(!dataObj['address']){
+            if (!dataObj['address']) {
                 dataObj['address'] = dataObj['dataAccess'];
             }
-            myPost('add_db', dataObj, function(data){
+            myPost('add_db', dataObj, function (data) {
                 var rdata = $.parseJSON(data.data);
-                showMsg(rdata.msg,function(){
-                    if (rdata.status){
+                showMsg(rdata.msg, function () {
+                    if (rdata.status) {
                         layer.close(index);
                         dbList();
                     }
-                },{icon: rdata.status ? 1 : 2},600);
+                }, { icon: rdata.status ? 1 : 2 }, 600);
             });
         }
     });
 }
 
-function delDb(id, name){
-    safeMessage('Delete ['+name+']', 'Do you really want to delete ['+name+']？',function(){
-        var data='id='+id+'&name='+name
-        myPost('del_db', data, function(data){
+function delDb(id, name) {
+    safeMessage('Delete [' + name + ']', 'Do you really want to delete [' + name + ']？', function () {
+        var data = 'id=' + id + '&name=' + name
+        myPost('del_db', data, function (data) {
             var rdata = $.parseJSON(data.data);
-            showMsg(rdata.msg,function(){
+            showMsg(rdata.msg, function () {
                 dbList();
-            },{icon: rdata.status ? 1 : 2}, 600);
+            }, { icon: rdata.status ? 1 : 2 }, 600);
         });
     });
 }
 
-function delDbBatch(){
+function delDbBatch() {
     var arr = [];
     $('input[type="checkbox"].check:checked').each(function () {
         var _val = $(this).val();
         var _name = $(this).parent().next().text();
         if (!isNaN(_val)) {
-            arr.push({'id':_val,'name':_name});
+            arr.push({ 'id': _val, 'name': _name });
         }
     });
 
-    safeMessage('Delete databases in batches','<a style="color:red;">You have selected [2] databases in total, and they cannot be restored after deletion. Do you really want to delete them?</a>',function(){
+    safeMessage('Delete databases in batches', '<a style="color:red;">You have selected [2] databases in total, and they cannot be restored after deletion. Do you really want to delete them?</a>', function () {
         var i = 0;
-        $(arr).each(function(){
-            var data  = myAsyncPost('del_db', this);
+        $(arr).each(function () {
+            var data = myAsyncPost('del_db', this);
             var rdata = $.parseJSON(data.data);
-            if (!rdata.status){
-                layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});
+            if (!rdata.status) {
+                layer.msg(rdata.msg, { icon: 2, time: 2000, shade: [0.3, '#000'] });
             }
             i++;
         });
 
-        var msg = 'Successfully deleted ['+i+'] databases!';
-        showMsg(msg,function(){
+        var msg = 'Successfully deleted [' + i + '] databases!';
+        showMsg(msg, function () {
             dbList();
-        },{icon: 1}, 600);
+        }, { icon: 1 }, 600);
     });
 }
 
 
 function setDbPs(id, name, obj) {
     var _span = $(obj);
-    var _input = $("<input class='baktext' value=\""+_span.text()+"\" type='text' placeholder='Descriptions' />");
+    var _input = $("<input class='baktext' value=\"" + _span.text() + "\" type='text' placeholder='Descriptions' />");
     _span.hide().after(_input);
     _input.focus();
-    _input.blur(function(){
+    _input.blur(function () {
         $(this).remove();
         var ps = _input.val();
         _span.text(ps).show();
-        var data = {name:name,id:id,ps:ps};
-        myPost('set_db_ps', data, function(data){
+        var data = { name: name, id: id, ps: ps };
+        myPost('set_db_ps', data, function (data) {
             var rdata = $.parseJSON(data.data);
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         });
     });
-    _input.keyup(function(){
-        if(event.keyCode == 13){
+    _input.keyup(function () {
+        if (event.keyCode == 13) {
             _input.trigger('blur');
         }
     });
 }
 
-function openPhpmyadmin(name,username,password){
+function openPhpmyadmin(name, username, password) {
 
-    data = syncPost('/plugins/check',{'name':'phpmyadmin'});
+    data = syncPost('/plugins/check', { 'name': 'phpmyadmin' });
 
 
-    if (!data.status){
-        layer.msg(data.msg,{icon:2,shade: [0.3, '#000']});
+    if (!data.status) {
+        layer.msg(data.msg, { icon: 2, shade: [0.3, '#000'] });
         return;
     }
 
-    data = syncPost('/plugins/run',{'name':'phpmyadmin','func':'status'});
-    if (data.data != 'start'){
-        layer.msg('phpMyAdmin not started',{icon:2,shade: [0.3, '#000']});
+    data = syncPost('/plugins/run', { 'name': 'phpmyadmin', 'func': 'status' });
+    if (data.data != 'start') {
+        layer.msg('phpMyAdmin not started', { icon: 2, shade: [0.3, '#000'] });
         return;
     }
 
-    data = syncPost('/plugins/run',{'name':'phpmyadmin','func':'get_cfg'});
+    data = syncPost('/plugins/run', { 'name': 'phpmyadmin', 'func': 'get_cfg' });
     var rdata = $.parseJSON(data.data);
-    if (rdata.choose != 'mariadb'){
-        layer.msg('Currently it is ['+rdata.choose+'] mode, if you want to use it, please modify the phpMyAdmin access switch.',{icon:2,shade: [0.3, '#000']});
+    if (rdata.choose != 'mariadb') {
+        layer.msg('Currently it is [' + rdata.choose + '] mode, if you want to use it, please modify the phpMyAdmin access switch.', { icon: 2, shade: [0.3, '#000'] });
         return;
     }
     var phpmyadmin_cfg = rdata;
 
-    data = syncPost('/plugins/run',{'name':'phpmyadmin','func':'get_home_page'});
+    data = syncPost('/plugins/run', { 'name': 'phpmyadmin', 'func': 'get_home_page' });
     var rdata = $.parseJSON(data.data);
-    if (!rdata.status){
-        layer.msg(rdata.msg,{icon:2,shade: [0.3, '#000']});
+    if (!rdata.status) {
+        layer.msg(rdata.msg, { icon: 2, shade: [0.3, '#000'] });
         return;
     }
 
     var home_page = rdata.data;
-    home_page = home_page.replace("http://","http://"+phpmyadmin_cfg['username']+":"+phpmyadmin_cfg['password']+"@");
-    $("#toPHPMyAdmin").attr('action',home_page);
+    home_page = home_page.replace("http://", "http://" + phpmyadmin_cfg['username'] + ":" + phpmyadmin_cfg['password'] + "@");
+    $("#toPHPMyAdmin").attr('action', home_page);
 
-    if($("#toPHPMyAdmin").attr('action').indexOf('phpmyadmin') == -1){
-        layer.msg('Please install phpMyAdmin first',{icon:2,shade: [0.3, '#000']});
-        setTimeout(function(){ window.location.href = '/soft'; },3000);
+    if ($("#toPHPMyAdmin").attr('action').indexOf('phpmyadmin') == -1) {
+        layer.msg('Please install phpMyAdmin first', { icon: 2, shade: [0.3, '#000'] });
+        setTimeout(function () { window.location.href = '/soft'; }, 3000);
         return;
     }
 
-    data = syncPost('/plugins/run',{'name':'phpmyadmin','func':'version'});
+    data = syncPost('/plugins/run', { 'name': 'phpmyadmin', 'func': 'version' });
     bigVer = data.data.split('.')[0]
-    if (bigVer>=4.5){
+    if (bigVer >= 4.5) {
 
-        setTimeout(function(){
+        setTimeout(function () {
             $("#toPHPMyAdmin").submit();
-        },3000);
-        layer.msg('phpMyAdmin['+data.data+'] requires manual login 😭',{icon:16,shade: [0.3, '#000'],time:4000});
+        }, 3000);
+        layer.msg('phpMyAdmin[' + data.data + '] requires manual login 😭', { icon: 16, shade: [0.3, '#000'], time: 4000 });
 
-    } else{
+    } else {
         var murl = $("#toPHPMyAdmin").attr('action');
         $("#pma_username").val(username);
         $("#pma_password").val(password);
         $("#db").val(name);
 
-        layer.msg('Opening phpMyAdmin',{icon:16,shade: [0.3, '#000'],time:2000});
+        layer.msg('Opening phpMyAdmin', { icon: 16, shade: [0.3, '#000'], time: 2000 });
 
-        setTimeout(function(){
+        setTimeout(function () {
             $("#toPHPMyAdmin").submit();
-        },3000);
+        }, 3000);
     }
 }
 
-function delBackup(filename, name, path){
-    if(typeof(path) == "undefined"){
+function delBackup(filename, name, path) {
+    if (typeof (path) == "undefined") {
         path = "";
     }
-    myPost('delete_db_backup',{filename:filename,path:path},function(){
+    myPost('delete_db_backup', { filename: filename, path: path }, function () {
         layer.msg('Execution succeed!');
-        setTimeout(function(){
+        setTimeout(function () {
             setBackupReq(name);
-        },2000);
+        }, 2000);
     });
 }
 
-function downloadBackup(file){
-    window.open('/files/download?filename='+encodeURIComponent(file));
+function downloadBackup(file) {
+    window.open('/files/download?filename=' + encodeURIComponent(file));
 }
 
-function importBackup(file,name){
-    myPost('import_db_backup',{file:file,name:name}, function(data){
+function importBackup(file, name) {
+    myPost('import_db_backup', { file: file, name: name }, function (data) {
         // console.log(data);
         layer.msg('Execution succeed!');
     });
 }
 
 
-function importDbExternal(file,name){
-    myPost('import_db_external',{file:file,name:name}, function(data){
+function importDbExternal(file, name) {
+    myPost('import_db_external', { file: file, name: name }, function (data) {
         layer.msg('Execution succeed!');
     });
 }
 
-function setLocalImport(db_name){
+function setLocalImport(db_name) {
 
-    function uploadDbFiles(upload_dir){
+    function uploadDbFiles(upload_dir) {
         var up_db = layer.open({
-            type:1,
+            type: 1,
             closeBtn: 1,
-            title:"Upload import file ["+upload_dir+']',
-            area: ['500px','300px'],
-            shadeClose:false,
-            content:'<div class="fileUploadDiv">\
-                    <input type="hidden" id="input-val" value="'+upload_dir+'" />\
+            title: "Upload import file [" + upload_dir + ']',
+            area: ['500px', '300px'],
+            shadeClose: false,
+            content: '<div class="fileUploadDiv">\
+                    <input type="hidden" id="input-val" value="'+ upload_dir + '" />\
                     <input type="file" id="file_input"  multiple="true" autocomplete="off" />\
                     <button type="button"  id="opt" autocomplete="off">Add files</button>\
                     <button type="button" id="up" autocomplete="off" >Upload</button>\
@@ -885,21 +885,21 @@ function setLocalImport(db_name){
                     <button type="button" id="filesClose" autocomplete="off">Cancel</button>\
                     <ul id="up_box"></ul>\
                 </div>',
-            success:function(){
-                $('#filesClose').click(function(){
+            success: function () {
+                $('#filesClose').click(function () {
                     layer.close(up_db);
                 });
             }
 
         });
-        uploadStart(function(){
+        uploadStart(function () {
             getList();
             layer.close(up_db);
         });
     }
 
-    function getList(){
-        myPost('get_db_backup_import_list',{}, function(data){
+    function getList() {
+        myPost('get_db_backup_import_list', {}, function (data) {
             var rdata = $.parseJSON(data.data);
 
             var file_list = rdata.data.list;
@@ -912,8 +912,8 @@ function setLocalImport(db_name){
                         <td><span> ' + file_list[i]['size'] + '</span></td>\
                         <td><span> ' + file_list[i]['time'] + '</span></td>\
                         <td style="text-align: right;">\
-                            <a class="btlink" onclick="importDbExternal(\'' + file_list[i]['name'] + '\',\'' +db_name+ '\')">Import</a> | \
-                            <a class="btlink del" index="'+i+'">Delete</a>\
+                            <a class="btlink" onclick="importDbExternal(\'' + file_list[i]['name'] + '\',\'' + db_name + '\')">Import</a> | \
+                            <a class="btlink del" index="'+ i + '">Delete</a>\
                         </td>\
                     </tr>';
             }
@@ -921,13 +921,13 @@ function setLocalImport(db_name){
             $('#import_db_file_list').html(tbody);
             $('input[name="upload_dir"]').val(upload_dir);
 
-            $("#import_db_file_list .del").on('click',function(){
+            $("#import_db_file_list .del").on('click', function () {
                 var index = $(this).attr('index');
                 var filename = file_list[index]["name"];
-                myPost('delete_db_backup',{filename:filename,path:upload_dir},function(){
-                    showMsg('Execution succeed!', function(){
+                myPost('delete_db_backup', { filename: filename, path: upload_dir }, function () {
+                    showMsg('Execution succeed!', function () {
                         getList();
-                    },{icon:1},2000);
+                    }, { icon: 1 }, 2000);
                 });
             });
         });
@@ -961,12 +961,12 @@ function setLocalImport(db_name){
                     <ul class="help-info-text c7">\
                         <li>Only sql, zip, sql.gz, (tar.gz|gz|tgz) are supported</li>\
                         <li>Zip, tar.gz compressed package structure: test.zip or test.tar.gz compressed package must contain test.sql</li>\
-                        <li>If the file is too large, you can also use the SFTP tool to upload the database file to /home/slemp/backup/import</li>\
+                        <li>If the file is too large, you can also use the SFTP tool to upload the database file to /opt/slemp/slemp/backup/import</li>\
                     </ul>\
                 </div>\
         </div>',
-        success:function(index){
-            $('#btn_file_upload').click(function(){
+        success: function (index) {
+            $('#btn_file_upload').click(function () {
                 var upload_dir = $('input[name="upload_dir"]').val();
                 uploadDbFiles(upload_dir);
             });
@@ -976,7 +976,7 @@ function setLocalImport(db_name){
 }
 
 
-function setBackup(db_name){
+function setBackup(db_name) {
     var layerIndex = layer.open({
         type: 1,
         title: "Database Backup Details",
@@ -1004,16 +1004,16 @@ function setBackup(db_name){
                     </div>\
                 </div>\
         </div>',
-        success:function(index){
-            $('#btn_backup').click(function(){
-                myPost('set_db_backup',{name:db_name}, function(data){
-                    showMsg('Execution succeed!', function(){
+        success: function (index) {
+            $('#btn_backup').click(function () {
+                myPost('set_db_backup', { name: db_name }, function (data) {
+                    showMsg('Execution succeed!', function () {
                         setBackupReq(db_name);
-                    }, {icon:1}, 2000);
+                    }, { icon: 1 }, 2000);
                 });
             });
 
-            $('#btn_local_import').click(function(){
+            $('#btn_local_import').click(function () {
                 setLocalImport(db_name);
             });
 
@@ -1023,8 +1023,8 @@ function setBackup(db_name){
 }
 
 
-function setBackupReq(db_name, obj){
-     myPost('get_db_backup_list', {name:db_name}, function(data){
+function setBackupReq(db_name, obj) {
+    myPost('get_db_backup_list', { name: db_name }, function (data) {
         var rdata = $.parseJSON(data.data);
         var tbody = '';
         for (var i = 0; i < rdata.data.length; i++) {
@@ -1033,9 +1033,9 @@ function setBackupReq(db_name, obj){
                     <td><span> ' + rdata.data[i]['size'] + '</span></td>\
                     <td><span> ' + rdata.data[i]['time'] + '</span></td>\
                     <td style="text-align: right;">\
-                        <a class="btlink" onclick="importBackup(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">Import</a> | \
+                        <a class="btlink" onclick="importBackup(\'' + rdata.data[i]['name'] + '\',\'' + db_name + '\')">Import</a> | \
                         <a class="btlink" onclick="downloadBackup(\'' + rdata.data[i]['file'] + '\')">Download</a> | \
-                        <a class="btlink" onclick="delBackup(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">Delete</a>\
+                        <a class="btlink" onclick="delBackup(\'' + rdata.data[i]['name'] + '\',\'' + db_name + '\')">Delete</a>\
                     </td>\
                 </tr> ';
         }
@@ -1044,69 +1044,69 @@ function setBackupReq(db_name, obj){
 }
 
 
-function dbList(page, search){
+function dbList(page, search) {
     var _data = {};
-    if (typeof(page) =='undefined'){
+    if (typeof (page) == 'undefined') {
         var page = 1;
     }
 
     _data['page'] = page;
     _data['page_size'] = 10;
-    if(typeof(search) != 'undefined'){
+    if (typeof (search) != 'undefined') {
         _data['search'] = search;
     }
-    myPost('get_db_list', _data, function(data){
+    myPost('get_db_list', _data, function (data) {
         var rdata = $.parseJSON(data.data);
         var list = '';
-        for(i in rdata.data){
+        for (i in rdata.data) {
             list += '<tr>';
-            list +='<td><input value="'+rdata.data[i]['id']+'" class="check" onclick="checkSelect();" type="checkbox"></td>';
-            list += '<td>' + rdata.data[i]['name'] +'</td>';
-            list += '<td>' + rdata.data[i]['username'] +'</td>';
+            list += '<td><input value="' + rdata.data[i]['id'] + '" class="check" onclick="checkSelect();" type="checkbox"></td>';
+            list += '<td>' + rdata.data[i]['name'] + '</td>';
+            list += '<td>' + rdata.data[i]['username'] + '</td>';
             list += '<td>' +
-                        '<span class="password" data-pw="'+rdata.data[i]['password']+'">***</span>' +
-                        '<span onclick="showHidePass(this)" class="glyphicon glyphicon-eye-open cursor pw-ico" style="margin-left:10px"></span>'+
-                        '<span class="ico-copy cursor btcopy" style="margin-left:10px" title="Copy password" onclick="copyPass(\''+rdata.data[i]['password']+'\')"></span>'+
-                    '</td>';
+                '<span class="password" data-pw="' + rdata.data[i]['password'] + '">***</span>' +
+                '<span onclick="showHidePass(this)" class="glyphicon glyphicon-eye-open cursor pw-ico" style="margin-left:10px"></span>' +
+                '<span class="ico-copy cursor btcopy" style="margin-left:10px" title="Copy password" onclick="copyPass(\'' + rdata.data[i]['password'] + '\')"></span>' +
+                '</td>';
 
 
-            list += '<td><span class="c9 input-edit" onclick="setDbPs(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',this)" style="display: inline-block;">'+rdata.data[i]['ps']+'</span></td>';
+            list += '<td><span class="c9 input-edit" onclick="setDbPs(\'' + rdata.data[i]['id'] + '\',\'' + rdata.data[i]['name'] + '\',this)" style="display: inline-block;">' + rdata.data[i]['ps'] + '</span></td>';
             list += '<td style="text-align:right">';
 
-            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\')" title="Database backup">'+(rdata.data[i]['is_backup']?'Backup':'No Backup') +'</a> | ';
+            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\'' + rdata.data[i]['name'] + '\')" title="Database backup">' + (rdata.data[i]['is_backup'] ? 'Backup' : 'No Backup') + '</a> | ';
 
             var rw = '';
             var rw_change = 'all';
-            if (typeof(rdata.data[i]['rw'])!='undefined'){
+            if (typeof (rdata.data[i]['rw']) != 'undefined') {
                 var rw_val = 'Read and Write';
-                if (rdata.data[i]['rw'] == 'all'){
+                if (rdata.data[i]['rw'] == 'all') {
                     rw_val = "All";
                     rw_change = 'rw';
-                } else if (rdata.data[i]['rw'] == 'rw'){
+                } else if (rdata.data[i]['rw'] == 'rw') {
                     rw_val = "Read and Write";
                     rw_change = 'r';
-                } else if (rdata.data[i]['rw'] == 'r'){
+                } else if (rdata.data[i]['rw'] == 'r') {
                     rw_val = "Read only";
                     rw_change = 'all';
                 }
-                rw = '<a href="javascript:;" class="btlink" onclick="setDbRw(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',\''+rw_change+'\')" title="Set read and write">'+rw_val+'</a> | ';
+                rw = '<a href="javascript:;" class="btlink" onclick="setDbRw(\'' + rdata.data[i]['id'] + '\',\'' + rdata.data[i]['name'] + '\',\'' + rw_change + '\')" title="Set read and write">' + rw_val + '</a> | ';
             }
 
 
-            list += '<a href="javascript:;" class="btlink" onclick="openPhpmyadmin(\''+rdata.data[i]['name']+'\',\''+rdata.data[i]['username']+'\',\''+rdata.data[i]['password']+'\')" title="Database management">Manage</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="repTools(\''+rdata.data[i]['name']+'\')" title="MySQL optimization repair tool">Tool</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['username']+'\')" title="Set database permissions">Permissions</a> | ' +
-                        rw +
-                        '<a href="javascript:;" class="btlink" onclick="setDbPass('+rdata.data[i]['id']+',\''+ rdata.data[i]['username'] +'\',\'' + rdata.data[i]['password'] + '\')">Change encryption</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="delDb(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="Delete database">Delete</a>' +
-                    '</td>';
+            list += '<a href="javascript:;" class="btlink" onclick="openPhpmyadmin(\'' + rdata.data[i]['name'] + '\',\'' + rdata.data[i]['username'] + '\',\'' + rdata.data[i]['password'] + '\')" title="Database management">Manage</a> | ' +
+                '<a href="javascript:;" class="btlink" onclick="repTools(\'' + rdata.data[i]['name'] + '\')" title="MySQL optimization repair tool">Tool</a> | ' +
+                '<a href="javascript:;" class="btlink" onclick="setDbAccess(\'' + rdata.data[i]['username'] + '\')" title="Set database permissions">Permissions</a> | ' +
+                rw +
+                '<a href="javascript:;" class="btlink" onclick="setDbPass(' + rdata.data[i]['id'] + ',\'' + rdata.data[i]['username'] + '\',\'' + rdata.data[i]['password'] + '\')">Change encryption</a> | ' +
+                '<a href="javascript:;" class="btlink" onclick="delDb(\'' + rdata.data[i]['id'] + '\',\'' + rdata.data[i]['name'] + '\')" title="Delete database">Delete</a>' +
+                '</td>';
             list += '</tr>';
         }
 
         var con = '<div class="safe bgw">\
             <button onclick="addDatabase()" title="Add database" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">Add database</button>\
-            <button onclick="setRootPwd(0,\''+rdata.info['root_pwd']+'\')" title="Set MySQL administrator password" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">Root password</button>\
-            <button onclick="openPhpmyadmin(\'\',\'root\',\''+rdata.info['root_pwd']+'\')" title="Open phpMyadmin" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">phpMyAdmin</button>\
+            <button onclick="setRootPwd(0,\''+ rdata.info['root_pwd'] + '\')" title="Set MySQL administrator password" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">Root password</button>\
+            <button onclick="openPhpmyadmin(\'\',\'root\',\''+ rdata.info['root_pwd'] + '\')" title="Open phpMyadmin" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">phpMyAdmin</button>\
             <button onclick="setDbAccess(\'root\')" title="ROOT permission" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">ROOT permission</button>\
             <button onclick="fixDbAccess(\'root\')" title="Repair" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">Repair</button>\
             <span style="float:right">              \
@@ -1120,11 +1120,11 @@ function dbList(page, search){
                     <th>Username</th>\
                     <th>Password</th>\
                     '+
-                    // '<th>Backup</th>'+
-                    '<th>Descriptions</th>\
+            // '<th>Backup</th>'+
+            '<th>Descriptions</th>\
                     <th style="text-align:right;">Action</th></tr></thead>\
                     <tbody>\
-                    '+ list +'\
+                    '+ list + '\
                     </tbody></table>\
                 </div>\
                 <div id="databasePage" class="dataTables_paginate paging_bootstrap page"></div>\
@@ -1152,13 +1152,13 @@ function dbList(page, search){
 }
 
 
-function myLogs(){
+function myLogs() {
 
-    myPost('bin_log', {status:1}, function(data){
+    myPost('bin_log', { status: 1 }, function (data) {
         var rdata = $.parseJSON(data.data);
 
         var line_status = ""
-        if (rdata.status){
+        if (rdata.status) {
             line_status = '<button class="btn btn-success btn-xs btn-bin va0">Close</button>\
                         <button class="btn btn-success btn-xs clean-btn-bin va0">Clean up BINLOG logs</button>';
         } else {
@@ -1167,40 +1167,40 @@ function myLogs(){
 
         var limitCon = '<p class="conf_p">\
                         <span class="f14 c6 mr20">Binary log </span><span class="f14 c6 mr20">' + toSize(rdata.msg) + '</span>\
-                        '+line_status+'\
+                        '+ line_status + '\
                         <p class="f14 c6 mtb10" style="border-top:#ddd 1px solid; padding:10px 0">Error log<button class="btn btn-default btn-clear btn-xs" style="float:right;" >Clear log</button></p>\
                         <textarea readonly style="margin: 0px;width: 100%;height: 438px;background-color: #333;color:#fff; padding:0 5px" id="error_log"></textarea>\
                     </p>';
         $(".soft-man-con").html(limitCon);
 
         $(".btn-bin").click(function () {
-            myPost('bin_log', 'close=change', function(data){
+            myPost('bin_log', 'close=change', function (data) {
                 var rdata = $.parseJSON(data.data);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
-                setTimeout(function(){myLogs();}, 2000);
+                setTimeout(function () { myLogs(); }, 2000);
             });
         });
 
         $(".clean-btn-bin").click(function () {
-            myPost('clean_bin_log', '', function(data){
+            myPost('clean_bin_log', '', function (data) {
                 var rdata = $.parseJSON(data.data);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
-                setTimeout(function(){myLogs();}, 2000);
+                setTimeout(function () { myLogs(); }, 2000);
             });
         });
 
         $(".btn-clear").click(function () {
-            myPost('error_log', 'close=1', function(data){
+            myPost('error_log', 'close=1', function (data) {
                 var rdata = $.parseJSON(data.data);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
-                setTimeout(function(){myLogs();}, 2000);
+                setTimeout(function () { myLogs(); }, 2000);
             });
         })
 
-        myPost('error_log', 'p=1', function(data){
+        myPost('error_log', 'p=1', function (data) {
             var rdata = $.parseJSON(data.data);
             var error_body = '';
-            if (rdata.status){
+            if (rdata.status) {
                 error_body = rdata.data;
             } else {
                 error_body = rdata.msg;
@@ -1234,27 +1234,27 @@ function repCheckeds(tables) {
 function repDatabase(db_name, tables) {
     dbs = repCheckeds(tables);
 
-    myPost('repair_table', { db_name: db_name, tables: JSON.stringify(dbs) }, function(data){
+    myPost('repair_table', { db_name: db_name, tables: JSON.stringify(dbs) }, function (data) {
         var rdata = $.parseJSON(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         repTools(db_name, true);
-    },'Repair command has been sent, please wait...');
+    }, 'Repair command has been sent, please wait...');
 }
 
 
 function optDatabase(db_name, tables) {
     dbs = repCheckeds(tables);
 
-    myPost('opt_table', { db_name: db_name, tables: JSON.stringify(dbs) }, function(data){
+    myPost('opt_table', { db_name: db_name, tables: JSON.stringify(dbs) }, function (data) {
         var rdata = $.parseJSON(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         repTools(db_name, true);
-    },'Optimization command has been sent, please wait...');
+    }, 'Optimization command has been sent, please wait...');
 }
 
-function toDatabaseType(db_name, tables, type){
+function toDatabaseType(db_name, tables, type) {
     dbs = repCheckeds(tables);
-    myPost('alter_table', { db_name: db_name, tables: JSON.stringify(dbs),table_type: type }, function(data){
+    myPost('alter_table', { db_name: db_name, tables: JSON.stringify(dbs), table_type: type }, function (data) {
         var rdata = $.parseJSON(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         repTools(db_name, true);
@@ -1283,8 +1283,8 @@ function selectedTools(my_obj, db_name) {
     }
 }
 
-function repTools(db_name, res){
-    myPost('get_db_info', {name:db_name}, function(data){
+function repTools(db_name, res) {
+    myPost('get_db_info', { name: db_name }, function (data) {
         var rdata = $.parseJSON(data.data);
         var types = { InnoDB: "MyISAM", MyISAM: "InnoDB" };
         var tbody = '';
@@ -1354,29 +1354,29 @@ function repTools(db_name, res){
 }
 
 
-function setDbMaster(name){
-    myPost('set_db_master', {name:name}, function(data){
+function setDbMaster(name) {
+    myPost('set_db_master', { name: name }, function (data) {
         var rdata = $.parseJSON(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
-        setTimeout(function(){
+        setTimeout(function () {
             masterOrSlaveConf();
         }, 2000);
     });
 }
 
 
-function setDbSlave(name){
-    myPost('set_db_slave', {name:name}, function(data){
+function setDbSlave(name) {
+    myPost('set_db_slave', { name: name }, function (data) {
         var rdata = $.parseJSON(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
-        setTimeout(function(){
+        setTimeout(function () {
             masterOrSlaveConf();
         }, 2000);
     });
 }
 
 
-function addMasterRepSlaveUser(){
+function addMasterRepSlaveUser() {
     layer.open({
         type: 1,
         area: '500px',
@@ -1384,47 +1384,47 @@ function addMasterRepSlaveUser(){
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["Submit","Cancel"],
+        btn: ["Submit", "Cancel"],
         content: "<form class='bt-form pd20' id='add_master'>\
-            <div class='line'><span class='tname'>Username</span><div class='info-r'><input name='username' class='bt-input-text mr5' placeholder='Username' type='text' style='width:330px;' value='"+(randomStrPwd(6))+"'></div></div>\
+            <div class='line'><span class='tname'>Username</span><div class='info-r'><input name='username' class='bt-input-text mr5' placeholder='Username' type='text' style='width:330px;' value='"+ (randomStrPwd(6)) + "'></div></div>\
             <div class='line'>\
             <span class='tname'>Password</span>\
-            <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='Random code' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
+            <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+ (randomStrPwd(16)) + "' /><span title='Random code' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
             </div>\
             <input type='hidden' name='ps' value='' />\
           </form>",
-        success:function(){
-            $("input[name='name']").keyup(function(){
+        success: function () {
+            $("input[name='name']").keyup(function () {
                 var v = $(this).val();
                 $("input[name='db_user']").val(v);
                 $("input[name='ps']").val(v);
             });
 
-            $('select[name="dataAccess"]').change(function(){
+            $('select[name="dataAccess"]').change(function () {
                 var v = $(this).val();
-                if (v == 'ip'){
+                if (v == 'ip') {
                     $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
                 } else {
                     $('#dataAccess_subid').remove();
                 }
             });
         },
-        yes:function(index){
+        yes: function (index) {
             var data = $("#add_master").serialize();
             data = decodeURIComponent(data);
             var dataObj = toArrayObject(data);
-            if(!dataObj['address']){
+            if (!dataObj['address']) {
                 dataObj['address'] = dataObj['dataAccess'];
             }
 
-            myPost('add_master_rep_slave_user', dataObj, function(data){
+            myPost('add_master_rep_slave_user', dataObj, function (data) {
                 var rdata = $.parseJSON(data.data);
-                showMsg(rdata.msg,function(){
+                showMsg(rdata.msg, function () {
                     layer.close(index);
-                    if (rdata.status){
+                    if (rdata.status) {
                         getMasterRepSlaveList();
                     }
-                },{icon: rdata.status ? 1 : 2},600);
+                }, { icon: rdata.status ? 1 : 2 }, 600);
             });
         }
     });
@@ -1432,7 +1432,7 @@ function addMasterRepSlaveUser(){
 
 
 
-function updateMasterRepSlaveUser(username){
+function updateMasterRepSlaveUser(username) {
 
     var index = layer.open({
         type: 1,
@@ -1442,10 +1442,10 @@ function updateMasterRepSlaveUser(username){
         shift: 5,
         shadeClose: true,
         content: "<form class='bt-form pd20 pb70' id='update_master'>\
-            <div class='line'><span class='tname'>Username</span><div class='info-r'><input name='username' readonly='readonly' class='bt-input-text mr5' placeholder='Username' type='text' style='width:330px;' value='"+username+"'></div></div>\
+            <div class='line'><span class='tname'>Username</span><div class='info-r'><input name='username' readonly='readonly' class='bt-input-text mr5' placeholder='Username' type='text' style='width:330px;' value='"+ username + "'></div></div>\
             <div class='line'>\
             <span class='tname'>Password</span>\
-            <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='Random code' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
+            <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+ (randomStrPwd(16)) + "' /><span title='Random code' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
             </div>\
             <input type='hidden' name='ps' value='' />\
             <div class='bt-form-submit-btn'>\
@@ -1454,27 +1454,27 @@ function updateMasterRepSlaveUser(username){
           </form>",
     });
 
-    $('#submit_update_master').click(function(){
+    $('#submit_update_master').click(function () {
         var data = $("#update_master").serialize();
         data = decodeURIComponent(data);
         var dataObj = toArrayObject(data);
-        myPost('update_master_rep_slave_user', data, function(data){
+        myPost('update_master_rep_slave_user', data, function (data) {
             var rdata = $.parseJSON(data.data);
-            showMsg(rdata.msg,function(){
-                if (rdata.status){
+            showMsg(rdata.msg, function () {
+                if (rdata.status) {
                     getMasterRepSlaveList();
                 }
                 $('.layui-layer-close1').click();
-            },{icon: rdata.status ? 1 : 2},600);
+            }, { icon: rdata.status ? 1 : 2 }, 600);
         });
     });
 }
 
-function getMasterRepSlaveUserCmd(username, db=''){
-    myPost('get_master_rep_slave_user_cmd', {username:username,db:db}, function(data){
+function getMasterRepSlaveUserCmd(username, db = '') {
+    myPost('get_master_rep_slave_user_cmd', { username: username, db: db }, function (data) {
         var rdata = $.parseJSON(data.data);
 
-        if (!rdata['status']){
+        if (!rdata['status']) {
             layer.msg(rdata['msg']);
             return;
         }
@@ -1485,8 +1485,8 @@ function getMasterRepSlaveUserCmd(username, db=''){
             type: 1,
             title: 'Synchronous command',
             area: '500px',
-            content:"<form class='bt-form pd20 pb70' id='add_master'>\
-            <div class='line' style='word-wrap: break-word;word-break: normal;'>"+cmd+"</div>\
+            content: "<form class='bt-form pd20 pb70' id='add_master'>\
+            <div class='line' style='word-wrap: break-word;word-break: normal;'>"+ cmd + "</div>\
             <div class='bt-form-submit-btn'>\
                 <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>Copy</button>\
             </div>\
@@ -1495,31 +1495,31 @@ function getMasterRepSlaveUserCmd(username, db=''){
 
 
         copyPass(cmd);
-        $('.class-copy-cmd').click(function(){
+        $('.class-copy-cmd').click(function () {
             copyPass(cmd);
         });
     });
 }
 
-function delMasterRepSlaveUser(username){
-    myPost('del_master_rep_slave_user', {username:username}, function(data){
+function delMasterRepSlaveUser(username) {
+    myPost('del_master_rep_slave_user', { username: username }, function (data) {
         var rdata = $.parseJSON(data.data);
         layer.msg(rdata.msg);
 
         $('.layui-layer-close1').click();
 
-        setTimeout(function(){
+        setTimeout(function () {
             getMasterRepSlaveList();
-        },1000);
+        }, 1000);
     });
 }
 
 
-function setDbMasterAccess(username){
-    myPost('get_db_access','username='+username, function(data){
+function setDbMasterAccess(username) {
+    myPost('get_db_access', 'username=' + username, function (data) {
         var rdata = $.parseJSON(data.data);
-        if (!rdata.status){
-            layer.msg(rdata.msg,{icon:2,shade: [0.3, '#000']});
+        if (!rdata.status) {
+            layer.msg(rdata.msg, { icon: 2, shade: [0.3, '#000'] });
             return;
         }
 
@@ -1529,7 +1529,7 @@ function setDbMasterAccess(username){
             title: 'Set database permissions',
             closeBtn: 1,
             shift: 5,
-            btn:["Submit","Cancel"],
+            btn: ["Submit", "Cancel"],
             shadeClose: true,
             content: "<form class='bt-form pd20' id='set_db_access'>\
                         <div class='line'>\
@@ -1543,48 +1543,48 @@ function setDbMasterAccess(username){
                             </div>\
                         </div>\
                       </form>",
-            success:function(){
-                if (rdata.msg == '127.0.0.1'){
-                    $('select[name="dataAccess"]').find("option[value='127.0.0.1']").attr("selected",true);
-                } else if (rdata.msg == '%'){
-                    $('select[name="dataAccess"]').find('option[value="%"]').attr("selected",true);
-                } else if ( rdata.msg == 'ip' ){
-                    $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
+            success: function () {
+                if (rdata.msg == '127.0.0.1') {
+                    $('select[name="dataAccess"]').find("option[value='127.0.0.1']").attr("selected", true);
+                } else if (rdata.msg == '%') {
+                    $('select[name="dataAccess"]').find('option[value="%"]').attr("selected", true);
+                } else if (rdata.msg == 'ip') {
+                    $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected", true);
                     $('select[name="dataAccess"]').after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
                 } else {
-                    $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
-                    $('select[name="dataAccess"]').after("<input value='"+rdata.msg+"' id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
+                    $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected", true);
+                    $('select[name="dataAccess"]').after("<input value='" + rdata.msg + "' id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
                 }
 
-                 $('select[name="dataAccess"]').change(function(){
+                $('select[name="dataAccess"]').change(function () {
                     var v = $(this).val();
-                    if (v == 'ip'){
+                    if (v == 'ip') {
                         $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='Multiple IPs are separated by commas (,)' style='width: 230px; display: inline-block;'>");
                     } else {
                         $('#dataAccess_subid').remove();
                     }
                 });
             },
-            yes:function(index){
+            yes: function (index) {
                 var data = $("#set_db_access").serialize();
                 data = decodeURIComponent(data);
                 var dataObj = toArrayObject(data);
-                if(!dataObj['access']){
+                if (!dataObj['access']) {
                     dataObj['access'] = dataObj['dataAccess'];
-                    if ( dataObj['dataAccess'] == 'ip'){
-                        if (dataObj['address']==''){
-                            layer.msg('IP address cannot be empty!',{icon:2,shade: [0.3, '#000']});
+                    if (dataObj['dataAccess'] == 'ip') {
+                        if (dataObj['address'] == '') {
+                            layer.msg('IP address cannot be empty!', { icon: 2, shade: [0.3, '#000'] });
                             return;
                         }
                         dataObj['access'] = dataObj['address'];
                     }
                 }
                 dataObj['username'] = username;
-                myPost('set_dbmaster_access', dataObj, function(data){
+                myPost('set_dbmaster_access', dataObj, function (data) {
                     var rdata = $.parseJSON(data.data);
-                    showMsg(rdata.msg,function(){
+                    showMsg(rdata.msg, function () {
                         layer.close(index);
-                    },{icon: rdata.status ? 1 : 2});
+                    }, { icon: rdata.status ? 1 : 2 });
                 });
             }
         });
@@ -1592,20 +1592,20 @@ function setDbMasterAccess(username){
     });
 }
 
-function getMasterRepSlaveList(){
+function getMasterRepSlaveList() {
     var _data = {};
-    if (typeof(page) =='undefined'){
+    if (typeof (page) == 'undefined') {
         var page = 1;
     }
 
     _data['page'] = page;
     _data['page_size'] = 10;
-    myPost('get_master_rep_slave_list', _data, function(data){
+    myPost('get_master_rep_slave_list', _data, function (data) {
         // console.log(data);
         var rdata = [];
         try {
             rdata = $.parseJSON(data.data);
-        } catch(e){
+        } catch (e) {
             console.log(e);
         }
         var list = '';
@@ -1614,13 +1614,13 @@ function getMasterRepSlaveList(){
         for (i in user_list) {
             // console.log(i);
             var name = user_list[i]['username'];
-            list += '<tr><td>'+name+'</td>\
-                <td>'+user_list[i]['password']+'</td>\
+            list += '<tr><td>' + name + '</td>\
+                <td>'+ user_list[i]['password'] + '</td>\
                 <td>\
-                    <a class="btlink" onclick="updateMasterRepSlaveUser(\''+name+'\');">Modify</a> | \
-                    <a class="btlink" onclick="delMasterRepSlaveUser(\''+name+'\');">Delete</a> | \
-                    <a class="btlink" onclick="setDbMasterAccess(\''+name+'\');">Permissions</a> | \
-                    <a class="btlink" onclick="getMasterRepSlaveUserCmd(\''+name+'\');">Synchronize commands</a>\
+                    <a class="btlink" onclick="updateMasterRepSlaveUser(\''+ name + '\');">Modify</a> | \
+                    <a class="btlink" onclick="delMasterRepSlaveUser(\''+ name + '\');">Delete</a> | \
+                    <a class="btlink" onclick="setDbMasterAccess(\''+ name + '\');">Permissions</a> | \
+                    <a class="btlink" onclick="getMasterRepSlaveUserCmd(\''+ name + '\');">Synchronize commands</a>\
                 </td>\
             </tr>';
         }
@@ -1630,58 +1630,58 @@ function getMasterRepSlaveList(){
     });
 }
 
-function getMasterRepSlaveListPage(){
+function getMasterRepSlaveListPage() {
     var page = '<div class="dataTables_paginate_4 dataTables_paginate paging_bootstrap page" style="margin-top:0px;"></div>';
-        page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addMasterRepSlaveUser()" title="">Add sync account</span></div>';
+    page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addMasterRepSlaveUser()" title="">Add sync account</span></div>';
 
     var loadOpen = layer.open({
         type: 1,
         title: 'Sync account list',
         area: '500px',
-        content:"<div class='bt-form pd20 c6'>\
+        content: "<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10' id='get_master_rep_slave_list_page'>\
                     <div><table class='table table-hover'>\
                         <thead><tr><th>Username</th><th>Password</th><th>Action</th></tr></thead>\
                         <tbody></tbody>\
                     </table></div>\
-                    "+page +"\
+                    "+ page + "\
                 </div>\
             </div>",
-        success:function(){
+        success: function () {
             getMasterRepSlaveList();
         }
     });
 }
 
 
-function deleteSlave(sign = ''){
-    myPost('delete_slave', {sign:sign}, function(data){
+function deleteSlave(sign = '') {
+    myPost('delete_slave', { sign: sign }, function (data) {
         var rdata = $.parseJSON(data.data);
-        showMsg(rdata['msg'], function(){
+        showMsg(rdata['msg'], function () {
             masterOrSlaveConf();
-        },{icon:rdata.status?1:2,time:3000},3000);
+        }, { icon: rdata.status ? 1 : 2, time: 3000 }, 3000);
     });
 }
 
 
-function getFullSyncStatus(db){
+function getFullSyncStatus(db) {
     var timeId = null;
 
-    myPost('get_slave_list', {page:1,page_size:100}, function(data){
+    myPost('get_slave_list', { page: 1, page_size: 100 }, function (data) {
         var rdata = $.parseJSON(data.data);
         var rsource = rdata.data;
 
-        if (db == 'ALL' && rsource.length>1){
-            layer.msg("Multi-master does not support this mode!",{icon:2});
+        if (db == 'ALL' && rsource.length > 1) {
+            layer.msg("Multi-master does not support this mode!", { icon: 2 });
             return;
         }
 
         var dataSource = '';
-        if (rsource.length>1){
+        if (rsource.length > 1) {
             var sourceList = '';
             for (var i = 0; i < rsource.length; i++) {
-                if ('Connection_name' in rsource[i]){
-                    sourceList += '<option val="'+rsource[i]['Master_Host']+'">'+rsource[i]['Master_Host']+'</option>';
+                if ('Connection_name' in rsource[i]) {
+                    sourceList += '<option val="' + rsource[i]['Master_Host'] + '">' + rsource[i]['Master_Host'] + '</option>';
                 }
             }
 
@@ -1693,11 +1693,11 @@ function getFullSyncStatus(db){
 
         layer.open({
             type: 1,
-            title: '全量同步['+db+']',
+            title: '全量同步[' + db + ']',
             area: '500px',
-            content:"<div class='bt-form pd15'>\
+            content: "<div class='bt-form pd15'>\
                      <div class='divtable mtb10'>\
-                        "+dataSource+"\
+                        "+ dataSource + "\
                         <span id='full_msg'></span>\
                         <div class='progress'>\
                             <div class='progress-bar' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='min-width: 2em;'>0%</div>\
@@ -1707,59 +1707,59 @@ function getFullSyncStatus(db){
                         <span data-status='init' class='sync btn btn-default btn-sm' id='begin_full_sync'>开始</span>\
                     </div>\
                 </div>",
-            cancel: function(){
+            cancel: function () {
                 clearInterval(timeId);
             },
-            success:function(){
-                $('#begin_full_sync').click(function(){
+            success: function () {
+                $('#begin_full_sync').click(function () {
                     var val = $(this).data('status');
                     var sign = '';
-                    if (dataSource !=''){
+                    if (dataSource != '') {
                         sign = $('select[name="data_source"]').val();
                     }
-                    if (val == 'init'){
+                    if (val == 'init') {
                         fullSync(db, sign, 1);
-                        timeId = setInterval(function(){
-                            fullSync(db,sign,0);
+                        timeId = setInterval(function () {
+                            fullSync(db, sign, 0);
                         }, 1000);
-                        $(this).data('status','starting');
+                        $(this).data('status', 'starting');
                     } else {
-                        layer.msg("正在同步中..",{icon:0});
+                        layer.msg("正在同步中..", { icon: 0 });
                     }
                 });
             }
         });
     });
 
-    function fullSync(db, sign, begin){
-        myPostN('full_sync', {db:db,sign:sign,begin:begin}, function(data){
+    function fullSync(db, sign, begin) {
+        myPostN('full_sync', { db: db, sign: sign, begin: begin }, function (data) {
             var rdata = $.parseJSON(data.data);
             $('#full_msg').text(rdata['msg']);
-            $('.progress-bar').css('width',rdata['progress']+'%');
-            $('.progress-bar').text(rdata['progress']+'%');
+            $('.progress-bar').css('width', rdata['progress'] + '%');
+            $('.progress-bar').text(rdata['progress'] + '%');
 
-            if (rdata['code']==6 ||rdata['code']<0){
+            if (rdata['code'] == 6 || rdata['code'] < 0) {
                 layer.msg(rdata['msg']);
                 clearInterval(timeId);
-                $("#begin_full_sync").attr('status','init');
+                $("#begin_full_sync").attr('status', 'init');
             }
         });
     }
 
 }
 
-function addSlaveSSH(ip=''){
+function addSlaveSSH(ip = '') {
 
-    myPost('get_slave_ssh_by_ip', {ip:ip}, function(rdata){
+    myPost('get_slave_ssh_by_ip', { ip: ip }, function (rdata) {
 
         var rdata = $.parseJSON(rdata.data);
 
         var ip = '127.0.0.1';
         var port = "22";
         var id_rsa = '';
-        var db_user ='';
+        var db_user = '';
 
-        if (rdata.data.length>0){
+        if (rdata.data.length > 0) {
             ip = rdata.data[0]['ip'];
             port = rdata.data[0]['port'];
             id_rsa = rdata.data[0]['id_rsa'];
@@ -1768,40 +1768,40 @@ function addSlaveSSH(ip=''){
 
         var index = layer.open({
             type: 1,
-            area: ['500px','480px'],
+            area: ['500px', '480px'],
             title: 'Add ssh',
             closeBtn: 1,
             shift: 5,
             shadeClose: true,
-            btn:["Submit","Cancel"],
+            btn: ["Submit", "Cancel"],
             content: "<form class='bt-form pd20'>\
-                <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ip+"'></div></div>\
-                <div class='line'><span class='tname'>Port</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
-                <div class='line'><span class='tname'>Sync account [DB]</span><div class='info-r'><input name='db_user'  placeholder='If it is empty, take the first one!' class='bt-input-text mr5' type='text' style='width:330px;' value='"+db_user+"'></div></div>\
+                <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ ip + "'></div></div>\
+                <div class='line'><span class='tname'>Port</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+ port + "'></div></div>\
+                <div class='line'><span class='tname'>Sync account [DB]</span><div class='info-r'><input name='db_user'  placeholder='If it is empty, take the first one!' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ db_user + "'></div></div>\
                 <div class='line'>\
                 <span class='tname'>ID_RSA</span>\
                 <div class='info-r'><textarea class='bt-input-text mr5' row='20' cols='50' name='id_rsa' style='width:330px;height:200px;'></textarea></div>\
                 </div>\
                 <input type='hidden' name='ps' value='' />\
               </form>",
-            success:function(){
+            success: function () {
                 $('textarea[name="id_rsa"]').html(id_rsa);
             },
-            yes:function(index){
+            yes: function (index) {
                 var ip = $('input[name="ip"]').val();
                 var port = $('input[name="port"]').val();
                 var db_user = $('input[name="db_user"]').val();
                 var id_rsa = $('textarea[name="id_rsa"]').val();
 
-                var data = {ip:ip,port:port,id_rsa:id_rsa,db_user:db_user};
-                myPost('add_slave_ssh', data, function(data){
+                var data = { ip: ip, port: port, id_rsa: id_rsa, db_user: db_user };
+                myPost('add_slave_ssh', data, function (data) {
                     layer.close(index);
                     var rdata = $.parseJSON(data.data);
-                    showMsg(rdata.msg,function(){
-                        if (rdata.status){
+                    showMsg(rdata.msg, function () {
+                        if (rdata.status) {
                             getSlaveSSHPage();
                         }
-                    },{icon: rdata.status ? 1 : 2},600);
+                    }, { icon: rdata.status ? 1 : 2 }, 600);
                 });
             }
         });
@@ -1810,40 +1810,40 @@ function addSlaveSSH(ip=''){
 
 
 
-function delSlaveSSH(ip){
-    myPost('del_slave_ssh', {ip:ip}, function(rdata){
+function delSlaveSSH(ip) {
+    myPost('del_slave_ssh', { ip: ip }, function (rdata) {
         var rdata = $.parseJSON(rdata.data);
-        showMsg(rdata.msg,function(){
-            if (rdata.status){
+        showMsg(rdata.msg, function () {
+            if (rdata.status) {
                 getSlaveSSHPage();
             }
-        },{icon: rdata.status ? 1 : 2}, 600);
+        }, { icon: rdata.status ? 1 : 2 }, 600);
     });
 }
 
 
-function delSlaveSyncUser(ip){
-    myPost('del_slave_sync_user', {ip:ip}, function(rdata){
+function delSlaveSyncUser(ip) {
+    myPost('del_slave_sync_user', { ip: ip }, function (rdata) {
         var rdata = $.parseJSON(rdata.data);
-        showMsg(rdata.msg,function(){
-            if (rdata.status){
+        showMsg(rdata.msg, function () {
+            if (rdata.status) {
                 getSlaveSyncUserPage();
             }
-        },{icon: rdata.status ? 1 : 2}, 600);
+        }, { icon: rdata.status ? 1 : 2 }, 600);
     });
 }
 
-function getSlaveSSHPage(page=1){
+function getSlaveSSHPage(page = 1) {
     var _data = {};
     _data['page'] = page;
     _data['page_size'] = 5;
-    _data['tojs'] ='getSlaveSSHPage';
-    myPost('get_slave_ssh_list', _data, function(data){
+    _data['tojs'] = 'getSlaveSSHPage';
+    myPost('get_slave_ssh_list', _data, function (data) {
         var layerId = null;
         var rdata = [];
         try {
             rdata = $.parseJSON(data.data);
-        } catch(e) {
+        } catch (e) {
             console.log(e);
         }
         var list = '';
@@ -1853,22 +1853,22 @@ function getSlaveSSHPage(page=1){
             var port = ssh_list[i]['port'];
 
             var id_rsa = 'Not set';
-            if ( ssh_list[i]['port'] != ''){
+            if (ssh_list[i]['port'] != '') {
                 id_rsa = 'Has been set';
             }
 
             var db_user = 'Not set';
-            if ( ssh_list[i]['db_user'] != ''){
+            if (ssh_list[i]['db_user'] != '') {
                 db_user = ssh_list[i]['db_user'];
             }
 
-            list += '<tr><td>'+ip+'</td>\
-                <td>'+port+'</td>\
-                <td>'+db_user+'</td>\
-                <td>'+id_rsa+'</td>\
+            list += '<tr><td>' + ip + '</td>\
+                <td>'+ port + '</td>\
+                <td>'+ db_user + '</td>\
+                <td>'+ id_rsa + '</td>\
                 <td>\
-                    <a class="btlink" onclick="addSlaveSSH(\''+ip+'\');">Modify</a> | \
-                    <a class="btlink" onclick="delSlaveSSH(\''+ip+'\');">Delete</a>\
+                    <a class="btlink" onclick="addSlaveSSH(\''+ ip + '\');">Modify</a> | \
+                    <a class="btlink" onclick="delSlaveSSH(\''+ ip + '\');">Delete</a>\
                 </td>\
             </tr>';
         }
@@ -1878,9 +1878,9 @@ function getSlaveSSHPage(page=1){
     });
 }
 
-function addSlaveSyncUser(ip=''){
+function addSlaveSyncUser(ip = '') {
 
-    myPost('get_slave_sync_user_by_ip', {ip:ip}, function(rdata){
+    myPost('get_slave_sync_user_by_ip', { ip: ip }, function (rdata) {
 
         var rdata = $.parseJSON(rdata.data);
 
@@ -1891,7 +1891,7 @@ function addSlaveSyncUser(ip=''){
         var pass = 'input_sync_pwd';
         var mode = '0';
 
-        if (rdata.data.length>0){
+        if (rdata.data.length > 0) {
             ip = rdata.data[0]['ip'];
             port = rdata.data[0]['port'];
             cmd = rdata.data[0]['cmd'];
@@ -1902,36 +1902,36 @@ function addSlaveSyncUser(ip=''){
 
         var index = layer.open({
             type: 1,
-            area: ['500px','470px'],
+            area: ['500px', '470px'],
             title: 'Sync account',
             closeBtn: 1,
             shift: 5,
             shadeClose: true,
-            btn:["Submit","Cancel"],
+            btn: ["Submit", "Cancel"],
             content: "<form class='bt-form pd20'>\
-                <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ip+"'></div></div>\
-                <div class='line'><span class='tname'>Port</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
-                <div class='line'><span class='tname'>Sync account</span><div class='info-r'><input name='user' class='bt-input-text mr5' type='text' style='width:330px;' value='"+user+"'></div></div>\
-                <div class='line'><span class='tname'>Sync password</span><div class='info-r'><input name='pass' class='bt-input-text mr5' type='text' style='width:330px;' value='"+pass+"'></div></div>\
+                <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ ip + "'></div></div>\
+                <div class='line'><span class='tname'>Port</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+ port + "'></div></div>\
+                <div class='line'><span class='tname'>Sync account</span><div class='info-r'><input name='user' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ user + "'></div></div>\
+                <div class='line'><span class='tname'>Sync password</span><div class='info-r'><input name='pass' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ pass + "'></div></div>\
                 <div class='line'>\
                 <span class='tname'>CMD [required]</span>\
                 <div class='info-r'><textarea class='bt-input-text mr5' row='20' cols='30' name='cmd' style='width:330px;height:150px;'></textarea></div>\
                 </div>\
-                <input type='hidden' name='mode' value='"+mode+"' />\
+                <input type='hidden' name='mode' value='"+ mode + "' />\
               </form>",
-            success:function(){
+            success: function () {
                 $('textarea[name="cmd"]').html(cmd);
 
-                $('textarea[name="cmd"]').change(function(){
+                $('textarea[name="cmd"]').change(function () {
                     var val = $(this).val();
                     var vlist = val.split(',');
                     var a = {};
                     for (var i in vlist) {
                         var tmp = toTrim(vlist[i]);
                         var tmp_a = tmp.split(" ");
-                        var real_tmp = tmp_a[tmp_a.length-1];
+                        var real_tmp = tmp_a[tmp_a.length - 1];
                         var kv = real_tmp.split("=");
-                        a[kv[0]] = kv[1].replace("'",'').replace("'",'');
+                        a[kv[0]] = kv[1].replace("'", '').replace("'", '');
                     }
 
                     $('input[name="ip"]').val(a['MASTER_HOST']);
@@ -1939,13 +1939,13 @@ function addSlaveSyncUser(ip=''){
                     $('input[name="user"]').val(a['MASTER_USER']);
                     $('input[name="pass"]').val(a['MASTER_PASSWORD']);
 
-                    console.log(a['MASTER_USE_GTID'],typeof(a['MASTER_USE_GTID']));
-                    if (typeof(a['MASTER_USE_GTID']) != 'undefined' ){
+                    console.log(a['MASTER_USE_GTID'], typeof (a['MASTER_USE_GTID']));
+                    if (typeof (a['MASTER_USE_GTID']) != 'undefined') {
                         $('input[name="mode"]').val('1');
                     }
                 });
             },
-            yes:function(index){
+            yes: function (index) {
                 var ip = $('input[name="ip"]').val();
                 var port = $('input[name="port"]').val();
                 var user = $('input[name="user"]').val();
@@ -1953,32 +1953,32 @@ function addSlaveSyncUser(ip=''){
                 var cmd = $('textarea[name="cmd"]').val();
                 var mode = $('input[name="mode"]').val();
 
-                var data = {ip:ip,port:port,cmd:cmd,user:user,pass:pass,mode:mode};
-                myPost('add_slave_sync_user', data, function(ret_data){
+                var data = { ip: ip, port: port, cmd: cmd, user: user, pass: pass, mode: mode };
+                myPost('add_slave_sync_user', data, function (ret_data) {
                     layer.close(index);
                     var rdata = $.parseJSON(ret_data.data);
-                    showMsg(rdata.msg,function(){
-                        if (rdata.status){
+                    showMsg(rdata.msg, function () {
+                        if (rdata.status) {
                             getSlaveSyncUserPage();
                         }
-                    },{icon: rdata.status ? 1 : 2},600);
+                    }, { icon: rdata.status ? 1 : 2 }, 600);
                 });
             }
         });
     });
 }
 
-function getSlaveSyncUserPage(page=1){
+function getSlaveSyncUserPage(page = 1) {
     var _data = {};
     _data['page'] = page;
     _data['page_size'] = 5;
-    _data['tojs'] ='getSlaveSyncUserPage';
-    myPost('get_slave_sync_user_list', _data, function(data){
+    _data['tojs'] = 'getSlaveSyncUserPage';
+    myPost('get_slave_sync_user_list', _data, function (data) {
         var layerId = null;
         var rdata = [];
         try {
             rdata = $.parseJSON(data.data);
-        } catch(e) {
+        } catch (e) {
             console.log(e);
         }
 
@@ -1991,18 +1991,18 @@ function getSlaveSyncUserPage(page=1){
             var apass = user_list[i]['pass'];
 
             var cmd = 'Not set';
-            if (user_list[i]['cmd']!=''){
+            if (user_list[i]['cmd'] != '') {
                 cmd = 'Has been set';
             }
 
-            list += '<tr><td>'+ip+'</td>\
-                <td>'+port+'</td>\
-                <td>'+user+'</td>\
-                <td>'+apass+'</td>\
-                <td>'+cmd+'</td>\
+            list += '<tr><td>' + ip + '</td>\
+                <td>'+ port + '</td>\
+                <td>'+ user + '</td>\
+                <td>'+ apass + '</td>\
+                <td>'+ cmd + '</td>\
                 <td>\
-                    <a class="btlink" onclick="addSlaveSyncUser(\''+ip+'\');">Modify</a> | \
-                    <a class="btlink" onclick="delSlaveSyncUser(\''+ip+'\');">Delete</a>\
+                    <a class="btlink" onclick="addSlaveSyncUser(\''+ ip + '\');">Modify</a> | \
+                    <a class="btlink" onclick="delSlaveSyncUser(\''+ ip + '\');">Delete</a>\
                 </td>\
             </tr>';
         }
@@ -2012,16 +2012,16 @@ function getSlaveSyncUserPage(page=1){
     });
 }
 
-function getSlaveCfg(){
+function getSlaveCfg() {
 
-    myPost('get_slave_sync_mode', '', function(data){
+    myPost('get_slave_sync_mode', '', function (data) {
         var rdata = $.parseJSON(data.data);
         var mode_none = 'success';
         var mode_ssh = 'danger';
         var mode_sync_user = 'danger';
-        if(rdata.status){
+        if (rdata.status) {
             var mode_none = 'danger';
-            if (rdata.data == 'ssh'){
+            if (rdata.data == 'ssh') {
                 var mode_ssh = 'success';
                 var mode_sync_user = 'danger';
             } else {
@@ -2033,14 +2033,14 @@ function getSlaveCfg(){
         layerId = layer.open({
             type: 1,
             title: 'Sync configuration',
-            area: ['400px','180px'],
-            content:"<div class='bt-form pd20 c6'>\
+            area: ['400px', '180px'],
+            content: "<div class='bt-form pd20 c6'>\
                     <p class='conf_p'>\
                         <span class='f14 c6 mr20'>Current synchronization mode from the library</span>\
                         <b class='f14 c6 mr20'></b>\
-                        <button class='btn btn-"+mode_none+" btn-xs slave-db-mode btn-none'>None</button>\
-                        <button class='btn btn-"+mode_ssh+" btn-xs slave-db-mode btn-ssh'>SSH</button>\
-                        <button class='btn btn-"+mode_sync_user+" btn-xs slave-db-mode btn-sync-user'>Sync account</button>\
+                        <button class='btn btn-"+ mode_none + " btn-xs slave-db-mode btn-none'>None</button>\
+                        <button class='btn btn-"+ mode_ssh + " btn-xs slave-db-mode btn-ssh'>SSH</button>\
+                        <button class='btn btn-"+ mode_sync_user + " btn-xs slave-db-mode btn-sync-user'>Sync account</button>\
                     </p>\
                     <hr />\
                     <p class='conf_p'>\
@@ -2050,31 +2050,31 @@ function getSlaveCfg(){
                         <button class='btn btn-success btn-xs btn-slave-user'>Sync account</button>\
                     </p>\
                 </div>",
-            success:function(){
-                $('.btn-slave-ssh').click(function(){
+            success: function () {
+                $('.btn-slave-ssh').click(function () {
                     getSlaveSSHList();
                 });
 
-                $('.btn-slave-user').click(function(){
+                $('.btn-slave-user').click(function () {
                     getSlaveUserList();
                 });
 
-                $('.slave-db-mode').click(function(){
+                $('.slave-db-mode').click(function () {
                     var _this = this;
                     var mode = 'none';
-                    if ($(this).hasClass('btn-ssh')){
+                    if ($(this).hasClass('btn-ssh')) {
                         mode = 'ssh';
                     }
-                    if ($(this).hasClass('btn-sync-user')){
+                    if ($(this).hasClass('btn-sync-user')) {
                         mode = 'sync-user';
                     }
 
-                    myPost('set_slave_sync_mode', {mode:mode}, function(data){
+                    myPost('set_slave_sync_mode', { mode: mode }, function (data) {
                         var rdata = $.parseJSON(data.data);
-                        showMsg(rdata.msg,function(){
+                        showMsg(rdata.msg, function () {
                             $('.slave-db-mode').remove('btn-success').addClass('btn-danger');
                             $(_this).removeClass('btn-danger').addClass('btn-success');
-                        },{icon:rdata.status?1:2},2000);
+                        }, { icon: rdata.status ? 1 : 2 }, 2000);
                     });
 
                 });
@@ -2083,7 +2083,7 @@ function getSlaveCfg(){
     });
 }
 
-function getSlaveUserList(){
+function getSlaveUserList() {
 
     var page = '<div class="dataTables_paginate_4 dataTables_paginate paging_bootstrap page" style="margin-top:0px;"></div>';
     page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addSlaveSyncUser()" title="">Add sync account</span></div>';
@@ -2092,22 +2092,22 @@ function getSlaveUserList(){
         type: 1,
         title: 'Sync account list',
         area: '600px',
-        content:"<div class='bt-form pd20 c6'>\
+        content: "<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
                     <div><table class='table table-hover get-slave-ssh-list'>\
                         <thead><tr><th>IP</th><th>PORT</th><th>Sync account</th><th>Sync password</th><th>CMD</th><th>Action</th></tr></thead>\
                         <tbody></tbody>\
                     </table></div>\
-                    "+page +"\
+                    "+ page + "\
                 </div>\
             </div>",
-        success:function(){
+        success: function () {
             getSlaveSyncUserPage(1);
         }
     });
 }
 
-function getSlaveSSHList(page=1){
+function getSlaveSSHList(page = 1) {
 
     var page = '<div class="dataTables_paginate_4 dataTables_paginate paging_bootstrap page" style="margin-top:0px;"></div>';
     page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addSlaveSSH()" title="">Add ssh</span></div>';
@@ -2116,80 +2116,80 @@ function getSlaveSSHList(page=1){
         type: 1,
         title: 'SSH List',
         area: '600px',
-        content:"<div class='bt-form pd20 c6'>\
+        content: "<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
                     <div><table class='table table-hover get-slave-ssh-list'>\
                         <thead><tr><th>IP</th><th>PORT</th><th>Sync account</th><th>SSH</th><th>Action</th></tr></thead>\
                         <tbody></tbody>\
                     </table></div>\
-                    "+page +"\
+                    "+ page + "\
                 </div>\
             </div>",
-        success:function(){
+        success: function () {
             getSlaveSSHPage(1);
         }
     });
 }
 
-function handlerRun(){
-    myPostN('get_slave_sync_cmd', {}, function(data){
+function handlerRun() {
+    myPostN('get_slave_sync_cmd', {}, function (data) {
         var rdata = $.parseJSON(data.data);
         var cmd = rdata['data'];
         var loadOpen = layer.open({
             type: 1,
             title: 'Manual execution',
             area: '500px',
-            content:"<form class='bt-form pd20 pb70' id='add_master'>\
-            <div class='line'>"+cmd+"</div>\
+            content: "<form class='bt-form pd20 pb70' id='add_master'>\
+            <div class='line'>"+ cmd + "</div>\
             <div class='bt-form-submit-btn'>\
                 <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>Copy</button>\
             </div>\
           </form>",
         });
         copyPass(cmd);
-        $('.class-copy-cmd').click(function(){
+        $('.class-copy-cmd').click(function () {
             copyPass(cmd);
         });
     });
 }
 
-function initSlaveStatus(){
-    myPost('init_slave_status', '', function(data){
+function initSlaveStatus() {
+    myPost('init_slave_status', '', function (data) {
         var rdata = $.parseJSON(data.data);
-        if (!rdata.status ){
-            layer.msg(rdata.msg,{icon:2,time:10000});
+        if (!rdata.status) {
+            layer.msg(rdata.msg, { icon: 2, time: 10000 });
             return;
         }
-        showMsg(rdata.msg,function(){
-            if (rdata.status){
+        showMsg(rdata.msg, function () {
+            if (rdata.status) {
                 masterOrSlaveConf();
             }
-        },{icon:1},2000);
+        }, { icon: 1 }, 2000);
     });
 }
 
-function masterOrSlaveConf(version=''){
+function masterOrSlaveConf(version = '') {
 
-    function getMasterDbList(){
+    function getMasterDbList() {
         var _data = {};
-        if (typeof(page) =='undefined'){
+        if (typeof (page) == 'undefined') {
             var page = 1;
         }
 
         _data['page'] = page;
         _data['page_size'] = 100;
 
-        myPost('get_masterdb_list', _data, function(data){
+        myPost('get_masterdb_list', _data, function (data) {
             var rdata = $.parseJSON(data.data);
             var list = '';
-            for(i in rdata.data){
+            for (i in rdata.data) {
                 list += '<tr>';
-                list += '<td>' + rdata.data[i]['name'] +'</td>';
-                list += '<td>' + (rdata.data[i]['master']?'Yes':'No') +'</td>';
+                list += '<td>' + rdata.data[i]['name'] + '</td>';
+                list += '<td>' + (rdata.data[i]['master'] ? 'Yes' : 'No') + '</td>';
                 list += '<td style="text-align:right">' +
-                    '<a href="javascript:;" class="btlink" onclick="setDbMaster(\''+rdata.data[i]['name']+'\')" title="Join or quit">'+(rdata.data[i]['master']?'Exit':'Join')+'</a> | ' +
-                    '<a href="javascript:;" class="btlink" onclick="getMasterRepSlaveUserCmd(\'\',\''+rdata.data[i]['name']+'\')" title="Synchronous command">Synchronous command</a>' +
-                '</td>';
+                    '<a href="javascript:;" class="btlink" onclick="setDbMaster(\'' + rdata.data[i]['name'] + '\')" title="Join or quit">' + (rdata.data[i]['master'] ? 'Exit' : 'Join') + '</a> | ' +
+                    '<a href="javascript:;" class="btlink" onclick="getMasterRepSlaveUserCmd(\'\',\'' + rdata.data[i]['name'] + '\')" title="Synchronous command">Synchronous command</a>' +
+                    '</td>';
                 list += '</tr>';
             }
 
@@ -2201,7 +2201,7 @@ function masterOrSlaveConf(version=''){
                         <th>Synchronize</th>\
                         <th style="text-align:right;">Action</th></tr></thead>\
                         <tbody>\
-                        '+ list +'\
+                        '+ list + '\
                         </tbody></table>\
                     </div>\
                     <div id="databasePage" class="dataTables_paginate paging_bootstrap page"></div>\
@@ -2215,50 +2215,50 @@ function masterOrSlaveConf(version=''){
         });
     }
 
-    function getAsyncMasterDbList(){
+    function getAsyncMasterDbList() {
         var _data = {};
-        if (typeof(page) =='undefined'){
+        if (typeof (page) == 'undefined') {
             var page = 1;
         }
 
         _data['page'] = page;
         _data['page_size'] = 10;
 
-        myPost('get_slave_list', _data, function(data){
+        myPost('get_slave_list', _data, function (data) {
             var rdata = $.parseJSON(data.data);
             var list = '';
 
             var isHasSign = false;
-            for(i in rdata.data){
+            for (i in rdata.data) {
 
                 var v = rdata.data[i];
-                if ('Connection_name' in v){
+                if ('Connection_name' in v) {
                     isHasSign = true;
                 }
-                var status = "<a data-id="+i+" class='btlink db_error'>Abnormal</>";
-                if (v['Slave_SQL_Running'] == 'Yes' && v['Slave_IO_Running'] == 'Yes'){
+                var status = "<a data-id=" + i + " class='btlink db_error'>Abnormal</>";
+                if (v['Slave_SQL_Running'] == 'Yes' && v['Slave_IO_Running'] == 'Yes') {
                     status = "Normal";
                 }
 
                 list += '<tr>';
-                list += '<td>' + v['Master_Host'] +'</td>';
-                list += '<td>' + v['Master_Port'] +'</td>';
-                list += '<td>' + v['Master_User'] +'</td>';
-                list += '<td>' + v['Master_Log_File'] +'</td>';
-                list += '<td>' + v['Slave_IO_Running'] +'</td>';
-                list += '<td>' + v['Slave_SQL_Running'] +'</td>';
-                if (isHasSign){
-                    list += '<td>' + v['Connection_name'] +'</td>';
+                list += '<td>' + v['Master_Host'] + '</td>';
+                list += '<td>' + v['Master_Port'] + '</td>';
+                list += '<td>' + v['Master_User'] + '</td>';
+                list += '<td>' + v['Master_Log_File'] + '</td>';
+                list += '<td>' + v['Slave_IO_Running'] + '</td>';
+                list += '<td>' + v['Slave_SQL_Running'] + '</td>';
+                if (isHasSign) {
+                    list += '<td>' + v['Connection_name'] + '</td>';
                 }
-                list += '<td>' + status +'</td>';
+                list += '<td>' + status + '</td>';
                 list += '<td style="text-align:right">\
-                        <a data-id="'+i+'" href="javascript:;" class="btlink btn_delete_slave" title="Delete">Delete</a>\
+                        <a data-id="'+ i + '" href="javascript:;" class="btlink btn_delete_slave" title="Delete">Delete</a>\
                     </td>';
                 list += '</tr>';
             }
 
             var signThead_th = '';
-            if (isHasSign){
+            if (isHasSign) {
                 var signThead_th = '<th>Mark</th>';
             }
 
@@ -2272,53 +2272,53 @@ function masterOrSlaveConf(version=''){
                         <th>Log</th>\
                         <th>IO</th>\
                         <th>SQL</th>\
-                        '+signThead_th+'\
+                        '+ signThead_th + '\
                         <th>Status</th>\
                         <th style="text-align:right;">Action</th></tr></thead>\
                         <tbody>\
-                        '+ list +'\
+                        '+ list + '\
                         </tbody></table>\
                     </div>\
                 </div>';
 
             $(".table_slave_status_list").html(con);
 
-            $(".btn_delete_slave").click(function(){
+            $(".btn_delete_slave").click(function () {
                 var id = $(this).data('id');
                 var v = rdata.data[id];
-                if ('Connection_name' in v){
+                if ('Connection_name' in v) {
                     deleteSlave(v['Connection_name']);
-                } else{
+                } else {
                     deleteSlave();
                 }
             });
 
-            $('.db_error').click(function(){
+            $('.db_error').click(function () {
 
                 var id = $(this).data('id');
                 var info = rdata.data[id];
 
                 var err_line = "";
-                err_line +="<tr>\
+                err_line += "<tr>\
                     <td>IO error</td>\
-                    <td>"+ (info['Last_IO_Error'] == '' ? 'none':info['Last_IO_Error'])+"</td>\
+                    <td>"+ (info['Last_IO_Error'] == '' ? 'none' : info['Last_IO_Error']) + "</td>\
                 </tr>";
-                err_line +="<tr>\
+                err_line += "<tr>\
                     <td>SQL error</td>\
-                    <td>"+(info['Last_SQL_Error'] == '' ? 'none':info['Last_SQL_Error'])+"</td>\
+                    <td>"+ (info['Last_SQL_Error'] == '' ? 'none' : info['Last_SQL_Error']) + "</td>\
                 </tr>";
 
-                err_line +="<tr>\
+                err_line += "<tr>\
                     <td>Status</td>\
-                    <td>"+(info['Slave_SQL_Running_State'] == '' ? 'none':info['Slave_SQL_Running_State']) +"</td>\
+                    <td>"+ (info['Slave_SQL_Running_State'] == '' ? 'none' : info['Slave_SQL_Running_State']) + "</td>\
                 </tr>";
 
                 layer.open({
                     type: 1,
                     title: 'Synchronization exception information',
-                    area: ['600px','300px'],
-                    btn:['Copy error',"Cancel"],
-                    content:"<form class='bt-form pd15'>\
+                    area: ['600px', '300px'],
+                    btn: ['Copy error', "Cancel"],
+                    content: "<form class='bt-form pd15'>\
                         <div class='divtable mtb10'>\
                         <div class='tablescroll'>\
                             <table class='table table-hover' width='100%' cellspacing='0' cellpadding='0' border='0' style='border: 0 none;'>\
@@ -2326,56 +2326,56 @@ function masterOrSlaveConf(version=''){
                                 <th style='width:80px;'>Type</th>\
                                 <th>Detail</th>\
                             </tr></thead>\
-                            <tbody>"+ err_line +"</tbody>\
+                            <tbody>"+ err_line + "</tbody>\
                             </table>\
                         </div>\
                     </div>\
                     </form>",
-                  success:function(){
-                      // copyText(v['Error']);
-                      // $('.class-copy-db-err').click(function(){
-                      //     copyText(v['Error']);
-                      // });
-                  },
-                  yes:function(){
-                      if (info['Last_IO_Error'] != ''){
-                          copyText(info['Last_IO_Error']);
-                          return;
-                      }
+                    success: function () {
+                        // copyText(v['Error']);
+                        // $('.class-copy-db-err').click(function(){
+                        //     copyText(v['Error']);
+                        // });
+                    },
+                    yes: function () {
+                        if (info['Last_IO_Error'] != '') {
+                            copyText(info['Last_IO_Error']);
+                            return;
+                        }
 
-                      if (info['Last_SQL_Error'] != ''){
-                          copyText(info['Last_SQL_Error']);
-                          return;
-                      }
+                        if (info['Last_SQL_Error'] != '') {
+                            copyText(info['Last_SQL_Error']);
+                            return;
+                        }
 
-                      if (info['Slave_SQL_Running_State'] != ''){
-                          copyText(info['Slave_SQL_Running_State']);
-                          return;
-                      }
+                        if (info['Slave_SQL_Running_State'] != '') {
+                            copyText(info['Slave_SQL_Running_State']);
+                            return;
+                        }
                     }
                 });
             });
         });
     }
 
-    function getAsyncDataList(){
+    function getAsyncDataList() {
         var _data = {};
-        if (typeof(page) =='undefined'){
+        if (typeof (page) == 'undefined') {
             var page = 1;
         }
 
         _data['page'] = page;
         _data['page_size'] = 10;
-        myPost('get_masterdb_list', _data, function(data){
+        myPost('get_masterdb_list', _data, function (data) {
             var rdata = $.parseJSON(data.data);
             var list = '';
-            for(i in rdata.data){
+            for (i in rdata.data) {
                 list += '<tr>';
-                list += '<td>' + rdata.data[i]['name'] +'</td>';
+                list += '<td>' + rdata.data[i]['name'] + '</td>';
                 list += '<td style="text-align:right">' +
-                    '<a href="javascript:;" class="btlink" onclick="setDbSlave(\''+rdata.data[i]['name']+'\')"  title="Join|Exit">'+(rdata.data[i]['slave']?'Exit':'Join')+'</a> | ' +
-                    '<a href="javascript:;" class="btlink" onclick="getFullSyncStatus(\''+rdata.data[i]['name']+'\')" title="Synchronize">Synchronize</a>' +
-                '</td>';
+                    '<a href="javascript:;" class="btlink" onclick="setDbSlave(\'' + rdata.data[i]['name'] + '\')"  title="Join|Exit">' + (rdata.data[i]['slave'] ? 'Exit' : 'Join') + '</a> | ' +
+                    '<a href="javascript:;" class="btlink" onclick="getFullSyncStatus(\'' + rdata.data[i]['name'] + '\')" title="Synchronize">Synchronize</a>' +
+                    '</td>';
                 list += '</tr>';
             }
 
@@ -2386,7 +2386,7 @@ function masterOrSlaveConf(version=''){
                         <th>Local library name</th>\
                         <th style="text-align:right;">Action</th></tr></thead>\
                         <tbody>\
-                        '+ list +'\
+                        '+ list + '\
                         </tbody></table>\
                     </div>\
                     <div id="databasePage" class="dataTables_paginate paging_bootstrap page"></div>\
@@ -2403,12 +2403,12 @@ function masterOrSlaveConf(version=''){
 
 
 
-    function getMasterStatus(){
-        myPost('get_master_status', '', function(rdata){
+    function getMasterStatus() {
+        myPost('get_master_status', '', function (rdata) {
             var rdata = $.parseJSON(rdata.data);
             // console.log('mode:',rdata.data);
-            if ( typeof(rdata.status) != 'undefined' && !rdata.status && rdata.data == 'pwd'){
-                layer.msg(rdata.msg, {icon:2,time:2000});
+            if (typeof (rdata.status) != 'undefined' && !rdata.status && rdata.data == 'pwd') {
+                layer.msg(rdata.msg, { icon: 2, time: 2000 });
                 return;
             }
 
@@ -2416,13 +2416,13 @@ function masterOrSlaveConf(version=''){
             var limitCon = '\
                 <p class="conf_p">\
                     <span class="f14 c6 mr20">Master-Slave synchronous mode</span><span class="f14 c6 mr20"></span>\
-                    <button class="btn '+(!(rdata.mode == "classic") ? 'btn-danger' : 'btn-success')+' btn-xs db-mode btn-classic">Classic</button>\
-                    <button class="btn '+(!(rdata.mode == "gtid") ? 'btn-danger' : 'btn-success')+' btn-xs db-mode btn-gtid">GTID</button>\
+                    <button class="btn '+ (!(rdata.mode == "classic") ? 'btn-danger' : 'btn-success') + ' btn-xs db-mode btn-classic">Classic</button>\
+                    <button class="btn '+ (!(rdata.mode == "gtid") ? 'btn-danger' : 'btn-success') + ' btn-xs db-mode btn-gtid">GTID</button>\
                 </p>\
                 <hr/>\
                 <p class="conf_p">\
                     <span class="f14 c6 mr20">Master [main] configuration</span><span class="f14 c6 mr20"></span>\
-                    <button class="btn '+(!rdata.status ? 'btn-danger' : 'btn-success')+' btn-xs btn-master">'+(!rdata.status ? 'Unopened' : 'Opened') +'</button>\
+                    <button class="btn '+ (!rdata.status ? 'btn-danger' : 'btn-success') + ' btn-xs btn-master">' + (!rdata.status ? 'Unopened' : 'Opened') + '</button>\
                 </p>\
                 <hr/>\
                 <!-- master list -->\
@@ -2431,7 +2431,7 @@ function masterOrSlaveConf(version=''){
                 <!-- class="conf_p" -->\
                 <p class="conf_p">\
                     <span class="f14 c6 mr20">Slave [from] configuration</span><span class="f14 c6 mr20"></span>\
-                    <button class="btn '+(!rdata.slave_status ? 'btn-danger' : 'btn-success')+' btn-xs btn-slave">'+(!rdata.slave_status ? 'Stopped' : 'Started') +'</button>\
+                    <button class="btn '+ (!rdata.slave_status ? 'btn-danger' : 'btn-success') + ' btn-xs btn-slave">' + (!rdata.slave_status ? 'Stopped' : 'Started') + '</button>\
                     <button class="btn btn-success btn-xs" onclick="getSlaveCfg()" >Sync configuration</button>\
                     <button class="btn btn-success btn-xs" onclick="initSlaveStatus()" >Snitialization</button>\
                 </p>\
@@ -2444,64 +2444,64 @@ function masterOrSlaveConf(version=''){
             $(".soft-man-con").html(limitCon);
 
             $(".btn-master").click(function () {
-                myPost('set_master_status', 'close=change', function(data){
+                myPost('set_master_status', 'close=change', function (data) {
                     var rdata = $.parseJSON(data.data);
                     layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
-                    setTimeout(function(){
+                    setTimeout(function () {
                         getMasterStatus();
                     }, 3000);
                 });
             });
 
             $(".btn-slave").click(function () {
-                myPost('set_slave_status', 'close=change', function(data){
+                myPost('set_slave_status', 'close=change', function (data) {
                     var rdata = $.parseJSON(data.data);
                     layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
-                    setTimeout(function(){
+                    setTimeout(function () {
                         getMasterStatus();
                     }, 3000);
                 });
             });
 
-            $('.db-mode').click(function(){
-                if ($(this).hasClass('btn-success')){
+            $('.db-mode').click(function () {
+                if ($(this).hasClass('btn-success')) {
                     //no action
                     return;
                 }
 
                 var mode = 'classic';
-                if ($(this).hasClass('btn-gtid')){
+                if ($(this).hasClass('btn-gtid')) {
                     mode = 'gtid';
                 }
 
                 layer.open({
-                    type:1,
-                    title:"MaridDB master-slave mode switching",
-                    shadeClose:false,
+                    type: 1,
+                    title: "MaridDB master-slave mode switching",
+                    shadeClose: false,
                     btnAlign: 'c',
                     btn: ['Switch and reboot', 'Switch without reboot'],
-                    yes: function(index, layero){
-                        this.change(index,mode,"yes");
+                    yes: function (index, layero) {
+                        this.change(index, mode, "yes");
 
                     },
-                    btn2: function(index, layero){
-                        this.change(index,mode,"no");
+                    btn2: function (index, layero) {
+                        this.change(index, mode, "no");
                         return false;
                     },
-                    change:function(index,mode,reload){
-                        console.log(index,mode,reload);
-                        myPost('set_dbrun_mode',{'mode':mode,'reload':reload},function(data){
+                    change: function (index, mode, reload) {
+                        console.log(index, mode, reload);
+                        myPost('set_dbrun_mode', { 'mode': mode, 'reload': reload }, function (data) {
                             layer.close(index);
                             var rdata = $.parseJSON(data.data);
-                            showMsg(rdata.msg ,function(){
+                            showMsg(rdata.msg, function () {
                                 getMasterStatus();
-                            },{ icon: rdata.status ? 1 : 5 });
+                            }, { icon: rdata.status ? 1 : 5 });
                         });
                     }
                 });
             });
 
-            if (rdata.status){
+            if (rdata.status) {
                 getMasterDbList();
             }
 

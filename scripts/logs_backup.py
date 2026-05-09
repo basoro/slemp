@@ -7,7 +7,10 @@ import time
 import glob
 
 if sys.platform != 'darwin':
-    os.chdir('/home/slemp/server/panel')
+    # Get current file directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    panel_dir = os.path.dirname(current_dir)
+    os.chdir(panel_dir)
 
 
 chdir = os.getcwd()

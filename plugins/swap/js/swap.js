@@ -1,6 +1,6 @@
 
 
-function swapPost(method, version, args,callback){
+function swapPost(method, version, args, callback) {
     var loadT = layer.msg('Retrieving...', { icon: 16, time: 0, shade: 0.3 });
 
     var req_data = {};
@@ -8,28 +8,28 @@ function swapPost(method, version, args,callback){
     req_data['func'] = method;
     req_data['version'] = version;
 
-    if (typeof(args) == 'string'){
+    if (typeof (args) == 'string') {
         req_data['args'] = JSON.stringify(toArrayObject(args));
     } else {
         req_data['args'] = JSON.stringify(args);
     }
 
-    $.post('/plugins/run', req_data, function(data) {
+    $.post('/plugins/run', req_data, function (data) {
         layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [10, '#000']});
+        if (!data.status) {
+            layer.msg(data.msg, { icon: 0, time: 2000, shade: [10, '#000'] });
             return;
         }
 
-        if(typeof(callback) == 'function'){
+        if (typeof (callback) == 'function') {
             callback(data);
         }
-    },'json');
+    }, 'json');
 }
 
 
 function swapStatus() {
-    swapPost('swap_status', '', {}, function(data){
+    swapPost('swap_status', '', {}, function (data) {
         var rdata = $.parseJSON(data.data);
         var size = rdata.data['size'];
 
@@ -50,11 +50,11 @@ function swapStatus() {
 
         $(".soft-man-con").html(spCon);
 
-        $(".conf_p select[name='swap_set']").change(function() {
+        $(".conf_p select[name='swap_set']").change(function () {
             var swap_size = $(this).val();
-            if (swap_size.indexOf('GB')>-1){
-                swap_size = parseInt(swap_size)*1024;
-            } else{
+            if (swap_size.indexOf('GB') > -1) {
+                swap_size = parseInt(swap_size) * 1024;
+            } else {
                 swap_size = parseInt(swap_size);
             }
             $("input[name='cur_size']").val(swap_size);
@@ -63,18 +63,18 @@ function swapStatus() {
     });
 }
 
-function submitSwap(){
+function submitSwap() {
     var size = $("input[name='size']").val();
-    swapPost('change_swap', '',{"size":size}, function(data){
+    swapPost('change_swap', '', { "size": size }, function (data) {
         var rdata = $.parseJSON(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
     });
 }
 
-function readme(){
+function readme() {
     var readme = '<ul class="help-info-text c7">';
-    readme += '<li>dd if=/dev/zero of=/home/slemp/server/swap/swapfile bs=1M count=2048</li>';
-    readme += '<li>mkswap /home/slemp/server/swap/swapfile</li>';
+    readme += '<li>dd if=/dev/zero of=/opt/slemp/slemp/server/swap/swapfile bs=1M count=2048</li>';
+    readme += '<li>mkswap /opt/slemp/slemp/server/swap/swapfile</li>';
     readme += '</ul>';
     $('.soft-man-con').html(readme);
 }

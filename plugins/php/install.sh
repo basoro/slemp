@@ -1,5 +1,5 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
 export PATH
 
 curPath=`pwd`
@@ -56,11 +56,6 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php/${type} ];then
 
 	echo "install PHP${type} extend start"
 
-	# cd ${rootPath}/plugins/php/versions/common  && bash iconv.sh install 53
-  # cd /www/server/mdserver-web/plugins/php/versions/common  && bash intl.sh install 73
-	# cd ${rootPath}/plugins/php/versions/common  && bash gd.sh install 56
-	# cd ${rootPath}/plugins/php/versions/common  && bash openssl.sh install 56
-	# cd ${rootPath}/plugins/php/versions/common  && bash sodium.sh install 81
 	cd ${rootPath}/plugins/php/versions/common && bash gd.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash iconv.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash exif.sh install ${type}

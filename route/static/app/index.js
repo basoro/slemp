@@ -1,5 +1,5 @@
-$(function() {
-    $(".mem-release").hover(function() {
+$(function () {
+    $(".mem-release").hover(function () {
         $(this).addClass("shine_green");
         if (!($(this).hasClass("mem-action"))) {
             $(this).find(".mem-re-min").hide();
@@ -8,13 +8,13 @@ $(function() {
             $(this).find(".mem-re-con").animate({ "top": "0", opacity: 1 });
             $("#memory").text(lan.index.memre);
         }
-    }, function() {
+    }, function () {
         $(this).removeClass("shine_green");
         $(this).find(".mask").css({ "color": "#20a53a" });
         $(this).find(".mem-re-con").css({ "top": "15px", opacity: 1, "display": "none" });
         $("#memory").text(getCookie("mem-before"));
         $(this).find(".mem-re-min").hide();
-    }).click(function() {
+    }).click(function () {
         $(this).find(".mem-re-min").hide();
         if (!($(this).hasClass("mem-action"))) {
             reMemory();
@@ -62,11 +62,11 @@ function getLoad(data) {
     setImg();
 }
 
-$('#LoadList .circle').click(function() {
+$('#LoadList .circle').click(function () {
     getNet();
 });
 
-$('#LoadList .mask').hover(function() {
+$('#LoadList .mask').hover(function () {
     var one, five, fifteen;
     var that = this;
     one = getCookie('one');
@@ -74,32 +74,32 @@ $('#LoadList .mask').hover(function() {
     fifteen = getCookie('fifteen');
     var text = 'Average load in the last 1 minute: ' + one + '</br> Average load in the last 5 minutes: ' + five + '</br> Average load in the last 15 minutes: ' + fifteen + '';
     layer.tips(text, that, { time: 0, tips: [1, '#999'] });
-}, function() {
+}, function () {
     layer.closeAll('tips');
 });
 
 
-function showCpuTips(rdata){
+function showCpuTips(rdata) {
     $('#cpuChart .mask').unbind();
-    $('#cpuChart .mask').hover(function() {
+    $('#cpuChart .mask').hover(function () {
         var cpuText = '';
 
-        if (rdata.cpu[2].length == 1){
+        if (rdata.cpu[2].length == 1) {
             var cpuUse = parseFloat(rdata.cpu[2][0] == 0 ? 0 : rdata.cpu[2][0]).toFixed(1);
             cpuText += 'CPU-1：' + cpuUse + '%'
-        } else{
+        } else {
             for (var i = 1; i < rdata.cpu[2].length + 1; i++) {
-              var cpuUse = parseFloat(rdata.cpu[2][i - 1] == 0 ? 0 : rdata.cpu[2][i - 1]).toFixed(1);
-              if (i % 2 != 0) {
-                cpuText += 'CPU-' + i + '：' + cpuUse + '%&nbsp;|&nbsp;'
-              } else {
-                cpuText += 'CPU-' + i + '：' + cpuUse + '%'
-                cpuText += '\n'
-              }
+                var cpuUse = parseFloat(rdata.cpu[2][i - 1] == 0 ? 0 : rdata.cpu[2][i - 1]).toFixed(1);
+                if (i % 2 != 0) {
+                    cpuText += 'CPU-' + i + '：' + cpuUse + '%&nbsp;|&nbsp;'
+                } else {
+                    cpuText += 'CPU-' + i + '：' + cpuUse + '%'
+                    cpuText += '\n'
+                }
             }
         }
         layer.tips(rdata.cpu[3] + "</br>" + rdata.cpu[5] + " physical CPU, " + (rdata.cpu[4]) + " physical core, " + rdata.cpu[1] + " logical core</br>" + cpuText, this, { time: 0, tips: [1, '#999'] });
-    }, function() {
+    }, function () {
         layer.closeAll('tips');
     });
 }
@@ -111,16 +111,16 @@ function rocket(sum, m) {
 }
 
 function reMemory() {
-    setTimeout(function() {
+    setTimeout(function () {
         $(".mem-release").find('.mask').css({ 'color': '#20a53a', 'font-size': '14px' }).html('<span style="display:none">1</span>' + lan.index.memre_ok_0 + ' <img src="/static/img/ings.gif">');
-        $.post('/system/rememory', '', function(rdata) {
+        $.post('/system/rememory', '', function (rdata) {
             var percent = getPercent(rdata.memRealUsed, rdata.memTotal);
             var memText = Math.round(rdata.memRealUsed) + "/" + Math.round(rdata.memTotal) + " (MB)";
             percent = Math.round(percent);
             $(".mem-release").find('.mask').css({ 'color': '#20a53a', 'font-size': '14px' }).html("<span style='display:none'>" + percent + "</span>" + lan.index.memre_ok);
             setCookie("mem-before", memText);
             var memNull = Math.round(getCookie("memRealUsed") - rdata.memRealUsed);
-            setTimeout(function() {
+            setTimeout(function () {
                 if (memNull > 0) {
                     $(".mem-release").find('.mask').css({ 'color': '#20a53a', 'font-size': '14px', 'line-height': '22px', 'padding-top': '22px' }).html("<span style='display:none'>" + percent + "</span>" + lan.index.memre_ok_1 + "<br>" + memNull + "MB");
                 } else {
@@ -130,11 +130,11 @@ function reMemory() {
                 $("#memory").text(memText);
                 setCookie("memRealUsed", rdata.memRealUsed);
             }, 1000);
-            setTimeout(function() {
+            setTimeout(function () {
                 $(".mem-release").find('.mask').removeAttr("style").html("<span>" + percent + "</span>%");
                 $(".mem-release").find(".mem-re-min").show();
             }, 2000)
-        },'json');
+        }, 'json');
     }, 2000);
 }
 
@@ -148,13 +148,13 @@ function getPercent(num, total) {
 }
 
 function getDiskInfo() {
-    $.get('/system/disk_info', function(rdata) {
+    $.get('/system/disk_info', function (rdata) {
         var dBody;
         for (var i = 0; i < rdata.length; i++) {
             var LoadColor = setcolor(parseInt(rdata[i].size[3].replace('%', '')), false, 75, 90, 95);
 
             var inodes = '';
-            if ( typeof(rdata[i]['inodes']) !=='undefined' ){
+            if (typeof (rdata[i]['inodes']) !== 'undefined') {
                 inodes = '<div class="mask" style="color:' + LoadColor + '" data="Inode Information<br>Total：' + rdata[i].inodes[0] + '<br>Used：' + rdata[i].inodes[1] + '<br>Available：' + rdata[i].inodes[2] + '<br>Inode usage：' + rdata[i].inodes[3] + '"><span>' + rdata[i].size[3].replace('%', '') + '</span>%</div>';
 
                 var ipre = parseInt(rdata[i].inodes[3].replace('%', ''));
@@ -179,24 +179,24 @@ function getDiskInfo() {
                 '</div>' +
                 '<div class="pie_right">' +
                 '<div class="right"></div>' +
-                '</div>'+ inodes +'</div>' +
+                '</div>' + inodes + '</div>' +
                 '<h4 class="c5 f15">' + rdata[i].size[1] + '/' + rdata[i].size[0] + '</h4>' +
                 '</li>'
             $("#systemInfoList").append(dBody);
             setImg();
         }
-    },'json');
+    }, 'json');
 }
 
 function clearSystem() {
     var loadT = layer.msg('Cleaning up system junk <img src="/static/img/ing.gif">', { icon: 16, time: 0, shade: [0.3, "#000"] });
-    $.get('/system?action=ClearSystem', function(rdata) {
+    $.get('/system?action=ClearSystem', function (rdata) {
         layer.close(loadT);
         layer.msg('Cleanup is complete, a total of [' + rdata[0] + '] files will be cleaned up, and [' + toSize(rdata[1]) + '] disk space will be released!', { icon: 1 });
     });
 }
 
-function setMemImg(info){
+function setMemImg(info) {
     setCookie("memRealUsed", parseInt(info.memRealUsed));
     $("#memory").html(parseInt(info.memRealUsed) + '/' + parseInt(info.memTotal) + ' (MB)');
     setCookie("mem-before", $("#memory").text());
@@ -210,7 +210,7 @@ function setMemImg(info){
 }
 
 function getInfo() {
-    $.get("/system/system_total", function(info) {
+    $.get("/system/system_total", function (info) {
         setCookie("memRealUsed", parseInt(info.memRealUsed));
         $("#memory").html(parseInt(info.memRealUsed) + '/' + parseInt(info.memTotal) + ' (MB)');
         setCookie("mem-before", $("#memory").text());
@@ -221,17 +221,17 @@ function getInfo() {
         $("#info").html(info.system);
         $("#running").html(info.time);
         var _system = info.system;
-        if(_system.indexOf("Windows") != -1){
+        if (_system.indexOf("Windows") != -1) {
             $(".ico-system").addClass("ico-windows");
-        } else if(_system.indexOf("CentOS") != -1) {
+        } else if (_system.indexOf("CentOS") != -1) {
             $(".ico-system").addClass("ico-centos");
-        } else if(_system.indexOf("Ubuntu") != -1) {
+        } else if (_system.indexOf("Ubuntu") != -1) {
             $(".ico-system").addClass("ico-ubuntu");
-        } else if(_system.indexOf("Debian") != -1) {
+        } else if (_system.indexOf("Debian") != -1) {
             $(".ico-system").addClass("ico-debian");
-        } else if(_system.indexOf("Fedora") != -1) {
+        } else if (_system.indexOf("Fedora") != -1) {
             $(".ico-system").addClass("ico-fedora");
-        } else if(_system.indexOf("Mac") != -1){
+        } else if (_system.indexOf("Mac") != -1) {
             $(".ico-system").addClass("ico-mac");
         } else {
             $(".ico-system").addClass("ico-linux");
@@ -247,7 +247,7 @@ function getInfo() {
         }
 
         setImg();
-    },'json');
+    }, 'json');
 }
 
 
@@ -273,7 +273,7 @@ function setcolor(pre, s, s1, s2, s3) {
 
 function getNet() {
     var up, down;
-    $.get("/system/network", function(net) {
+    $.get("/system/network", function (net) {
         $("#InterfaceSpeed").html(lan.index.interfacespeed + "： 1.0Gbps");
         $("#upSpeed").html(net.up + ' KB');
         $("#downSpeed").html(net.down + ' KB');
@@ -292,7 +292,7 @@ function getNet() {
         setImg();
 
         showCpuTips(net);
-    },'json');
+    }, 'json');
 }
 
 function netImg() {
@@ -444,7 +444,7 @@ function netImg() {
             }
         }]
     };
-    setInterval(function() {
+    setInterval(function () {
         getNet();
         addData(true);
         myChartNetwork.setOption({
@@ -462,14 +462,14 @@ function netImg() {
     }, 3000);
 
     myChartNetwork.setOption(option);
-    window.addEventListener("resize", function() {
+    window.addEventListener("resize", function () {
         myChartNetwork.resize();
     });
 }
 
 
 function setImg() {
-    $('.circle').each(function(index, el) {
+    $('.circle').each(function (index, el) {
         var num = $(this).find('span').text() * 3.6;
         if (num <= 180) {
             $(this).find('.left').css('transform', "rotate(0deg)");
@@ -481,36 +481,36 @@ function setImg() {
     });
 
     $('.diskbox .mask').unbind();
-    $('.diskbox .mask').hover(function() {
+    $('.diskbox .mask').hover(function () {
         layer.closeAll('tips');
         var that = this;
         var conterError = $(this).attr("data");
         layer.tips(conterError, that, { time: 0, tips: [1, '#999'] });
-    }, function() {
+    }, function () {
         layer.closeAll('tips');
     });
 }
 
-setTimeout(function() {
-    $.get('/system/update_server?type=check', function(rdata) {
+setTimeout(function () {
+    $.get('/system/update_server?type=check', function (rdata) {
         if (rdata.status == false) return;
         if (rdata.data != undefined) {
             $("#toUpdate").html('<a class="btlink" href="javascript:updateMsg();">Renew</a>');
             $('#toUpdate a').html('Renew<i style="display: inline-block; color: red; font-size: 40px;position: absolute;top: -35px; font-style: normal; right: -8px;">.</i>');
-            $('#toUpdate a').css("position","relative");
+            $('#toUpdate a').css("position", "relative");
             return;
         }
-    },'json').error(function() {
+    }, 'json').error(function () {
     });
 }, 3000);
 
 function checkUpdate() {
     var loadT = layer.msg(lan.index.update_get, { icon: 16, time: 0, shade: [0.3, '#000'] });
-    $.get('/system/update_server?type=check', function(rdata) {
+    $.get('/system/update_server?type=check', function (rdata) {
         layer.close(loadT);
 
-        if (rdata.data == 'download'){
-            updateStatus();return;
+        if (rdata.data == 'download') {
+            updateStatus(); return;
         }
 
         if (rdata.status === false) {
@@ -519,45 +519,45 @@ function checkUpdate() {
         }
         layer.msg(rdata.msg, { icon: 1 });
         if (rdata.data != undefined) updateMsg();
-    },'json');
+    }, 'json');
 }
 
-function updateMsg(){
-    $.get('/system/update_server?type=info',function(rdata){
+function updateMsg() {
+    $.get('/system/update_server?type=info', function (rdata) {
 
-        if (rdata.data == 'download'){
-            updateStatus();return;
+        if (rdata.data == 'download') {
+            updateStatus(); return;
         }
 
         var v = rdata.data.version;
         var v_info = '';
-        if (v.split('.').length>3){
+        if (v.split('.').length > 3) {
             v_info = "<span class='label label-warning'>Test version</span>";
         } else {
             v_info = "<span class='label label-success arrowed'>Official version</span>";
         }
 
         layer.open({
-            type:1,
-            title:v_info + '<span class="badge badge-inverse">Upgrade to ['+rdata.data.version+']</span>',
+            type: 1,
+            title: v_info + '<span class="badge badge-inverse">Upgrade to [' + rdata.data.version + ']</span>',
             area: '400px',
-            shadeClose:false,
-            closeBtn:2,
-            content:'<div class="setchmod bt-form pd20 pb70">'
-                    +'<p style="padding: 0 0 10px;line-height: 24px;">'+rdata.data.content+'</p>'
-                    +'<div class="bt-form-submit-btn">'
-                    +'<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Cancel</button>'
-                    +'<button type="button" class="btn btn-success btn-sm btn-title" onclick="updateVersion(\''+rdata.data.version+'\')" >Update</button>'
-                    +'</div>'
-                    +'</div>'
+            shadeClose: false,
+            closeBtn: 2,
+            content: '<div class="setchmod bt-form pd20 pb70">'
+                + '<p style="padding: 0 0 10px;line-height: 24px;">' + rdata.data.content + '</p>'
+                + '<div class="bt-form-submit-btn">'
+                + '<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Cancel</button>'
+                + '<button type="button" class="btn btn-success btn-sm btn-title" onclick="updateVersion(\'' + rdata.data.version + '\')" >Update</button>'
+                + '</div>'
+                + '</div>'
         });
-    },'json');
+    }, 'json');
 }
 
 
 function updateVersion(version) {
     var loadT = layer.msg('SLEMP Panel is being upgraded..', { icon: 16, time: 0, shade: [0.3, '#000'] });
-    $.get('/system/update_server?type=update&version='+version, function(rdata) {
+    $.get('/system/update_server?type=update&version=' + version, function (rdata) {
 
         layer.closeAll();
         if (rdata.status === false) {
@@ -569,25 +569,25 @@ function updateVersion(version) {
             $("#btversion").html(version);
             $("#toUpdate").html('');
         }
-    },'json').error(function() {
+    }, 'json').error(function () {
         layer.msg('Update failed, please try again!', { icon: 2 });
-        setTimeout(function() {
+        setTimeout(function () {
             window.location.reload();
         }, 3000);
     });
 }
 
-function pluginIndexService(pname,pfunc, callback){
-    $.post('/plugins/run', {name:'openresty', func:pfunc}, function(data) {
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
+function pluginIndexService(pname, pfunc, callback) {
+    $.post('/plugins/run', { name: 'openresty', func: pfunc }, function (data) {
+        if (!data.status) {
+            layer.msg(data.msg, { icon: 0, time: 2000, shade: [0.3, '#000'] });
             return;
         }
 
-        if(typeof(callback) == 'function'){
+        if (typeof (callback) == 'function') {
             callback(data);
         }
-    },'json');
+    }, 'json');
 }
 
 function reBoot() {
@@ -607,11 +607,11 @@ function reBoot() {
             case 'panel':
                 layer.confirm('SLEMP Panel service will be restarted soon, continue?', { title: 'Restart panel service', closeBtn: 1, icon: 3 }, function () {
                     var loadT = layer.load();
-                    $.post('/system/restart','',function (rdata) {
+                    $.post('/system/restart', '', function (rdata) {
                         layer.close(loadT);
                         layer.msg(rdata.msg);
                         setTimeout(function () { window.location.reload(); }, 3000);
-                    },'json');
+                    }, 'json');
                 });
                 break;
             case 'server':
@@ -649,14 +649,14 @@ function reBoot() {
                         pluginIndexService('openresty', 'stop', function (r1) {
                             $(".SafeRestartCode p").addClass('c9');
                             $(".SafeRestartCode").append("<p>Stopping the MySQL service...</p>");
-                            pluginIndexService('mysql','stop', function (r2) {
+                            pluginIndexService('mysql', 'stop', function (r2) {
                                 $(".SafeRestartCode p").addClass('c9');
                                 $(".SafeRestartCode").append("<p>Start restarting the server...</p>");
-                                $.post('/system/restart_server', '',function (rdata) {
+                                $.post('/system/restart_server', '', function (rdata) {
                                     $(".SafeRestartCode p").addClass('c9');
                                     $(".SafeRestartCode").append("<p>Wait for the server to start...</p>");
                                     var sEver = setInterval(function () {
-                                       $.get("/system/system_total", function(info) {
+                                        $.get("/system/system_total", function (info) {
                                             clearInterval(sEver);
                                             $(".SafeRestartCode p").addClass('c9');
                                             $(".SafeRestartCode").append("<p>The server restarted successfully!...</p>");
@@ -676,12 +676,12 @@ function reBoot() {
 }
 
 function repPanel() {
-    layer.confirm(lan.index.rep_panel_msg, { title: lan.index.rep_panel_title, closeBtn: 1, icon: 3 }, function() {
+    layer.confirm(lan.index.rep_panel_msg, { title: lan.index.rep_panel_title, closeBtn: 1, icon: 3 }, function () {
         var loadT = layer.msg(lan.index.rep_panel_the, { icon: 16, time: 0, shade: [0.3, '#000'] });
-        $.get('/system?action=RepPanel', function(rdata) {
+        $.get('/system?action=RepPanel', function (rdata) {
             layer.close(loadT);
             layer.msg(lan.index.rep_panel_ok, { icon: 1 });
-        }).error(function() {
+        }).error(function () {
             layer.close(loadT);
             layer.msg(lan.index.rep_panel_ok, { icon: 1 });
         });
@@ -689,7 +689,7 @@ function repPanel() {
 }
 
 function getWarning() {
-    $.get('/ajax?action=GetWarning', function(wlist) {
+    $.get('/ajax?action=GetWarning', function (wlist) {
         var num = 0;
         for (var i = 0; i < wlist.data.length; i++) {
             if (wlist.data[i].ignore_count >= wlist.data[i].ignore_limit) continue;
@@ -711,11 +711,11 @@ function getWarning() {
 
 function warningTo(to_url, def) {
     var loadT = layer.msg(lan.public.the_get, { icon: 16, time: 0, shade: [0.3, '#000'] });
-    $.post(to_url, {}, function(rdata) {
+    $.post(to_url, {}, function (rdata) {
         layer.close(loadT);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
-        if (rdata.status && def) setTimeout(function() { location.reload(); }, 1000);
-    },'json');
+        if (rdata.status && def) setTimeout(function () { location.reload(); }, 1000);
+    }, 'json');
 }
 
 function setSafeHide() {
@@ -748,9 +748,9 @@ function showDanger(num, port) {
     $(".showDanger td").css("padding", "8px")
 }
 
-function pluginInit(){
-    $.post('/plugins/init', function(data){
-        if (!data.status){
+function pluginInit() {
+    $.post('/plugins/init', function (data) {
+        if (!data.status) {
             return false;
         }
 
@@ -760,29 +760,29 @@ function pluginInit(){
         for (var i = 0; i < rdata.length; i++) {
             var ver = rdata[i]['versions'];
             var select_list = '';
-            if (typeof(ver)=='string'){
-                select_list = '<option value="' + ver +'">' + rdata[i]['title'] + ' - ' + ver + '</option>';
+            if (typeof (ver) == 'string') {
+                select_list = '<option value="' + ver + '">' + rdata[i]['title'] + ' - ' + ver + '</option>';
             } else {
                 for (var vi = 0; vi < ver.length; vi++) {
 
-                    if (ver[vi] == rdata[i]['default_ver']){
-                        select_list += '<option value="'+ver[vi]+'" selected="selected">'+ rdata[i]['title'] + ' - '+ ver[vi] + '</option>';
+                    if (ver[vi] == rdata[i]['default_ver']) {
+                        select_list += '<option value="' + ver[vi] + '" selected="selected">' + rdata[i]['title'] + ' - ' + ver[vi] + '</option>';
                     } else {
-                        select_list += '<option value="'+ver[vi]+'">'+ rdata[i]['title'] + ' - '+ ver[vi] + '</option>';
+                        select_list += '<option value="' + ver[vi] + '">' + rdata[i]['title'] + ' - ' + ver[vi] + '</option>';
                     }
                 }
             }
 
-            var pn_checked = '<input id="data_'+rdata[i]['name']+'" type="checkbox" checked>';
-            if (rdata[i]['name'] == 'swap'){
-                var pn_checked = '<input id="data_'+rdata[i]['name']+'" type="checkbox" disabled="disabled" checked>';
+            var pn_checked = '<input id="data_' + rdata[i]['name'] + '" type="checkbox" checked>';
+            if (rdata[i]['name'] == 'swap') {
+                var pn_checked = '<input id="data_' + rdata[i]['name'] + '" type="checkbox" disabled="disabled" checked>';
             }
 
-            plugin_list += '<li><span class="ico"><img src="/plugins/file?name='+rdata[i]['name']+'&f=ico.png"></span>\
+            plugin_list += '<li><span class="ico"><img src="/plugins/file?name=' + rdata[i]['name'] + '&f=ico.png"></span>\
             <span class="name">\
-                <select id="select_'+rdata[i]['name']+'" class="sl-s-info">'+select_list+'</select>\
+                <select id="select_'+ rdata[i]['name'] + '" class="sl-s-info">' + select_list + '</select>\
             </span>\
-            <span class="pull-right">'+pn_checked+'</span></li>';
+            <span class="pull-right">'+ pn_checked + '</span></li>';
         }
 
         layer.open({
@@ -791,7 +791,7 @@ function pluginInit(){
             area: ["337px", "403px"],
             closeBtn: 2,
             shadeClose: false,
-            content:"\
+            content: "\
         <div class='rec-install'>\
             <div class='important-title'>\
                 <p><span class='glyphicon glyphicon-alert' style='color: #f39c12; margin-right: 10px;'></span>The following are recommended <a href='javascript:jump()' style='color:#20a53a'>application</a>.</p>\
@@ -804,15 +804,15 @@ function pluginInit(){
                 </div>\
             </div>\
         </div>",
-            success:function(l,index){
-                $('.rec-box-con .onekey').click(function(){
+            success: function (l, index) {
+                $('.rec-box-con .onekey').click(function () {
                     var post_data = [];
                     for (var i = 0; i < rdata.length; i++) {
-                        var key_ver = '#select_'+rdata[i]['name'];
-                        var key_checked = '#data_'+rdata[i]['name'];
+                        var key_ver = '#select_' + rdata[i]['name'];
+                        var key_checked = '#data_' + rdata[i]['name'];
 
                         var val_checked = $(key_checked).prop("checked");
-                        if (val_checked){
+                        if (val_checked) {
 
                             var tmp = {};
                             var val_key = $(key_ver).val();
@@ -823,47 +823,47 @@ function pluginInit(){
                         }
                     }
 
-                    $.post('/plugins/init_install', 'list='+JSON.stringify(post_data), function(data){
-                        showMsg(data.msg, function(){
-                            if (data.status){
+                    $.post('/plugins/init_install', 'list=' + JSON.stringify(post_data), function (data) {
+                        showMsg(data.msg, function () {
+                            if (data.status) {
                                 layer.closeAll();
                                 messageBox();
                             }
-                        },{ icon: data.status ? 1 : 2 },2000);
-                    },'json');
+                        }, { icon: data.status ? 1 : 2 }, 2000);
+                    }, 'json');
                 });
             },
-            cancel:function(){
-                layer.confirm('Whether to no longer show recommended installation kits?', {btn : ['Yes', 'Cancel'],title: "Do not show recommendations again?"}, function() {
-                    $.post('/files/create_dir', 'path=/home/slemp/server/php', function(rdata) {
+            cancel: function () {
+                layer.confirm('Whether to no longer show recommended installation kits?', { btn: ['Yes', 'Cancel'], title: "Do not show recommendations again?" }, function () {
+                    $.post('/files/create_dir', 'path=/opt/slemp/server/php', function (rdata) {
                         layer.closeAll();
-                    },'json');
+                    }, 'json');
                 });
             }
         });
-    },'json');
+    }, 'json');
 }
 
-function loadKeyDataCount(){
+function loadKeyDataCount() {
     var plist = ['mysql', 'gogs', 'gitea'];
     for (var i = 0; i < plist.length; i++) {
         pname = plist[i];
-        function call(pname){
-            $.post('/plugins/run', {name:pname, func:'get_total_statistics'}, function(data) {
+        function call(pname) {
+            $.post('/plugins/run', { name: pname, func: 'get_total_statistics' }, function (data) {
                 try {
                     var rdata = $.parseJSON(data['data']);
-                } catch(e){
+                } catch (e) {
                     return;
                 }
-                if (!rdata['status']){
+                if (!rdata['status']) {
                     return;
                 }
                 var html = '<li class="sys-li-box col-xs-3 col-sm-3 col-md-3 col-lg-3">\
-                        <p class="name f15 c9">'+pname+'</p>\
-                        <div class="val"><a class="btlink" onclick="softMain(\''+pname+'\',\''+pname+'\',\''+rdata['data']['ver']+'\')">'+rdata['data']['count']+'</a></div>\
+                        <p class="name f15 c9">'+ pname + '</p>\
+                        <div class="val"><a class="btlink" onclick="softMain(\''+ pname + '\',\'' + pname + '\',\'' + rdata['data']['ver'] + '\')">' + rdata['data']['count'] + '</a></div>\
                     </li>';
                 $('#index_overview').append(html);
-            },'json');
+            }, 'json');
         }
         call(pname);
     }
