@@ -2,9 +2,8 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
 export PATH
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
+DIR=$(cd "$(dirname "$0")"; pwd)
+rootPath=$(dirname "$(dirname "$DIR")")
 serverPath=$(dirname "$rootPath")/server
 
 
@@ -19,7 +18,7 @@ if [ "${2}" == "" ];then
 	exit 0
 fi
 
-if [ ! -d $curPath/versions/$2 ];then
+if [ ! -d $DIR/versions/$2 ];then
 	echo 'Missing installation script 2...' > $install_tmp
 	exit 0
 fi
@@ -39,7 +38,7 @@ if [ "${action}" == "uninstall" ];then
 	fi
 fi
 
-sh -x $curPath/versions/$2/install.sh $1
+sh -x $DIR/versions/$2/install.sh $1
 
 if [ "${action}" == "install" ] && [ -d $serverPath/mysql ];then
 	cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py start ${type}

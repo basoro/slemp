@@ -2,8 +2,8 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
 export PATH
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
+DIR=$(cd "$(dirname "$0")"; pwd)
+rootPath=$(dirname "$DIR")
 
 _os=`uname`
 if [ ${_os} == "Darwin" ]; then

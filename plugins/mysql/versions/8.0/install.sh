@@ -7,9 +7,8 @@ export PATH
 #https://dev.mysql.com/downloads/mysql/5.7.html
 #https://dev.mysql.com/downloads/file/?id=489855
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
+DIR=$(cd "$(dirname "$0")"; pwd)
+rootPath=$(dirname "$(dirname "$(dirname "$DIR")")")
 serverPath=$(dirname "$rootPath")/server
 sysName=`uname`
 

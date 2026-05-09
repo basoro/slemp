@@ -1,8 +1,9 @@
 #!/bin/bash
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
+# Path detection
+DIR=$(cd "$(dirname "$0")"; pwd)
+rootPath=$(dirname "$DIR")
 serverPath=$(dirname "$rootPath")/server
 sourcePath=$serverPath/source/lib
 libPath=$serverPath/lib
@@ -14,7 +15,11 @@ rm -rf ${libPath}/lib.pl
 
 bash ${rootPath}/scripts/getos.sh
 OSNAME=`cat ${rootPath}/data/osname.pl`
-VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
+if [ "$OSNAME" == "macos" ]; then
+    VERSION_ID=$(sw_vers -productVersion)
+else
+    VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
+fi
 echo "${OSNAME}:${VERSION_ID}"
 
 # system judge

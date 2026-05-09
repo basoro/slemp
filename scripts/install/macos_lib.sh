@@ -2,8 +2,8 @@
 set -e
 
 # Path detection
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
+DIR=$(cd "$(dirname "$0")"; pwd)
+rootPath=$(dirname "$(dirname "$DIR")")
 serverPath=$(dirname "$rootPath")/server
 libPath=$serverPath/lib
 sourcePath=$serverPath/source/lib
@@ -216,7 +216,7 @@ echo "Installing CMake..."
 download https://github.com/Kitware/CMake/releases/download/v3.29.2/cmake-3.29.2.tar.gz
 rm -rf cmake-3.29.2 && tar xf cmake-3.29.2.tar.gz
 cd cmake-3.29.2
-./bootstrap --prefix="$DEPS" -- -DCMAKE_USE_SYSTEM_ZLIB=ON
+./bootstrap --prefix="$DEPS" -- -DCMAKE_USE_SYSTEM_ZLIB=OFF
 make -j$CPU && make install
 
 echo "All core libraries installed successfully in $PREFIX"
