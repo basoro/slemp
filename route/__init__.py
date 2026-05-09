@@ -30,7 +30,7 @@ from flask_session import Session
 
 from whitenoise import WhiteNoise
 
-sys.path.append(os.getcwd() + "/class/core")
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/class/core")
 
 import db
 import slemp

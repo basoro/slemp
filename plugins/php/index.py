@@ -11,7 +11,7 @@ import shutil
 # reload(sys)
 # sys.setdefaultencoding('utf8')
 
-sys.path.append(os.getcwd() + "/class/core")
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + "/class/core")
 # sys.path.append("/usr/local/lib/python3.6/site-packages")
 
 import slemp
