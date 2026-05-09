@@ -19,12 +19,7 @@ echo "${OSNAME}:${VERSION_ID}"
 
 # system judge
 if [ "$OSNAME" == "macos" ]; then
-    brew install libmemcached
-    brew install curl
-    brew install zlib
-    brew install freetype
-    brew install openssl
-    brew install libzip
+    bash ${rootPath}/scripts/install/macos_lib.sh
 elif [ "$OSNAME" == "opensuse" ];then
     echo "opensuse lib"
 elif [ "$OSNAME" == "arch" ];then

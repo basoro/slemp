@@ -52,7 +52,7 @@ def getTracebackInfo():
 
 
 def getRunDir():
-    return os.getcwd()
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def getRootDir():

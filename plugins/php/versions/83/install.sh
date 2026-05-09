@@ -1,12 +1,18 @@
 #!/bin/bash
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
 export PATH
+export PATH
 
 script_dir=$(cd "$(dirname "$0")" && pwd)
 rootPath=$(dirname "$(dirname "$(dirname "$(dirname "$script_dir")")")")
 serverPath=$(dirname "$rootPath")/server
 sourcePath=${serverPath}/source
 sysName=`uname`
+if [ $sysName == 'Darwin' ]; then
+	export PKG_CONFIG_PATH="$serverPath/lib/pkgconfig:$PKG_CONFIG_PATH"
+	export LDFLAGS="-L$serverPath/lib -lc++"
+	export CPPFLAGS="-I$serverPath/lib/include"
+fi
 install_tmp=${rootPath}/tmp/slemp_install.pl
 
 function version_gt() { test "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1"; }
@@ -93,28 +99,49 @@ echo "$sourcePath/php/php${PHP_VER}"
 if [ ! -d $serverPath/php/${PHP_VER} ];then
 	cd $sourcePath/php/php${PHP_VER}
 	./buildconf --force
-	./configure \
-	--prefix=$serverPath/php/${PHP_VER} \
-	--exec-prefix=$serverPath/php/${PHP_VER} \
-	--with-config-file-path=$serverPath/php/${PHP_VER}/etc \
-	--enable-mysqlnd \
-	--with-mysqli=mysqlnd \
-	--with-pdo-mysql=mysqlnd \
-	--with-zlib-dir=$serverPath/lib/zlib \
-	$ZIP_OPTION \
-	--enable-mbstring \
-	--enable-ftp \
-	--enable-sockets \
-	--enable-simplexml \
-	--enable-soap \
-	--enable-posix \
-	--enable-sysvmsg \
-	--enable-sysvsem \
-	--enable-sysvshm \
-	--disable-intl \
-	--disable-fileinfo \
-	$OPTIONS \
-	--enable-fpm
+	if [ $sysName == 'Darwin' ]; then
+		./configure \
+		--prefix=$serverPath/php/${PHP_VER} \
+		--with-config-file-path=$serverPath/php/${PHP_VER}/etc \
+		--enable-fpm \
+		--with-openssl=$serverPath/lib \
+		--with-zlib=$serverPath/lib \
+		--with-libxml=$serverPath/lib \
+		--with-iconv=$serverPath/lib \
+		--with-onig=$serverPath/lib \
+		--with-icu-dir=$serverPath/lib \
+		--enable-intl \
+		--with-sqlite3=$serverPath/lib \
+		--with-pdo-sqlite=$serverPath/lib \
+		--with-curl=$serverPath/lib \
+		--enable-mbstring \
+		--enable-opcache \
+		--with-pdo-mysql=mysqlnd \
+		--with-mysqli=mysqlnd
+	else
+		./configure \
+		--prefix=$serverPath/php/${PHP_VER} \
+		--exec-prefix=$serverPath/php/${PHP_VER} \
+		--with-config-file-path=$serverPath/php/${PHP_VER}/etc \
+		--enable-mysqlnd \
+		--with-mysqli=mysqlnd \
+		--with-pdo-mysql=mysqlnd \
+		--with-zlib-dir=$serverPath/lib/zlib \
+		$ZIP_OPTION \
+		--enable-mbstring \
+		--enable-ftp \
+		--enable-sockets \
+		--enable-simplexml \
+		--enable-soap \
+		--enable-posix \
+		--enable-sysvmsg \
+		--enable-sysvsem \
+		--enable-sysvshm \
+		--disable-intl \
+		--disable-fileinfo \
+		$OPTIONS \
+		--enable-fpm
+	fi
 	make clean && make -j${cpuCore} && make install && make clean
 fi
 #------------------------ install end ------------------------------------#
