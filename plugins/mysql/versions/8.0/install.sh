@@ -54,7 +54,11 @@ else
 	OSNAME='unknow'
 fi
 
-VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
+if [ $(uname) == "Darwin" ]; then
+	OSNAME='macos'
+else
+	VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
+fi
 
 
 VERSION=8.0.34
@@ -64,12 +68,14 @@ Install_mysql()
 	echo 'Installing script file...' > $install_tmp
 
 
-	if id mysql &> /dev/null ;then
-	    echo "mysql UID is `id -u www`"
-	    echo "mysql Shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
-	else
-	    groupadd mysql
-		useradd -g mysql mysql
+	if [ $(uname) != "Darwin" ]; then
+		if id mysql &> /dev/null ;then
+			echo "mysql UID is `id -u www`"
+			echo "mysql Shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
+		else
+			groupadd mysql
+			useradd -g mysql mysql
+		fi
 	fi
 
 	# ----- cpu start ------
@@ -79,9 +85,16 @@ Install_mysql()
 
 	if [ -f /proc/cpuinfo ];then
 		cpuCore=`cat /proc/cpuinfo | grep "processor" | wc -l`
+	elif [ $(uname) == "Darwin" ]; then
+		cpuCore=$(sysctl -n hw.ncpu)
 	fi
 
-	MEM_INFO=$(free -m|grep Mem|awk '{printf("%.f",($2)/1024)}')
+	if [ -f /proc/meminfo ]; then
+		MEM_INFO=$(free -m|grep Mem|awk '{printf("%.f",($2)/1024)}')
+	elif [ $(uname) == "Darwin" ]; then
+		MEM_INFO=$(sysctl -n hw.memsize | awk '{printf("%.f",$1/1024/1024/1024)}')
+	fi
+
 	if [ "${cpuCore}" != "1" ] && [ "${MEM_INFO}" != "0" ];then
 	    if [ "${cpuCore}" -gt "${MEM_INFO}" ];then
 	        cpuCore="${MEM_INFO}"

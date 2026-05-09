@@ -12,7 +12,9 @@ if sys.version_info[0] == 2:
     sys.setdefaultencoding('utf-8')
 
 
-sys.path.append(os.getcwd() + "/class/core")
+# Get the directory where the script is located
+root_path = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(root_path + "/class/core")
 import slemp
 import db
 
@@ -30,11 +32,11 @@ timeoutCount = 0
 isCheck = 0
 oldEdate = None
 
-logPath = os.getcwd() + '/tmp/panelExec.log'
-isTask = os.getcwd() + '/tmp/panelTask.pl'
+logPath = root_path + '/tmp/panelExec.log'
+isTask = root_path + '/tmp/panelTask.pl'
 
-if not os.path.exists(os.getcwd() + "/tmp"):
-    os.system('mkdir -p ' + os.getcwd() + "/tmp")
+if not os.path.exists(root_path + "/tmp"):
+    os.system('mkdir -p ' + root_path + "/tmp")
 
 if not os.path.exists(logPath):
     os.system("touch " + logPath)

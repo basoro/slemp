@@ -48,7 +48,7 @@ class task_api:
         return slemp.getJson(_ret)
 
     def getExecLogApi(self):
-        file = os.getcwd() + "/tmp/panelExec.log"
+        file = slemp.getRunDir() + "/tmp/panelExec.log"
         v = slemp.getLastLine(file, 100)
         return v
 

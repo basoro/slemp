@@ -8,13 +8,14 @@ serverPath=$(dirname "$rootPath")/server
 
 install_tmp=${rootPath}/tmp/slemp_install.pl
 
-if id www &> /dev/null ;then
-    echo "www uid is `id -u www`"
-    echo "www shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
-else
-    groupadd www
-	# useradd -g www -s /sbin/nologin www
-	useradd -g www -s /bin/bash www
+if [ $(uname) != "Darwin" ]; then
+	if id www &> /dev/null ;then
+		echo "www uid is `id -u www`"
+		echo "www shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
+	else
+		groupadd www
+		useradd -g www -s /bin/bash www
+	fi
 fi
 
 action=$1

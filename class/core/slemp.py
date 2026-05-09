@@ -1544,7 +1544,7 @@ def getSSHStatus():
 
 
 def requestFcgiPHP(sock, uri, document_root='/tmp', method='GET', pdata=b''):
-    sys.path.append(os.getcwd() + "/class/plugin")
+    sys.path.append(getRunDir() + "/class/plugin")
 
     import fpm
     p = fpm.fpm(sock, document_root)
@@ -1556,14 +1556,14 @@ def requestFcgiPHP(sock, uri, document_root='/tmp', method='GET', pdata=b''):
 
 
 def getMyORM():
-    sys.path.append(os.getcwd() + "/class/plugin")
+    sys.path.append(getRunDir() + "/class/plugin")
     import orm
     o = orm.ORM()
     return o
 
 
 def getMyORMDb():
-    sys.path.append(os.getcwd() + "/class/plugin")
+    sys.path.append(getRunDir() + "/class/plugin")
     import ormDb
     o = ormDb.ORM()
     return o

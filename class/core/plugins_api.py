@@ -299,7 +299,7 @@ class plugins_api:
             return slemp.returnJson(False, "Config file does not exist!", ())
 
         pluginInfo = json.loads(slemp.readFile(infoJsonPos))
-        execstr = "cd " + os.getcwd() + "/plugins/" + \
+        execstr = "cd " + slemp.getPluginDir() + "/" + \
             name + " && /bin/bash " + pluginInfo["shell"] \
             + " uninstall " + version
 
@@ -326,7 +326,7 @@ class plugins_api:
 
         pluginInfo = json.loads(slemp.readFile(infoJsonPos))
         self.hookUninstall(pluginInfo)
-        execstr = "cd " + os.getcwd() + "/plugins/" + \
+        execstr = "cd " + slemp.getPluginDir() + "/" + \
             name + " && /bin/bash " + pluginInfo["shell"] \
             + " uninstall " + version
 
