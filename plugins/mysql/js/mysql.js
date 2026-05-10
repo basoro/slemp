@@ -2307,17 +2307,17 @@ function masterOrSlaveConf(version = '') {
 
                 var err_line = "";
                 err_line += "<tr>\
-                    <td>IO错误</td>\
-                    <td>"+ (info['Last_IO_Error'] == '' ? '无' : info['Last_IO_Error']) + "</td>\
+                    <td>Error IO</td>\
+                    <td>"+ (info['Last_IO_Error'] == '' ? 'Tidak ada' : info['Last_IO_Error']) + "</td>\
                 </tr>";
                 err_line += "<tr>\
-                    <td>SQL错误</td>\
-                    <td>"+ (info['Last_SQL_Error'] == '' ? '无' : info['Last_SQL_Error']) + "</td>\
+                    <td>Error SQL</td>\
+                    <td>"+ (info['Last_SQL_Error'] == '' ? 'Tidak ada' : info['Last_SQL_Error']) + "</td>\
                 </tr>";
 
                 err_line += "<tr>\
-                    <td>状态</td>\
-                    <td>"+ (info['Slave_SQL_Running_State'] == '' ? '无' : info['Slave_SQL_Running_State']) + "</td>\
+                    <td>Status</td>\
+                    <td>"+ (info['Slave_SQL_Running_State'] == '' ? 'Tidak ada' : info['Slave_SQL_Running_State']) + "</td>\
                 </tr>";
 
                 layer.open({

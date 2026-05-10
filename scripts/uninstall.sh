@@ -21,17 +21,17 @@ fi
 UNINSTALL_CHECK()
 {
     echo -e "----------------------------------------------------"
-    echo -e "暂时只能卸载OpenResty/PHP/MySQL/Redis/Memcached"
-    echo -e "其他插件先手动卸载!"
+    echo -e "Saat ini hanya dapat menghapus OpenResty/PHP/MySQL/Redis/Memcached"
+    echo -e "Harap hapus instalasi plugin lain secara manual terlebih dahulu!"
     echo -e "----------------------------------------------------"
-    echo -e "已知风险/输入yes强制卸载![yes/no]"
-    read -p "输入yes强制卸载: " yes;
+    echo -e "Risiko diketahui/ketik yes untuk hapus instalasi secara paksa! [yes/no]"
+    read -p "Ketik yes untuk hapus instalasi secara paksa: " yes;
     if [ "$yes" != "yes" ];then
         echo -e "------------"
-        echo "取消卸载"
+        echo "Membatalkan penghapusan instalasi"
         exit 1
     else
-        echo "开始卸载!"
+        echo "Memulai penghapusan instalasi!"
     fi
 }
 
@@ -41,16 +41,16 @@ UNINSTALL_MySQL()
     MYSQLD_CHECK=$(ps -ef |grep mysqld | grep -v grep | grep ${serverPath}/mysql)
     if [ "$MYSQLD_CHECK" != "" ];then
         echo -e "----------------------------------------------------"
-        echo -e "检查已有MySQL环境，卸载可能影响现有站点及数据"
+        echo -e "Memeriksa lingkungan MySQL yang ada, penghapusan instalasi dapat memengaruhi situs dan data yang ada"
         echo -e "----------------------------------------------------"
-        echo -e "已知风险/输入yes强制卸载![yes/no]"
-        read -p "输入yes强制卸载: " yes;
+        echo -e "Risiko diketahui/ketik yes untuk hapus instalasi secara paksa! [yes/no]"
+        read -p "Ketik yes untuk hapus instalasi secara paksa: " yes;
         if [ "$yes" != "yes" ];then
             echo -e "------------"
-            echo "取消卸载MySQL"
+            echo "Membatalkan penghapusan instalasi MySQL"
         else
             cd ${rootPath}/plugins/mysql && sh install.sh uninstall 8.0
-            echo "卸载MySQL成功!"
+            echo "Penghapusan instalasi MySQL berhasil!"
         fi
     fi
 }
@@ -59,16 +59,16 @@ UNINSTALL_OP()
 {
     if [ -f ${serverPath}/openresty ];then
         echo -e "----------------------------------------------------"
-        echo -e "检查已有OpenResty环境，卸载可能影响现有站点及数据"
+        echo -e "Memeriksa lingkungan OpenResty yang ada, penghapusan instalasi dapat memengaruhi situs dan data yang ada"
         echo -e "----------------------------------------------------"
-        echo -e "已知风险/输入yes强制卸载![yes/no]"
-        read -p "输入yes强制卸载: " yes;
+        echo -e "Risiko diketahui/ketik yes untuk hapus instalasi secara paksa! [yes/no]"
+        read -p "Ketik yes untuk hapus instalasi secara paksa: " yes;
         if [ "$yes" != "yes" ];then
             echo -e "------------"
-            echo "取消卸载OpenResty"
+            echo "Membatalkan penghapusan instalasi OpenResty"
         else
             cd ${rootPath}/plugins/openresty && sh install.sh uninstall
-            echo "卸载OpenResty成功!"
+            echo "Penghapusan instalasi OpenResty berhasil!"
         fi
     fi
 }
@@ -77,19 +77,19 @@ UNINSTALL_PHP()
 {
     if [ -d ${serverPath}/php ];then
         echo -e "----------------------------------------------------"
-        echo -e "检查已有PHP环境，卸载可能影响现有站点及数据"
+        echo -e "Memeriksa lingkungan PHP yang ada, penghapusan instalasi dapat memengaruhi situs dan data yang ada"
         echo -e "----------------------------------------------------"
-        read -p "输入yes强制卸载所有PHP[yes/no]: " yes;
+        read -p "Ketik yes untuk menghapus semua PHP secara paksa [yes/no]: " yes;
         if [ "$yes" != "yes" ];then
             echo -e "------------"
-            echo "取消卸载PHP"
+            echo "Membatalkan penghapusan instalasi PHP"
         else
             PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81 82)
             for PHP_VER in ${PHP_VER_LIST[@]}; do
                 if [ -d ${serverPath}/php/${PHP_VER} ];then
                     cd ${rootPath}/plugins/php && bash install.sh uninstall ${PHP_VER}
                 fi
-                echo "卸载PHP${PHP_VER}成功!"
+                echo "Penghapusan instalasi PHP${PHP_VER} berhasil!"
             done
         fi
     fi
@@ -99,15 +99,15 @@ UNINSTALL_MEMCACHED()
 {
     if [ -d ${serverPath}/memcached ];then
         echo -e "----------------------------------------------------"
-        echo -e "检查已有Memcached环境，卸载可能影响现有站点及数据"
+        echo -e "Memeriksa lingkungan Memcached yang ada, penghapusan instalasi dapat memengaruhi situs dan data yang ada"
         echo -e "----------------------------------------------------"
-        read -p "输入yes强制卸载所有Memcached[yes/no]: " yes;
+        read -p "Ketik yes untuk menghapus semua Memcached secara paksa [yes/no]: " yes;
         if [ "$yes" != "yes" ];then
             echo -e "------------"
-            echo "取消卸载Memcached"
+            echo "Membatalkan penghapusan instalasi Memcached"
         else
             cd ${rootPath}/plugins/memcached && bash install.sh uninstall
-            echo "卸载Memcached成功"
+            echo "Penghapusan instalasi Memcached berhasil"
         fi
     fi
 }
@@ -116,15 +116,15 @@ UNINSTALL_REDIS()
 {
     if [ -d ${serverPath}/redis ];then
         echo -e "----------------------------------------------------"
-        echo -e "检查已有Redis环境，卸载可能影响现有站点及数据"
+        echo -e "Memeriksa lingkungan Redis yang ada, penghapusan instalasi dapat memengaruhi situs dan data yang ada"
         echo -e "----------------------------------------------------"
-        read -p "输入yes强制卸载所有Redis[yes/no]: " yes;
+        read -p "Ketik yes untuk menghapus semua Redis secara paksa [yes/no]: " yes;
         if [ "$yes" != "yes" ];then
             echo -e "------------"
-            echo "取消卸载Redis"
+            echo "Membatalkan penghapusan instalasi Redis"
         else
             cd ${rootPath}/plugins/redis && bash install.sh uninstall 7.0.4
-            echo "卸载Redis成功"
+            echo "Penghapusan instalasi Redis berhasil"
         fi
     fi
 }
@@ -132,18 +132,18 @@ UNINSTALL_REDIS()
 UNINSTALL_MW()
 {
     echo -e "----------------------------------------------------"
-    echo -e "检查已有mderver-web环境，卸载可能影响现有站点及数据"
+    echo -e "Memeriksa lingkungan mderver-web yang ada, penghapusan instalasi dapat memengaruhi situs dan data yang ada"
     echo -e "----------------------------------------------------"
-    read -p "输入yes强制卸载面板: " yes;
+    read -p "Ketik yes untuk menghapus instalasi panel secara paksa: " yes;
     if [ "$yes" != "yes" ];then
         echo -e "------------"
-        echo "取消卸载面板"
+        echo "Membatalkan penghapusan instalasi panel"
     else
         rm -rf /usr/bin/slemp
         rm -rf /etc/init.d/slemp
         systemctl daemon-reload
         rm -rf ${rootPath}
-        echo "卸载面板成功"
+        echo "Penghapusan instalasi panel berhasil"
     fi
 }
 

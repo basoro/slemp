@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-#获取信息和版本
+#Dapatkan info dan versi
 _os=`uname`
 if [ ${_os} == "Darwin" ]; then
     OSNAME='macos'

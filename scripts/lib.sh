@@ -72,7 +72,7 @@ fi
 echo "local:${LOCAL_ADDR}"
 echo "pypi source:$PIPSRC"
 
-#面板需要的库
+#Pustaka yang diperlukan panel
 if [ ! -f /usr/local/bin/pip3 ] && [ ! -f /usr/bin/pip3 ];then
     python3 -m pip install --upgrade pip setuptools wheel -i $PIPSRC
 

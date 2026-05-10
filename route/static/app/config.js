@@ -75,7 +75,7 @@ $('input[name="bind_ssl"]').click(function(){
 
 
 function closePanel(){
-	layer.confirm('Closing the panel will prevent you from accessing the panel, do you really want to close the Linux panel?',{title:'Close panel',closeBtn:2,icon:13,cancel:function(){
+	layer.confirm('Kalau panel ditutup, kamu nggak bakal bisa masuk lagi. Yakin mau tutup panel?',{title:'Tutup panel',closeBtn:2,icon:13,cancel:function(){
 		$("#closePl").prop("checked",false);
 	}}, function() {
 		$.post('/config/close_panel','',function(rdata){
@@ -90,7 +90,7 @@ function closePanel(){
 }
 
 function debugMode(){
-	var loadT = layer.msg('Sending request, please wait...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+	var loadT = layer.msg('Lagi kirim permintaan, tunggu ya...', { icon: 16, time: 0, shade: [0.3, '#000'] });
     $.post('/config/open_debug', {}, function (rdata) {
         layer.close(loadT);
         showMsg(rdata.msg, function(){
@@ -105,14 +105,14 @@ function modifyAuthPath() {
     layer.open({
         type: 1,
         area: "500px",
-        title: "Modify security entry",
+        title: "Ubah pintu masuk keamanan",
         closeBtn: 1,
         shift: 5,
-        btn:['Submit','Cancel'],
+        btn:['Kirim','Batal'],
         shadeClose: false,
         content: '<div class="bt-form bt-form pd20">\
                     <div class="line ">\
-                        <span class="tname">entry address</span>\
+                        <span class="tname">alamat masuk</span>\
                         <div class="info-r">\
                             <input name="auth_path_set" class="bt-input-text mr5" type="text" style="width: 311px" value="' + auth_path + '">\
                         </div>\
@@ -121,7 +121,7 @@ function modifyAuthPath() {
         yes:function(index){
         	var auth_path = $("input[name='auth_path_set']").val();
 		    if (auth_path == '/' || auth_path == ''){
-		    	layer.confirm('Warning, closing the security entrance is equivalent to directly exposing your background address to the external network, which is very dangerous. Do you really want to change it like this?',{title:'Security Entry Modification',closeBtn:1,icon:13,
+		    	layer.confirm('Peringatan: Tutup pintu masuk keamanan itu bahaya banget, karena alamat login kamu jadi kebuka buat umum. Yakin mau diginiin?',{title:'Ubah Pintu Masuk Keamanan',closeBtn:1,icon:13,
 		    	cancel:function(){
 				}}, function() {
 					var loadT = layer.msg(lan.config.config_save, { icon: 16, time: 0, shade: [0.3, '#000'] });
@@ -153,7 +153,7 @@ function setPassword(a) {
 		p1 = $("#p1").val();
 		p2 = $("#p2").val();
 		if(p1 == "" || p1.length < 8) {
-			layer.msg('The panel password cannot be less than 8 characters!', {icon: 2});
+			layer.msg('Password panel nggak boleh kurang dari 8 karakter!', {icon: 2});
 			return
 		}
 
@@ -172,12 +172,12 @@ function setPassword(a) {
 		}
 
 		if(isError != ""){
-			layer.msg('The panel password cannot be a weak password'+isError,{icon:5});
+			layer.msg('Password panel jangan yang gampang ditebak dong'+isError,{icon:5});
 			return;
 		}
 
 		if(p1 != p2) {
-			layer.msg('The two entered passwords do not match', {icon: 2});
+			layer.msg('Dua password yang kamu masukin nggak sama', {icon: 2});
 			return;
 		}
 		$.post("/config/set_password", "password1=" + encodeURIComponent(p1) + "&password2=" + encodeURIComponent(p2), function(b) {
@@ -193,23 +193,23 @@ function setPassword(a) {
 	layer.open({
 		type: 1,
 		area: "290px",
-		title: 'Change Password',
+		title: 'Ganti Password',
 		closeBtn: 1,
 		shift: 5,
 		shadeClose: false,
 		content: "<div class='bt-form pd20 pb70'>\
 				<div class='line'>\
 					<span class='tname'>Password</span>\
-					<div class='info-r'><input class='bt-input-text' type='text' name='password1' id='p1' value='' placeholder='New password' style='width:100%'/></div>\
+					<div class='info-r'><input class='bt-input-text' type='text' name='password1' id='p1' value='' placeholder='Password baru' style='width:100%'/></div>\
 				</div>\
 				<div class='line'>\
-					<span class='tname'>Re-Password</span>\
-					<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='Re-Password' style='width:100%' /></div>\
+					<span class='tname'>Ulangi Password</span>\
+					<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='Ulangi Password' style='width:100%' /></div>\
 				</div>\
 				<div class='bt-form-submit-btn'>\
-					<span style='float: left;' title='Random code' class='btn btn-default btn-sm' onclick='randPwd(10)'>Random</span>\
-					<button type='button' class='btn btn-danger btn-sm' onclick=\"layer.closeAll()\">Cancel</button>\
-					<button type='button' class='btn btn-success btn-sm' onclick=\"setPassword(1)\">Save</button>\
+					<span style='float: left;' title='Random code' class='btn btn-default btn-sm' onclick='randPwd(10)'>Acak</span>\
+					<button type='button' class='btn btn-danger btn-sm' onclick=\"layer.closeAll()\">Batal</button>\
+					<button type='button' class='btn btn-success btn-sm' onclick=\"setPassword(1)\">Simpan</button>\
 				</div>\
 			</div>"
 	});
@@ -228,11 +228,11 @@ function setUserName(a) {
 		p1 = $("#p1").val();
 		p2 = $("#p2").val();
 		if(p1 == "" || p1.length < 3) {
-			layer.msg('Username length cannot be less than 3 characters', {icon: 2});
+			layer.msg('Username nggak boleh kurang dari 3 karakter', {icon: 2});
 			return;
 		}
 		if(p1 != p2) {
-			layer.msg('The usernames entered twice do not match', {icon: 2});
+			layer.msg('Dua username yang kamu masukin nggak sama', {icon: 2});
 			return;
 		}
 		$.post("/config/set_name", "name1=" + encodeURIComponent(p1) + "&name2=" + encodeURIComponent(p2), function(b) {
@@ -249,7 +249,7 @@ function setUserName(a) {
 	layer.open({
 		type: 1,
 		area: "290px",
-		title: 'Modify Panel Username',
+		title: 'Ubah Username Panel',
 		closeBtn: 1,
 		shift: 5,
 		shadeClose: false,
@@ -258,19 +258,19 @@ function setUserName(a) {
 				<div class='info-r'><input class='bt-input-text' type='text' name='password1' id='p1' value='' placeholder='Username' style='width:100%'/></div>\
 			</div>\
 			<div class='line'>\
-				<span class='tname'>Re-Username</span>\
-				<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='Re-Username' style='width:100%'/></div>\
+				<span class='tname'>Ulangi Username</span>\
+				<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='Ulangi Username' style='width:100%'/></div>\
 			</div>\
 			<div class='bt-form-submit-btn'>\
-				<button type='button' class='btn btn-danger btn-sm' onclick=\"layer.closeAll()\">Cancel</button>\
-				<button type='button' class='btn btn-success btn-sm' onclick=\"setUserName(1)\">Submit</button>\
+				<button type='button' class='btn btn-danger btn-sm' onclick=\"layer.closeAll()\">Batal</button>\
+				<button type='button' class='btn btn-success btn-sm' onclick=\"setUserName(1)\">Kirim</button>\
 			</div>\
 		</div>"
 	})
 }
 
 function syncDate(){
-	var loadT = layer.msg('Synchronizing time...',{icon:16,time:0,shade: [0.3, '#000']});
+	var loadT = layer.msg('Lagi sinkronisasi waktu...',{icon:16,time:0,shade: [0.3, '#000']});
 	$.post('/config/sync_date','',function(rdata){
 		layer.close(loadT);
 		layer.msg(rdata.msg,{icon:rdata.status?1:2});
@@ -280,7 +280,7 @@ function syncDate(){
 
 
 function setIPv6() {
-    var loadT = layer.msg('Configuring, please wait...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    var loadT = layer.msg('Lagi diatur, tunggu ya...', { icon: 16, time: 0, shade: [0.3, '#000'] });
     $.post('/config/set_ipv6_status', {}, function (rdata) {
         layer.close(loadT);
         layer.msg(rdata.msg, {icon:rdata.status?1:2});
@@ -291,14 +291,14 @@ function setIPv6() {
 
 function setPanelSSL(){
 	var status = $("#sshswitch").prop("checked")==true?1:0;
-	var msg = $("#panelSSL").attr('checked')?'After closing SSL, you must use the http protocol to access the panel, continue?':'<a style="font-weight: bolder;font-size: 16px;">Danger! Don\'t open this function if you don\'t understand it!</a>\
-	<li style="margin-top: 12px;color:red;">You must use and understand this feature before deciding whether to enable it!</li>\
-	<li>The panel SSL is a self-signed certificate, which is not trusted by the browser, and it is normal to show that it is insecure</li>\
-	<li>After opening, the panel cannot be accessed, you can click the link below to understand the solution</li>\
+	var msg = $("#panelSSL").attr('checked')?'Kalau SSL ditutup, kamu harus pakai http buat masuk ke panel. Lanjut?':'<a style="font-weight: bolder;font-size: 16px;">Bahaya! Jangan asal buka kalau nggak ngerti!</a>\
+	<li style="margin-top: 12px;color:red;">Kamu harus bener-bener ngerti fitur ini sebelum nyalain!</li>\
+	<li>SSL panel ini cuma self-signed, jadi wajar kalau browser bilang nggak aman</li>\
+	<li>Kalau setelah dinyalain malah nggak bisa masuk, cek link di bawah buat solusinya</li>\
 	<p style="margin-top: 10px;">\
-		<input type="checkbox" id="checkSSL" /><label style="font-weight: 400;margin: 3px 5px 0px;" for="checkSSL">I have learned the details and am willing to take the risk</label>\
+		<input type="checkbox" id="checkSSL" /><label style="font-weight: 400;margin: 3px 5px 0px;" for="checkSSL">Saya sudah paham dan siap nanggung risikonya</label>\
 	</p>';
-	layer.confirm(msg,{title:'Settings Panel SSL',closeBtn:1,icon:3,area:'550px',cancel:function(){
+	layer.confirm(msg,{title:'Atur SSL Panel',closeBtn:1,icon:3,area:'550px',cancel:function(){
 		if(status == 0){
 			$("#panelSSL").prop("checked",false);
 		}
@@ -312,7 +312,7 @@ function setPanelSSL(){
 				return false;
 			}
 		}
-		var loadT = layer.msg('Installing and setting up the SSL components, this will take a few minutes...',{icon:16,time:0,shade: [0.3, '#000']});
+		var loadT = layer.msg('Lagi pasang dan atur komponen SSL, tunggu beberapa menit ya...',{icon:16,time:0,shade: [0.3, '#000']});
 		$.post('/config/set_panel_ssl','',function(rdata){
 			layer.close(loadT);
 			layer.msg(rdata.msg,{icon:rdata.status?1:5});
@@ -347,7 +347,7 @@ function setNotifyApi(tag, obj){
 }
 
 function getTgbot(){
-	var loadT = layer.msg('Getting TgBot information...',{icon:16,time:0,shade: [0.3, '#000']});
+	var loadT = layer.msg('Lagi ambil info TgBot...',{icon:16,time:0,shade: [0.3, '#000']});
 	$.post('/config/get_notify',{},function(data){
 		layer.close(loadT);
 
@@ -364,10 +364,10 @@ function getTgbot(){
 		layer.open({
 			type: 1,
 			area: "500px",
-			title: 'Configure TgBot configuration',
+			title: 'Atur konfigurasi TgBot',
 			closeBtn: 1,
 			shift: 5,
-			btn:["Yes","No","Test"],
+			btn:["Ya","Nggak","Tes"],
 			shadeClose: false,
 			content: "<div class='bt-form pd20'>\
 					<div class='line'>\
@@ -410,7 +410,7 @@ function getTgbot(){
 }
 
 function getPanelSSL(){
-	var loadT = layer.msg('Fetching certificate information...',{icon:16,time:0,shade: [0.3, '#000']});
+	var loadT = layer.msg('Lagi ambil info sertifikat...',{icon:16,time:0,shade: [0.3, '#000']});
 	$.post('/config/get_panel_ssl',{},function(cert){
 		layer.close(loadT);
 
@@ -418,16 +418,16 @@ function getPanelSSL(){
 		var cert_data = '';
 		if (cert['info']){
 			cert_data = "<div class='ssl_state_info'><div class='state_info_flex'>\
-				<div class='state_item'><span>Certificate brand：</span>\
+				<div class='state_item'><span>Merek Sertifikat: </span>\
 				<span class='ellipsis_text ssl_issue'>"+cert['info']['issuer']+"</span></div>\
-				<div class='state_item'><span>Expire date：</span>\
-				<span class='btlink ssl_endtime'>"+cert['info']['endtime']+" days left to expire</span></div>\
+				<div class='state_item'><span>Tanggal Kedaluwarsa: </span>\
+				<span class='btlink ssl_endtime'>"+cert['info']['endtime']+" hari lagi kedaluwarsa</span></div>\
 				</div>\
 				<div class='state_info_flex'>\
-				<div class='state_item'><span>Domain name：</span>\
+				<div class='state_item'><span>Nama Domain: </span>\
 				<span class='ellipsis_text ssl_subject'>"+cert['info']['subject']+"</span></div>\
 				<div class='state_item'>\
-					<span>Force HTTPS：</span>\
+					<span>Paksa HTTPS: </span>\
 					<span class='switch'>\
 						<input class='btswitch btswitch-ios' id='toHttps' type='checkbox' "+cert['is_https']+">\
 						<label class='btswitch-btn set_panel_http_to_https' for='toHttps'></label>\
@@ -440,28 +440,28 @@ function getPanelSSL(){
 			<div class="myKeyCon ptb15">\
 				'+cert_data+'\
 				<div class="custom_certificate_info">\
-					<div class="ssl-con-key pull-left mr20">Key (KEY)<br>\
+					<div class="ssl-con-key pull-left mr20">Kunci (KEY)<br>\
 						<textarea id="key" class="bt-input-text">'+cert.privateKey+'</textarea>\
 					</div>\
-					<div class="ssl-con-key pull-left">Certificate (PEM format)<br>\
+					<div class="ssl-con-key pull-left">Sertifikat (format PEM)<br>\
 						<textarea id="csr" class="bt-input-text">'+cert.certPem+'</textarea>\
 					</div>\
 				</div>\
 				<div class="ssl-btn pull-left mtb15" style="width:100%">\
-					<button class="btn btn-success btn-sm save-panel-ssl">Save</button>\
-					<button class="btn btn-success btn-sm del-panel-ssl">Delete</button>\
-					<button class="btn btn-success btn-sm apply-lets-ssl">Apply for a Lets certificate</button>\
+					<button class="btn btn-success btn-sm save-panel-ssl">Simpan</button>\
+					<button class="btn btn-success btn-sm del-panel-ssl">Hapus</button>\
+					<button class="btn btn-success btn-sm apply-lets-ssl">Ajukan sertifikat Let\'s Encrypt</button>\
 				</div>\
 			</div>\
 			<ul class="help-info-text c7 pull-left">\
-				<li>Paste your *.key and *.pem content, then save.</li>\
-				<li>If the browser prompts that the certificate chain is incomplete, please check whether the PEM certificate is spliced correctly</li><li>PEM format certificate = domain name certificate.crt + root certificate (root_bundle).crt</li>\
+				<li>Tempel isi file *.key dan *.pem kamu, terus simpan.</li>\
+				<li>Kalau browser bilang rantai sertifikat nggak lengkap, coba cek format PEM kamu udah bener belum.</li><li>Sertifikat format PEM = sertifikat domain.crt + root bundle.crt</li>\
 			</ul>\
 		</div>'
 		layer.open({
 			type: 1,
 			area: "600px",
-			title: 'Custom Panel Certificate',
+			title: 'Sertifikat Panel Custom',
 			closeBtn: 1,
 			shift: 5,
 			shadeClose: false,
@@ -473,7 +473,7 @@ function getPanelSSL(){
 						privateKey:$("#key").val(),
 						certPem:$("#csr").val()
 					}
-					var loadT = layer.msg('Installing and setting up the SSL components, this will take a few minutes...',{icon:16,time:0,shade: [0.3, '#000']});
+					var loadT = layer.msg('Lagi pasang dan atur komponen SSL, tunggu beberapa menit ya...',{icon:16,time:0,shade: [0.3, '#000']});
 					$.post('/config/save_panel_ssl',data,function(rdata){
 						layer.close(loadT);
 						if(rdata.status){
@@ -484,7 +484,7 @@ function getPanelSSL(){
 				});
 
 				$('.del-panel-ssl').click(function(){
-					var loadT = layer.msg('Removing SSL...',{icon:16,time:0,shade: [0.3, '#000']});
+					var loadT = layer.msg('Lagi hapus SSL...',{icon:16,time:0,shade: [0.3, '#000']});
 					$.post('/config/del_panel_ssl',data,function(rdata){
 						layer.close(loadT);
 						if(rdata.status){
@@ -506,14 +506,14 @@ function getPanelSSL(){
 				});
 
 				$('.apply-lets-ssl').click(function(){
-					showSpeedWindow('Currently applying...', 'site.get_let_logs', function(layers,index){
+					showSpeedWindow('Lagi mengajukan...', 'site.get_let_logs', function(layers,index){
 						$.post('/config/apply_panel_let_ssl',{},function(rdata){
 							layer.close(loadT);
 							if(rdata.status){
 								layer.close(index);
 								var tdata = rdata['data'];
 								$('.ssl_issue').text(tdata['info']['issuer']);
-								$('.ssl_endtime').text("Remaining "+tdata['info']['endtime']+" days due");
+								$('.ssl_endtime').text("Sisa "+tdata['info']['endtime']+" hari lagi");
 								$('.ssl_subject').text(tdata['info']['subject']);
 
 								$('textarea[name="key"]').val(tdata['info']['privateKey']);
@@ -557,16 +557,16 @@ function getTempAccessLogs(id){
 
 	layer.open({
 		area: ['700px', '250px'],
-		title: 'Temporary Authorization Management',
+		title: 'Manajemen Izin Sementara',
 		closeBtn:1,
 		shift: 0,
 		type: 1,
 		content: "<div class=\"pd20\">\
-					<button class=\"btn btn-success btn-sm refresh_log\">Refresh log</button>\
+					<button class=\"btn btn-success btn-sm refresh_log\">Segarkan log</button>\
 					<div class=\"divtable mt10\">\
 						<table class=\"table table-hover\">\
 							<thead>\
-								<tr><th>Type</th><th>Time</th><th>Log</th></tr>\
+								<tr><th>Tipe</th><th>Waktu</th><th>Log</th></tr>\
 							</thead>\
 							<tbody id=\"logs_list\"></tbody>\
 						</table>\
@@ -598,23 +598,23 @@ function setTempAccessReq(page){
 		for (var i = 0; i < rdata.data.length; i++) {
 
 			tbody += '<tr>';
-			tbody += '<td>' + (rdata.data[i]['login_addr']||'Not logged in') +'</td>';
+			tbody += '<td>' + (rdata.data[i]['login_addr']||'Belum login') +'</td>';
 
 			tbody += '<td>';
 			switch (parseInt(rdata.data[i]['state'])) {
 				case 0:
-					tbody += '<a style="color:green;">To be used</a>';
+					tbody += '<a style="color:green;">Siap pakai</a>';
 					break;
 				case 1:
-					tbody += '<a style="color:brown;">Used</a>';
+					tbody += '<a style="color:brown;">Sudah dipakai</a>';
 					break;
 				case -1:
-					tbody += '<a>Expired</a>';
+					tbody += '<a>Kedaluwarsa</a>';
 					break;
 			}
 			tbody += '</td>';
 
-			tbody += '<td>' + (getLocalTime(rdata.data[i]['login_time'])||'Not logged in') +'</td>';
+			tbody += '<td>' + (getLocalTime(rdata.data[i]['login_time'])||'Belum login') +'</td>';
 			tbody += '<td>' + getLocalTime(rdata.data[i]['expire']) +'</td>';
 
 			tbody += '<td>';
@@ -640,29 +640,29 @@ function setStatusCode(o){
     layer.open({
         type: 1,
         area: ['420px', '220px'],
-        title: "Set the response status when not authenticated",
+        title: "Atur status respons kalau nggak terautentikasi",
         closeBtn: 1,
         shift: 5,
-        btn:['Submit','Cancel'],
+        btn:['Kirim','Batal'],
         shadeClose: false,
         content: '<div class="bt-form bt-form pd20">\
                     <div class="line">\
-                        <span class="tname">Corresponding state</span>\
+                        <span class="tname">Status yang sesuai</span>\
                         <div class="info-r">\
                             <select class="bt-input-text mr5" name="status_code" style="width: 250px;"></select>\
                         </div>\
                     </div>\
-                    <ul class="help-info-text c7"><li style="color: red;">Response for not logged in and incorrectly entered security entry, used to hide panel features</li></ul>\
+                    <ul class="help-info-text c7"><li style="color: red;">Respons buat yang belum login atau salah masukin pintu keamanan, gunanya buat nyembunyiin fitur panel</li></ul>\
                 </div>',
         success:function(){
         	var msg_list = [
-        		{'code':'0','msg':'Default - Security Entrance Error Prompt'},
-        		{'code':'403','msg':'403 - Access Denied'},
-        		{'code':'404','msg':'404 - Page does not exist'},
-        		{'code':'416','msg':'416 - Invalid request'},
-        		{'code':'408','msg':'408 - Client timeout'},
-        		{'code':'400','msg':'400 - Client request error'},
-        		{'code':'401','msg':'401 - Unauthorized access'},
+        		{'code':'0','msg':'Default - Pesan Error Pintu Keamanan'},
+        		{'code':'403','msg':'403 - Akses Ditolak'},
+        		{'code':'404','msg':'404 - Halaman nggak ada'},
+        		{'code':'416','msg':'416 - Permintaan nggak bener'},
+        		{'code':'408','msg':'408 - Waktu client habis'},
+        		{'code':'400','msg':'400 - Permintaan client error'},
+        		{'code':'401','msg':'401 - Akses nggak sah'},
         	];
 
         	var tbody = '';
@@ -677,7 +677,7 @@ function setStatusCode(o){
         	$('select[name="status_code"]').append(tbody);
         },
         yes:function(index){
-		    var loadT = layer.msg("Response status when unauthenticated is being set", { icon: 16, time: 0, shade: [0.3, '#000'] });
+		    var loadT = layer.msg("Lagi atur status respons kalau nggak terautentikasi", { icon: 16, time: 0, shade: [0.3, '#000'] });
 		    var status_code = $('select[name="status_code"]').val();
 		    $.post('/config/set_status_code', { status_code: status_code }, function (rdata) {
 		    	showMsg(rdata.msg, function(){
@@ -693,16 +693,16 @@ function setStatusCode(o){
 function setTempAccess(){
 	layer.open({
 		area: ['700px', '250px'],
-		title: 'Temporary Authorization Management',
+		title: 'Manajemen Izin Sementara',
 		closeBtn:1,
 		shift: 0,
 		type: 1,
 		content: "<div class=\"login_view_table pd20\">\
-					<button class=\"btn btn-success btn-sm create_temp_login\" >Temporary Access Authorization</button>\
+					<button class=\"btn btn-success btn-sm create_temp_login\" >Izin Akses Sementara</button>\
 					<div class=\"divtable mt10\">\
 						<table class=\"table table-hover\">\
 							<thead>\
-								<tr><th>Login IP</th><th>Status</th><th>Login time</th><th>Expired</th><th style=\"text-align:right;\">Action</th></tr>\
+								<tr><th>IP Login</th><th>Status</th><th>Waktu login</th><th>Kedaluwarsa</th><th style=\"text-align:right;\">Aksi</th></tr>\
 							</thead>\
 							<tbody id=\"temp_login_view_tbody\"></tbody>\
 						</table>\
@@ -713,9 +713,9 @@ function setTempAccess(){
 			setTempAccessReq();
 
 			$('.create_temp_login').click(function(){
-				layer.confirm('<span style="color:red">Note 1: Misuse of temporary grants can lead to security risks. </br>Note 2: Do not publish temporary authorized connections in public places</span></br>A temporary authorized connection will be created soon, continue?',
+				layer.confirm('<span style="color:red">Catatan 1: Salah pakai izin sementara bisa bahaya buat keamanan. </br>Catatan 2: Jangan sebar link izin sementara di tempat umum.</span></br>Link izin sementara bakal dibuat, lanjut?',
 				{
-					title:'Risk warning',
+					title:'Peringatan risiko',
 					closeBtn:1,
 					icon:13,
 				}, function(create_temp_login_layer) {
@@ -724,21 +724,21 @@ function setTempAccess(){
 						setTempAccessReq();
 						layer.open({
 							area: '570px',
-							title: 'Create temporary authorization',
+							title: 'Buat izin sementara',
 							shift: 0,
 							type: 1,
 							content: "<div class=\"bt-form create_temp_view pd15\">\
 									<div class=\"line\">\
-										<span class=\"tname\">Temporary authorized address</span>\
+										<span class=\"tname\">Alamat izin sementara</span>\
 										<div>\
 											<textarea id=\"temp_link\" class=\"bt-input-text mr20\" style=\"margin: 0px;width: 500px;height: 50px;line-height: 19px;\"></textarea>\
 										</div>\
 									</div>\
-									<div class=\"line\"><button type=\"submit\" class=\"btn btn-success btn-sm btn-copy-temp-link\" data-clipboard-text=\"\">Copy address</button></div>\
+									<div class=\"line\"><button type=\"submit\" class=\"btn btn-success btn-sm btn-copy-temp-link\" data-clipboard-text=\"\">Salin alamat</button></div>\
 									<ul class=\"help-info-text c7 ptb15\">\
-										<li>The temporary authorization is valid for use within 1 hour after it is generated. It is a one-time authorization and expires immediately after use</li>\
-										<li>After using the temporary authorization to log in to the panel, you have all the permissions on the panel within 1 hour, please do not publish the temporary authorization connection in public places</li>\
-										<li>The authorized connection information is only displayed here once, if you forget it before use, please regenerate</li>\
+										<li>Izin sementara cuma berlaku 1 jam setelah dibuat. Cuma bisa dipakai sekali dan langsung hangus setelahnya.</li>\
+										<li>Setelah pakai izin sementara buat masuk, kamu punya akses penuh ke panel selama 1 jam. Jangan sebar linknya di tempat umum!</li>\
+										<li>Info link izin ini cuma ditampilin sekali di sini. Kalau lupa sebelum dipakai, silakan buat lagi.</li>\
 									</ul>\
 								</div>",
 							success:function(){
@@ -761,27 +761,27 @@ function setTempAccess(){
 function setBasicAuthTip(callback){
 	var tip = layer.open({
 		area: ['500px', '385px'],
-		title: 'Enable BasicAuth authentication prompt',
+		title: 'Nyalain konfirmasi autentikasi BasicAuth',
 		closeBtn:0,
 		shift: 0,
 		type: 1,
 		content: '<div class="bt-form pd20">\
 		<div class="mb15">\
-			<h3 class="layer-info-title">Risky operation! Do not enable this function if you do not understand it!</h3>\
+			<h3 class="layer-info-title">Bahaya! Jangan asal nyalain kalau nggak ngerti!</h3>\
 		</div>\
 		<ul class="help-info-text c7 explain-describe-list pd15">\
-			<li style="color: red;">You must use and understand this feature before deciding whether to enable it!</li>\
-			<li>After it is turned on, accessing the panel in any way will first require you to enter the BasicAuth username and password</li>\
-			<li>After it is turned on, it can effectively prevent the panel from being scanned and found, but it cannot replace the account password of the panel itself</li>\
-			<li>Please remember the BasicAuth password, once you forget it, you will not be able to access the panel</li>\
-			<li>If you forget the password, you can turn off BasicAuth authentication through the command in SSH</li>\
+			<li style="color: red;">Kamu harus bener-bener ngerti fitur ini sebelum nyalain!</li>\
+			<li>Kalau dinyalain, tiap mau masuk ke panel bakal disuruh masukin username dan password BasicAuth dulu.</li>\
+			<li>Ini gunanya biar panel nggak gampang kedeteksi scan, tapi bukan pengganti password panel ya.</li>\
+			<li>Inget-inget password BasicAuth-nya, kalau lupa kamu nggak bakal bisa masuk panel!</li>\
+			<li>Kalau lupa, kamu bisa matikan BasicAuth lewat perintah di SSH.</li>\
 		</ul>\
 		<div class="mt10 plr15 agreement-box" id="checkBasicAuth">\
 			<input class="bt-input-text mr5" name="agreement" type="checkbox" value="false" id="agreement_more">\
-			<label for="agreement_more"><span>I have learned the details and am willing to take the risk</span></label>\
+			<label for="agreement_more"><span>Saya sudah paham dan siap nanggung risikonya</span></label>\
 		</div>\
 	</div>',
-		btn:["Yes","No"],
+		btn:["Ya","Nggak"],
 		yes:function(l,index){
 			is_agree = $('#agreement_more').prop("checked");
 			if (is_agree){
@@ -899,7 +899,7 @@ function showPanelApi(){
 					layer.confirm('Are you sure you want to reset the current key? <br/><span style="color: red; ">After resetting the key, the associated key product will become invalid. Please add a new key to the product again.</span>',{title:'Reset key',closeBtn:2,icon:13,cancel:function(){
 					}}, function() {
 						$.post('/config/set_panel_token', {'op_type':"1"},function(rdata){
-							showMsg("接口密钥已生成，重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。", function(){
+							showMsg("Kunci API telah dibuat. Setelah reset kunci, produk yang terkait dengan kunci sebelumnya akan tidak valid. Silakan tambahkan kunci baru ke produk.", function(){
 								$('input[name="token"]').val(rdata.data);
 							} ,{icon:1}, 2000);
 						},'json');

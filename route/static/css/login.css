@@ -170,7 +170,7 @@ input{
     position: absolute;
     right: 40px;
 }
-/*==========以下部分是Validform必须的===========*/
+/*==========Bagian di bawah ini wajib untuk Validform===========*/
 .Validform_checktip {
     color: #999;
     font-size: 12px;
@@ -223,7 +223,7 @@ input{
 .main .login .line .inputcode{
 	width:208px;
 }
-/*表单样式*/
+/*Gaya formulir*/
 .zun-form {
     background: #fff none repeat scroll 0 0;
     border-radius: 5px;

@@ -16,7 +16,7 @@ md5_file_ok=67f084d36852daab6809561a7c8023d130ca07fc6af8fb040684dd1414934d48
 Install_php()
 {
 #------------------------ install start ------------------------------------#
-echo "安装php-${version} ..."
+echo "Menginstal php-${version} ..."
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
@@ -32,7 +32,7 @@ fi
 if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 
 	# ----------------------------------------------------------------------- #
-	# 中国优化安装
+	# Instalasi dengan optimasi Tiongkok
 	cn=$(curl -fsSL -m 10 -s http://ipinfo.io/json | grep "\"country\": \"CN\"")
 	LOCAL_ADDR=common
 	if [ ! -z "$cn" ];then
@@ -51,11 +51,11 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://www.php.net/distributions/php-${version}.tar.xz
 	fi
 	
-	#检测文件是否损坏.
+	#Periksa apakah file rusak.
 	if [ -f $sourcePath/php/php-${version}.tar.xz ];then
 		md5_file=`sha256sum $sourcePath/php/php-${version}.tar.xz  | awk '{print $1}'`
 		if [ "${md5_file}" != "${md5_file_ok}" ]; then
-			echo "PHP${version} 下载文件不完整,重新安装"
+			echo "File unduhan PHP${version} tidak lengkap, instal ulang"
 			rm -rf $sourcePath/php/php-${version}.tar.xz
 		fi
 	fi
@@ -153,7 +153,7 @@ Uninstall_php()
 {
 	$serverPath/php/init.d/php${PHP_VER} stop
 	rm -rf $serverPath/php/${PHP_VER}
-	echo "卸载php-${version}..."
+	echo "Menghapus instalasi php-${version}..."
 }
 
 action=${1}

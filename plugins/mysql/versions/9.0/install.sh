@@ -62,7 +62,7 @@ VERSION=9.0.1
 Install_mysql()
 {
 	mkdir -p ${mysqlDir}
-	echo '正在安装脚本文件...'
+	echo 'Sedang menginstal file skrip...'
 
 
 	# ----- cpu start ------
@@ -105,14 +105,14 @@ Install_mysql()
          wget --no-check-certificate -O ${mysqlDir}/mysql-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-9.0/mysql-${VERSION}.tar.gz
 	fi
 
-	#检测文件是否损坏.
+	#Periksa apakah file rusak.
 	md5_mysql_ok=90dc27a8b64eee938a0bb045c580b80c
 	if [ -f ${mysqlDir}/mysql-${VERSION}.tar.gz ];then
 		md5_mysql=`md5sum ${mysqlDir}/mysql-${VERSION}.tar.gz  | awk '{print $1}'`
 		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
 			echo "mysql9.0 file check ok"
 		else
-			# 重新下载
+			# Unduh ulang
 			rm -rf ${mysqlDir}/mysql-${VERSION}
 			wget --no-check-certificate -O ${mysqlDir}/mysql-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-9.0/mysql-${VERSION}.tar.gz
 		fi
@@ -212,7 +212,7 @@ Install_mysql()
 			echo "${VERSION}Instalasi selesai"
 		else
 			# rm -rf ${mysqlDir}/mysql-${VERSION}
-			echo "${VERSION}安装失败"
+			echo "Instalasi ${VERSION} gagal"
 			exit 1
 		fi
 	fi
@@ -221,7 +221,7 @@ Install_mysql()
 Uninstall_mysql()
 {
 	rm -rf $serverPath/mysql
-	echo '卸载完成'
+	echo 'Penghapusan instalasi selesai'
 }
 
 action=$1

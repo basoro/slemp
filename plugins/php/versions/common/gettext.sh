@@ -37,7 +37,7 @@ Install_lib()
 
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version 已安装${LIBNAME},请选择其它版本!"
+		echo "php-$version telah menginstal ${LIBNAME}, silakan pilih versi lain!"
 		return
 	fi
 	
@@ -62,7 +62,7 @@ Install_lib()
 		$serverPath/php/$version/bin/phpize
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
 
-		# PHP52需要,因为52关闭。所有注释掉
+		# Diperlukan PHP52, karena 52 dimatikan. Semua dikomentari
 		# FIND_C99=`cat Makefile|grep c99`
 		# if [ "$FIND_C99" == "" ];then
 		# 	sed -i $BAK 's/CFLAGS \=/CFLAGS \= -std=c99/g' Makefile
@@ -94,12 +94,12 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php-$version 未安装,请选择其它版本!"
+		echo "php-$version belum terinstal, silakan pilih versi lain!"
 		return
 	fi
 	
 	if [ ! -f "$extFile" ];then
-		echo "php-$version 未安装${LIBNAME},请选择其它版本!"
+		echo "php-$version belum menginstal ${LIBNAME}, silakan pilih versi lain!"
 		return
 	fi
 	

@@ -133,7 +133,7 @@ if [ ! -f /usr/sbin/ufw ];then
 
 	firewall-cmd --reload
 	
-	# #安装时不开启
+	# #Jangan aktifkan saat instalasi
 	# systemctl stop firewalld
 fi
 
@@ -214,7 +214,7 @@ apt install -y libmariadb-dev-compat
 #apt install -y libmariadbclient-dev
 
 
-# mysql8.0 在ubuntu22需要的库
+# Pustaka yang diperlukan oleh mysql8.0 di ubuntu22
 apt install -y patchelf
 
 VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`

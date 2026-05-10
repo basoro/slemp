@@ -1,6 +1,6 @@
 var num = 0;
 function getLogs(id){
-	layer.msg('Fetching, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
+	layer.msg('Lagi ambil data, tunggu ya...',{icon:16,time:0,shade: [0.3, '#000']});
 	var data='&id='+id;
 	$.post('/crontab/logs', data, function(rdata){
 		layer.closeAll();
@@ -17,8 +17,8 @@ function getLogs(id){
 			content:'<div class="setchmod bt-form pd20 pb70">'
 				+'<pre id="crontab-log" style="overflow: auto; border: 0px none; line-height:23px;padding: 15px; margin: 0px; white-space: pre-wrap; height: 405px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>'
 				+'<div class="bt-form-submit-btn" style="margin-top: 0px;">'
-				+'<button type="button" class="btn btn-success btn-sm" onclick="closeLogs('+id+')">Empty</button>'
-				+'<button type="button" class="btn btn-danger btn-sm" onclick="layer.closeAll()">Close</button>'
+				+'<button type="button" class="btn btn-success btn-sm" onclick="closeLogs('+id+')">Kosongkan</button>'
+				+'<button type="button" class="btn btn-danger btn-sm" onclick="layer.closeAll()">Tutup</button>'
 			    +'</div>'
 			+'</div>'
 		});
@@ -49,18 +49,18 @@ function getCronData(page){
 		} else {
 			for(var i=0;i<rdata.data.length;i++){
 				var status = rdata.data[i]['status'] == '1' ?
-				'<span class="btOpen" onclick="setTaskStatus(' + rdata.data[i].id + ',0)" style="color:rgb(92, 184, 92);cursor:pointer" title="Disable the scheduled task">Normal<span class="glyphicon glyphicon-play"></span></span>'
-				:'<span onclick="setTaskStatus('+ rdata.data[i].id +',1)" class="btClose" style="color:red;cursor:pointer" title="Enable the scheduled task">Disabled<span style="color:rgb(255, 0, 0);" class="glyphicon glyphicon-pause"></span></span>';
+				'<span class="btOpen" onclick="setTaskStatus(' + rdata.data[i].id + ',0)" style="color:rgb(92, 184, 92);cursor:pointer" title="Matikan tugas terjadwal">Normal<span class="glyphicon glyphicon-play"></span></span>'
+				:'<span onclick="setTaskStatus('+ rdata.data[i].id +',1)" class="btClose" style="color:red;cursor:pointer" title="Nyalain tugas terjadwal">Mati<span style="color:rgb(255, 0, 0);" class="glyphicon glyphicon-pause"></span></span>';
 
 
 				var cron_save = '--';
 				if (rdata.data[i]['save'] != ''){
-					cron_save = rdata.data[i]['save']+' Copy';
+					cron_save = rdata.data[i]['save']+' Salinan';
 				}
 
 				var cron_backupto = '-';
 				if (rdata.data[i]['stype'] == 'site' || rdata.data[i]['stype']=='logs' || rdata.data[i]['stype']=='path' ||  rdata.data[i]['stype']=='database' || rdata.data[i]['stype'].indexOf('database_')>-1 ){
-					cron_backupto = 'Local Disk';
+					cron_backupto = 'Disk Lokal';
 					if (rdata.data[i]['backup_to'] != 'localhost'){
 						cron_backupto = getBackupName(rdata['backup_hook'],rdata.data[i]['backup_to']);
 					}
@@ -75,10 +75,10 @@ function getCronData(page){
 					<td>"+cron_backupto+"</td>\
 					<td>"+rdata.data[i].addtime+"</td>\
 					<td>\
-						<a href=\"javascript:startTask("+rdata.data[i].id+");\" class='btlink'>Run</a> | \
-						<a href=\"javascript:editTaskInfo('"+rdata.data[i].id+"');\" class='btlink'>Edit</a> | \
+						<a href=\"javascript:startTask("+rdata.data[i].id+");\" class='btlink'>Jalankan</a> | \
+						<a href=\"javascript:editTaskInfo('"+rdata.data[i].id+"');\" class='btlink'>Ubah</a> | \
 						<a href=\"javascript:getLogs("+rdata.data[i].id+");\" class='btlink'>Log</a> | \
-						<a href=\"javascript:planDel("+rdata.data[i].id+" ,'"+rdata.data[i].name.replace('\\','\\\\').replace("'","\\'").replace('"','')+"');\" class='btlink'>Del</a>\
+						<a href=\"javascript:planDel("+rdata.data[i].id+" ,'"+rdata.data[i].name.replace('\\','\\\\').replace("'","\\'").replace('"','')+"');\" class='btlink'>Hapus</a>\
 					</td>\
 				</tr>";
 			}
@@ -89,9 +89,9 @@ function getCronData(page){
 }
 
 function setTaskStatus(id,status){
-	var confirm = layer.confirm(status == '0'?'A scheduled task cannot continue running after it is paused. Do you really want to disable this scheduled task?':'This scheduled task is disabled, do you want to enable this scheduled task', {title:'Hint',icon:3,closeBtn:1},function(index) {
+	var confirm = layer.confirm(status == '0'?'Tugas terjadwal nggak bakal jalan kalau dimatiin. Yakin mau matikan tugas ini?':'Tugas ini lagi mati, mau dinyalain?', {title:'Info',icon:3,closeBtn:1},function(index) {
 		if (index > 0) {
-			var loadT = layer.msg('Setting state, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
+			var loadT = layer.msg('Lagi atur status, tunggu ya...',{icon:16,time:0,shade: [0.3, '#000']});
 			$.post('/crontab/set_cron_status',{id:id},function(rdata){
 
 				if (!rdata.status){
@@ -111,7 +111,7 @@ function setTaskStatus(id,status){
 }
 
 function startTask(id){
-	var loadT = layer.msg('Processing, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
+	var loadT = layer.msg('Lagi diproses, tunggu ya...',{icon:16,time:0,shade: [0.3, '#000']});
 	var data='id='+id;
 	$.post('/crontab/start_task',data,function(rdata){
 		showMsg(rdata.msg, function(){
@@ -121,7 +121,7 @@ function startTask(id){
 }
 
 function closeLogs(id){
-	var loadT = layer.msg('Processing, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
+	var loadT = layer.msg('Lagi diproses, tunggu ya...',{icon:16,time:0,shade: [0.3, '#000']});
 	var data='id='+id;
 	$.post('/crontab/del_logs',data,function(rdata){
 		showMsg(rdata.msg, function(){
@@ -132,8 +132,8 @@ function closeLogs(id){
 
 
 function planDel(id,name){
-	safeMessage(lan.get('del',[name]),'Are you sure you want to delete this task?',function(){
-		var load = layer.msg('Processing, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
+	safeMessage(lan.get('del',[name]),'Yakin mau hapus tugas ini?',function(){
+		var load = layer.msg('Lagi diproses, tunggu ya...',{icon:16,time:0,shade: [0.3, '#000']});
 		var data='id='+id;
 		$.post('/crontab/del',data,function(rdata){
 			showMsg(rdata.msg, function(){
@@ -159,7 +159,7 @@ function planAdd(){
 	var name = $(".planname input[name='name']").val();
 	if(name == ''){
 		$(".planname input[name='name']").focus();
-		layer.msg('Task name cannot be empty!',{icon:2});
+		layer.msg('Nama tugas nggak boleh kosong!',{icon:2});
 		return;
 	}
 	$("#set-Config input[name='name']").val(name);
@@ -190,28 +190,28 @@ function planAdd(){
 
 	if(where1 > is1 || where1 < is2){
 		$("#ptime input[name='where1']").focus();
-		layer.msg('The form is invalid, please re-enter!',{icon:2});
+		layer.msg('Isian nggak bener, coba cek lagi!',{icon:2});
 		return;
 	}
 
 	var hour = $("#ptime input[name='hour']").val();
 	if(hour > 23 || hour < 0){
 		$("#ptime input[name='hour']").focus();
-		layer.msg('Invalid hour value!',{icon:2});
+		layer.msg('Nilai jam nggak bener!',{icon:2});
 		return;
 	}
 	$("#set-Config input[name='hour']").val(hour);
 	var minute = $("#ptime input[name='minute']").val();
 	if(minute > 59 || minute < 0){
 		$("#ptime input[name='minute']").focus();
-		layer.msg('Minute value is invalid!',{icon:2});
+		layer.msg('Nilai menit nggak bener!',{icon:2});
 		return;
 	}
 	$("#set-Config input[name='minute']").val(minute);
 
 	var save = $("#save").val();
 	if(save < 0){
-		layer.msg('Cannot have negative numbers!',{icon:2});
+		layer.msg('Nggak boleh angka negatif!',{icon:2});
 		return;
 	}
 
@@ -224,14 +224,14 @@ function planAdd(){
 	if (sType == 'toShell'){
 		if(sBody == ''){
 			$("#implement textarea[name='sBody']").focus();
-			layer.msg('Script code cannot be empty!',{icon:2});
+			layer.msg('Kode skrip nggak boleh kosong!',{icon:2});
 			return;
 		}
 	}
 
 	if(sType == 'toFile'){
 		if($("#viewfile").val() == ''){
-			layer.msg('Please select a script file!',{icon:2});
+			layer.msg('Pilih file skripnya dulu!',{icon:2});
 			return;
 		}
 	}
@@ -239,7 +239,7 @@ function planAdd(){
 	var urladdress = $("#urladdress").val();
 	if(sType == 'toUrl'){
 		if(!isURL(urladdress)){
-			layer.msg('The URL address is incorrect!',{icon:2});
+			layer.msg('Alamat URL-nya salah!',{icon:2});
 			$("implement textarea[name='urladdress']").focus();
 			return;
 		}
@@ -264,7 +264,7 @@ function planAdd(){
 			dataList.push(tmp);
 		}
 		if(dataList.length < 1){
-			layer.msg('Object list is empty, cannot continue!',{icon:5});
+			layer.msg('Daftar objek kosong, nggak bisa lanjut!',{icon:5});
 			return;
 		}
 		allAddCrontab(dataList,0,'');
@@ -293,7 +293,7 @@ function planAdd(){
 
 
 	$("#set-Config input[name='sName']").val(sName);
-	layer.msg('Adding, please wait...!',{icon:16,time:0,shade: [0.3, '#000']});
+	layer.msg('Lagi ditambahin, tunggu ya...!',{icon:16,time:0,shade: [0.3, '#000']});
 	var data = $("#set-Config").serialize() + '&sBody='+sBody + '&urladdress=' + urladdress;
 	// console.log(data);
 	$.post('/crontab/add',data,function(rdata){
@@ -397,20 +397,20 @@ function initDropdownMenu(){
 				toHour();
 				toMinute();
 				break;
-			case 'toFile':
+			case 'toShell':
 				toFile();
 				break;
 			case 'toShell':
 				toShell();
-				$(".controls").html('Script content');
+				$(".controls").html('Isi Skrip');
 				break;
 			case 'rememory':
 				rememory();
-				$(".controls").html('Hint');
+				$(".controls").html('Info');
 				break;
 			case 'site':
 				toBackup('sites');
-				$(".controls").html('Backup site');
+				$(".controls").html('Cadangkan situs');
 				break;
 			case 'database_mariadb':
 			case 'database_postgresql':
@@ -418,19 +418,19 @@ function initDropdownMenu(){
 			case 'database_mysql-yum':
 			case 'database':
 				toBackup(type);
-				$(".controls").html('Backup database');
+				$(".controls").html('Cadangkan database');
 				break;
 			case 'path':
 				toBackup('path');
-				$(".controls").html('Backup directory');
+				$(".controls").html('Cadangkan direktori');
 				break;
 			case 'logs':
 				toBackup('logs');
-				$(".controls").html('Cutting log');
+				$(".controls").html('Potong log');
 				break;
 			case 'toUrl':
 				toUrl();
-				$(".controls").html('URL address');
+				$(".controls").html('Alamat URL');
 				break;
 		}
 	});
@@ -441,7 +441,7 @@ function toBackup(type){
 	var sMsg = "";
 	switch(type){
 		case 'sites':
-			sMsg = 'Backup site';
+			sMsg = 'Cadangkan situs';
 			sType = "sites";
 			break;
 		case 'database_mariadb':
@@ -449,20 +449,20 @@ function toBackup(type){
 		case 'database_mysql-apt':
 		case 'database_mysql-yum':
 		case 'database':
-			sMsg = 'Backup database';
+			sMsg = 'Cadangkan database';
 			suffix = type.replace('database','')
 			if (suffix != ''){
 				suffix = suffix.replace('_','')
-				sMsg = 'Backup database ['+suffix+']';
+				sMsg = 'Cadangkan database ['+suffix+']';
 			}
 			sType = type;
 			break;
 		case 'logs':
-			sMsg = 'Cutting log';
+			sMsg = 'Potong log';
 			sType = "logs";
 			break;
 		case 'path':
-			sMsg = 'Backup directory';
+			sMsg = 'Cadangkan direktori';
 			sType = "path";
 			break;
 	}
@@ -485,7 +485,7 @@ function toBackup(type){
 
 
 		if (sType != 'path'){
-			sOpt = '<li><a role="menuitem" tabindex="-1" href="javascript:;" value="backupAll">All</a></li>' + sOpt;
+			sOpt = '<li><a role="menuitem" tabindex="-1" href="javascript:;" value="backupAll">Semua</a></li>' + sOpt;
 		}
 
 		var orderOpt = '';
@@ -506,26 +506,26 @@ function toBackup(type){
 					  <ul class="dropdown-menu" role="menu" aria-labelledby="backdata">'+sOpt+'</ul>\
 					</div>\
 					'+ changeDir +'\
-					<div class="textname pull-left mr20">Backup to</div>\
+					<div class="textname pull-left mr20">Cadangkan ke</div>\
 					<div class="dropdown planBackupTo pull-left mr20">\
 					  <button class="btn btn-default dropdown-toggle" type="button" id="excode" data-toggle="dropdown" style="width:auto;">\
-						<b val="localhost">server disk</b><span class="caret"></span>\
+						<b val="localhost">disk server</b><span class="caret"></span>\
 					  </button>\
 					  <ul class="dropdown-menu" role="menu" aria-labelledby="excode">\
-						<li><a role="menuitem" tabindex="-1" href="javascript:;" value="localhost">Server disk</a></li>\
+						<li><a role="menuitem" tabindex="-1" href="javascript:;" value="localhost">Disk server</a></li>\
 						'+ orderOpt +'\
 					  </ul>\
 					</div>\
-					<div class="textname pull-left mr20">Keep up to date</div><div class="plan_hms pull-left mr20 bt-input-text">\
+					<div class="textname pull-left mr20">Tetap update</div><div class="plan_hms pull-left mr20 bt-input-text">\
 					<span><input type="number" name="save" id="save" value="3" maxlength="4" max="100" min="1"></span>\
-					<span class="name">Copy</span>\
+					<span class="name">salinan</span>\
 					</div>';
 		$("#implement").html(sBody);
 		getselectname();
 
 		$('.changePathDir').click(function(){
 			changePathCallback($('#sName').val(),function(select_dir){
-				$(".planname input[name='name']").val('Backup directory ['+select_dir+']');
+				$(".planname input[name='name']").val('Cadangkan direktori ['+select_dir+']');
 				$('#implement .sname b').attr('val',select_dir).text(select_dir);
 			});
 		});
@@ -541,7 +541,7 @@ function toBackup(type){
 }
 
 function editTaskInfo(id){
-	layer.msg('Fetching, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
+	layer.msg('Lagi ambil data, tunggu ya...',{icon:16,time:0,shade: [0.3, '#000']});
 	$.post('/crontab/get_crond_find',{id:id},function(rdata){
 		layer.closeAll();
 		// console.log('get_crond_find:', rdata);
@@ -562,15 +562,15 @@ function editTaskInfo(id){
 				save: rdata.save,
 				urladdress: rdata.urladdress,
 			},
-			sTypeArray:[['toShell','Shell script'],['site','Backup site'],['database','Backup database'],['logs','Log cutting'],['path','Backup directory'],['rememory','Free memory'],['toUrl','Visit URL']],
-			cycleArray:[['day','Every day'],['day-n','N days'],['hour','Per hour'],['hour-n','N hours'],['minute-n','N minutes'],['week','every week'],['month','per month']],
-			weekArray:[[1,'Monday'],[2,'Tuesday'],[3,'Wednesday'],[4,'Thursday'],[5,'Friday'],[6,'Saturday'],[7,'Sunday']],
+			sTypeArray:[['toShell','Skrip Shell'],['site','Cadangkan situs'],['database','Cadangkan database'],['logs','Pemotongan log'],['path','Cadangkan direktori'],['rememory','Bebaskan memori'],['toUrl','Kunjungi URL']],
+			cycleArray:[['day','Tiap hari'],['day-n','N hari'],['hour','Tiap jam'],['hour-n','N jam'],['minute-n','N menit'],['week','tiap minggu'],['month','tiap bulan']],
+			weekArray:[[1,'Senin'],[2,'Selasa'],[3,'Rabu'],[4,'Kamis'],[5,'Jumat'],[6,'Sabtu'],[7,'Minggu']],
 			sNameArray:[],
 			backupsArray:[],
 			create:function(callback){
 				if (obj.from['stype'].indexOf('database_')>-1){
 					name = obj.from['stype'].replace('database_','');
-					sTypeName = 'Backup database ['+name+']';
+					sTypeName = 'Cadangkan database ['+name+']';
 					sTypeDom += '<li><a role="menuitem"  href="javascript:;" value="'+ obj.from['stype'] +'">'+ sTypeName +'</a></li>';
 				} else {
 					for(var i = 0; i <obj['sTypeArray'].length; i++){
@@ -597,7 +597,7 @@ function editTaskInfo(id){
 						obj.sNameArray = rdata.data;
 						obj.sNameArray.unshift({name:'ALL',ps:'all'});
 						obj.backupsArray = rdata.orderOpt;
-						obj.backupsArray.unshift({title:'Server disk',name:'localhost'});
+						obj.backupsArray.unshift({title:'Disk server',name:'localhost'});
 						for(var i = 0; i <obj['sNameArray'].length; i++){
 							if(obj.from['sname'] == obj['sNameArray'][i]['name']){
 								sNameName  = obj['sNameArray'][i]['ps'];
@@ -626,14 +626,14 @@ function editTaskInfo(id){
 
 			layer.open({
 				type:1,
-				title:'Edit scheduled tasks-['+rdata.name+']',
+				title:'Ubah tugas terjadwal-['+rdata.name+']',
 				area: ['850px','440px'],
 				skin:'layer-create-content',
 				shadeClose:false,
 				closeBtn:1,
 				content:'<div class="setting-con ptb20">\
 							<div class="clearfix plan ptb10">\
-								<span class="typename c4 pull-left f14 text-right mr20">Task type</span>\
+								<span class="typename c4 pull-left f14 text-right mr20">Tipe tugas</span>\
 								<div class="dropdown stype_list pull-left mr20">\
 									<button class="btn btn-default dropdown-toggle" type="button" id="excode" data-toggle="dropdown" style="width:auto" disabled="disabled">\
 										<b val="'+ obj.from.type +'">'+ sTypeName +'</b>\
@@ -643,11 +643,11 @@ function editTaskInfo(id){
 								</div>\
 							</div>\
 							<div class="clearfix plan ptb10">\
-								<span class="typename c4 pull-left f14 text-right mr20">Name</span>\
+								<span class="typename c4 pull-left f14 text-right mr20">Nama</span>\
 								<div class="planname pull-left"><input type="text" name="name" class="bt-input-text sName_create" value="'+ obj.from.name +'"></div>\
 							</div>\
 							<div class="clearfix plan ptb10">\
-								<span class="typename c4 pull-left f14 text-right mr20">Cycle</span>\
+								<span class="typename c4 pull-left f14 text-right mr20">Siklus</span>\
 								<div class="dropdown  pull-left mr20">\
 									<button class="btn btn-default dropdown-toggle cycle_btn" type="button" data-toggle="dropdown" style="width:94px">\
 										<b val="'+ obj.from.stype +'">'+ cycleName +'</b>\
@@ -663,9 +663,9 @@ function editTaskInfo(id){
 										</button>\
 										<ul class="dropdown-menu" role="menu" aria-labelledby="week">'+ weekDom +'</ul>\
 									</div>\
-									<div class="plan_hms pull-left mr20 bt-input-text where1_input" style="display:'+ (obj.from.type == "day-n" || obj.from.type == 'month' ?'block;':'none') +'"><span><input type="number" name="where1" class="where1_create" value="'+obj.from.where1 +'" maxlength="2" max="23" min="0"></span> <span class="name">Day</span> </div>\
-									<div class="plan_hms pull-left mr20 bt-input-text hour_input" style="display:'+ (obj.from.type == "day" || obj.from.type == 'day-n' || obj.from.type == 'hour-n' || obj.from.type == 'week' || obj.from.type == 'month'?'block;':'none') +'"><span><input type="number" name="hour" class="hour_create" value="'+ ( obj.from.type == 'hour-n' ? obj.from.where1 : obj.from.hour ) +'" maxlength="2" max="23" min="0"></span> <span class="name">Hour</span> </div>\
-									<div class="plan_hms pull-left mr20 bt-input-text minute_input"><span><input type="number" name="minute" class="minute_create" value="'+ (obj.from.type == 'minute-n' ? obj.from.where1 : obj.from.minute)+'" maxlength="2" max="59" min="0"></span> <span class="name">Minute</span> </div>\
+									<div class="plan_hms pull-left mr20 bt-input-text where1_input" style="display:'+ (obj.from.type == "day-n" || obj.from.type == 'month' ?'block;':'none') +'"><span><input type="number" name="where1" class="where1_create" value="'+obj.from.where1 +'" maxlength="2" max="23" min="0"></span> <span class="name">Hari</span> </div>\
+									<div class="plan_hms pull-left mr20 bt-input-text hour_input" style="display:'+ (obj.from.type == "day" || obj.from.type == 'day-n' || obj.from.type == 'hour-n' || obj.from.type == 'week' || obj.from.type == 'month'?'block;':'none') +'"><span><input type="number" name="hour" class="hour_create" value="'+ ( obj.from.type == 'hour-n' ? obj.from.where1 : obj.from.hour ) +'" maxlength="2" max="23" min="0"></span> <span class="name">Jam</span> </div>\
+									<div class="plan_hms pull-left mr20 bt-input-text minute_input"><span><input type="number" name="minute" class="minute_create" value="'+ (obj.from.type == 'minute-n' ? obj.from.where1 : obj.from.minute)+'" maxlength="2" max="59" min="0"></span> <span class="name">Menit</span> </div>\
 								</div>\
 							</div>\
 							<div class="clearfix plan ptb10 site_list" style="display:none">\
@@ -678,10 +678,10 @@ function editTaskInfo(id){
 									<ul class="dropdown-menu" role="menu" aria-labelledby="sName">'+ sNameDom +'</ul>\
 								</div>\
 								<div class="info-r" style="float: left;margin-right: 25px;display:'+ (obj.from.sType == "path"?'block;':'none') +'">\
-									<input id="inputPath" class="bt-input-text mr5 " type="text" name="path" value="'+ obj.from.sName +'" placeholder="Backup directory" style="width:208px;height:33px;" disabled="disabled">\
+									<input id="inputPath" class="bt-input-text mr5 " type="text" name="path" value="'+ obj.from.sName +'" placeholder="Cadangkan direktori" style="width:208px;height:33px;" disabled="disabled">\
 								</div>\
 								'+changeDir+'\
-								<div class="textname pull-left mr20">Backup to</div>\
+								<div class="textname pull-left mr20">Cadangkan ke</div>\
 									<div class="dropdown  pull-left mr20">\
 										<button class="btn btn-default dropdown-toggle backup_btn" type="button"  data-toggle="dropdown" style="width:auto;">\
 											<b val="'+ obj.from.backup_to +'">'+ backupsName +'</b>\
@@ -689,26 +689,26 @@ function editTaskInfo(id){
 										</button>\
 										<ul class="dropdown-menu" role="menu" aria-labelledby="backupTo">'+ backupsDom +'</ul>\
 									</div>\
-									<div class="textname pull-left mr20">Keep up to date</div>\
+									<div class="textname pull-left mr20">Tetap update</div>\
 									<div class="plan_hms pull-left mr20 bt-input-text">\
-										<span><input type="number" name="save" class="save_create" value="'+ obj.from.save +'" maxlength="4" max="100" min="1"></span><span class="name">copy</span>\
+										<span><input type="number" name="save" class="save_create" value="'+ obj.from.save +'" maxlength="4" max="100" min="1"></span><span class="name">salinan</span>\
 									</div>\
 								</div>\
 							</div>\
 							<div class="clearfix plan ptb10"  style="display:'+ (obj.from.stype == "toShell"?'block;':'none') +'">\
-								<span class="typename controls c4 pull-left f14 text-right mr20">Script content</span>\
+								<span class="typename controls c4 pull-left f14 text-right mr20">Isi skrip</span>\
 								<div style="line-height:34px"><textarea class="txtsjs bt-input-text sBody_create" name="sbody">'+ obj.from.sbody +'</textarea></div>\
 							</div>\
 							<div class="clearfix plan ptb10" style="display:'+ (obj.from.stype == "rememory"?'block;':'none') +'">\
-								<span class="typename controls c4 pull-left f14 text-right mr20">Hint</span>\
-								<div style="line-height:34px">Release the memory usage of PHP, MYSQL, OpenResty, it is recommended to execute it in the middle of the night every day!</div>\
+								<span class="typename controls c4 pull-left f14 text-right mr20">Info</span>\
+								<div style="line-height:34px">Bebaskan penggunaan memori PHP, MYSQL, OpenResty. Disaranin jalanin tiap tengah malem!</div>\
 							</div>\
 							<div class="clearfix plan ptb10" style="display:'+ (obj.from.stype == "toUrl"?'block;':'none') +'">\
-								<span class="typename controls c4 pull-left f14 text-right mr20">URL address</span>\
-								<div style="line-height:34px"><input type="text" style="width:400px; height:34px" class="bt-input-text url_create" name="urladdress"  placeholder="URL address" value="'+ obj.from.urladdress +'"></div>\
+								<span class="typename controls c4 pull-left f14 text-right mr20">Alamat URL</span>\
+								<div style="line-height:34px"><input type="text" style="width:400px; height:34px" class="bt-input-text url_create" name="urladdress"  placeholder="Alamat URL" value="'+ obj.from.urladdress +'"></div>\
 							</div>\
 							<div class="clearfix plan ptb10">\
-								<div class="bt-submit plan-submits " style="margin-left: 141px;">Save</div>\
+								<div class="bt-submit plan-submits " style="margin-left: 141px;">Simpan</div>\
 							</div>\
 						</div>',
 
@@ -716,7 +716,7 @@ function editTaskInfo(id){
 
 					$('.changePathDir').click(function(){
 						changePathCallback($('#sName').val(),function(select_dir){
-							$('input[name="name"]').val('Backup directory ['+select_dir+']');
+							$('input[name="name"]').val('Cadangkan direktori ['+select_dir+']');
 							$('.sName_btn .sname b').attr('val',select_dir).text(select_dir);
 							obj.from.sname = select_dir;
 						});

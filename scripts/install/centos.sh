@@ -55,7 +55,7 @@ yum install -y brotli-devel
 # 		service iptables restart
 # 	fi
 
-# 	#安装时不开启
+# 	#Jangan aktifkan saat instalasi
 # 	service iptables stop
 # fi
 
@@ -63,7 +63,7 @@ yum install -y brotli-devel
 if [ ! -f /usr/sbin/firewalld ];then
 	yum install firewalld -y
 	systemctl enable firewalld
-	#取消服务锁定
+	#Batal kunci layanan
 	systemctl unmask firewalld
 	systemctl start firewalld
 
@@ -81,7 +81,7 @@ if [ ! -f /usr/sbin/firewalld ];then
 
 	sed -i 's#AllowZoneDrifting=yes#AllowZoneDrifting=no#g' /etc/firewalld/firewalld.conf
 	firewall-cmd --reload
-	#安装时不开启
+	#Jangan aktifkan saat instalasi
 	systemctl stop firewalld
 fi
 

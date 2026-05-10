@@ -46,7 +46,7 @@ if [ "${action}" == "upgrade" ];then
 	mkdir -p $serverPath/web_conf/php/conf
 	echo 'set $PHP_ENV 0;' > $serverPath/web_conf/php/conf/enable-php-00.conf
 
-	#初始化 
+	#Inisialisasi 
 	cd ${rootPath} && python3 ${rootPath}/plugins/openresty/index.py start
 	cd ${rootPath} && python3 ${rootPath}/plugins/openresty/index.py initd_install
 	exit 0
@@ -54,7 +54,7 @@ fi
 
 
 if [ "${2}" == "" ];then
-	echo '缺少安装脚本版本...'
+	echo 'Versi skrip instalasi tidak ditemukan...'
 	exit 0
 fi 
 
@@ -81,7 +81,7 @@ if [ "${action}" == "install" ] && [ -d $serverPath/openresty ];then
 	mkdir -p $serverPath/web_conf/php/conf
 	echo 'set $PHP_ENV 0;' > $serverPath/web_conf/php/conf/enable-php-00.conf
 
-	#初始化 
+	#Inisialisasi 
 	cd ${rootPath} && python3 ${rootPath}/plugins/openresty/index.py start
 	cd ${rootPath} && python3 ${rootPath}/plugins/openresty/index.py initd_install
 fi

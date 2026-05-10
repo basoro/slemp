@@ -1974,7 +1974,7 @@ html .menu .menu_exit:hover {
 }
 
 .sec-install-btn {
-    font-family: "宋体";
+    font-family: "SimSun";
     width: 90px;
     height: 30px;
     line-height: 30px;
@@ -1987,7 +1987,7 @@ html .menu .menu_exit:hover {
 }
 
 .rec-box-con .onekey {
-    font-family: "宋体";
+    font-family: "SimSun";
     width: 90px;
     height: 30px;
     line-height: 30px;
@@ -3942,7 +3942,7 @@ html .menu .menu_exit:hover {
     padding:5px 10px;
     line-height: 32px;
 }
-/*付费插件*/
+/*Plugin Berbayar*/
 .libLogin{
     width: 340px;
     margin: 0 auto 20px;
@@ -4060,7 +4060,7 @@ html .menu .menu_exit:hover {
     margin-right:5px;
 }
 
-/*插件付费*/
+/*Plugin Berbayar*/
 .wx-pay-ico{
     background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAOCAMAAAAR8Wy4AAAAA3NCSVQICAjb4U/gAAAAtFBMVEUAzABM2Ezx/PHB8sEazhqf6p+B5IE61TrU9tRm3mYq0Sqz77P///8Lygvj+ePI88iP549U2lR54nlF10Wm7KY31Dcj0CPS9dL1/fW58Lnr++sx0zHY99jD8sMSzBJc3FxA1kCU6JQfzx+t7a1s32zm+uaj66O377cPyw+q7ar////c99zH88fL9Mu177VG10Yk0CSR55Eczxw81TzX9tdp32k41Ti78Lsy0zLF88UhzyHB88EyB+unAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAFnRFWHRDcmVhdGlvbiBUaW1lADA1LzI5LzE4XO1tXgAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNui8sowAAACTSURBVAiZRU8JDsIwDHNXGMcCjHNjMBhnQTAVcQjE/x9G0qHOUtLYal0HJEiiXaQzN4JrU/TAmL2WTgjG8GiyEHxqvj2yEHra0pdYEW7AgwtqTnkBXMF+w35n3aanlWtnEZATpfvq3QRd7jaNV3+jAWI5Gt6Yc0zrb3EqJZjy/Ktd9DdwF7oYZdUuoU0OxpjS7UY/XkQJtfApswsAAAAASUVORK5CYII=") no-repeat;
     display: inline-block;
@@ -4207,7 +4207,7 @@ html .menu .menu_exit:hover {
 .lib-price-name,.price-txt{
     margin-right: 15px;
 }
-/*input样式*/
+/*Gaya input*/
 .bt-label{
     margin:20px 20px 0 0;
     display:inline-block;
@@ -4271,7 +4271,7 @@ html .menu .menu_exit:hover {
     text-align: center;
     font-size: 14px;
 }
-/*6.0终端样式*/
+/*Gaya terminal 6.0*/
 .term-box{
     padding:0 10px 10px;
     background-color:#333333;
@@ -4297,7 +4297,7 @@ html .menu .menu_exit:hover {
 .shell_btn_close{
     margin-right:8px;
 }
-/*重启*/
+/*Mulai Ulang*/
 .rebt-con {
     height: 106px;
     padding: 15px;
@@ -4319,7 +4319,7 @@ html .menu .menu_exit:hover {
     background-color:#20a53a;
     color:#fff;
 }
-/*绑定宝塔微信*/
+/*Tautkan WeChat BaoTa*/
 .bind-weixin{
     background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAASBAMAAACtCzMeAAAAA3NCSVQICAjb4U/gAAAAKlBMVEX19fXr6+vg4ODW1tbMzMzCwsK4uLitra2jo6OZmZmPj4+FhYV6enr////oR1GpAAAADnRSTlP/////////////////AEXA3MgAAAAJcEhZcwAADpwAAA6cAQeUU90AAAAWdEVYdENyZWF0aW9uIFRpbWUAMDgvMTYvMTgi+WYYAAAAHHRFWHRTb2Z0d2FyZQBBZG9iZSBGaXJld29ya3MgQ1M26LyyjAAAAK9JREFUCJljuHuXyS1I4C4IMNy9MiNYpF0XzL5Qznv37uUpYPbVWBDF4Qtii9+N8b2y5WIRiB1810L3UuHdEBC7FqTkYlhnqyyUbcJ798rSuwxBQOYVkE5OX6Deu3dVedMulF1oYLgCNDPpbujd1LtJDEDqbhDYCc4Md9WUBIrB7ESGu15pLiUg5oUAhrvKd+9etQWy2WUZwEJAPUCbwey7zCHu04ug7LsMDExL7gIAh3d+c1Jd4JYAAAAASUVORK5CYII=");
     background-repeat: no-repeat;
@@ -4332,7 +4332,7 @@ html .menu .menu_exit:hover {
     padding-left:24px;
     margin-right:20px;
 }
-/*系统图标*/
+/*Ikon Sistem*/
 .ico-linux{
     background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAATBAMAAACEi/vCAAAAA3NCSVQICAjb4U/gAAAAMFBMVEX///9mZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmambAcKAAAAEHRSTlMAESIzRFVmd4iZqrvM3e7/dpUBFQAAAAlwSFlzAAAOwwAADsMBx2+oZAAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xNi8xOCL5ZhgAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzbovLKMAAAAmUlEQVQImWNgYGCQ/GvAAAHz/1+CMBjPvvoOYTFVLXkNZZ2u+isAZjE/4vyvAGaxlgbnJ4BZHAoM3A/BLA8GBpafYNYiIL4PMpt1A5DYPwFIcDWArDkAJPgWAInzF4BE9jMGBvb/QM2SBfEGDFy7UhkY3Bk4CxisGdgCGMwYGI97vGKwSmAQC1G8e+aN2WagDuP0IEGbawIMAPDJKG706GgtAAAAAElFTkSuQmCC");
     background-repeat:no-repeat;

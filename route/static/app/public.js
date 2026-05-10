@@ -219,20 +219,20 @@ function changePathCallback(default_dir, callback) {
 	var c = layer.open({
 		type: 1,
 		area: "650px",
-		title: 'Select directory',
+		title: 'Pilih folder',
 		closeBtn: 1,
 		shift: 5,
 		shadeClose: false,
 		content: "<div class='changepath'>\
 					<div class='path-top'>\
 						<button type='button' class='btn btn-default btn-sm' onclick='backFile()'>\
-							<span class='glyphicon glyphicon-share-alt'></span>Return\
+							<span class='glyphicon glyphicon-share-alt'></span>Kembali\
 						</button>\
-						<div class='place' id='PathPlace'>Current path：<span></span></div>\
+						<div class='place' id='PathPlace'>Path sekarang：<span></span></div>\
 					</div>\
 					<div class='path-con'>\
 						<div class='path-con-left'>\
-						<dl><dt id='changecomlist' onclick='backMyComputer()'>My Computer</dt></dl>\
+						<dl><dt id='changecomlist' onclick='backMyComputer()'>Komputer</dt></dl>\
 						</div>\
 						<div class='path-con-right'>\
 							<ul class='default' id='computerDefautl'></ul>\
@@ -240,10 +240,10 @@ function changePathCallback(default_dir, callback) {
 								<table class='table table-hover' style='border:0 none'>\
 									<thead>\
 										<tr class='file-list-head'>\
-											<th width='40%'>File name</th>\
-											<th width='20%'>Modified</th>\
-											<th width='10%'>Permissions</th>\
-											<th width='10%'>Owner</th>\
+											<th width='40%'>Nama file</th>\
+											<th width='20%'>Waktu diubah</th>\
+											<th width='10%'>Izin</th>\
+											<th width='10%'>Pemilik</th>\
 											<th width='10%'></th>\
 										</tr>\
 									</thead>\
@@ -254,9 +254,9 @@ function changePathCallback(default_dir, callback) {
 					</div>\
 				</div>\
 				<div class='getfile-btn' style='margin-top:0'>\
-					<button type='button' class='btn btn-default btn-sm pull-left' onclick='createFolder()'>New folder</button>\
-					<button type='button' class='btn btn-danger btn-sm mr5 btn-close'>Close</button>\
-					<button type='button' class='btn btn-success btn-sm btn-choose'>Select</button>\
+					<button type='button' class='btn btn-default btn-sm pull-left' onclick='createFolder()'>Folder baru</button>\
+					<button type='button' class='btn btn-danger btn-sm mr5 btn-close'>Tutup</button>\
+					<button type='button' class='btn btn-success btn-sm btn-choose'>Pilih</button>\
 				</div>",
 		success:function(layero,layer_index){
 			$('.btn-close').click(function(){
@@ -285,28 +285,28 @@ function changePath(d) {
 	var c = layer.open({
 		type: 1,
 		area: "650px",
-		title: 'Select directory',
+		title: 'Pilih folder',
 		closeBtn: 1,
 		shift: 5,
 		shadeClose: false,
 		content: "\
 			<div class='changepath'>\
 				<div class='path-top'>\
-					<button type='button' class='btn btn-default btn-sm' onclick='backFile()'><span class='glyphicon glyphicon-share-alt'></span>Return</button>\
-					<div class='place' id='PathPlace'>Current path：<span></span></div>\
+					<button type='button' class='btn btn-default btn-sm' onclick='backFile()'><span class='glyphicon glyphicon-share-alt'></span>Kembali</button>\
+					<div class='place' id='PathPlace'>Path sekarang：<span></span></div>\
 				</div>\
 				<div class='path-con'>\
-					<div class='path-con-left'><dl><dt id='changecomlist' onclick='backMyComputer()'>My Computer</dt></dl></div>\
+					<div class='path-con-left'><dl><dt id='changecomlist' onclick='backMyComputer()'>Komputer</dt></dl></div>\
 					<div class='path-con-right'>\
 						<ul class='default' id='computerDefautl'></ul>\
 						<div class='file-list divtable'>\
 							<table class='table table-hover' style='border:0 none'>\
 								<thead>\
 									<tr class='file-list-head'>\
-										<th width='40%'>File name</th>\
-										<th width='20%'>Modified</th>\
-										<th width='10%'>Permissions</th>\
-										<th width='10%'>Owner</th>\
+										<th width='40%'>Nama file</th>\
+										<th width='20%'>Waktu diubah</th>\
+										<th width='10%'>Izin</th>\
+										<th width='10%'>Pemilik</th>\
 										<th width='10%'></th>\
 									</tr>\
 								</thead>\
@@ -317,9 +317,9 @@ function changePath(d) {
 				</div>\
 			</div>\
 			<div class='getfile-btn' style='margin-top:0'>\
-			<button type='button' class='btn btn-default btn-sm pull-left' onclick='createFolder()'>New folder</button>\
-			<button type='button' class='btn btn-danger btn-sm mr5' onclick=\"layer.close(getCookie('changePath'))\">Cancel</button>\
-			<button type='button' class='btn btn-success btn-sm' onclick='getfilePath()'>Select</button>\
+			<button type='button' class='btn btn-default btn-sm pull-left' onclick='createFolder()'>Folder baru</button>\
+			<button type='button' class='btn btn-danger btn-sm mr5' onclick=\"layer.close(getCookie('changePath'))\">Batal</button>\
+			<button type='button' class='btn btn-success btn-sm' onclick='getfilePath()'>Pilih</button>\
 		</div>"
 	});
 	setCookie("changePath", c);
@@ -404,8 +404,8 @@ function getDiskList(b) {
 function createFolder() {
 	var a = "<tr>\
 		<td colspan='2'><span class='glyphicon glyphicon-folder-open'></span><input id='newFolderName' class='newFolderName' type='text' value=''></td>\
-		<td colspan='3'><button id='nameOk' type='button' class='btn btn-success btn-sm'>Yes</button>\
-			&nbsp;&nbsp;<button id='nameNOk' type='button' class='btn btn-default btn-sm'>Cancel</button></td>\
+		<td colspan='3'><button id='nameOk' type='button' class='btn btn-success btn-sm'>Ya</button>\
+			&nbsp;&nbsp;<button id='nameNOk' type='button' class='btn btn-default btn-sm'>Batal</button></td>\
 		</tr>";
 	if($("#tbody tr").length == 0) {
 		$("#tbody").append(a)
@@ -569,7 +569,7 @@ function onlineEditFile(k, f, callback) {
 		var l = $("#PathPlace input").val();
 		var h = encodeURIComponent($("#textBody").val());
 		var a = $("select[name=encoding]").val();
-		var loadT = layer.msg('Saving, please wait...', {icon: 16,time: 0});
+		var loadT = layer.msg('Lagi simpan, tunggu sebentar...', {icon: 16,time: 0});
 		$.post("/files/save_body", "data=" + h + "&path=" + encodeURIComponent(f) + "&encoding=" + a, function(data) {
 			if(k == 1) {
 				layer.close(loadT);
@@ -581,7 +581,7 @@ function onlineEditFile(k, f, callback) {
 		},'json');
 		return
 	}
-	var e = layer.msg('Reading file, please wait...', {icon: 16,time: 0});
+	var e = layer.msg('Lagi baca file, tunggu sebentar...', {icon: 16,time: 0});
 	var g = f.split(".");
 	var b = g[g.length - 1];
 	var d;
@@ -666,11 +666,11 @@ function onlineEditFile(k, f, callback) {
 			shift: 5,
 			closeBtn: 1,
 			area: ["90%", "90%"],
-			btn:['Save','Cancel'],
-			title: "Online editing [" + f + "]",
+			btn:['Simpan','Batal'],
+			title: "Edit online [" + f + "]",
 			content: '<form class="bt-form pd20">\
 				<div class="line">\
-					<p style="color:red;margin-bottom:10px">Tip: Ctrl+F to search keywords, Ctrl+G to find next, Ctrl+S to save, Ctrl+Shift+R to find and replace!\
+					<p style="color:red;margin-bottom:10px">Tips: Ctrl+F cari, Ctrl+G cari berikutnya, Ctrl+S simpan, Ctrl+Shift+R cari & ganti!\
 						<select class="bt-input-text" name="encoding" style="width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;">' + n + '</select>\
 					</p>\
 					<textarea class="mCustomScrollbar bt-input-text" id="textBody" style="width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;" value="" />\
@@ -734,11 +734,11 @@ function divcenter() {
 function copyText(value) {
 	var clipboard = new ClipboardJS('#slemp_copys');
     clipboard.on('success', function (e) {
-        layer.msg('Copy successfully',{icon:1,time:2000});
+        layer.msg('Berhasil disalin',{icon:1,time:2000});
     });
 
     clipboard.on('error', function (e) {
-        layer.msg('Copy failed, browser incompatible!',{icon:2,time:2000});
+        layer.msg('Gagal salin, browser nggak support!',{icon:2,time:2000});
     });
     $("#slemp_copys").attr('data-clipboard-text',value);
     $("#slemp_copys").click();
@@ -787,11 +787,11 @@ function safeMessage(j, h, g, f) {
 	$("#toSubmit").click(function() {
 		var a = $("#vcodeResult").val().replace(/ /g, "");
 		if(a == undefined || a == "") {
-			layer.msg('Please enter the calculation result correctly!');
+			layer.msg('Hasil hitungannya salah!');
 			return
 		}
 		if(a != getCookie("vcodesum")) {
-			layer.msg('Please enter the calculation result correctly!');
+			layer.msg('Hasil hitungannya salah!');
 			return
 		}
 		layer.close(mess);
@@ -852,7 +852,7 @@ $(function() {
 });
 
 $("#signout").click(function() {
-	layer.confirm('Do you really want to exit the panel?', {icon:3,closeBtn: 1}, function() {
+	layer.confirm('Beneran mau keluar dari panel?', {icon:3,closeBtn: 1}, function() {
 		window.location.href = "/login?signout=True"
 	});
 	return false
@@ -882,7 +882,7 @@ function ActionTask() {
 }
 
 function removeTask(b) {
-	var a = layer.msg('Deleting, please wait...', {
+	var a = layer.msg('Lagi hapus, tunggu sebentar...', {
 		icon: 16,
 		time: 0,
 		shade: [0.3, "#000"]
@@ -910,16 +910,16 @@ function GetTaskList(a) {
 				case "-1":
 					f = true;
 					if(g.data[d].type != "download") {
-						b = "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state'>Installing <img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + g.data[d].id + ")\">Cancel</a></span><span class='opencmd'></span><pre class='cmd'></pre></li>"
+						b = "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state'>Lagi pasang <img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + g.data[d].id + ")\">Batal</a></span><span class='opencmd'></span><pre class='cmd'></pre></li>"
 					} else {
-						b = "<li><div class='line-progress' style='width:0%'></div><span class='titlename'>" + g.data[d].name + "<a id='speed' style='margin-left:130px;'>0.0M/12.5M</a></span><span class='com-progress'>0%</span><span class='state'> downloading <img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + g.data[d].id + ")\">"+lan.public.close+"</a></span></li>"
+						b = "<li><div class='line-progress' style='width:0%'></div><span class='titlename'>" + g.data[d].name + "<a id='speed' style='margin-left:130px;'>0.0M/12.5M</a></span><span class='com-progress'>0%</span><span class='state'> lagi unduh <img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + g.data[d].id + ")\">"+lan.public.close+"</a></span></li>"
 					}
 					break;
 				case "0":
-					c += "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state'>wait</span> | <a href=\"javascript:removeTask(" + g.data[d].id + ")\">delete['']</a></li>";
+					c += "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state'>tunggu</span> | <a href=\"javascript:removeTask(" + g.data[d].id + ")\">hapus['']</a></li>";
 					break;
 				case "1":
-					e += "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state'>" + g.data[d].addtime + "  "+'completed'+"  "+ 'time consuming' + (g.data[d].end - g.data[d].start)+" second</span></li>"
+					e += "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state'>" + g.data[d].addtime + "  "+'selesai'+"  "+ 'waktu tempuh' + (g.data[d].end - g.data[d].start)+" detik</span></li>"
 			}
 		}
 		$("#srunning").html(b + c);
@@ -1096,7 +1096,7 @@ function getPanelList(){
 				<input name="code" id="bt_code" value="12345" type="text">\
 			</form><iframe name="btpfrom" src=""></iframe></div>';
 			$("body").append(loginForm);
-			layer.msg('Opening panel...',{icon:16,shade: [0.3, '#000'],time:1000});
+			layer.msg('Lagi buka panel...',{icon:16,shade: [0.3, '#000'],time:1000});
 			setTimeout(function(){
 				$("#toBtpanel").submit();
 			},500);
@@ -1112,12 +1112,12 @@ function getPanelList(){
 getPanelList();
 
 function bindPanel(a,type,ip,btid,url,user,pw){
-	var titleName = 'Association panel';
+	var titleName = 'Hubungkan panel';
 	if(type == "b"){
-		btn = "<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'b')\">Add to</button>";
+		btn = "<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'b')\">Tambah</button>";
 	} else {
-		titleName = 'Modify association' + ip;
-		btn = "<button type='button' class='btn btn-default btn-sm' onclick=\"bindPaneldel('"+btid+"')\">Delete</button><button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'c','"+ip+"','"+btid+"')\" style='margin-left:7px'>Revise</button>";
+		titleName = 'Ubah hubungan' + ip;
+		btn = "<button type='button' class='btn btn-default btn-sm' onclick=\"bindPaneldel('"+btid+"')\">Hapus</button><button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'c','"+ip+"','"+btid+"')\" style='margin-left:7px'>Ubah</button>";
 	}
 	if(url == undefined) url="http://";
 	if(user == undefined) user="";
@@ -1127,7 +1127,7 @@ function bindPanel(a,type,ip,btid,url,user,pw){
 		var gurl = "/config/add_panel_info";
 		var btaddress = $("#btaddress").val();
 		if(!btaddress.match(/^(http|https)+:\/\/([\w-]+\.)+[\w-]+:\d+/)){
-			layer.msg('Panel address format is incorrect, example：<p>http://192.168.0.1:8888</p>',{icon:5,time:5000});
+			layer.msg('Format alamat panel salah, contoh：<p>http://192.168.0.1:8888</p>',{icon:5,time:5000});
 			return;
 		}
 		var btuser = encodeURIComponent($("#btuser").val());
@@ -1161,8 +1161,8 @@ function bindPanel(a,type,ip,btid,url,user,pw){
 		shift: 5,
 		shadeClose: false,
 		content: "<div class='bt-form pd20 pb70'>\
-				<div class='line'><span class='tname'>Panel address</span>\
-				<div class='info-r'><input class='bt-input-text' type='text' name='btaddress' id='btaddress' value='"+url+"' placeholder='Panel address' style='width:100%'/></div>\
+				<div class='line'><span class='tname'>Alamat panel</span>\
+				<div class='info-r'><input class='bt-input-text' type='text' name='btaddress' id='btaddress' value='"+url+"' placeholder='Alamat panel' style='width:100%'/></div>\
 				</div>\
 				<div class='line'><span class='tname'>Username</span>\
 				<div class='info-r'><input class='bt-input-text' type='text' name='btuser' id='btuser' value='"+user+"' placeholder='Username' style='width:100%'/></div>\
@@ -1170,14 +1170,14 @@ function bindPanel(a,type,ip,btid,url,user,pw){
 				<div class='line'><span class='tname'>Password</span>\
 				<div class='info-r'><input class='bt-input-text' type='password' name='btpassword' id='btpassword' value='"+pw+"' placeholder='Password' style='width:100%'/></div>\
 				</div>\
-				<div class='line'><span class='tname'>Description</span>\
-				<div class='info-r'><input class='bt-input-text' type='text' name='bttitle' id='bttitle' value='"+ip+"' placeholder='Description' style='width:100%'/></div>\
+				<div class='line'><span class='tname'>Catatan</span>\
+				<div class='info-r'><input class='bt-input-text' type='text' name='bttitle' id='bttitle' value='"+ip+"' placeholder='Catatan' style='width:100%'/></div>\
 				</div>\
 				<div class='line'><ul class='help-info-text c7'>\
-					<li>Bookmark other server panel data to realize one-click login panel function</li><li>Panel remarks cannot be repeated</li>\
-					<li><font style='color:red'>Note that turning on ad blocking will make it impossible to log in quickly.</font></li></ul>\
+					<li>Simpan data panel server lain buat fitur login sekali klik</li><li>Catatan panel nggak boleh sama</li>\
+					<li><font style='color:red'>Catatan: Matikan ad-blocker biar bisa login cepet.</font></li></ul>\
 				</div>\
-				<div class='bt-form-submit-btn'><button type='button' class='btn btn-danger btn-sm' onclick=\"layer.closeAll()\">Cancel</button> "+btn+"</div>\
+				<div class='bt-form-submit-btn'><button type='button' class='btn btn-danger btn-sm' onclick=\"layer.closeAll()\">Batal</button> "+btn+"</div>\
 				</div>",
 
 			success:function(){
@@ -1234,16 +1234,16 @@ function getSpeed(sele){
 function messageBox() {
 	layer.open({
 		type: 1,
-		title: 'Message box',
+		title: 'Kotak pesan',
 		area: "670px",
 		closeBtn: 1,
 		shadeClose: false,
 		content: '<div class="bt-form">\
 					<div class="bt-w-main">\
 						<div class="bt-w-menu">\
-							<p class="bgw" id="taskList" onclick="tasklist()">Task List(<span class="task_count">0</span>)</p>\
-							<p onclick="remind()">Message list(<span class="msg_count">0</span>)</p>\
-							<p onclick="execLog()">Execution log</p>\
+							<p class="bgw" id="taskList" onclick="tasklist()">Daftar Tugas(<span class="task_count">0</span>)</p>\
+							<p onclick="remind()">Daftar pesan(<span class="msg_count">0</span>)</p>\
+							<p onclick="execLog()">Log eksekusi</p>\
 						</div>\
 						<div class="bt-w-con pd15">\
 							<div class="taskcon"></div>\
@@ -1405,7 +1405,7 @@ function RscheckSelect(){
 
 function tasklist(a){
 	var con='<ul class="cmdlist"></ul>\
-		<span style="position:  fixed;bottom: 13px;">Jika task sudah lama tidak dijalankan, silakan coba untuk mengatur ulang antrian tugas dengan mengklik [Restart Panel] di halaman beranda</span>';
+		<span style="position:  fixed;bottom: 13px;">Kalo task-nya kelamaan nggak jalan, coba atur ulang antrian tugas dengan klik [Restart Panel] di halaman beranda ya.</span>';
 	$(".taskcon").html(con);
 	a = a == undefined ? 1 : a;
 	$.post("/task/list", "tojs=getTaskList&table=tasks&limit=10&p=" + a, function(g) {
@@ -1419,9 +1419,9 @@ function tasklist(a){
 				case "-1":
 					f = true;
 					if(g.data[d].type != "download") {
-						b = "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state pull-right c6'>Menginstal <img src='/static/img/ing.gif'> | <a class='btlink' href=\"javascript:removeTask(" + g.data[d].id + ")\">Tutup</a></span><span class='opencmd'></span><pre class='cmd'></pre></li>"
+						b = "<li><span class='titlename'>" + g.data[d].name + "</span><span class='state pull-right c6'>Lagi pasang <img src='/static/img/ing.gif'> | <a class='btlink' href=\"javascript:removeTask(" + g.data[d].id + ")\">Tutup</a></span><span class='opencmd'></span><pre class='cmd'></pre></li>"
 					} else {
-						b = "<li><div class='line-progress' style='width:0%'></div><span class='titlename'>" + g.data[d].name + "<a id='speed' style='margin-left:130px;'>0.0M/12.5M</a></span><span class='com-progress'>0%</span><span class='state'>Mengunduh <img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + g.data[d].id + ")\">Tutup</a></span></li>"
+						b = "<li><div class='line-progress' style='width:0%'></div><span class='titlename'>" + g.data[d].name + "<a id='speed' style='margin-left:130px;'>0.0M/12.5M</a></span><span class='com-progress'>0%</span><span class='state'>Lagi unduh <img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + g.data[d].id + ")\">Tutup</a></span></li>"
 					}
 					task_count++;
 					break;
@@ -1481,7 +1481,7 @@ function check_login(){
 }
 
 function to_login(){
-	layer.confirm('Your login status has expired, please log in again!',{title:'Session expired',icon:2,closeBtn: 1,shift: 5},function(){
+	layer.confirm('Sesi login kamu udah habis, silakan login lagi ya!',{title:'Sesi habis',icon:2,closeBtn: 1,shift: 5},function(){
 		location.reload();
 	});
 }
@@ -1582,16 +1582,16 @@ function webShell() {
 
     var term_box = layer.open({
         type: 1,
-        title: "Local terminal",
+        title: "Terminal lokal",
         area: ['685px','463px'],
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="term-box"><div id="term"></div></div>\
 					<div class="shell-text-input">\
-                    <textarea type="text" class="bt-input-text-shell" placeholder="Please paste the command here.." value="" name="ssh_copy" />\
+                    <textarea type="text" class="bt-input-text-shell" placeholder="Tempel perintahnya di sini ya.." value="" name="ssh_copy" />\
 					<div class="shell-btn-group">\
-                    <button class="shellbutton btn btn-success btn-sm pull-right shell_btn_1">Send (Ctrl+Enter)</button>\
-					<button class="shellbutton btn btn-default btn-sm pull-right shell_btn_close">Cancel</button>\
+                    <button class="shellbutton btn btn-success btn-sm pull-right shell_btn_1">Kirim (Ctrl+Enter)</button>\
+					<button class="shellbutton btn btn-default btn-sm pull-right shell_btn_close">Batal</button>\
 					</div>\
                 </div>',
         success:function(){
@@ -1656,8 +1656,8 @@ function webShell() {
 
 
             var menudiv = '<ul class="contextmenu">\
-                        <li><a class="shell_copy_btn menu_ssh" data-clipboard-text="'+ selectText + '" ' + style_str + '>Copy to clipboard</a></li>\
-                        <li><a  onclick="shell_paste_text()" '+ paste_str+'>Paste selected</a></li>\
+                        <li><a class="shell_copy_btn menu_ssh" data-clipboard-text="'+ selectText + '" ' + style_str + '>Salin ke papan klip</a></li>\
+                        <li><a  onclick="shell_paste_text()" '+ paste_str+'>Tempel yang dipilih</a></li>\
                     </ul>';
             $("body").append(menudiv);
             $(".contextmenu").css({
@@ -1672,14 +1672,14 @@ function webShell() {
 
         clipboard = new ClipboardJS('.shell_copy_btn');
         clipboard.on('success', function (e) {
-            layer.msg('Copy successfully!');
+            layer.msg('Berhasil disalin!');
             setCookie('shell_copy_body', e.text)
             remove_ssh_menu();
             term.focus();
         });
 
         clipboard.on('error', function (e) {
-            layer.msg('Copy failed, browser incompatible!');
+            layer.msg('Gagal salin, browser nggak support!');
             setCookie('shell_copy_body', e.text)
             remove_ssh_menu();
             term.focus();
@@ -1746,7 +1746,7 @@ function showSpeedWindow(msg, speed_log_func_name, callback){
 						showSpeed(rdata.data);
 					}, 1000);
 				} else {
-					layer.msg("The specified file is missing!");
+					layer.msg("Filenya nggak ada!");
 				}
 			},'json');
 			if (callback) {callback(layers,index,showSpeedKey);}
@@ -1946,7 +1946,7 @@ function pluginService(_name, version, _suffix_name=''){
 	}
 	// console.log(version);
 
-	var loadT = layer.msg('Retrieving...', { icon: 16, time: 0, shade: 0.3 });
+	var loadT = layer.msg('Lagi ambil data...', { icon: 16, time: 0, shade: 0.3 });
 	$.post('/plugins/run', data, function(data) {
 		layer.close(loadT);
         if(!data.status){
@@ -1974,7 +1974,7 @@ function pluginSetService(_name ,status, version, _suffix_name=''){
 		status_ss = status_ss+'_'+_suffix_name;
 	}
 
-	var serviceCon ='<p class="status">Current status：<span>'+(status ? 'start' : 'stop' )+
+	var serviceCon ='<p class="status">Status sekarang：<span>'+(status ? 'nyala' : 'mati' )+
         '</span><span style="color: '+
         (status?'#20a53a;':'red;')+
         ' margin-left: 3px;" class="glyphicon ' + (status?'glyphicon glyphicon-play':'glyphicon-pause')+'"></span></p><div class="sfm-opt">\
@@ -2007,14 +2007,14 @@ function pluginOpService(a, b, v, _suffix_name='') {
     	_ver = '[' + v + ']';
     }
 
-    layer.confirm( msgTpl('Do you really want {1}{2}{3} service？', [d,a,_ver]), {icon:3,closeBtn: 1}, function() {
-        var e = layer.msg(msgTpl('Serving {1}{2}{3}, please wait...',[d,a,_ver]), {icon: 16,time: 0});
+    layer.confirm( msgTpl('Beneran mau {1} layanan {2}{3}？', [d,a,_ver]), {icon:3,closeBtn: 1}, function() {
+        var e = layer.msg(msgTpl('Lagi {1} {2}{3}, tunggu bentar...', [d,a,_ver]), {icon: 16,time: 0});
 
         $.post("/plugins/run", c, function(g) {
             layer.close(e);
 
 
-            var f = g.data == 'ok' ? msgTpl('{1} {2} service has been {3}',[a,_ver,d]) : msgTpl('{1}{2} failed to serve {3}!',[a,_ver,d]);
+            var f = g.data == 'ok' ? msgTpl('Layanan {1} {2} udah di-{3}', [a,_ver,d]) : msgTpl('Layanan {1}{2} gagal di-{3}!', [a,_ver,d]);
             layer.msg(f, {icon: g.data == 'ok' ? 1 : 2});
 
             if( b != "reload" && g.data == 'ok' ) {
@@ -2035,7 +2035,7 @@ function pluginOpService(a, b, v, _suffix_name='') {
             },2000);
         },'json').error(function() {
             layer.close(e);
-            layer.msg('操作异常!', {icon: 1});
+            layer.msg('Operasi tidak normal!', {icon: 1});
         });
     })
 }
@@ -2050,15 +2050,15 @@ function pluginConfig(_name, version, func){
         func_name = func;
     }
 
-    var con = '<p style="color: #666; margin-bottom: 7px">Tip: Ctrl+F to search keywords, Ctrl+G to find next, Ctrl+S to save, Ctrl+Shift+R to find and replace!</p>\
+    var con = '<p style="color: #666; margin-bottom: 7px">Tips: Ctrl+F cari, Ctrl+G cari berikutnya, Ctrl+S simpan, Ctrl+Shift+R cari & ganti!</p>\
     			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>\
-                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">Save</button>\
+                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">Simpan</button>\
                 <ul class="help-info-text c7 ptb15">\
-                    <li>Here is the main configuration file of '+ _name + version +', if you do not understand the configuration rules, please do not modify it at will.</li>\
+                    <li>Ini file konfigurasi utama '+ _name + version +', kalau nggak paham aturannya, jangan asal ubah ya.</li>\
                 </ul>';
 
 
-    var loadT = layer.msg('Getting configuration file path...',{icon:16,time:0,shade: [0.3, '#000']});
+    var loadT = layer.msg('Lagi ambil path file konfigurasi...', {icon:16,time:0,shade: [0.3, '#000']});
     $.post('/plugins/run', {name:_name, func:func_name,version:version},function (data) {
         layer.close(loadT);
 
@@ -2072,7 +2072,7 @@ function pluginConfig(_name, version, func){
 
 		$(".soft-man-con").html(con);
 
-        var loadT2 = layer.msg('File content fetching...',{icon:16,time:0,shade: [0.3, '#000']});
+        var loadT2 = layer.msg('Lagi ambil isi file...', {icon:16,time:0,shade: [0.3, '#000']});
         var fileName = data.data;
         $.post('/files/get_body', 'path=' + fileName, function(rdata) {
             layer.close(loadT2);
@@ -2126,12 +2126,12 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
     }
 
 
-    var con = '<p style="color: #666; margin-bottom: 7px">Tip: Ctrl+F to search keywords, Ctrl+G to find next, Ctrl+S to save, Ctrl+Shift+R to find and replace!</p>\
-    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"><option value="0">Please choose</option></select>\
+    var con = '<p style="color: #666; margin-bottom: 7px">Tips: Ctrl+F cari, Ctrl+G cari berikutnya, Ctrl+S simpan, Ctrl+Shift+R cari & ganti!</p>\
+    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"><option value="0">Pilih dulu ya</option></select>\
     			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>\
-                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">Save</button>\
+                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">Simpan</button>\
                 <ul class="help-info-text c7 ptb15">\
-                    <li>Here is the main configuration file of '+ _name + version +', if you do not understand the configuration rules, please do not modify it at will.</li>\
+                    <li>Ini file konfigurasi utama '+ _name + version +', kalau nggak paham aturannya, jangan asal ubah ya.</li>\
                 </ul>';
     $(".soft-man-con").html(con);
 
@@ -2151,7 +2151,7 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
     	$('#config_tpl').change(function(){
     		var selected = $(this).val();
     		if (selected != '0'){
-    			var loadT = layer.msg('Getting the configuration template...',{icon:16,time:0,shade: [0.3, '#000']});
+    			var loadT = layer.msg('Lagi ambil template konfigurasi...', {icon:16,time:0,shade: [0.3, '#000']});
 
     			var _args = JSON.stringify({file:selected});
     			$.post('/plugins/run', {name:_name, func:_read_config_tpl_func,version:version,args:_args}, function(data){
@@ -2190,11 +2190,11 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
 
     },'json');
 
-    var loadT = layer.msg('Getting configuration file path...',{icon:16,time:0,shade: [0.3, '#000']});
+    var loadT = layer.msg('Lagi ambil path file konfigurasi...', {icon:16,time:0,shade: [0.3, '#000']});
     $.post('/plugins/run', {name:_name, func:func_name,version:version}, function (data) {
         layer.close(loadT);
 
-        var loadT2 = layer.msg('File content fetching...',{icon:16,time:0,shade: [0.3, '#000']});
+        var loadT2 = layer.msg('Lagi ambil isi file...', {icon:16,time:0,shade: [0.3, '#000']});
         fileName = data.data;
         $.post('/files/get_body', 'path=' + fileName, function(rdata) {
             layer.close(loadT2);
@@ -2230,7 +2230,7 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
 function pluginConfigSave(fileName) {
     var data = encodeURIComponent($("#textBody").val());
     var encoding = 'utf-8';
-    var loadT = layer.msg('Saving...', {icon: 16,time: 0});
+    var loadT = layer.msg('Lagi simpan...', {icon: 16,time: 0});
     $.post('/files/save_body', 'data=' + data + '&path=' + fileName + '&encoding=' + encoding, function(rdata) {
         layer.close(loadT);
         layer.msg(rdata.msg, {icon: rdata.status ? 1 : 2});
@@ -2249,7 +2249,7 @@ function pluginInitD(_name, _version, _suffix_name=''){
 		default_name = 'initd_status_'+_suffix_name;
 	}
 
-	var loadT = layer.msg('Retrieving...', { icon: 16, time: 0, shade: 0.3 });
+	var loadT = layer.msg('Lagi ambil data...', { icon: 16, time: 0, shade: 0.3 });
 	$.post('/plugins/run', {name:_name, func:default_name, version : _version}, function(data) {
 		layer.close(loadT);
         if( !data.status ){
@@ -2275,7 +2275,7 @@ function pluginSetInitD(_name, _version, status,_suffix_name=''){
 		default_name = default_name + '_' + _suffix_name;
 	}
 
-	var serviceCon ='<p class="status">Current status：<span>'+(status ? 'start' : 'stop' )+
+	var serviceCon ='<p class="status">Status sekarang：<span>'+(status ? 'nyala' : 'mati' )+
         '</span><span style="color: '+
         (status?'#20a53a;':'red;')+
         ' margin-left: 3px;" class="glyphicon ' + (status?'glyphicon glyphicon-play':'glyphicon-pause')+'"></span></p><div class="sfm-opt">\
@@ -2298,11 +2298,11 @@ function pluginOpInitD(a, _version, b, _suffix_name='') {
     	_ver = '【' + _version + '】';
     }
 
-    layer.confirm( msgTpl('Do you really want {1}{2}{3} service？', [d,a,_ver]), {icon:3,closeBtn: 1}, function() {
-        var e = layer.msg(msgTpl('Serving {1}{2}{3}, please wait...',[d,a,_ver]), {icon: 16,time: 0});
+    layer.confirm( msgTpl('Beneran mau {1} layanan {2}{3}？', [d,a,_ver]), {icon:3,closeBtn: 1}, function() {
+        var e = layer.msg(msgTpl('Lagi {1} {2}{3}, tunggu bentar...', [d,a,_ver]), {icon: 16,time: 0});
         $.post("/plugins/run", c, function(g) {
             layer.close(e);
-            var f = g.data == 'ok' ? msgTpl('{1} {3} service has been {2}',[a,d,_version]) : msgTpl('{1}{3} failed to serve {2}!',[a,d,_ver]);
+            var f = g.data == 'ok' ? msgTpl('Layanan {1} {3} udah di-{2}', [a,d,_version]) : msgTpl('Layanan {1}{3} gagal di-{2}!', [a,d,_ver]);
             layer.msg(f, {icon: g.data == 'ok' ? 1 : 2});
 
             if ( b == 'initd_install' && g.data == 'ok' ) {
@@ -2315,7 +2315,7 @@ function pluginOpInitD(a, _version, b, _suffix_name='') {
             }
         },'json').error(function() {
             layer.close(e);
-            layer.msg('System exception!', {icon: 0});
+            layer.msg('Ada masalah sistem!', {icon: 0});
         });
     })
 }
@@ -2337,7 +2337,7 @@ function pluginLogs(_name, version, func, line){
     }
 
 
-    var loadT = layer.msg('Obtaining the log path...',{icon:16,time:0,shade: [0.3, '#000']});
+    var loadT = layer.msg('Lagi ambil path log...', {icon:16,time:0,shade: [0.3, '#000']});
     $.post('/plugins/run', {name:_name, func:func_name, version:version},function (data) {
         layer.close(loadT);
 
@@ -2350,7 +2350,7 @@ function pluginLogs(_name, version, func, line){
 		}catch(err){/*console.log(err);*/}
 
 
-        var loadT2 = layer.msg('File content fetching...',{icon:16,time:0,shade: [0.3, '#000']});
+        var loadT2 = layer.msg('Lagi ambil isi file...', {icon:16,time:0,shade: [0.3, '#000']});
         var fileName = data.data;
         $.post('/files/get_last_body', 'path=' + fileName+'&line='+file_line, function(rdata) {
             layer.close(loadT2);
@@ -2360,7 +2360,7 @@ function pluginLogs(_name, version, func, line){
             }
 
             if(rdata.data == '') {
-            	rdata.data = 'Currently no logs!';
+            	rdata.data = 'Belum ada log!';
             }
 						var h =  parseInt($('.bt-w-menu').css('height')) - 40;
             var ebody = '<textarea readonly="" style="margin: 0px;height: '+h+'px;width: 100%;background-color: #333;color:#fff; padding:0 5px" id="info_log">'+rdata.data+'</textarea>';
@@ -2396,7 +2396,7 @@ function pluginRollingLogs(_name, version, func, _args, line){
             }
 
             if(rdata.data == '') {
-            	rdata.data = 'Currently no logs!';
+            	rdata.data = 'Belum ada log!';
             }
             var ebody = '<textarea readonly="readonly" style="margin: 0px;width: 100%;height: 360px;background-color: #333;color:#fff; padding:0 5px" id="roll_info_log">'+rdata.data+'</textarea>';
             $("#plugins_rolling_logs").html(ebody);
@@ -2464,7 +2464,7 @@ function pluginStandAloneLogs(_name, version, func, _args, line){
             }
 
             if(rdata.data == '') {
-            	rdata.data = 'Currently no logs!';
+            	rdata.data = 'Belum ada log!';
             }
             var ebody = '<textarea readonly="" style="margin: 0px;width: 100%;height: 360px;background-color: #333;color:#fff; padding:0 5px">'+rdata.data+'</textarea>';
             $("#plugins_stand_alone_logs").html(ebody);

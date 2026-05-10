@@ -179,17 +179,17 @@ function uploadStart(d) {
 				progress: function(j) {
 					h.FileProgress = Math.floor(j.loaded / j.total * 100) + "%";
 					if(h.FileProgress == "100%") {
-						h.FileProgress = 'Saving..';
+						h.FileProgress = 'Lagi simpan..';
 					}
-					h.SetTxt(i[e][1], 'Upload progress:' + h.FileProgress, "#005100")
+					h.SetTxt(i[e][1], 'Proses unggah:' + h.FileProgress, "#005100")
 				},
 				success: function(j) {
 					h.str.serverdata = false;
-					h.SetTxt(i[e][1], 'Uploaded successfully', "#005100");
+					h.SetTxt(i[e][1], 'Berhasil diunggah', "#005100");
 					h.ready(i, e + 1, g);
 					h.num++;
 					if(i.length > 1) {
-						var k = (h.num == i.length) ? 'upload completed': 'uploaded';
+						var k = (h.num == i.length) ? 'unggah selesai': 'diunggah';
 						$("#totalProgress").html("<p>" + k + h.num + "/" + i.length + "</p><progress value='" + h.num + "' max='" + i.length + "' ></progress>")
 					}
 					if(h.num == i.length) {
@@ -233,6 +233,6 @@ function uploadStart(d) {
 		c.opt.disabled = true;
 		c.up.disabled = true;
 		c.file_input.disabled = true;
-		layer.msg('Sorry, IE 6/7/8 does not support, please change the browser and upload again', {icon: 5});
+		layer.msg('Maaf, IE 6/7/8 nggak support, ganti browser lain ya buat unggah.', {icon: 5});
 	}
 };

@@ -161,34 +161,34 @@ function recycleBin(type){
 
 		var tablehtml = '<div class="re-head">\
 				<div style="margin-left: 3px;" class="ss-text">\
-                        <em>File recycle bin</em>\
+                        <em>Tempat sampah file</em>\
                         <div class="ssh-item">\
                                 <input class="btswitch btswitch-ios" id="setRecycleBin" type="checkbox" '+(rdata.status?'checked':'')+'>\
                                 <label class="btswitch-btn" for="setRecycleBin" onclick="setRecycleBin()"></label>\
                         </div>\
                 </div>\
-				<span style="line-height: 32px; margin-left: 30px;">Note: Close the recycle bin, deleted files cannot be recovered!</span>\
-                <button style="float: right" class="btn btn-default btn-sm" onclick="closeRecycleBin();">Empty trash</button>\
+				<span style="line-height: 32px; margin-left: 30px;">Catatan: Kalau tempat sampah dimatikan, file yang dihapus nggak bisa balik lagi!</span>\
+                <button style="float: right" class="btn btn-default btn-sm" onclick="closeRecycleBin();">Kosongkan sampah</button>\
 				</div>\
 				<div class="re-con">\
 					<div class="re-con-menu">\
-						<p class="on" onclick="recycleBin(1)">All</p>\
+						<p class="on" onclick="recycleBin(1)">Semua</p>\
 						<p onclick="recycleBin(2)">Folder</p>\
 						<p onclick="recycleBin(3)">File</p>\
-						<p onclick="recycleBin(4)">Picture</p>\
-						<p onclick="recycleBin(5)">Document</p>\
+						<p onclick="recycleBin(4)">Gambar</p>\
+						<p onclick="recycleBin(5)">Dokumen</p>\
 					</div>\
 					<div class="re-con-con">\
 					<div style="margin: 15px;" class="divtable">\
 					<table width="100%" class="table table-hover">\
 						<thead>\
 							<tr>\
-								<th>File name</th><th>Original location</th>\
-								<th>Size</th><th width="150">Delete time</th>\
-								<th style="text-align: right;" width="110">Action</th>\
+								<th>Nama file</th><th>Lokasi asli</th>\
+								<th>Ukuran</th><th width="150">Waktu dihapus</th>\
+								<th style="text-align: right;" width="110">Aksi</th>\
 							</tr>\
 						</thead>\
-					<tbody id="RecycleBody" class="list-list">'+body+'</tbody>\
+						<tbody id="RecycleBody" class="list-list">'+body+'</tbody>\
 			</table></div></div></div>';
 		if(type == 'open'){
 			layer.open({
@@ -251,8 +251,8 @@ function delRecycleBin(path,obj){
 }
 
 function closeRecycleBin(){
-	layer.confirm('Empty the recycle bin will permanently delete the files in the recycle bin, continue？',{title:'Empty trash',closeBtn:2,icon:3},function(){
-		var loadT = layer.msg("<div class='myspeed'>Deleting, please wait...</div>",{icon:16,time:0,shade: [0.3, '#000']});
+	layer.confirm('Mengosongkan tempat sampah bakal hapus semua file di dalamnya selamanya, lanjut？',{title:'Kosongkan sampah',closeBtn:2,icon:3},function(){
+		var loadT = layer.msg("<div class='myspeed'>Lagi dihapus, tunggu bentar...</div>",{icon:16,time:0,shade: [0.3, '#000']});
 		setTimeout(function(){
 			getSpeed('.myspeed');
 		},1000);
@@ -266,7 +266,7 @@ function closeRecycleBin(){
 
 
 function setRecycleBin(db){
-	var loadT = layer.msg('Processing, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
+	var loadT = layer.msg('Lagi diproses, tunggu bentar...',{icon:16,time:0,shade: [0.3, '#000']});
 	var data = {}
 	if(db == 1){
 		data = {db:db};
@@ -297,7 +297,7 @@ function openFilename(obj){
 				layer.open({
 					type:1,
 					closeBtn: 1,
-					title:"SVG preview",
+					title:"Pratinjau SVG",
 					area: '400px',
 					shadeClose: true,
 					content: '<div class="showpicdiv">'+rdata.data.data+'</div>'
@@ -356,7 +356,7 @@ function getFiles(Path) {
 		}
 
 		$("#filePage").html(rdata.PAGE);
-		$("#filePage div").append("<span class='Pcount-item'>per page<select style='margin-left: 3px;margin-right: 3px;border:#ddd 1px solid' class='showRow'>"+rowOption+"</select>item</span>");
+		$("#filePage div").append("<span class='Pcount-item'>per halaman<select style='margin-left: 3px;margin-right: 3px;border:#ddd 1px solid' class='showRow'>"+rowOption+"</select>item</span>");
 		$("#filePage .Pcount").css("left","16px");
 		if(rdata.DIR == null) rdata.DIR = [];
 		for (var i = 0; i < rdata.DIR.length; i++) {
@@ -384,12 +384,12 @@ function getFiles(Path) {
 						<td>"+fmp[3]+"</td>\
 						<td>"+fmp[4]+"</td>\
 						<td class='editmenu'><span>\
-						<a class='btlink' href='javascript:;' onclick=\"copyFile('" + rdata.PATH +"/"+ fmp[0] + "')\">Copy</a> | \
-						<a class='btlink' href='javascript:;' onclick=\"cutFile('" + rdata.PATH +"/"+ fmp[0]+ "')\">Cut</a> | \
-						<a class='btlink' href=\"javascript:reName(0,'" + fmp[0] + "');\">Rename</a> | \
-						<a class='btlink' href=\"javascript:setChmod(0,'" + rdata.PATH + "/"+fmp[0] + "');\">Chmod</a> | \
+						<a class='btlink' href='javascript:;' onclick=\"copyFile('" + rdata.PATH +"/"+ fmp[0] + "')\">Salin</a> | \
+						<a class='btlink' href='javascript:;' onclick=\"cutFile('" + rdata.PATH +"/"+ fmp[0]+ "')\">Potong</a> | \
+						<a class='btlink' href=\"javascript:reName(0,'" + fmp[0] + "');\">Ubah nama</a> | \
+						<a class='btlink' href=\"javascript:setChmod(0,'" + rdata.PATH + "/"+fmp[0] + "');\">Izin</a> | \
 						<a class='btlink' href=\"javascript:zip('" + rdata.PATH +"/" +fmp[0] + "');\">Zip</a> | \
-						<a class='btlink' href='javascript:;' onclick=\"deleteDir('" + rdata.PATH +"/"+ fmp[0] + "')\">Del</a></span>\
+						<a class='btlink' href='javascript:;' onclick=\"deleteDir('" + rdata.PATH +"/"+ fmp[0] + "')\">Hapus</a></span>\
 					</td></tr>";
 			} else {
 				$("#set_icon").addClass("active");
@@ -419,7 +419,7 @@ function getFiles(Path) {
 				}
 			}
 			if(displayZip != -1){
-				bodyZip = "<a class='btlink' href='javascript:;' onclick=\"unZip('" + rdata.PATH +"/" +fmp[0] + "'," + displayZip + ")\">Unzip</a> | ";
+				bodyZip = "<a class='btlink' href='javascript:;' onclick=\"unZip('" + rdata.PATH +"/" +fmp[0] + "'," + displayZip + ")\">Ekstrak</a> | ";
 			}
 
 			if(isText(fmp[0])){
@@ -427,9 +427,9 @@ function getFiles(Path) {
 			}
 
 			if(isImage(fmp[0])){
-				download = "<a class='btlink' href='javascript:;' onclick=\"getImage('" + rdata.PATH +"/"+ fmp[0] + "')\">View</a> | ";
+				download = "<a class='btlink' href='javascript:;' onclick=\"getImage('" + rdata.PATH +"/"+ fmp[0] + "')\">Lihat</a> | ";
 			} else {
-				download = "<a class='btlink' href='javascript:;' onclick=\"getFileBytes('" + rdata.PATH +"/"+ fmp[0] + "',"+fmp[1]+")\">Download</a> | ";
+				download = "<a class='btlink' href='javascript:;' onclick=\"getFileBytes('" + rdata.PATH +"/"+ fmp[0] + "',"+fmp[1]+")\">Unduh</a> | ";
 			}
 
 			totalSize +=  parseInt(fmp[1]);
@@ -442,38 +442,38 @@ function getFiles(Path) {
 					<td>"+fmp[3]+"</td>\
 					<td>"+fmp[4]+"</td>\
 					<td class='editmenu'>\
-					<span><a class='btlink' href='javascript:;' onclick=\"copyFile('" + rdata.PATH +"/"+ fmp[0] + "')\">Copy</a> | \
-					<a class='btlink' href='javascript:;' onclick=\"cutFile('" + rdata.PATH +"/"+ fmp[0] + "')\">Cut</a> | \
-					<a class='btlink' href='javascript:;' onclick=\"reName(0,'" + fmp[0] + "')\">Rename</a> | \
-					<a class='btlink' href=\"javascript:setChmod(0,'" + rdata.PATH +"/"+ fmp[0] + "');\">Chmod</a> | \
+					<span><a class='btlink' href='javascript:;' onclick=\"copyFile('" + rdata.PATH +"/"+ fmp[0] + "')\">Salin</a> | \
+					<a class='btlink' href='javascript:;' onclick=\"cutFile('" + rdata.PATH +"/"+ fmp[0] + "')\">Potong</a> | \
+					<a class='btlink' href='javascript:;' onclick=\"reName(0,'" + fmp[0] + "')\">Ubah nama</a> | \
+					<a class='btlink' href=\"javascript:setChmod(0,'" + rdata.PATH +"/"+ fmp[0] + "');\">Izin</a> | \
 					<a class='btlink' href=\"javascript:zip('" + rdata.PATH +"/" +fmp[0] + "');\">Zip</a> | "+bodyZip+download+"\
-					<a class='btlink' href='javascript:;' onclick=\"deleteFile('" + rdata.PATH +"/"+ fmp[0] + "')\">Del</a>\
+					<a class='btlink' href='javascript:;' onclick=\"deleteFile('" + rdata.PATH +"/"+ fmp[0] + "')\">Hapus</a>\
 					</span></td>\
 				</tr>";
 			}
 			else{
-				body += "<div class='file folderBox menufile' data-path='" + rdata.PATH +"/"+ fmp[0] + "' filetype='"+fmp[0]+"' title='Filename：" + fmp[0]+"&#13;size："
-					+ toSize(fmp[1])+"&#13;Modified："+getLocalTime(fmp[2])+"&#13;Permissions："+fmp[3]+"&#13;Owner："+fmp[4]+"' >\
+				body += "<div class='file folderBox menufile' data-path='" + rdata.PATH +"/"+ fmp[0] + "' filetype='"+fmp[0]+"' title='Nama file：" + fmp[0]+"&#13;ukuran："
+					+ toSize(fmp[1])+"&#13;Diubah："+getLocalTime(fmp[2])+"&#13;Izin："+fmp[3]+"&#13;Pemilik："+fmp[4]+"' >\
 					<input type='checkbox' name='id' value='"+fmp[0]+"'>\
 					<div data-path='" + rdata.PATH +"/"+ fmp[0] + "' filetype='"+fmp[0]+"' class='ico ico-"+(getExtName(fmp[0]))+"' ondblclick='javascript;openFilename(this)'></div>\
 					<div class='titleBox'><span class='tname'>" + fmp[0] + "</span></div>\
 				</div>";
 			}
 		}
-		var dirInfo = '(Total {1} folder and {2} files, size:'.replace('{1}',rdata.DIR.length+'').replace('{2}',rdata.FILES.length+'')+'<font id="pathSize">'
-			+ (toSize(totalSize))+'<a class="btlink ml5" onClick="getPathSize()">Obtain</a></font>)';
+		var dirInfo = '(Total {1} folder dan {2} file, ukuran:'.replace('{1}',rdata.DIR.length+'').replace('{2}',rdata.FILES.length+'')+'<font id="pathSize">'
+			+ (toSize(totalSize))+'<a class="btlink ml5" onClick="getPathSize()">Ambil</a></font>)';
 		$("#dir_info").html(dirInfo);
 		if( getCookie('rank') == 'a' ){
 			var tablehtml = '<table width="100%" border="0" cellpadding="0" cellspacing="0" class="table table-hover">\
 						<thead>\
 							<tr>\
 								<th width="30"><input type="checkbox" id="setBox" placeholder=""></th>\
-								<th>Filename</th>\
-								<th>Size</th>\
-								<th>Modified</th>\
-								<th>Permissions</th>\
-								<th>Owner</th>\
-								<th style="text-align: right;" width="330">Action</th>\
+								<th>Nama file</th>\
+								<th>Ukuran</th>\
+								<th>Diubah</th>\
+								<th>Izin</th>\
+								<th>Pemilik</th>\
+								<th style="text-align: right;" width="330">Aksi</th>\
 							</tr>\
 						</thead>\
 						<tbody id="filesBody" class="list-list">'+body+'</tbody>\
@@ -487,18 +487,18 @@ function getFiles(Path) {
 		$("#DirPathPlace input").val(rdata.PATH);
 		var BarTools = '<div class="btn-group">\
 						<button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\
-						Create<span class="caret"></span>\
+						Buat<span class="caret"></span>\
 						</button>\
 						<ul class="dropdown-menu">\
-						<li><a href="javascript:createFile(0,\'' + Path + '\');">New file</a></li>\
-						<li><a href="javascript:createDir(0,\'' + Path + '\');">New directory</a></li>\
+						<li><a href="javascript:createFile(0,\'' + Path + '\');">File baru</a></li>\
+						<li><a href="javascript:createDir(0,\'' + Path + '\');">Folder baru</a></li>\
 						</ul>\
 					</div>';
 		if (rdata.PATH != '/') {
-			BarTools += ' <button onclick="javascript:backDir();" class="btn btn-default btn-sm glyphicon glyphicon-arrow-left" title="Back to previous"></button>';
+			BarTools += ' <button onclick="javascript:backDir();" class="btn btn-default btn-sm glyphicon glyphicon-arrow-left" title="Kembali"></button>';
 		}
 		setCookie('open_dir_path',rdata.PATH);
-		BarTools += ' <button onclick="javascript:getFiles(\'' + rdata.PATH + '\');" class="btn btn-default btn-sm glyphicon glyphicon-refresh" title="Refresh"></button>\
+		BarTools += ' <button onclick="javascript:getFiles(\'' + rdata.PATH + '\');" class="btn btn-default btn-sm glyphicon glyphicon-refresh" title="Segarkan"></button>\
 			<button onclick="webShell()" title="Terminal" type="button" class="btn btn-default btn-sm"><em class="ico-cmd"></em></button>';
 		var copyName = getCookie('copyFileName');
 		var cutName = getCookie('cutFileName');
@@ -506,14 +506,14 @@ function getFiles(Path) {
 		// console.log('isPaste:',isPaste);
 		//---
 		if (isPaste != 'null' && isPaste != undefined) {
-			BarTools += ' <button onclick="javascript:pasteFile(\'' + (getFileName(isPaste)) + '\');" class="btn btn-Warning btn-sm">Paste</button>';
+			BarTools += ' <button onclick="javascript:pasteFile(\'' + (getFileName(isPaste)) + '\');" class="btn btn-Warning btn-sm">Tempel</button>';
 		}
 
 		$("#Batch").html('');
 		var batchTools = '';
 		var isBatch = getCookie('BatchSelected');
 		if (isBatch == 1 || isBatch == '1') {
-			batchTools += ' <button onclick="javascript:batchPaste();" class="btn btn-default btn-sm">Paste All</button>';
+			batchTools += ' <button onclick="javascript:batchPaste();" class="btn btn-default btn-sm">Tempel Semua</button>';
 		}
 		$("#Batch").html(batchTools);
 
@@ -638,11 +638,11 @@ function showSeclect(){
 	var count = totalFile();
 	var batchTools = '';
 	if(count > 1){
-		batchTools = '<button onclick="javascript:batch(1);" class="btn btn-default btn-sm">Copy</button>\
-		  <button onclick="javascript:batch(2);" class="btn btn-default btn-sm">Cut</button>\
-		  <button onclick="javascript:batch(3);" class="btn btn-default btn-sm">Chmod</button>\
+		batchTools = '<button onclick="javascript:batch(1);" class="btn btn-default btn-sm">Salin</button>\
+		  <button onclick="javascript:batch(2);" class="btn btn-default btn-sm">Potong</button>\
+		  <button onclick="javascript:batch(3);" class="btn btn-default btn-sm">Izin</button>\
 		  <button onclick="javascript:batch(5);" class="btn btn-default btn-sm">Zip</button>\
-		  <button onclick="javascript:batch(4);" class="btn btn-default btn-sm">Del</button>';
+		  <button onclick="javascript:batch(4);" class="btn btn-default btn-sm">Hapus</button>';
 	}else{
 		//setCookie('BatchSelected', null);
 	}
@@ -721,7 +721,7 @@ function batch(type,access){
 		return;
 	}
 
-	myloadT = layer.msg("<div class='myspeed'>Processing, please wait...</div>",{icon:16,time:0,shade: [0.3, '#000']});
+	myloadT = layer.msg("<div class='myspeed'>Lagi diproses, tunggu bentar...</div>",{icon:16,time:0,shade: [0.3, '#000']});
 	setTimeout(function(){getSpeed('.myspeed');},1000);
 	// console.log(data);
 	$.post('/files/set_batch_data',data,function(rdata){
@@ -743,10 +743,10 @@ function batchPaste(){
 			for(var i=0;i<result.length;i++){
 				tbody += '<tr><td>'+result[i].filename+'</td><td>'+toSize(result[i].size)+'</td><td>'+getLocalTime(result[i].mtime)+'</td></tr>';
 			}
-			var mbody = '<div class="divtable"><table class="table table-hover" width="100%" border="0" cellpadding="0" cellspacing="0"><thead><th>Filename</th><th>Size</th><th>Modified</th></thead>\
+			var mbody = '<div class="divtable"><table class="table table-hover" width="100%" border="0" cellpadding="0" cellspacing="0"><thead><th>Nama file</th><th>Ukuran</th><th>Diubah</th></thead>\
 						<tbody>'+tbody+'</tbody>\
 						</table></div>';
-			safeMessage('The following files will be overwritten',mbody,function(){
+			safeMessage('File berikut bakal ditimpa',mbody,function(){
 				batchPasteTo(data,path);
 			});
 			$(".layui-layer-page").css("width","500px");
@@ -757,7 +757,7 @@ function batchPaste(){
 }
 
 function batchPasteTo(data,path){
-	myloadT = layer.msg("<div class='myspeed'>Processing, please wait...</div>",{icon:16,time:0,shade: [0.3, '#000']});
+	myloadT = layer.msg("<div class='myspeed'>Lagi diproses, tunggu bentar...</div>",{icon:16,time:0,shade: [0.3, '#000']});
 	setTimeout(function(){getSpeed('.myspeed');},1000);
 	$.post('/files/batch_paste',data,function(rdata){
 		layer.close(myloadT);
@@ -824,8 +824,8 @@ function getDisk() {
 			LBody += "<span onclick=\"getFiles('" + rdata[i].path + "')\">\
 				<span class='glyphicon glyphicon-hdd'></span>&nbsp;" + (rdata[i].path=='/'?lan.files.path_root:rdata[i].path) + "(" + rdata[i].size[2] + ")</span>";
 		}
-		var trash = '<span id="recycle_bin" onclick="recycleBin(\'open\')" title="Recycle bin" style="position: absolute; border-color: #ccc; right: 77px;">\
-			<span class="glyphicon glyphicon-trash"></span>&nbsp;Recycle bin</span>';
+		var trash = '<span id="recycle_bin" onclick="recycleBin(\'open\')" title="Tempat sampah" style="position: absolute; border-color: #ccc; right: 77px;">\
+			<span class="glyphicon glyphicon-trash"></span>&nbsp;Tempat sampah</span>';
 		$("#comlist").html(LBody+trash);
 		isDiskWidth();
 	},'json');
@@ -878,14 +878,14 @@ function createFile(type, path) {
 		shift: 5,
 		closeBtn: 1,
 		area: '320px',
-		title: 'Create a new blank file',
+		title: 'Buat file baru',
 		content: '<div class="bt-form pd20 pb70">\
 					<div class="line">\
-					<input type="text" class="bt-input-text" name="Name" id="newFileName" value="" placeholder="File name" style="width:100%" />\
+					<input type="text" class="bt-input-text" name="Name" id="newFileName" value="" placeholder="Nama file" style="width:100%" />\
 					</div>\
 					<div class="bt-form-submit-btn">\
-					<button type="button" class="btn btn-danger btn-sm" onclick="layer.closeAll()">Cancel</button>\
-					<button id="createFileBtn" type="button" class="btn btn-success btn-sm" onclick="createFile(1,\'' + path + '\')">New File</button>\
+					<button type="button" class="btn btn-danger btn-sm" onclick="layer.closeAll()">Batal</button>\
+					<button id="createFileBtn" type="button" class="btn btn-success btn-sm" onclick="createFile(1,\'' + path + '\')">File baru</button>\
 					</div>\
 				</div>',
 		success:function(){
@@ -900,7 +900,7 @@ function createFile(type, path) {
 function createDir(type, path) {
 	if (type == 1) {
 		var dirName = $("#newDirName").val();
-		layer.msg('Processing, please wait...', {
+		layer.msg('Lagi diproses, tunggu bentar...', {
 			icon: 16,
 			time: 10000
 		});
@@ -918,14 +918,14 @@ function createDir(type, path) {
 		shift: 5,
 		closeBtn: 1,
 		area: '320px',
-		title: 'New directory',
+		title: 'Folder baru',
 		content: '<div class="bt-form pd20 pb70">\
 					<div class="line">\
-					<input type="text" class="bt-input-text" name="Name" id="newDirName" value="" placeholder="Directory name" style="width:100%" />\
+					<input type="text" class="bt-input-text" name="Name" id="newDirName" value="" placeholder="Nama folder" style="width:100%" />\
 					</div>\
 					<div class="bt-form-submit-btn">\
-					<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Cancel</button>\
-					<button type="button" id="createDirBtn" class="btn btn-success btn-sm btn-title" onclick="createDir(1,\'' + path + '\')">New Directory</button>\
+					<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Batal</button>\
+					<button type="button" id="createDirBtn" class="btn btn-success btn-sm btn-title" onclick="createDir(1,\'' + path + '\')">Folder baru</button>\
 					</div>\
 				</div>',
 		success:function(){
@@ -938,8 +938,8 @@ function createDir(type, path) {
 }
 
 function deleteFile(fileName){
-	layer.confirm(lan.get('recycle_bin_confirm',[fileName]),{title:'Delete Files',closeBtn:2,icon:3},function(){
-		layer.msg('Processing, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
+	layer.confirm(lan.get('recycle_bin_confirm',[fileName]),{title:'Hapus file',closeBtn:2,icon:3},function(){
+		layer.msg('Lagi diproses, tunggu bentar...',{icon:16,time:0,shade: [0.3, '#000']});
 		$.post('/files/delete', 'path=' + encodeURIComponent(fileName), function(rdata) {
 			layer.closeAll();
 			layer.msg(rdata.msg, {
@@ -951,8 +951,8 @@ function deleteFile(fileName){
 }
 
 function deleteDir(dirName){
-	layer.confirm(lan.get('recycle_bin_confirm_dir',[dirName]),{title:'Delete directory',closeBtn:2,icon:3},function(){
-		layer.msg('Processing, please wait...',{icon:16,time:0,shade: [0.3, '#000']});
+	layer.confirm(lan.get('recycle_bin_confirm_dir',[dirName]),{title:'Hapus folder',closeBtn:2,icon:3},function(){
+		layer.msg('Lagi diproses, tunggu bentar...',{icon:16,time:0,shade: [0.3, '#000']});
 		$.post('/files/delete_dir', 'path=' + encodeURIComponent(dirName), function(rdata) {
 			layer.closeAll();
 			layer.msg(rdata.msg, {
@@ -964,8 +964,8 @@ function deleteDir(dirName){
 }
 
 function allDeleteFileSub(data,path){
-	layer.confirm('Are you sure you want to put these files in the trash?',{title:'Batch delete files',closeBtn:2,icon:3},function(){
-		layer.msg("<div class='myspeed'>Processing, please wait...</div>",{icon:16,time:0,shade: [0.3, '#000']});
+	layer.confirm('Beneran mau buang file-file ini ke tempat sampah?',{title:'Hapus massal',closeBtn:2,icon:3},function(){
+		layer.msg("<div class='myspeed'>Lagi diproses, tunggu bentar...</div>",{icon:16,time:0,shade: [0.3, '#000']});
 		setTimeout(function(){getSpeed('.myspeed');},1000);
 		$.post('/files/set_batch_data',data,function(rdata){
 			layer.closeAll();
@@ -992,7 +992,7 @@ function downloadFile(action){
 		fname = encodeURIComponent($("#dfilename").val());
 
 		if (fUrl == "" ){
-			layer.msg("URL address cannot be empty!",{icon:2});
+			layer.msg("Alamat URL nggak boleh kosong!",{icon:2});
 			return;
 		}
 
@@ -1014,20 +1014,20 @@ function downloadFile(action){
 		shift: 5,
 		closeBtn: 1,
 		area: '500px',
-		btn:["Yes","No"],
+		btn:["Ya","Nggak"],
 		title: lan.files.down_title,
 		content: '<form class="bt-form pd20">\
 					<div class="line">\
-						<span class="tname">URL address:</span>\
-						<input type="text" class="bt-input-text" name="url" id="mUrl" placeholder="URL address" style="width:330px" />\
+						<span class="tname">Alamat URL:</span>\
+						<input type="text" class="bt-input-text" name="url" id="mUrl" placeholder="Alamat URL" style="width:330px" />\
 					</div>\
 					<div class="line">\
-						<span class="tname ">Download to:</span>\
-						<input type="text" class="bt-input-text" name="path" id="dpath" value="'+path+'" placeholder="Download to" style="width:330px" />\
+						<span class="tname ">Unduh ke:</span>\
+						<input type="text" class="bt-input-text" name="path" id="dpath" value="'+path+'" placeholder="Unduh ke" style="width:330px" />\
 					</div>\
 					<div class="line">\
-						<span class="tname">Filename:</span>\
-						<input type="text" class="bt-input-text" name="filename" id="dfilename" value="" placeholder="Filename" style="width:330px" />\
+						<span class="tname">Nama file:</span>\
+						<input type="text" class="bt-input-text" name="filename" id="dfilename" value="" placeholder="Nama file" style="width:330px" />\
 					</div>\
 				</form>',
 		success:function(){
@@ -1066,11 +1066,11 @@ function reName(type, fileName) {
 		shift: 5,
 		closeBtn: 1,
 		area: '320px',
-		title: 'Rename',
-		btn:["Yes","No"],
+		title: 'Ubah nama',
+		btn:["Ya","Nggak"],
 		content: '<div class="bt-form pd20">\
 					<div class="line">\
-					<input type="text" class="bt-input-text" name="Name" id="newFileName" value="' + fileName + '" placeholder="Filename" style="width:100%" />\
+					<input type="text" class="bt-input-text" name="Name" id="newFileName" value="' + fileName + '" placeholder="Nama file" style="width:100%" />\
 					</div>\
 				</div>',
 		success:function(){
@@ -1089,7 +1089,7 @@ function cutFile(fileName) {
 	var path = $("#DirPathPlace input").val();
 	setCookie('cutFileName', fileName);
 	setCookie('copyFileName', null);
-	layer.msg('Cut', {
+	layer.msg('Potong', {
 		icon: 1,
 		time: 1000,
 	});
@@ -1102,7 +1102,7 @@ function copyFile(fileName) {
 	var path = $("#DirPathPlace input").val();
 	setCookie('copyFileName', fileName);
 	setCookie('cutFileName', null);
-	layer.msg('Copied', {
+	layer.msg('Berhasil disalin', {
 		icon: 1,
 		time: 1000,
 	});
@@ -1125,10 +1125,10 @@ function pasteFile(fileName) {
 			for(var i=0;i<result.length;i++){
 				tbody += '<tr><td>'+result[i].filename+'</td><td>'+toSize(result[i].size)+'</td><td>'+getLocalTime(result[i].mtime)+'</td></tr>';
 			}
-			var mbody = '<div class="divtable"><table class="table table-hover" width="100%" border="0" cellpadding="0" cellspacing="0"><thead><th>Filename</th><th>Size</th><th>Modified</th></thead>\
+			var mbody = '<div class="divtable"><table class="table table-hover" width="100%" border="0" cellpadding="0" cellspacing="0"><thead><th>Nama file</th><th>Ukuran</th><th>Diubah</th></thead>\
 						<tbody>'+tbody+'</tbody>\
 						</table></div>';
-			safeMessage('The following files will be overwritten',mbody,function(){
+			safeMessage('File berikut bakal ditimpa',mbody,function(){
 				pasteTo(path,copyName,cutName,fileName);
 			});
 		} else {
@@ -1269,7 +1269,7 @@ function unZip(fileName, type) {
 		shift: 5,
 		closeBtn: 1,
 		area: '490px',
-		title: 'Unzip files',
+		title: 'Ekstrak file',
 		content: '<div class="bt-form pd20 pb70">'
 			+'<div class="line unzipdiv">'
 			+'<span class="tname">'+lan.files.unzip_name+'</span><input type="text" class="bt-input-text" id="sfile" value="' +fileName + '" placeholder="'+lan.files.unzip_name_title+'" style="width:330px" /></div>'
@@ -1322,7 +1322,7 @@ function getImage(fileName){
 		type:1,
 		offset: '150px',
 		closeBtn: 1,
-		title:"Picture Preview",
+		title:"Pratinjau Gambar",
 		area: '400px',
 		shadeClose: true,
 		content: '<div class="showpicdiv"><img style="max-width:400px;" src="'+imgUrl+'"></div>'
@@ -1344,18 +1344,18 @@ function uploadFiles(){
 		content:'<div class="fileUploadDiv">\
 				<input type="hidden" id="input-val" value="'+path+'" />\
 				<input type="file" id="file_input"  multiple="true" autocomplete="off" />\
-				<button type="button"  id="opt" autocomplete="off">Add files</button>\
-				<button type="button" id="up" autocomplete="off" >Upload</button>\
+				<button type="button"  id="opt" autocomplete="off">Tambah file</button>\
+				<button type="button" id="up" autocomplete="off" >Unggah</button>\
 				<span id="totalProgress" style="position: absolute;top: 7px;right: 147px;"></span>\
 				<span style="float:right;margin-top: 9px;">\
-				<font>File encoding:</font>\
+				<font>Encoding file:</font>\
 				<select id="fileCodeing" >\
-					<option value="byte">Binary</option>\
+					<option value="byte">Biner</option>\
 					<option value="utf-8">UTF-8</option>\
 					<option value="gb18030">GB2312</option>\
 				</select>\
 				</span>\
-				<button type="button" id="filesClose" autocomplete="off" onClick="layer.closeAll()" >Close</button>\
+				<button type="button" id="filesClose" autocomplete="off" onClick="layer.closeAll()" >Tutup</button>\
 				<ul id="up_box"></ul>\
 			</div>'
 	});
@@ -1367,7 +1367,7 @@ function setChmod(action,fileName){
 		var chmod = $("#access").val();
 		var chown = $("#chown").val();
 		var data = 'filename='+ encodeURIComponent(fileName)+'&user='+chown+'&access='+chmod;
-		var loadT = layer.msg('Setting up...',{icon:16,time:0,shade: [0.3, '#000']});
+		var loadT = layer.msg('Lagi diatur...',{icon:16,time:0,shade: [0.3, '#000']});
 		$.post('/files/set_file_access',data,function(rdata){
 			layer.close(loadT);
 			if(rdata.status) layer.closeAll();
@@ -1384,38 +1384,38 @@ function setChmod(action,fileName){
 		layer.open({
 			type:1,
 			closeBtn: 1,
-			title: 'Setting permissions ['+fileName+']',
+			title: 'Atur izin ['+fileName+']',
 			area: '400px',
 			shadeClose:false,
 			content:'<div class="setchmod bt-form ptb15 pb70">\
 						<fieldset>\
-							<legend>Owner</legend>\
-							<p><input type="checkbox" id="owner_r" />Read</p>\
-							<p><input type="checkbox" id="owner_w" />Write</p>\
-							<p><input type="checkbox" id="owner_x" />Execute</p>\
+							<legend>Pemilik</legend>\
+							<p><input type="checkbox" id="owner_r" />Baca</p>\
+							<p><input type="checkbox" id="owner_w" />Tulis</p>\
+							<p><input type="checkbox" id="owner_x" />Eksekusi</p>\
 						</fieldset>\
 						<fieldset>\
-							<legend>Group</legend>\
-							<p><input type="checkbox" id="group_r" />Read</p>\
-							<p><input type="checkbox" id="group_w" />Write</p>\
-							<p><input type="checkbox" id="group_x" />Execute</p>\
+							<legend>Grup</legend>\
+							<p><input type="checkbox" id="group_r" />Baca</p>\
+							<p><input type="checkbox" id="group_w" />Tulis</p>\
+							<p><input type="checkbox" id="group_x" />Eksekusi</p>\
 						</fieldset>\
 						<fieldset>\
-							<legend>Public</legend>\
-							<p><input type="checkbox" id="public_r" />Read</p>\
-							<p><input type="checkbox" id="public_w" />Write</p>\
-							<p><input type="checkbox" id="public_x" />Execute</p>\
+							<legend>Publik</legend>\
+							<p><input type="checkbox" id="public_r" />Baca</p>\
+							<p><input type="checkbox" id="public_w" />Tulis</p>\
+							<p><input type="checkbox" id="public_x" />Eksekusi</p>\
 						</fieldset>\
-						<div class="setchmodnum"><input class="bt-input-text" type="text" id="access" maxlength="3" value="'+rdata.chmod+'">Permissions，\
-						<span>Owner\
+						<div class="setchmodnum"><input class="bt-input-text" type="text" id="access" maxlength="3" value="'+rdata.chmod+'">Izin，\
+						<span>Pemilik\
 						<select id="chown" class="bt-input-text">\
 							<option value="www" '+(rdata.chown=='www'?'selected="selected"':'')+'>www</option>\
 							<option value="mysql" '+(rdata.chown=='mysql'?'selected="selected"':'')+'>mysql</option>\
 							<option value="root" '+(rdata.chown=='root'?'selected="selected"':'')+'>root</option>\
 						</select></span></div>\
 						<div class="bt-form-submit-btn">\
-							<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Cancel</button>\
-					        <button type="button" class="btn btn-success btn-sm btn-title" onclick="'+toExec+'" >Yes</button>\
+							<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Batal</button>\
+					        <button type="button" class="btn btn-success btn-sm btn-title" onclick="'+toExec+'" >Ya</button>\
 				        </div>\
 					</div>'
 		});
@@ -1488,9 +1488,9 @@ function rightMenuClick(type,path,name){
 	// console.log(type,path,name);
 	var displayZip = isZip(type);
 	var options = {items:[
-		{text: "Copy", onclick: function() {copyFile(path)}},
-		{text: "Cut", 	onclick: function() {cutFile(path)}},
-		{text: "Rename", onclick: function() {reName(0,name)}},
+		{text: "Salin", onclick: function() {copyFile(path)}},
+		{text: "Potong", 	onclick: function() {cutFile(path)}},
+		{text: "Ubah nama", onclick: function() {reName(0,name)}},
 		{text: lan.files.file_menu_auth, onclick: function() {setChmod(0,path)}},
 	 	{text: lan.files.file_menu_zip, onclick: function() {zip(path)}},
 	]};
@@ -1554,7 +1554,7 @@ function rightMenuClickAll(e){
 
 function getPathSize(){
 	var path = encodeURIComponent($("#DirPathPlace input").val());
-	layer.msg("Calculating, please wait...",{icon:16,time:0,shade: [0.3, '#000']})
+	layer.msg("Lagi ngitung, sabar ya...",{icon:16,time:0,shade: [0.3, '#000']})
 	$.post("/files/get_dir_size","path="+path,function(rdata){
 		layer.closeAll();
 		$("#pathSize").text(rdata.msg);

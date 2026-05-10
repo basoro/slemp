@@ -31,7 +31,7 @@ $(function () {
 });
 
 function getLoad(data) {
-    $("#LoadList .mask").html("<span id='Load' style='font-size:14px'>Getting information..</span>");
+    $("#LoadList .mask").html("<span id='Load' style='font-size:14px'>Lagi ambil info..</span>");
     setCookie('one', data.one);
     setCookie('five', data.five);
     setCookie('fifteen', data.fifteen);
@@ -43,16 +43,16 @@ function getLoad(data) {
     if (Occupy > 100) Occupy = 100;
     if (Occupy <= 30) {
         LoadColor = '#20a53a';
-        AverageText = 'Run smoothly';
+        AverageText = 'Lancar jaya';
     } else if (Occupy <= 70) {
         LoadColor = '#6ea520';
-        AverageText = 'Operating normally';
+        AverageText = 'Normal';
     } else if (Occupy <= 90) {
         LoadColor = '#ff9900';
-        AverageText = 'Sun slowly';
+        AverageText = 'Agak lambat';
     } else {
         LoadColor = '#dd2f00';
-        AverageText = 'Running jam';
+        AverageText = 'Macet';
     }
     index.find('.circle').css("background", LoadColor);
     index.find('.mask').css({ "color": LoadColor });
@@ -72,7 +72,7 @@ $('#LoadList .mask').hover(function () {
     one = getCookie('one');
     five = getCookie('five');
     fifteen = getCookie('fifteen');
-    var text = 'Average load in the last 1 minute: ' + one + '</br> Average load in the last 5 minutes: ' + five + '</br> Average load in the last 15 minutes: ' + fifteen + '';
+    var text = 'Rata-rata beban 1 menit terakhir: ' + one + '</br> Rata-rata beban 5 menit terakhir: ' + five + '</br> Rata-rata beban 15 menit terakhir: ' + fifteen + '';
     layer.tips(text, that, { time: 0, tips: [1, '#999'] });
 }, function () {
     layer.closeAll('tips');
@@ -98,7 +98,7 @@ function showCpuTips(rdata) {
                 }
             }
         }
-        layer.tips(rdata.cpu[3] + "</br>" + rdata.cpu[5] + " physical CPU, " + (rdata.cpu[4]) + " physical core, " + rdata.cpu[1] + " logical core</br>" + cpuText, this, { time: 0, tips: [1, '#999'] });
+        layer.tips(rdata.cpu[3] + "</br>" + rdata.cpu[5] + " CPU fisik, " + (rdata.cpu[4]) + " core fisik, " + rdata.cpu[1] + " core logis</br>" + cpuText, this, { time: 0, tips: [1, '#999'] });
     }, function () {
         layer.closeAll('tips');
     });
@@ -155,19 +155,19 @@ function getDiskInfo() {
 
             var inodes = '';
             if (typeof (rdata[i]['inodes']) !== 'undefined') {
-                inodes = '<div class="mask" style="color:' + LoadColor + '" data="Inode Information<br>Total：' + rdata[i].inodes[0] + '<br>Used：' + rdata[i].inodes[1] + '<br>Available：' + rdata[i].inodes[2] + '<br>Inode usage：' + rdata[i].inodes[3] + '"><span>' + rdata[i].size[3].replace('%', '') + '</span>%</div>';
+                inodes = '<div class="mask" style="color:' + LoadColor + '" data="Info Inode<br>Total: ' + rdata[i].inodes[0] + '<br>Terpakai: ' + rdata[i].inodes[1] + '<br>Tersedia: ' + rdata[i].inodes[2] + '<br>Penggunaan Inode: ' + rdata[i].inodes[3] + '"><span>' + rdata[i].size[3].replace('%', '') + '</span>%</div>';
 
                 var ipre = parseInt(rdata[i].inodes[3].replace('%', ''));
                 if (ipre > 95) {
                     $("#messageError").show();
-                    $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span>Partition [' + rdata[i].path + '] current Inode usage exceeds ' + ipre + '%. When the usage is 100%, files cannot be created in this partition. Please clean it up in time! <a class="btlink" href="javascript:ClearSystem();">[Clean up trash]</a></p>');
+                    $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span>Partisi [' + rdata[i].path + '] penggunaan Inode sekarang lebih dari ' + ipre + '%. Kalau sampai 100%, kamu nggak bakal bisa bikin file lagi di partisi ini. Buruan bersihin ya! <a class="btlink" href="javascript:ClearSystem();">[Bersihin sampah]</a></p>');
                 }
             }
 
             if (rdata[i].path == '/' || rdata[i].path == '/www') {
                 if (rdata[i].size[2].indexOf('M') != -1) {
                     $("#messageError").show();
-                    $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span> ' + lan.get('diskinfo_span_1', [rdata[i].path]) + ' <a class="btlink" href="javascript:ClearSystem();">[Clean up trash]</a></p>');
+                    $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span> ' + lan.get('diskinfo_span_1', [rdata[i].path]) + ' <a class="btlink" href="javascript:ClearSystem();">[Bersihin sampah]</a></p>');
                 }
             }
 
@@ -189,10 +189,10 @@ function getDiskInfo() {
 }
 
 function clearSystem() {
-    var loadT = layer.msg('Cleaning up system junk <img src="/static/img/ing.gif">', { icon: 16, time: 0, shade: [0.3, "#000"] });
+    var loadT = layer.msg('Lagi bersihin sampah sistem <img src="/static/img/ing.gif">', { icon: 16, time: 0, shade: [0.3, "#000"] });
     $.get('/system?action=ClearSystem', function (rdata) {
         layer.close(loadT);
-        layer.msg('Cleanup is complete, a total of [' + rdata[0] + '] files will be cleaned up, and [' + toSize(rdata[1]) + '] disk space will be released!', { icon: 1 });
+        layer.msg('Bersih-bersih selesai, total ada [' + rdata[0] + '] file yang dibuang, dan [' + toSize(rdata[1]) + '] ruang disk dibebasin!', { icon: 1 });
     });
 }
 
@@ -211,6 +211,7 @@ function setMemImg(info) {
 
 function getInfo() {
     $.get("/system/system_total", function (info) {
+        console.log(info);
         setCookie("memRealUsed", parseInt(info.memRealUsed));
         $("#memory").html(parseInt(info.memRealUsed) + '/' + parseInt(info.memTotal) + ' (MB)');
         setCookie("mem-before", $("#memory").text());
@@ -231,7 +232,7 @@ function getInfo() {
             $(".ico-system").addClass("ico-debian");
         } else if (_system.indexOf("Fedora") != -1) {
             $(".ico-system").addClass("ico-fedora");
-        } else if (_system.indexOf("Mac") != -1) {
+        } else if (_system.indexOf("Mac") != -1 || _system.toLowerCase().indexOf("mac") != -1) {
             $(".ico-system").addClass("ico-mac");
         } else {
             $(".ico-system").addClass("ico-linux");
@@ -274,7 +275,7 @@ function setcolor(pre, s, s1, s2, s3) {
 function getNet() {
     var up, down;
     $.get("/system/network", function (net) {
-        $("#InterfaceSpeed").html(lan.index.interfacespeed + "： 1.0Gbps");
+        $("#InterfaceSpeed").html("Kecepatan Interface： 1.0Gbps");
         $("#upSpeed").html(net.up + ' KB');
         $("#downSpeed").html(net.down + ' KB');
         $("#downAll").html(toSize(net.downTotal));
@@ -495,8 +496,8 @@ setTimeout(function () {
     $.get('/system/update_server?type=check', function (rdata) {
         if (rdata.status == false) return;
         if (rdata.data != undefined) {
-            $("#toUpdate").html('<a class="btlink" href="javascript:updateMsg();">Renew</a>');
-            $('#toUpdate a').html('Renew<i style="display: inline-block; color: red; font-size: 40px;position: absolute;top: -35px; font-style: normal; right: -8px;">.</i>');
+            $("#toUpdate").html('<a class="btlink" href="javascript:updateMsg();">Perbarui</a>');
+            $('#toUpdate a').html('Perbarui<i style="display: inline-block; color: red; font-size: 40px;position: absolute;top: -35px; font-style: normal; right: -8px;">.</i>');
             $('#toUpdate a').css("position", "relative");
             return;
         }
@@ -532,21 +533,21 @@ function updateMsg() {
         var v = rdata.data.version;
         var v_info = '';
         if (v.split('.').length > 3) {
-            v_info = "<span class='label label-warning'>Test version</span>";
+            v_info = "<span class='label label-warning'>Versi testing</span>";
         } else {
-            v_info = "<span class='label label-success arrowed'>Official version</span>";
+            v_info = "<span class='label label-success arrowed'>Versi resmi</span>";
         }
 
         layer.open({
             type: 1,
-            title: v_info + '<span class="badge badge-inverse">Upgrade to [' + rdata.data.version + ']</span>',
+            title: v_info + '<span class="badge badge-inverse">Upgrade ke [' + rdata.data.version + ']</span>',
             area: '400px',
             shadeClose: false,
             closeBtn: 2,
             content: '<div class="setchmod bt-form pd20 pb70">'
                 + '<p style="padding: 0 0 10px;line-height: 24px;">' + rdata.data.content + '</p>'
                 + '<div class="bt-form-submit-btn">'
-                + '<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Cancel</button>'
+                + '<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">Batal</button>'
                 + '<button type="button" class="btn btn-success btn-sm btn-title" onclick="updateVersion(\'' + rdata.data.version + '\')" >Update</button>'
                 + '</div>'
                 + '</div>'
@@ -556,7 +557,7 @@ function updateMsg() {
 
 
 function updateVersion(version) {
-    var loadT = layer.msg('SLEMP Panel is being upgraded..', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    var loadT = layer.msg('Panel SLEMP lagi di-upgrade..', { icon: 16, time: 0, shade: [0.3, '#000'] });
     $.get('/system/update_server?type=update&version=' + version, function (rdata) {
 
         layer.closeAll();
@@ -570,7 +571,7 @@ function updateVersion(version) {
             $("#toUpdate").html('');
         }
     }, 'json').error(function () {
-        layer.msg('Update failed, please try again!', { icon: 2 });
+        layer.msg('Gagal update, coba lagi ya!', { icon: 2 });
         setTimeout(function () {
             window.location.reload();
         }, 3000);
@@ -593,7 +594,7 @@ function pluginIndexService(pname, pfunc, callback) {
 function reBoot() {
     layer.open({
         type: 1,
-        title: 'Restart the server or panel',
+        title: 'Restart server atau panel',
         area: '330px',
         closeBtn: 1,
         shadeClose: false,
@@ -605,7 +606,7 @@ function reBoot() {
         var type = $(this).attr('data-id');
         switch (type) {
             case 'panel':
-                layer.confirm('SLEMP Panel service will be restarted soon, continue?', { title: 'Restart panel service', closeBtn: 1, icon: 3 }, function () {
+                layer.confirm('Layanan Panel SLEMP bakal di-restart, lanjut?', { title: 'Restart layanan panel', closeBtn: 1, icon: 3 }, function () {
                     var loadT = layer.load();
                     $.post('/system/restart', '', function (rdata) {
                         layer.close(loadT);
@@ -617,23 +618,23 @@ function reBoot() {
             case 'server':
                 var rebootbox = layer.open({
                     type: 1,
-                    title: 'Restart the server safely',
+                    title: 'Restart server dengan aman',
                     area: ['500px', '280px'],
                     closeBtn: 1,
                     shadeClose: false,
                     content: "<div class='bt-form bt-window-restart'>\
                             <div class='pd15'>\
-                            <p style='color:red; margin-bottom:10px; font-size:15px;'>Note, if your server is a container, please cancel.</p>\
+                            <p style='color:red; margin-bottom:10px; font-size:15px;'>Catatan: Kalau server kamu itu container (kayak Docker), mending batalin aja.</p>\
                             <div class='SafeRestart' style='line-height:26px'>\
-                                <p>Safe Reboot helps keep your files safe and will do the following:</p>\
-                                <p>1. Stop the web service</p>\
-                                <p>2. Stop the MySQL service</p>\
-                                <p>3. Start restarting the server</p>\
-                                <p>4. Wait for the server to start</p>\
+                                <p>Reboot Aman bantu jagain file kamu dan bakal ngelakuin ini:</p>\
+                                <p>1. Matikan layanan web</p>\
+                                <p>2. Matikan layanan MySQL</p>\
+                                <p>3. Mulai restart server</p>\
+                                <p>4. Tunggu server nyala lagi</p>\
                             </div>\
                             </div>\
                             <div class='bt-form-submit-btn'>\
-                                <button type='button' class='btn btn-danger btn-sm btn-reboot'>Cancel</button>\
+                                <button type='button' class='btn btn-danger btn-sm btn-reboot'>Batal</button>\
                                 <button type='button' class='btn btn-success btn-sm WSafeRestart' >Restart</button>\
                             </div>\
                         </div>"
@@ -645,21 +646,21 @@ function reBoot() {
                     $(".WSafeRestart").click(function () {
                         var body = '<div class="SafeRestartCode pd15" style="line-height:26px"></div>';
                         $(".bt-window-restart").html(body);
-                        $(".SafeRestartCode").append("<p>Stopping web service</p>");
+                        $(".SafeRestartCode").append("<p>Lagi matikan layanan web</p>");
                         pluginIndexService('openresty', 'stop', function (r1) {
                             $(".SafeRestartCode p").addClass('c9');
-                            $(".SafeRestartCode").append("<p>Stopping the MySQL service...</p>");
+                            $(".SafeRestartCode").append("<p>Lagi matikan layanan MySQL...</p>");
                             pluginIndexService('mysql', 'stop', function (r2) {
                                 $(".SafeRestartCode p").addClass('c9');
-                                $(".SafeRestartCode").append("<p>Start restarting the server...</p>");
+                                $(".SafeRestartCode").append("<p>Mulai restart server...</p>");
                                 $.post('/system/restart_server', '', function (rdata) {
                                     $(".SafeRestartCode p").addClass('c9');
-                                    $(".SafeRestartCode").append("<p>Wait for the server to start...</p>");
+                                    $(".SafeRestartCode").append("<p>Tunggu server nyala lagi...</p>");
                                     var sEver = setInterval(function () {
                                         $.get("/system/system_total", function (info) {
                                             clearInterval(sEver);
                                             $(".SafeRestartCode p").addClass('c9');
-                                            $(".SafeRestartCode").append("<p>The server restarted successfully!...</p>");
+                                            $(".SafeRestartCode").append("<p>Server berhasil di-restart!...</p>");
                                             setTimeout(function () {
                                                 layer.closeAll();
                                             }, 3000);
@@ -724,25 +725,25 @@ function setSafeHide() {
 }
 
 function showDanger(num, port) {
-    var atxt = "Because the security isolation login is not used, all IPs can try to connect, and there is a high risk, please deal with it immediately.";
+    var atxt = "Karena nggak pakai isolasi login, semua IP bisa nyoba masuk. Bahaya banget nih, buruan diurus ya!";
     if (port == "22") {
-        atxt = "Since the default port 22 of SSH has not been modified, and security isolation is not used to log in, all IPs can try to connect, and there is a high risk, please deal with it immediately.";
+        atxt = "Karena port default SSH 22 belum diganti dan nggak pakai isolasi login, semua IP bisa nyoba masuk. Risiko tinggi, buruan benerin!";
     }
     layer.open({
         type: 1,
         area: ['720px', '410px'],
-        title: 'Security reminder (if you want to give up any security reminder notification, please delete the security login plugin)',
+        title: 'Peringatan keamanan (kalau nggak mau dapet peringatan lagi, hapus aja plugin security login)',
         closeBtn: 1,
         shift: 5,
         content: '<div class="pd20">\
 				<table class="f14 showDanger"><tbody>\
-				<tr><td class="text-right" width="150">Risk type：</td><td class="f16" style="color:red">brute force <a href="https://github.com/basoro/slemp/wiki/Interpretasi-dan-pertahanan-cracking-serangan-arak-pada-SSH" class="btlink f14" style="margin-left:10px" target="_blank">explain</a></td></tr>\
-				<tr><td class="text-right">The cumulative total number of attacks encountered：</td><td class="f16" style="color:red">' + num + ' <a href="javascript:showDangerIP();" class="btlink f14" style="margin-left:10px">detailed</a><span class="c9 f12" style="margin-left:10px">（The data comes directly from this server log）</span></td></tr>\
-				<tr><td class="text-right">Risk level：</td><td class="f16" style="color:red">higher risk</td></tr>\
-				<tr><td class="text-right" style="vertical-align:top">Risk description：</td><td style="line-height:20px">' + atxt + '</td></tr>\
-				<tr><td class="text-right" style="vertical-align:top">Solutions available：</td><td><p style="margin-bottom:8px">Solution: Modify the SSH default port, modify the SSH authentication method to digital certificate, and clear recent login logs. </p></td></tr>\
+				<tr><td class="text-right" width="150">Jenis risiko: </td><td class="f16" style="color:red">brute force <a href="https://github.com/basoro/slemp/wiki/Interpretasi-dan-pertahanan-cracking-serangan-arak-pada-SSH" class="btlink f14" style="margin-left:10px" target="_blank">penjelasan</a></td></tr>\
+				<tr><td class="text-right">Total serangan yang kedeteksi: </td><td class="f16" style="color:red">' + num + ' <a href="javascript:showDangerIP();" class="btlink f14" style="margin-left:10px">detail</a><span class="c9 f12" style="margin-left:10px">（Data diambil langsung dari log server）</span></td></tr>\
+				<tr><td class="text-right">Tingkat risiko: </td><td class="f16" style="color:red">risiko tinggi</td></tr>\
+				<tr><td class="text-right" style="vertical-align:top">Deskripsi risiko: </td><td style="line-height:20px">' + atxt + '</td></tr>\
+				<tr><td class="text-right" style="vertical-align:top">Solusi yang ada: </td><td><p style="margin-bottom:8px">Solusi: Ganti port default SSH, pakai sertifikat digital buat login, dan hapus log login terakhir. </p></td></tr>\
 				</tbody></table>\
-				<div class="mtb20 text-center"><a href="https://www.bt.cn/admin/index.html" target="_blank" class="btn btn-success">Deploy isolation protection now</a></div>\
+				<div class="mtb20 text-center"><a href="https://github.com/basoro/slemp" target="_blank" class="btn btn-success">Pasang proteksi isolasi sekarang</a></div>\
 				</div>'
     });
     $(".showDanger td").css("padding", "8px")
@@ -787,14 +788,14 @@ function pluginInit() {
 
         layer.open({
             type: 1,
-            title: 'Recommended installation',
+            title: 'Rekomendasi instalasi',
             area: ["337px", "403px"],
             closeBtn: 2,
             shadeClose: false,
             content: "\
         <div class='rec-install'>\
             <div class='important-title'>\
-                <p><span class='glyphicon glyphicon-alert' style='color: #f39c12; margin-right: 10px;'></span>The following are recommended <a href='javascript:jump()' style='color:#20a53a'>application</a>.</p>\
+                <p><span class='glyphicon glyphicon-alert' style='color: #f39c12; margin-right: 10px;'></span>Ini aplikasi yang direkomendasiin <a href='javascript:jump()' style='color:#20a53a'>aplikasi</a>.</p>\
             </div>\
             <div class='rec-box'>\
                 <h3 style='text-align: center'>Classic LNMP</h3>\

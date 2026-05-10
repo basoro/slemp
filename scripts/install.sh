@@ -24,12 +24,6 @@ else
     rootPath="/opt/slemp/server/panel"
     serverPath="/opt/slemp/server"
 fi
-if [ -f ${rootPath}/tools.py ];then
-	echo -e "存在旧版代码,不能安装!,已知风险的情况下" 
-	echo -e "rm -rf ${rootPath}"
-	echo -e "可安装!" 
-	exit 0
-fi
 
 LOG_FILE=slemp-install.log
 {
@@ -84,7 +78,7 @@ function ChooseProxyURL(){
     echo -e '|                                                   |'
     echo -e '|   =============================================   |'
     echo -e '|                                                   |'
-    echo -e '|     欢迎使用 Linux 一键安装panel面板源码   |'
+    echo -e '|  Selamat datang di Skrip Instalasi Sekali Klik Panel Linux  |'
     echo -e '|                                                   |'
     echo -e '|   =============================================   |'
     echo -e '|                                                   |'
@@ -92,7 +86,7 @@ function ChooseProxyURL(){
     echo -e ''
     echo -e '#####################################################'
     echo -e ''
-    echo -e '            提供以下国内代理地址可供选择:                  '
+    echo -e '            Alamat proxy domestik berikut tersedia untuk dipilih:                 '
     echo -e ''
     echo -e '#####################################################'
     echo -e ''
@@ -105,10 +99,10 @@ function ChooseProxyURL(){
     echo -e ''
     echo -e '#####################################################'
     echo -e ''
-    echo -e "        系统时间  ${BLUE}$(date "+%Y-%m-%d %H:%M:%S")${PLAIN}"
+    echo -e "        Waktu Sistem  ${BLUE}$(date "+%Y-%m-%d %H:%M:%S")${PLAIN}"
     echo -e ''
     echo -e '#####################################################'
-    CHOICE_A=$(echo -e "\n${BOLD}└─ 请选择并输入你想使用的代理地址 [ 1-${SOURCE_LIST_LEN} ]：${PLAIN}")
+    CHOICE_A=$(echo -e "\n${BOLD}└─ Silakan pilih dan masukkan alamat proxy yang ingin Anda gunakan [ 1-${SOURCE_LIST_LEN} ]：${PLAIN}")
 
     read -p "${CHOICE_A}" INPUT
     # echo $INPUT
@@ -116,14 +110,14 @@ function ChooseProxyURL(){
         INPUT=1
         TMP_INPUT=`expr $INPUT - 1`
         INPUT_KEY=${SOURCE_LIST_KEY[$TMP_INPUT]}
-        echo -e "\n默认选择[${BLUE}${INPUT_KEY}${PLAIN}]安装！"
+        echo -e "\nMemilih [${BLUE}${INPUT_KEY}${PLAIN}] secara default untuk instalasi!"
     fi
 
     if [ "$INPUT" -lt "0" ];then
 		INPUT=1
 		TMP_INPUT=`expr $INPUT - 1`
 		INPUT_KEY=${SOURCE_LIST_KEY[$TMP_INPUT]}
-		echo -e "\n低于边界错误!选择[${BLUE}${INPUT_KEY}${PLAIN}]安装！"
+		echo -e "\nError di bawah batas! Memilih [${BLUE}${INPUT_KEY}${PLAIN}] untuk instalasi!"
 		sleep 2s
 	fi
 
@@ -131,7 +125,7 @@ function ChooseProxyURL(){
 		INPUT=${SOURCE_LIST_LEN}
 		TMP_INPUT=`expr $INPUT - 1`
 		INPUT_KEY=${SOURCE_LIST_KEY[$TMP_INPUT]}
-		echo -e "\n超出边界错误!选择[${BLUE}${INPUT_KEY}${PLAIN}]安装！"
+		echo -e "\nError di atas batas! Memilih [${BLUE}${INPUT_KEY}${PLAIN}] untuk instalasi!"
 		sleep 2s
 	fi
 
@@ -148,7 +142,7 @@ if [ "$LOCAL_ADDR" != "common" ];then
 		DOMAIN=`echo $DOMAIN | sed 's|/||g'`
 		ping -c 3 $DOMAIN > /dev/null 2>&1
 		if [ "$?" != "0" ];then
-			echo "无效代理地址:${DOMAIN}"
+			echo "Alamat proxy tidak valid:${DOMAIN}"
 			exit
 		fi
 	fi
@@ -161,7 +155,7 @@ fi
 startTime=`date +%s`
 
 _os=`uname`
-echo "use system: ${_os}"
+echo "menggunakan sistem: ${_os}"
 
 if [ ${_os} == "Darwin" ]; then
 	OSNAME='macos'
@@ -211,7 +205,7 @@ else
 fi
 
 if [ "$EUID" -ne 0 ] && [ "$OSNAME" != "macos" ];then 
-	echo "Please run as root!"
+	echo "Harap jalankan sebagai root!"
  	exit
 fi
 
@@ -253,7 +247,7 @@ if [ $OSNAME != "macos" ];then
 	fi
 fi
 
-echo "use system version: ${OSNAME}"
+echo "menggunakan versi sistem: ${OSNAME}"
 if [ "${OSNAME}" == "macos" ];then
 	bash scripts/install/macos.sh
 else
@@ -261,7 +255,7 @@ else
 fi
 
 if [ "${OSNAME}" == "macos" ];then
-	echo "macos end"
+	echo "macos selesai"
 	exit 0
 fi
 
@@ -274,7 +268,7 @@ do
     sleep 1
     let n+=1
     if [ $n -gt 20 ];then
-    	echo -e "start mw fail"
+    	echo -e "mulai mw gagal"
     	exit 1
     fi
 done
@@ -292,8 +286,8 @@ fi
 
 endTime=`date +%s`
 ((outTime=(${endTime}-${startTime})/60))
-echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
+echo -e "Waktu yang dihabiskan:\033[32m $outTime \033[0mMenit!"
 
 } 1> >(tee $LOG_FILE) 2>&1
 
-echo -e "\nInstall completed. If error occurs, please contact us with the log file slemp-install.log ."
+echo -e "\nInstalasi selesai. Jika terjadi kesalahan, silakan periksa file log slemp-install.log ."

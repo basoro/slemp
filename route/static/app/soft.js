@@ -11,13 +11,13 @@ function softMain(name, title, version) {
 
     var _title = title.replace('-'+version,'')
 
-    var loadT = layer.msg("Processing, please wait...", { icon: 16, time: 0, shade: [0.3, '#000'] });
+    var loadT = layer.msg("Lagi diproses, tunggu bentar...", { icon: 16, time: 0, shade: [0.3, '#000'] });
     $.get('/plugins/setting?name='+name, function(rdata) {
         layer.close(loadT);
         layer.open({
             type: 1,
             area: '640px',
-            title: _title + '[' + version + "] management",
+            title: _title + '[' + version + "] manajemen",
             closeBtn: 1,
             shift: 0,
             content: rdata
@@ -33,7 +33,7 @@ function softMain(name, title, version) {
 
 function getSList(isdisplay) {
     if (isdisplay !== true) {
-        var loadT = layer.msg('Fetching list...', { icon: 16, time: 0, shade: [0.3, '#000'] })
+        var loadT = layer.msg('Lagi ambil daftar...', { icon: 16, time: 0, shade: [0.3, '#000'] })
     }
     if (!isdisplay || isdisplay === true)
         isdisplay = getCookie('p' + getCookie('soft_type'));
@@ -101,13 +101,13 @@ function getSList(isdisplay) {
             }
 
 
-            var handle = '<a class="btlink" onclick="addVersion(\'' + plugin.name + '\',\'' + version_info + '\',\'' + plugin.tip + '\',this,\'' + plugin.title + '\',' + plugin.install_pre_inspection + ')">Install</a>';
+            var handle = '<a class="btlink" onclick="addVersion(\'' + plugin.name + '\',\'' + version_info + '\',\'' + plugin.tip + '\',this,\'' + plugin.title + '\',' + plugin.install_pre_inspection + ')">Pasang</a>';
 
             if (plugin.setup == true) {
 
                 var mupdate = '';//(plugin.versions[n] == plugin.updates[n]) '' : '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + plugin.versions[n].version + '\',\'' + plugin.updates[n] + '\')">Renew</a> | ';
                 // if (plugin.versions[n] == '') mupdate = '';
-                handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')">Setup</a> | <a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.title +'\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection +')">Uninstall</a>';
+                handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')">Atur</a> | <a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.title +'\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection +')">Hapus</a>';
                 titleClick = 'onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
 
                 softPath = '<span class="glyphicon glyphicon-folder-open" title="' + plugin.path + '" onclick="openPath(\'' + plugin.path + '\')"></span>';
@@ -125,11 +125,11 @@ function getSList(isdisplay) {
             }
 
             if (plugin.task == '-2') {
-                handle = '<a style="color:green;" href="javascript:task();">Uninstalling...</a>';
+                handle = '<a style="color:green;" href="javascript:task();">Lagi dihapus...</a>';
             } else if (plugin.task == '-1') {
-                handle = '<a style="color:green;" href="javascript:task();">Installing...</a>';
+                handle = '<a style="color:green;" href="javascript:task();">Lagi dipasang...</a>';
             } else if (plugin.task == '0') {
-                handle = '<a style="color:#C0C0C0;" href="javascript:task();">Waiting...</a>';
+                handle = '<a style="color:#C0C0C0;" href="javascript:task();">Nunggu...</a>';
             }
 
             var plugin_title = plugin.title;
@@ -168,7 +168,7 @@ function getSList(isdisplay) {
 }
 
 function installPreInspection(name, ver, callback){
-    var loading = layer.msg('Checking the installation environment...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    var loading = layer.msg('Lagi cek lingkungan instalasi...', { icon: 16, time: 0, shade: [0.3, '#000'] });
      $.post("/plugins/run", {'name':name,'version':ver,'func':'install_pre_inspection'}, function(rdata) {
         layer.close(loading);
         if (rdata.status){
@@ -184,7 +184,7 @@ function installPreInspection(name, ver, callback){
 }
 
 function runInstall(data){
-    var loadT = layer.msg('Adding to installer...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    var loadT = layer.msg('Lagi ditambahin ke installer...', { icon: 16, time: 0, shade: [0.3, '#000'] });
     $.post("/plugins/install", data, function(rdata) {
         layer.closeAll();
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -208,13 +208,13 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
 
     layer.open({
         type: 1,
-        title: "["+titlename + "] Software Installation",
+        title: "["+titlename + "] Instalasi Perangkat Lunak",
         area: '350px',
         closeBtn: 1,
         shadeClose: true,
-        btn: ['Submit','Cancel'],
+        btn: ['Kirim','Batal'],
         content: "<div class='bt-form pd20 c6'>\
-			<div class='version line'>Installed version：" + option + "</div>\
+			<div class='version line'>Versi terpasang：" + option + "</div>\
 	    </div>",
         success:function(){
             $('.fangshi input').click(function() {
@@ -249,7 +249,7 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
 }
 
 function uninstallPreInspection(name, title, ver, callback){
-    var loading = layer.msg('Checking uninstall environment...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    var loading = layer.msg('Lagi cek lingkungan uninstal...', { icon: 16, time: 0, shade: [0.3, '#000'] });
      $.post("/plugins/run", {'name':name,'version':ver,'func':'uninstall_pre_inspection'}, function(rdata) {
         layer.close(loading);
         if (rdata.status){
@@ -269,9 +269,9 @@ function uninstallPreInspection(name, title, ver, callback){
 
 function runUninstallVersion(name, title, version){
     var title = title.replace("-"+version,"");
-    layer.confirm(msgTpl('Do you really want to uninstall [{1}-{2}]?', [title, version]), { icon: 3, closeBtn: 1 }, function() {
+    layer.confirm(msgTpl('Beneran mau hapus [{1}-{2}]?', [title, version]), { icon: 3, closeBtn: 1 }, function() {
         var data = 'name=' + name + '&version=' + version;
-        var loadT = layer.msg('Processing, please wait...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+        var loadT = layer.msg('Lagi diproses, tunggu bentar...', { icon: 16, time: 0, shade: [0.3, '#000'] });
         $.post('/plugins/uninstall', data, function(rdata) {
             layer.close(loadT)
             getSList();
@@ -400,7 +400,7 @@ function indexSoft() {
         $("input[name=list1SortOrder]").val(ssort);
         $.post("/plugins/index_sort", 'ssort=' + ssort, function(rdata) {
             if (!rdata.status){
-                showMsg('Setup failed:'+ rdata.msg, function(){
+                showMsg('Gagal diatur:'+ rdata.msg, function(){
                     indexListHtml();
                 }, { icon: 16, time: 0, shade: [0.3, '#000'] });
             }
@@ -440,7 +440,7 @@ function importPlugin(file){
             var loadT = layer.open({
                 type: 1,
                 area: "500px",
-                title: "Install third-party plugin packages",
+                title: "Pasang paket plugin pihak ketiga",
                 closeBtn: 1,
                 shift: 5,
                 shadeClose: false,
@@ -452,19 +452,19 @@ function importPlugin(file){
                 </style>\
                 <div class="bt-form c7  install_three_plugin pb70">\
                     <div class="plugin_user_info">\
-                        <p><b>Name：</b>'+ data.title + '</p>\
-                        <p><b>Version：</b>' + data.versions +'</p>\
-                        <p><b>Description：</b>' + data.ps + '</p>\
-                        <p><b>Size：</b>' + toSize(data.size) + '</p>\
-                        <p><b>Author：</b>' + data.author + '</p>\
-                        <p><b>Source：</b><a class="btlink" href="'+data.home+'" target="_blank">' + data.home + '</a></p>\
+                        <p><b>Nama：</b>'+ data.title + '</p>\
+                        <p><b>Versi：</b>' + data.versions +'</p>\
+                        <p><b>Catatan：</b>' + data.ps + '</p>\
+                        <p><b>Ukuran：</b>' + toSize(data.size) + '</p>\
+                        <p><b>Pembuat：</b>' + data.author + '</p>\
+                        <p><b>Sumber：</b><a class="btlink" href="'+data.home+'" target="_blank">' + data.home + '</a></p>\
                     </div>\
                     <ul class="help-info-text c7">\
-                        <li style="color:red;">This is a plug-in developed by a third party, its reliability cannot be verified!</li>\
-                        <li>The installation process may take a few minutes, please be patient!</li>\
-                        <li>If this plugin already exists, it will be replaced!</li>\
+                        <li style="color:red;">Ini plugin pihak ketiga, keamanannya belum terjamin!</li>\
+                        <li>Proses pasang butuh waktu beberapa menit, sabar ya!</li>\
+                        <li>Kalau plugin ini udah ada, bakal ditimpa!</li>\
                     </ul>\
-                    <div class="bt-form-submit-btn"><button type="button" class="btn btn-sm btn-danger mr5" onclick="layer.closeAll()">Cancel</button><button type="button" class="btn btn-sm btn-success" onclick="importPluginInstall(\''+ data.name + '\',\'' + data.tmp_path +'\')">Install</button></div>\
+                    <div class="bt-form-submit-btn"><button type="button" class="btn btn-sm btn-danger mr5" onclick="layer.closeAll()">Batal</button><button type="button" class="btn btn-sm btn-success" onclick="importPluginInstall(\''+ data.name + '\',\'' + data.tmp_path +'\')">Pasang</button></div>\
                 </div>'
             });
 
@@ -476,7 +476,7 @@ function importPlugin(file){
 
 
 function importPluginInstall(plugin_name, tmp_path) {
-    layer.msg('Installing, this may take a few minutes...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    layer.msg('Lagi dipasang, butuh waktu beberapa menit ya...', { icon: 16, time: 0, shade: [0.3, '#000'] });
     $.post('/plugins/input_zip', { plugin_name: plugin_name, tmp_path: tmp_path }, function (rdata) {
         layer.closeAll()
         if (rdata.status) {

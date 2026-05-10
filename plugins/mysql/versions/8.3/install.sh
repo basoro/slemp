@@ -59,7 +59,7 @@ VERSION=8.3.0
 Install_mysql()
 {
 	mkdir -p ${mysqlDir}
-	echo '正在安装脚本文件...'
+	echo 'Sedang menginstal file skrip...'
 
 	# ----- cpu start ------
 	if [ -z "${cpuCore}" ]; then
@@ -101,14 +101,14 @@ Install_mysql()
          wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com//Downloads/MySQL-8.3/mysql-boost-${VERSION}.tar.gz
 	fi
 
-	#检测文件是否损坏.
+	#Periksa apakah file rusak.
 	md5_mysql_ok=8c2399782217f5391322751c66ea261b
 	if [ -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
 		md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
 		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
 			echo "mysql8.3 file  check ok"
 		else
-			# 重新下载
+			# Unduh ulang
 			rm -rf ${mysqlDir}/mysql-${VERSION}
 			wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-8.3/mysql-boost-${VERSION}.tar.gz
 		fi
@@ -204,7 +204,7 @@ Install_mysql()
 			echo "${VERSION}Instalasi selesai"
 		else
 			# rm -rf ${mysqlDir}/mysql-${VERSION}
-			echo "${VERSION}安装失败"
+			echo "Instalasi ${VERSION} gagal"
 			exit 1
 		fi
 	fi
@@ -213,7 +213,7 @@ Install_mysql()
 Uninstall_mysql()
 {
 	rm -rf $serverPath/mysql
-	echo '卸载完成'
+	echo 'Penghapusan instalasi selesai'
 }
 
 action=$1

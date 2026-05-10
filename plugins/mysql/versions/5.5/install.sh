@@ -73,7 +73,7 @@ Install_common(){
 	apt install -y libldap2-dev 
 }
 
-# 安装依赖
+# Instal dependensi
 Install_dep(){
 	Install_common
 	add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -96,7 +96,7 @@ Install_dep_debain13(){
 Install_mysql()
 {
 	mkdir -p ${mysqlDir}
-	echo '正在安装脚本文件...'
+	echo 'Sedang menginstal file skrip...'
 
 	if [ "$sysName" != "Darwin" ];then
 		mkdir -p /var/log/mariadb
@@ -147,7 +147,7 @@ Install_mysql()
 	fi
 
 	# https://blog.whsir.com/post-7748.html
-	# arm架构编译MySQL5.5报错
+	# Kompilasi MySQL5.5 pada arsitektur ARM menghasilkan error
 	if [[ "$sysArch" =~  "aarch" ]];then
 		# wget --no-check-certificate -O ${mysqlDir}/mysql-5.5-fix-arm-client_plugin.patch https://down.whsir.com/downloads/mysql-5.5-fix-arm-client_plugin.patch
 		cd ${mysqlDir}/mysql-5.5.62 && patch -p1 < ${rootPath}/plugins/mysql/patch/mysql-5.5-fix-arm-client_plugin.patch
@@ -170,8 +170,8 @@ Install_mysql()
 		export PKG_CONFIG_PATH=${serverPath}/lib/openssl10/lib/pkgconfig
 		OPTIONS="-DWITH_SSL=${serverPath}/lib/openssl10"
 
-		# 经过测试，无法安装
-		echo "debain13不支持5.5低版本编译"
+		# Setelah dites, tidak dapat diinstal
+		echo "Debian 13 tidak mendukung kompilasi versi lama 5.5"
 		exit 0
 	fi
 
@@ -200,7 +200,7 @@ Install_mysql()
 			echo "${VERSION}Instalasi selesai"
 		else
 			# rm -rf ${mysqlDir}/mysql-5.5.62
-			echo "${VERSION}安装失败"
+			echo "Instalasi ${VERSION} gagal"
 			exit 1
 		fi
 	fi
@@ -209,7 +209,7 @@ Install_mysql()
 Uninstall_mysql()
 {
 	rm -rf $serverPath/mysql
-	echo '卸载完成'
+	echo 'Penghapusan instalasi selesai'
 }
 
 action=$1

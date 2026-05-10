@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 #+------------------------------------
-#+ 释放内存脚本
+#+ Skrip pelepasan memori
 #+------------------------------------
 
 endDate=`date +"%Y-%m-%d %H:%M:%S"`
@@ -10,12 +10,12 @@ sysName=`uname`
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 
-log="释放内存!"
+log="Melepas memori!"
 echo "★[$endDate] $log"
 echo '----------------------------------------------------------------------------'
 
 if [ $sysName == 'Darwin' ]; then
-	echo '苹果内存释放!'
+	echo 'Pelepasan memori Apple!'
 else
 	echo 'do start!'
 fi

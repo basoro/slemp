@@ -19,7 +19,7 @@ MY_VER=11.8.3
 Install_app()
 {
 	mkdir -p ${mariadbDir}
-	echo '正在安装脚本文件...'
+	echo 'Sedang menginstal file skrip...'
 
 	if [ "$sysName" != "Darwin" ];then
 		mkdir -p /var/log/mariadb
@@ -95,7 +95,7 @@ Install_app()
 			echo '11.8' > $serverPath/mariadb/version.pl
 			echo 'Instalasi selesai'
 		else
-			echo '安装失败'
+			echo 'Instalasi gagal'
 			echo 'install fail'>&2
 			exit 1
 		fi
@@ -110,7 +110,7 @@ Install_app()
 Uninstall_app()
 {
 	rm -rf $serverPath/mariadb
-	echo '卸载完成'
+	echo 'Penghapusan instalasi selesai'
 }
 
 action=$1

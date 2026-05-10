@@ -255,12 +255,16 @@ class system_api:
 
     def getSystemVersion(self):
         if slemp.getOs() == 'darwin':
-            data = slemp.execShell('sw_vers')[0]
-            data_list = data.strip().split("\n")
-            mac_version = ''
-            for x in data_list:
-                mac_version += x.split("\t")[1] + ' '
-            return mac_version
+            try:
+                data = slemp.execShell('sw_vers')[0]
+                data_list = data.strip().split("\n")
+                mac_version = ''
+                for x in data_list:
+                    if x.find(":") != -1:
+                        mac_version += x.split(":")[1].strip() + ' '
+                return mac_version.strip()
+            except:
+                return 'macOS'
 
         redhat_series = '/etc/redhat-release'
         if os.path.exists(redhat_series):

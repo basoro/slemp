@@ -188,8 +188,8 @@
 
   var replaceQueryDialog =
     ' <input type="text" style="width: 10em" class="CodeMirror-search-field"/> <span style="color: #888" class="CodeMirror-search-hint">(Use /re/ syntax for regexp search)</span>';
-  var replacementQueryDialog = '到: <input type="text" style="width: 10em" class="CodeMirror-search-field"/>';
-  var doReplaceConfirm = "替换? <button>是</button> <button>否</button> <button>全部</button> <button>取消</button>";
+  var replacementQueryDialog = 'Ke: <input type="text" style="width: 10em" class="CodeMirror-search-field"/>';
+  var doReplaceConfirm = "Ganti? <button>Ya</button> <button>Tidak</button> <button>Semua</button> <button>Batal</button>";
 
   function replaceAll(cm, query, text) {
     cm.operation(function() {
@@ -205,11 +205,11 @@
   function replace(cm, all) {
     if (cm.getOption("readOnly")) return;
     var query = cm.getSelection() || getSearchState(cm).lastQuery;
-    var dialogText = all ? "全部替换:" : "替换:"
+    var dialogText = all ? "Ganti Semua:" : "Ganti:"
     dialog(cm, dialogText + replaceQueryDialog, dialogText, query, function(query) {
       if (!query) return;
       query = parseQuery(query);
-      dialog(cm, replacementQueryDialog, "更换:", "", function(text) {
+      dialog(cm, replacementQueryDialog, "Ubah:", "", function(text) {
         text = parseString(text)
         if (all) {
           replaceAll(cm, query, text)
@@ -225,7 +225,7 @@
             }
             cm.setSelection(cursor.from(), cursor.to());
             cm.scrollIntoView({from: cursor.from(), to: cursor.to()});
-            confirmDialog(cm, doReplaceConfirm, "替换?",
+            confirmDialog(cm, doReplaceConfirm, "Ganti?",
                           [function() {doReplace(match);}, advance,
                            function() {replaceAll(cm, query, text)}]);
           };

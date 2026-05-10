@@ -53,7 +53,7 @@ Install_openresty()
 	# ----- cpu end ------
 
 	mkdir -p ${openrestyDir}
-	echo '正在安装脚本文件...'
+	echo 'Sedang menginstal file skrip...'
 
 	# wget -O openresty-1.21.4.1.tar.gz https://openresty.org/download/openresty-1.21.4.1.tar.gz
 	if [ ! -f ${openrestyDir}/openresty-${VERSION}.tar.gz ];then
@@ -201,7 +201,7 @@ Install_openresty()
 	--with-http_realip_module
 	# --without-luajit-gc64
 	# --with-debug
-	# 用于调式
+	# Digunakan untuk debugging
 
 	CMD_MAKE=`which gmake`
 	if [ "$?" == "0" ];then
@@ -236,7 +236,7 @@ Install_openresty()
 
 Uninstall_openresty()
 {
-	echo '卸载完成'
+	echo 'Penghapusan instalasi selesai'
 }
 
 action=$1

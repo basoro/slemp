@@ -1,7 +1,7 @@
 body {
     line-height: 1.4;
     color: #333;
-    font-family: "微软雅黑", Arial, Helvetica, sans-serif;
+    font-family: "Microsoft YaHei", Arial, Helvetica, sans-serif;
     font-size: 12px
 }
 
@@ -1790,7 +1790,7 @@ html .menu .menu_exit:hover {
 }
 
 .sec-install-btn {
-    font-family: "宋体";
+    font-family: "SimSun";
     width: 90px;
     height: 30px;
     line-height: 30px;
@@ -1803,7 +1803,7 @@ html .menu .menu_exit:hover {
 }
 
 .rec-box-con .onekey {
-    font-family: "宋体";
+    font-family: "SimSun";
     width: 90px;
     height: 30px;
     line-height: 30px;

@@ -12,7 +12,7 @@ export serverPath
 sysName=`uname`
 
 
-#获取信息和版本
+#Dapatkan info dan versi
 # bash ${serverPath}/mdsever-web/scripts/getos.sh
 bash ${rootPath}/scripts/getos.sh
 OSNAME=`cat ${rootPath}/data/osname.pl`
@@ -34,7 +34,7 @@ fi
 
 Install_rsyncd()
 {
-	echo '正在安装脚本文件...'
+	echo 'Sedang menginstal file skrip...'
 	
 
 	if [ "$OSNAME" == "debian" ] || [ "$OSNAME" == "ubuntu" ];then
@@ -85,7 +85,7 @@ Uninstall_rsyncd()
 	fi
 	
 	rm -rf $serverPath/rsyncd
-	echo "卸载完成"
+	echo "Penghapusan instalasi selesai"
 }
 
 action=$1

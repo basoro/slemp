@@ -29,7 +29,7 @@ class backupTools:
         startTime = time.time()
         if not path:
             endDate = time.strftime('%Y/%m/%d %X', time.localtime())
-            log = "网站[" + name + "]不存在!"
+            log = "Situs web [" + name + "] tidak ditemukan!"
             print("★[" + endDate + "] " + log)
             print(
                 "----------------------------------------------------------------------------")
@@ -226,7 +226,7 @@ class backupTools:
         slemp.echoInfo("Start compressing files：{}".format(slemp.formatDate(times=stime)))
         slemp.echoInfo("The file compression is completed, it takes {:.2f} seconds, and the size of the compressed package：{}".format(
             time.time() - stime, slemp.toSize(tar_size)))
-        slemp.echoInfo('Keep the most recent backup number：' + count + '份')
+        slemp.echoInfo('Keep the most recent backup number：' + count + ' salinan')
 
         backups = self.findPathName(backup_path, 'path_{}'.format(dirname))
         num = len(backups) - int(count)

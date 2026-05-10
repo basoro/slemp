@@ -1686,14 +1686,14 @@ function getFullSyncStatus(db) {
             }
 
             dataSource = "<p class='line' style='text-align:center;'>\
-                <span>同步数据源：</span>\
+                <span>Sumber data sinkronisasi: </span>\
                 <select class='bt-input-text' name='data_source' style='width:200px;'>" + sourceList + "</select>\
             </p>";
         }
 
         layer.open({
             type: 1,
-            title: '全量同步[' + db + ']',
+            title: 'Sinkronisasi penuh [' + db + ']',
             area: '500px',
             content: "<div class='bt-form pd15'>\
                      <div class='divtable mtb10'>\
@@ -1704,7 +1704,7 @@ function getFullSyncStatus(db) {
                         </div>\
                     </div>\
                     <div class='table_toolbar' style='left:0px;'>\
-                        <span data-status='init' class='sync btn btn-default btn-sm' id='begin_full_sync'>开始</span>\
+                        <span data-status='init' class='sync btn btn-default btn-sm' id='begin_full_sync'>Mulai</span>\
                     </div>\
                 </div>",
             cancel: function () {
@@ -1724,7 +1724,7 @@ function getFullSyncStatus(db) {
                         }, 1000);
                         $(this).data('status', 'starting');
                     } else {
-                        layer.msg("正在同步中..", { icon: 0 });
+                        layer.msg("Sedang menyinkronkan..", { icon: 0 });
                     }
                 });
             }

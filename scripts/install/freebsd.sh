@@ -7,7 +7,7 @@ LANG=en_US.UTF-8
 
 # https://www.freebsd.org/where/
 
-# 手动升级到,可解决库找不到的问题。
+# Tingkatkan secara manual, dapat menyelesaikan masalah pustaka yang tidak ditemukan.
 # freebsd-update -r 13.2-RELEASE upgrade
 # freebsd-update -r 14-RELEASE upgrade
 
@@ -79,7 +79,7 @@ SSH_PORT=${SSH_PORT_LINE/"Port "/""}
 
 echo "SSH PORT:${SSH_PORT}"
 
-# 检测防火墙是否开启
+# Periksa apakah firewall diaktifkan
 FW_ENABLE=`cat /etc/rc.conf | grep firewall_enable`
 if [ "$FW_ENABLE" == "" ];then
 	sysrc firewall_enable="YES"

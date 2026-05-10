@@ -107,9 +107,9 @@ echo "SSH PORT:${SSH_PORT}"
 #         service iptables save
 #     fi
     
-#     # 安装时不开启
-#     # stop之后清空了所有规则,所以安装是不能stop.
-#     # 要在代码修复这个问题，开启时，重新执行一下放行端口。
+#     # Jangan aktifkan saat instalasi
+#     # Setelah stop, semua aturan dihapus, sehingga tidak boleh stop selama instalasi.
+#     # Untuk memperbaiki masalah ini dalam kode, saat mengaktifkan, eksekusi ulang untuk mengizinkan port.
 #     #service iptables stop
 
 #     echo "iptables end"
@@ -121,14 +121,14 @@ echo "firewall open common port start"
 if [ ! -f /usr/sbin/firewalld ];then
     $PKGMGR install firewalld -y
     systemctl enable firewalld
-    #取消服务锁定
+    #Batal kunci layanan
     systemctl unmask firewalld
     systemctl start firewalld
 
     sed -i 's#AllowZoneDrifting=yes#AllowZoneDrifting=no#g' /etc/firewalld/firewalld.conf
     firewall-cmd --reload
 
-    #安装就开启
+    #Aktifkan setelah instalasi
     systemctl restart firewalld
 fi
 
@@ -168,7 +168,7 @@ $PKGMGR makecache
 $PKGMGR groupinstall -y "Development Tools"
 
 if [ "$VERSION_ID" -ge "8" ];then
-    # EL8 及以上
+    # EL8 dan di atasnya
 
     # find repo
 

@@ -60,7 +60,7 @@ VERSION=5.6.51
 Install_mysql()
 {
 	mkdir -p ${mysqlDir}
-	echo '正在安装脚本文件...'
+	echo 'Sedang menginstal file skrip...'
 
 	if [ "$sysName" != "Darwin" ];then
 		mkdir -p /var/log/mariadb
@@ -164,7 +164,7 @@ Install_mysql()
 			echo "${VERSION}Instalasi selesai"
 		else
 			# rm -rf ${mysqlDir}/mysql-5.6.*
-			echo "${VERSION}安装失败"
+			echo "Instalasi ${VERSION} gagal"
 			exit 1
 		fi
 	fi
@@ -173,7 +173,7 @@ Install_mysql()
 Uninstall_mysql()
 {
 	rm -rf $serverPath/mysql
-	echo '卸载完成'
+	echo 'Penghapusan instalasi selesai'
 }
 
 action=$1

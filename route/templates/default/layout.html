@@ -30,34 +30,37 @@
 
 <body>
     <nav class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-header">
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-          <span class="sr-only">Toggle navigation</span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="/" style="margin-right:20px;">SLEMP Panel</a>
-      </div>
-      <div id="navbar" class="collapse navbar-collapse">
-        <ul class="nav navbar-nav">
-          <li class="nav-item"><div id="task" class="task cw" onclick="messageBox();"></div></li>
-        </ul>
-        <ul class="nav navbar-nav navbar-right" style="margin-right:10px;">
-          <li class="nav-item"><a href="/">Beranda</a></li>
-          <li class="nav-item"><a href="/site">Situs</a></li>
-          <li class="nav-item"><a href="/control">Monitor</a></li>
-          <li class="nav-item"><a href="/firewall">Keamanan</a></li>
-          <li class="nav-item"><a href="/files">Kelola Berkas</a></li>
-          <li class="nav-item"><a href="/crontab">Penjadwalan</a></li>
-          {% for menu in data['hook_menu'] %}
-          <li class="nav-item"><a href="/plugins/menu?tag={{menu['name']}}">{{menu['title']}}</a></li>
-          {% endfor %}
-          <li class="nav-item"><a href="/soft">Aplikasi</a></li>
-          <li class="nav-item"><a href="/config">Pengaturan</a></li>
-          <li class="nav-item"><a href="javascript:;" id="signout">Keluar</a></li>
-        </ul>
-      </div><!--/.nav-collapse -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Buka menu</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/" style="margin-right:20px;">SLEMP Panel</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+                <li class="nav-item">
+                    <div id="task" class="task cw" onclick="messageBox();"></div>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right" style="margin-right:10px;">
+                <li class="nav-item"><a href="/">Beranda</a></li>
+                <li class="nav-item"><a href="/site">Situs</a></li>
+                <li class="nav-item"><a href="/control">Monitor</a></li>
+                <li class="nav-item"><a href="/firewall">Keamanan</a></li>
+                <li class="nav-item"><a href="/files">Kelola Berkas</a></li>
+                <li class="nav-item"><a href="/crontab">Penjadwalan</a></li>
+                {% for menu in data['hook_menu'] %}
+                <li class="nav-item"><a href="/plugins/menu?tag={{menu['name']}}">{{menu['title']}}</a></li>
+                {% endfor %}
+                <li class="nav-item"><a href="/soft">Aplikasi</a></li>
+                <li class="nav-item"><a href="/config">Pengaturan</a></li>
+                <li class="nav-item"><a href="javascript:;" id="signout">Keluar</a></li>
+            </ul>
+        </div><!--/.nav-collapse -->
     </nav>
 
     <div class="bt-warp bge6">
@@ -84,9 +87,9 @@
             <script src="/static/js/xm-select.js"></script>
 
             {% block content %}{% endblock %}
-            <div class="footer bgw">SLEMP &copy; 2018 - 2023. (<a class='btlink panel_ad_list_mode'>Ataaka</a>)
+            <div class="footer bgw">SLEMP &copy; 2018 - 2026.
+            </div>
         </div>
-    </div>
     </div>
 </body>
 
@@ -95,62 +98,34 @@
 </script>
 <script type="text/javascript">
 
-(function ($) {
-    $.getUrlParam = function (name) {
-        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-        var r = window.location.search.substr(1).match(reg);
-        if (r != null) return unescape(r[2]); return null;
-    }
-})(jQuery);
-
-function showAd(){
-    layer.open({
-        type: 1
-        ,title: "[AD] Advertisiment"
-        ,closeBtn: 1
-        ,area: '300px;'
-        ,shade: 0.8
-        ,id: 'panel_ad_list_mode'
-        ,btnAlign: 'c'
-        ,moveType: 1
-        ,content: '<div style="padding: 10px; line-height: 22px; font-weight: 300;">\
-                <table class="table table-hover">\
-                    <thead><tr><td style="text-align: center;">Merchant</td><td style="text-align: center;">Promo Code</td><tr></thead>\
-                    <tbody>\
-                        <tr><td><a target="_blank" href="https://digitalvirt.com/aff.php?aff=154"><img src="https://digitalvirt.com/templates/BlueWhite/img/logo-dark.svg"/></a></td><td>SLEMP Panel</td></tr>\
-                    </tbody>\
-                </table>\
-        </div>'
-        ,success: function(layero){
+    (function ($) {
+        $.getUrlParam = function (name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return unescape(r[2]); return null;
         }
-    });
-}
+    })(jQuery);
 
-$('.panel_ad_list_mode').click(function(){
-    showAd();
-});
-
-
-function getUrlPath(){
-    var thisUrl = window.location.href;
-    var pathArr = thisUrl.split('/');
-    return pathArr[pathArr.length - 1];
-}
-var thisPath = getUrlPath();
-if (thisPath.indexOf('?')>-1){
-    var tag = $.getUrlParam('tag');
-    if(tag != undefined){
-        $('#memuAplugins_'+tag).css('background-color','#2c3138');
-    } else {
-        $('#memuA').css('background-color','#f2f2f2');
+    function getUrlPath() {
+        var thisUrl = window.location.href;
+        var pathArr = thisUrl.split('/');
+        return pathArr[pathArr.length - 1];
     }
-} else{
-    if(thisPath != undefined){
-        $('#memuA'+thisPath).css('background-color','#2c3138');
+    var thisPath = getUrlPath();
+    if (thisPath.indexOf('?') > -1) {
+        var tag = $.getUrlParam('tag');
+        if (tag != undefined) {
+            $('#memuAplugins_' + tag).css('background-color', '#2c3138');
+        } else {
+            $('#memuA').css('background-color', '#f2f2f2');
+        }
     } else {
-        $('#memuA').css('background-color','#f2f2f2');
+        if (thisPath != undefined) {
+            $('#memuA' + thisPath).css('background-color', '#2c3138');
+        } else {
+            $('#memuA').css('background-color', '#f2f2f2');
+        }
     }
-}
 </script>
 <script src="/static/codemirror/lib/codemirror.js?v={{config.version}}"></script>
 <script src="/static/codemirror/addon/edit/editAll.js?v={{config.version}}"></script>

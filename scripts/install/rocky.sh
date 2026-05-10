@@ -48,7 +48,7 @@ if [ -f /usr/sbin/iptables ];then
 		service iptables restart
 	fi
 
-	#安装时不开启
+	#Jangan aktifkan saat instalasi
 	service iptables stop
 fi
 
@@ -73,7 +73,7 @@ if [ ! -f /usr/sbin/iptables ];then
 fi
 
 
-#安装时不开启
+#Jangan aktifkan saat instalasi
 systemctl stop firewalld
 
 yum groupinstall -y "Development Tools"

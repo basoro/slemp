@@ -90,7 +90,7 @@ if [ ! -f /usr/sbin/firewalld ];then
 
 	sed -i 's#AllowZoneDrifting=yes#AllowZoneDrifting=no#g' /etc/firewalld/firewalld.conf
 	firewall-cmd --reload
-	#安装时不开启
+	#Jangan aktifkan saat instalasi
 	systemctl stop firewalld
 fi
 

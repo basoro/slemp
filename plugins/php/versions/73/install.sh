@@ -13,12 +13,12 @@ SYS_ARCH=`arch`
 
 version=7.3.33
 PHP_VER=73
-md5_file_ok=c6204c3298a00085a697666289b43e8d
+md5_file_ok=eeabb2140c04da85c86389197421f890
 
 Install_php()
 {
 #------------------------ install start ------------------------------------#
-echo "安装php-${version} ..."
+echo "Menginstal php-${version} ..."
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
@@ -46,7 +46,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	if [ -f $sourcePath/php/php-${version}.tar.xz ];then
 		md5_file=`md5sum $sourcePath/php/php-${version}.tar.xz  | awk '{print $1}'`
 		if [ "${md5_file}" != "${md5_file_ok}" ]; then
-			echo "PHP${version} 下载文件不完整,重新安装"
+			echo "File unduhan PHP${version} tidak lengkap, instal ulang"
 			rm -rf $sourcePath/php/php-${version}.tar.xz
 		fi
 	fi
@@ -105,7 +105,7 @@ fi
 
 if [ "$sysName" == "Darwin" ];then
 	cd ${rootPath}/plugins/php/lib && /bin/bash openssl_11.sh
-	OPENSSL_11_DIR=$(dirname $serverPath)/lib/openssl11
+	OPENSSL_11_DIR=${serverPath}/lib/openssl11
 	OPTIONS="$OPTIONS --with-openssl=${OPENSSL_11_DIR}"
 	export PKG_CONFIG_PATH=${OPENSSL_11_DIR}/lib/pkgconfig
 	export OPENSSL_CFLAGS="-I${OPENSSL_11_DIR}/include"
@@ -158,7 +158,7 @@ Uninstall_php()
 {
 	$serverPath/php/init.d/php73 stop
 	rm -rf $serverPath/php/73
-	echo "卸载php-${version} ..."
+	echo "Menghapus instalasi php-${version} ..."
 }
 
 action=${1}

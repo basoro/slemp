@@ -9,12 +9,12 @@
 
         <div class="conter-box system-info bgw clearfix mtb15">
             <div class="title c6 f16 plr15">
-              Overviw
+              Dashboard
               <span class="pull-right f12 c6" style="line-height:52px; margin-right:15px">
                   <span id="version" style="margin-right:10px">{{config.version}}</span>
-                  <span id="toUpdate"><a class="btlink" href="javascript:checkUpdate();">Renew</a></span> |
+                  <span id="toUpdate"><a class="btlink" href="javascript:checkUpdate();">Update</a></span> |
                   <!-- <span style="margin:0 10px"><a class="btlink" href="javascript:rePanel();">Repair</a></span> -->
-                  <span><a class="btlink" href="javascript:reBoot();">Reboot</a></span>
+                  <span><a class="btlink" href="javascript:reBoot();">Restart</a></span>
               </span>
             </div>
             <div class="system-info-con mtb20">
@@ -59,7 +59,7 @@
             <div class="server-circle">
                 <ul class="row" id="systemInfoList">
                     <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center" id="LoadList">
-                        <h3 class="c5 f15">Load status<a href="https://github.com/basoro/slemp/wiki" target="_blank" class="bt-ico-ask" style="cursor: pointer;">?</a></h3>
+                        <h3 class="c5 f15">Beban Sistem<a href="https://github.com/basoro/slemp/wiki" target="_blank" class="bt-ico-ask" style="cursor: pointer;">?</a></h3>
                         <div class="circle" style="cursor: pointer;">
                             <div class="pie_left">
                                 <div class="left"></div>
@@ -69,10 +69,10 @@
                             </div>
                             <div class="mask"><span id="Load">0</span>%</div>
                         </div>
-                        <h4 id="LoadState" class="c5 f15">Wait...</h4>
+                        <h4 id="LoadState" class="c5 f15">Tunggu...</h4>
                     </li>
                     <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center" id="cpuChart">
-                        <h3 class="c5 f15">CPU usage</h3>
+                        <h3 class="c5 f15">Pemakaian CPU</h3></h3>
                         <div class="circle">
                             <div class="pie_left">
                                 <div class="left"></div>
@@ -82,10 +82,10 @@
                             </div>
                             <div class="mask"><span id="state">0</span>%</div>
                         </div>
-                        <h4 id="core" class="c5 f15">Wait...</h4>
+                        <h4 id="core" class="c5 f15">Tunggu...</h4>
                     </li>
                     <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center">
-                        <h3 class="c5 f15">Memory usage</h3>
+                        <h3 class="c5 f15">Pemakaian RAM</h3></h3>
                         <div class="circle mem-release">
                             <div class="pie_left">
                                 <div class="left"></div>
@@ -97,7 +97,7 @@
                             <div class="mem-re-min" style="display: none;"></div>
                             <div class="mem-re-con" title=""></div>
                         </div>
-                        <h4 id="memory" class="c5 f15">Wait...</h4>
+                        <h4 id="memory" class="c5 f15">Tunggu...</h4>
                     </li>
                 </ul>
             </div>
@@ -106,7 +106,7 @@
         <div class="col-xs-12 col-sm-12 col-md-6 pull-left pd0">
             <div class="pr8">
                 <div class="bgw">
-                    <div class="title c6 f16 plr15">Software</div>
+                    <div class="title c6 f16 plr15">Aplikasi Terpasang</div>
                     <div class="setting-con" style="padding:0; height:442px; margin-right: -4px; overflow: hidden;">
                         <div class="container-fluid soft-man">
                             <input name="list1SortOrder" type="hidden" value="" />
@@ -120,12 +120,12 @@
         <div class="col-xs-12 col-sm-12 col-md-6 pull-left pd0">
             <div class="pl7">
                 <div class="bgw" style="height:491px">
-                    <div class="title c6 f16 plr15">Stat</div>
+                    <div class="title c6 f16 plr15">Statistik</div>
                     <div class="bw-info">
                         <div class="col-sm-6 col-md-3"><p class="c9"><span class="ico-up"></span>Upload</p><a id="upSpeed">0</a></div>
                         <div class="col-sm-6 col-md-3"><p class="c9"><span class="ico-down"></span>Download</p><a id="downSpeed">0</a></div>
-                        <div class="col-sm-6 col-md-3"><p class="c9">Total upload</p><a id="upAll">0</a></div>
-                        <div class="col-sm-6 col-md-3"><p class="c9">Total download</p><a id="downAll">0</a></div>
+                        <div class="col-sm-6 col-md-3"><p class="c9">Total Upload</p><a id="upAll">0</a></div>
+                        <div class="col-sm-6 col-md-3"><p class="c9">Total Download</p><a id="downAll">0</a></div>
                     </div>
                     <div id="netImg" style="width:100%;height:330px;"></div>
                 </div>

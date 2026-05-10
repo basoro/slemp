@@ -20,7 +20,7 @@ Install_swap()
 		exit 0
 	fi
 
-	echo '正在安装脚本文件...'
+	echo 'Sedang menginstal file skrip...'
 	mkdir -p $serverPath/source
 	mkdir -p $serverPath/swap
 	echo "${VERSION}" > $serverPath/swap/version.pl

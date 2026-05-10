@@ -5,7 +5,7 @@ curPath=`pwd`
 rootPath=$(dirname "$curPath")
 
 
-#----------------------------- 代码打包 -------------------------#
+#----------------------------- Pemaketan Kode -------------------------#
 
 echo $rootPath
 cd $rootPath

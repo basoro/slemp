@@ -27,12 +27,12 @@ action=$1
 type=$2
 
 if [ "${2}" == "" ];then
-	echo '缺少安装脚本...'
+	echo 'Skrip instalasi tidak ditemukan...'
 	exit 0
 fi 
 
 if [ ! -d $curPath/versions/$2 ];then
-	echo '缺少安装脚本2...'
+	echo 'Skrip instalasi 2 tidak ditemukan...'
 	exit 0
 fi
 
@@ -57,11 +57,11 @@ cd ${curPath} && sh -x $curPath/versions/$2/install.sh $1
 
 if [ "${action}" == "install" ] && [ -d ${serverPath}/php/${type} ];then
 
-	#初始化 
+	#Inisialisasi 
 	cd ${rootPath} && python3 ${rootPath}/plugins/php/index.py start ${type}
 	cd ${rootPath} && python3 ${rootPath}/plugins/php/index.py initd_install ${type}
 
-	# 安装通用扩展
+	# Instal ekstensi umum
 	echo "install PHP${type} extend start"
 
 	# cd ${rootPath}/plugins/php/versions/common  && bash iconv.sh install 53

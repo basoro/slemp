@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-# 手动主从设置
+# Pengaturan manual master-slave
 # https://www.cnblogs.com/whiteY/p/17331882.html
 
 # cd ${rootPath}/plugins/mysql && bash install.sh install 5.5
@@ -36,12 +36,12 @@ else
 fi
 
 if [ "${2}" == "" ];then
-	echo '缺少安装脚本...'
+	echo 'Skrip instalasi tidak ditemukan...'
 	exit 0
 fi 
 
 if [ ! -d $curPath/versions/$2 ];then
-	echo '缺少安装脚本2...'
+	echo 'Skrip instalasi 2 tidak ditemukan...'
 	exit 0
 fi
 
@@ -63,7 +63,7 @@ fi
 sh -x $curPath/versions/$2/install.sh $1
 
 if [ "${action}" == "install" ] && [ -d $serverPath/mysql ];then
-	#初始化 
+	#Inisialisasi 
 	cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py start ${type}
 	cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py initd_install ${type}
 fi

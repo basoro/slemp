@@ -14,9 +14,9 @@ setTimeout(function(){
 $(function(){
 	// start
 	$.post('/firewall/get_www_path',function(data){
-		var html ='<a class="btlink" href="javascript:openPath(\''+data['path']+'\');">Log directory</a>\
+		var html ='<a class="btlink" href="javascript:openPath(\''+data['path']+'\');">Direktori log</a>\
 				<em id="logSize">0KB</em>\
-				<button class="btn btn-default btn-sm" onclick="closeLogs();">Empty</button>';
+				<button class="btn btn-default btn-sm" onclick="closeLogs();">Kosongkan</button>';
 		$('#firewall_weblog').html(html);
 
 		$.post('/files/get_dir_size','path='+data['path'], function(rdata){
@@ -29,7 +29,7 @@ $(function(){
 function closeLogs(){
 	$.post('/files/close_logs','',function(rdata){
 		$("#logSize").html(rdata.msg);
-		layer.msg('Cleaned up!',{icon:1});
+		layer.msg('Berhasil dibersihkan!',{icon:1});
 	},'json');
 }
 
@@ -38,12 +38,12 @@ $("#firewalldType").change(function(){
 	var w = '120px';
 	var p = 'port';
 	var t = 'release';
-	var m = 'Description: Support the release port range, such as: 3000:3500';
+	var m = 'Keterangan: Bisa pakai rentang port, misal: 3000:3500';
 	if(type == 'address'){
 		w = '150px';
-		p = 'IP address';
+		p = 'Alamat IP';
 		t = 'block';
-		m = 'Description: Support block IP segments, such as: 192.168.0.0/24';
+		m = 'Keterangan: Bisa blokir segmen IP, misal: 192.168.0.0/24';
 	}
 	$("#AcceptPort").css("width",w);
 	$("#AcceptPort").attr('placeholder',p);
@@ -60,10 +60,10 @@ function sshMgr(){
 		var con = '<div class="pd15">\
                 <div class="divtable">\
                     <table class="table table-hover waftable">\
-                        <thead><tr><th>Name</th><th width="80">Status</th></tr></thead>\
+                        <thead><tr><th>Nama</th><th width="80">Status</th></tr></thead>\
                         <tbody>\
                             <tr>\
-                                <td>Start ssh</td>\
+                                <td>Mulai ssh</td>\
                                 <td>\
                                     <div class="ssh-item" style="margin-left:0">\
                                         <input class="btswitch btswitch-ios" id="sshswitch" type="checkbox" '+ssh_status+'>\
@@ -72,7 +72,7 @@ function sshMgr(){
                                 </td>\
                             </tr>\
                             <tr>\
-                                <td>Forbid password login</td>\
+                                <td>Larang login password</td>\
                                 <td>\
                                     <div class="ssh-item" style="margin-left:0">\
                                         <input class="btswitch btswitch-ios" id="pass_status" type="checkbox" '+pass_prohibit_status+'>\
@@ -86,7 +86,7 @@ function sshMgr(){
             </div>';
         layer.open({
 	        type: 1,
-	        title: "SSH management",
+	        title: "Manajemen SSH",
 	        area: ['300px', '230px'],
 	        closeBtn: 1,
 	        shadeClose: false,
@@ -130,7 +130,7 @@ function getSshInfo(){
 }
 
 function mstsc(port) {
-	layer.confirm('When changing the remote port, all logged in accounts will be deregistered, do you really want to change the remote port？', {title: 'Remote port'}, function(index) {
+	layer.confirm('Kalau ganti port remote, semua akun yang lagi login bakal dikeluarin. Yakin mau ganti port remote？', {title: 'Port remote'}, function(index) {
 		var data = "port=" + port;
 		var loadT = layer.load({
 			shade: true,
@@ -145,26 +145,26 @@ function mstsc(port) {
 }
 
 function ping(status){
-	var msg = status == 1 ? 'Banning PING does not affect the normal use of the server, but the server cannot be pinged. Do you really want to ban PING?？' : 'Unban PING status may be discovered by hackers, do you really want to unban？';
-	layer.confirm(msg,{title:'Whether to ban ping',closeBtn:2,cancel:function(){
+	var msg = status == 1 ? 'Larang PING nggak bakal ganggu server, tapi server jadi nggak bisa di-ping. Yakin mau larang PING?？' : 'Buka PING bisa bikin server gampang ditemuin hacker. Yakin mau buka？';
+	layer.confirm(msg,{title:'Larang ping?',closeBtn:2,cancel:function(){
 		if(status == 1){
 			$("#noping").prop("checked",true);
 		} else {
 			$("#noping").prop("checked",false);
 		}
 	}},function(){
-		layer.msg('Processing, please wait...',{icon:16,time:20000});
+		layer.msg('Lagi diproses, tunggu bentar...',{icon:16,time:20000});
 		$.post('/firewall/set_ping','status='+status, function(data) {
 			layer.closeAll();
 			if (data['status'] == true) {
 				if(status == 1){
 					layer.msg(data['msg'], {icon: 1});
 				} else {
-					layer.msg('PING lifted', {icon: 1});
+					layer.msg('PING diaktifkan lagi', {icon: 1});
 				}
 				setTimeout(function(){window.location.reload();},3000);
 			} else {
-				layer.msg('Connection failure', {icon: 2});
+				layer.msg('Koneksi gagal', {icon: 2});
 			}
 		},'json');
 	},function(){
@@ -177,22 +177,22 @@ function ping(status){
 }
 
 function firewall(status){
-	var msg = status == 1 ? 'Disabling the firewall increases server insecurity, do you really want to disable the firewall？' : 'Turn on the firewall to increase server security!';
-	layer.confirm(msg,{title:'Whether to open the firewall!',closeBtn:2,cancel:function(){
+	var msg = status == 1 ? 'Matiin firewall bikin server nggak aman. Yakin mau matiin firewall？' : 'Nyalain firewall biar server makin aman!';
+	layer.confirm(msg,{title:'Nyalain firewall!',closeBtn:2,cancel:function(){
 		if(status == 1){
 			$("#firewall_status").prop("checked",true);
 		} else {
 			$("#firewall_status").prop("checked",false);
 		}
 	}},function(){
-		layer.msg('Processing, please wait...',{icon:16,time:20000});
+		layer.msg('Lagi diproses, tunggu bentar...',{icon:16,time:20000});
 		$.post('/firewall/set_fw','status='+status, function(data) {
 			layer.closeAll();
 			if (data['status'] == true) {
 				layer.msg(data['msg'], {icon: 1});
 				setTimeout(function(){window.location.reload();},3000);
 			} else {
-				layer.msg('Connection failure', {icon: 2});
+				layer.msg('Koneksi gagal', {icon: 2});
 			}
 		},'json');
 	},function(){
@@ -206,8 +206,8 @@ function firewall(status){
 
 function setMstscStatus(){
 	status = $("#sshswitch").prop("checked")==true?1:0;
-	var msg = status==1?'When disabling the SSH service, all logged-in users will also be logged out. Do you want to continue？':'Are you sure to enable the SSH service？';
-	layer.confirm(msg,{title:'Warning',closeBtn:2,cancel:function(){
+	var msg = status==1?'Kalau matiin layanan SSH, semua user yang lagi login bakal dikeluarin. Lanjut？':'Yakin mau nyalain layanan SSH？';
+	layer.confirm(msg,{title:'Peringatan',closeBtn:2,cancel:function(){
 		if(status == 0){
 			$("#sshswitch").prop("checked",false);
 		} else {
@@ -215,7 +215,7 @@ function setMstscStatus(){
 		}
 	}},function(index){
 		if(index > 0){
-			layer.msg('Processing, please wait...',{icon:16,time:20000});
+			layer.msg('Lagi diproses, tunggu bentar...',{icon:16,time:20000});
 			$.post('/firewall/set_ssh_status','status='+status,function(rdata){
 				layer.msg(rdata.msg,{icon:rdata.status?1:2});
 			},'json');
@@ -231,8 +231,8 @@ function setMstscStatus(){
 
 function setSshPassStatus(){
 	status = $("#pass_status").prop("checked")==true?1:0;
-	var msg = status==1?'Enable password login, continue？':'Are you sure to disable password login?？';
-	layer.confirm(msg,{title:'Warning',closeBtn:2,cancel:function(){
+	var msg = status==1?'Nyalain login password, lanjut？':'Yakin mau matiin login password?？';
+	layer.confirm(msg,{title:'Peringatan',closeBtn:2,cancel:function(){
 		if(status == 0){
 			$("#pass_status").prop("checked",false);
 		} else {
@@ -240,7 +240,7 @@ function setSshPassStatus(){
 		}
 	}},function(index){
 		if(index > 0){
-			layer.msg('Processing, please wait...',{icon:16,time:20000});
+			layer.msg('Lagi diproses, tunggu bentar...',{icon:16,time:20000});
 			$.post('/firewall/set_ssh_pass_status','status='+status,function(rdata){
 				layer.msg(rdata.msg,{icon:rdata.status?1:2});
 			},'json');
@@ -264,10 +264,10 @@ function showAccept(page,search) {
 			var status = '';
 			switch(data.data[i].status){
 				case 0:
-					status = 'Unused';
+					status = 'Nggak dipake';
 					break;
 				case 1:
-					status = 'No external network';
+					status = 'Nggak ada jaringan luar';
 					break;
 				default:
 					status = 'Normal';
@@ -275,11 +275,11 @@ function showAccept(page,search) {
 			}
 			body += "<tr>\
 						<td><em class='dlt-num'>" + data.data[i].id + "</em></td>\
-						<td>" + (data.data[i].port.indexOf('.') == -1?'Release port'+':['+data.data[i].port+']':'Block IP'+':['+data.data[i].port+']') + "</td>\
+						<td>" + (data.data[i].port.indexOf('.') == -1?'Buka port'+':['+data.data[i].port+']':'Blokir IP'+':['+data.data[i].port+']') + "</td>\
 						<td>" + status + "</td>\
 						<td>" + data.data[i].addtime + "</td>\
 						<td>" + data.data[i].ps + "</td>\
-						<td class='text-right'><a href='javascript:;' class='btlink' onclick=\"delAcceptPort(" + data.data[i].id + ",'" + data.data[i].port + "')\">Delete</a></td>\
+						<td class='text-right'><a href='javascript:;' class='btlink' onclick=\"delAcceptPort(" + data.data[i].id + ",'" + data.data[i].port + "')\">Hapus</a></td>\
 					</tr>";
 		}
 		$("#firewallBody").html(body);
@@ -296,7 +296,7 @@ function addAcceptPort(){
 		ports = port.split(':');
 		for(var i=0;i<ports.length;i++){
 			if(isNaN(ports[i]) || ports[i] < 1 || ports[i] > 65535 ){
-				layer.msg('Invalid port range!',{icon:5});
+				layer.msg('Rentang port nggak bener!',{icon:5});
 				return;
 			}
 		}
@@ -305,11 +305,11 @@ function addAcceptPort(){
 
 
 	if(ps.length < 1){
-		layer.msg('Description Cannot be empty!',{icon:2});
+		layer.msg('Keterangan nggak boleh kosong!',{icon:2});
 		$("#Ps").focus();
 		return;
 	}
-	var loadT = layer.msg('Adding, please wait...',{icon:16,time:0,shade: [0.3, '#000']})
+	var loadT = layer.msg('Lagi ditambahin, tunggu bentar...',{icon:16,time:0,shade: [0.3, '#000']})
 	$.post('/firewall/'+action,'port='+port+"&ps="+ps+'&type='+type,function(rdata){
 		layer.close(loadT);
 		if(rdata.status == true || rdata.status == 'true'){
@@ -332,8 +332,8 @@ function delAcceptPort(id, port) {
 		action = "del_accept_port";
 	}
 
-	layer.confirm(lan.get('confirm_del',[port]), {title: 'Delete firewall rules',closeBtn:2}, function(index) {
-		var loadT = layer.msg('Deleting, please wait...',{icon:16,time:0,shade: [0.3, '#000']})
+	layer.confirm(lan.get('confirm_del',[port]), {title: 'Hapus aturan firewall',closeBtn:2}, function(index) {
+		var loadT = layer.msg('Lagi dihapus, tunggu bentar...',{icon:16,time:0,shade: [0.3, '#000']})
 		$.post("/firewall/"+action, "id=" + id + "&port=" + port, function(ret) {
 			layer.close(loadT);
 			layer.msg(ret.msg,{icon:ret.status?1:2})
@@ -362,8 +362,8 @@ function getLogs(page,search) {
 }
 
 function delLogs(){
-	layer.confirm('The panel log is about to be cleared, continue？',{title:'Clear log',closeBtn:2},function(){
-		var loadT = layer.msg('Cleaning up, please wait...',{icon:16});
+	layer.confirm('Log panel bakal dibersihin, lanjut？',{title:'Bersihkan log',closeBtn:2},function(){
+		var loadT = layer.msg('Lagi dibersihin, tunggu bentar...',{icon:16});
 		$.post('/firewall/del_panel_logs','',function(rdata){
 			layer.close(loadT);
 			layer.msg(rdata.msg,{icon:rdata.status?1:2});

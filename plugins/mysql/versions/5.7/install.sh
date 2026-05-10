@@ -73,7 +73,7 @@ Install_common(){
 	apt install -y libldap2-dev 
 }
 
-# 安装依赖
+# Instal dependensi
 Install_dep(){
 	Install_common
 
@@ -98,7 +98,7 @@ Install_dep_debain13(){
 Install_mysql()
 {
 	mkdir -p ${mysqlDir}
-	echo '正在安装脚本文件...'
+	echo 'Sedang menginstal file skrip...'
 
 	if [ "$sysName" != "Darwin" ];then
 		mkdir -p /var/log/mariadb
@@ -136,14 +136,14 @@ Install_mysql()
 		wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-5.7/mysql-boost-${VERSION}.tar.gz
 	fi
 
-	#检测文件是否损坏.
+	#Periksa apakah file rusak.
 	md5_mysql_ok=1a637fce4599d9bf5f1c81699f086274
 	if [ -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
 		md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
 		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
 			echo "mysql5.7 file check ok"
 		else
-			# 重新下载
+			# Unduh ulang
 			rm -rf ${mysqlDir}/mysql-${VERSION}
 			wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-5.7/mysql-boost-${VERSION}.tar.gz
 		fi
@@ -208,7 +208,7 @@ Install_mysql()
 			echo "${VERSION}Instalasi selesai"
 		else
 			# rm -rf ${mysqlDir}/mysql-${VERSION}
-			echo "${VERSION}安装失败"
+			echo "Instalasi ${VERSION} gagal"
 			exit 1
 		fi
 	fi
@@ -217,7 +217,7 @@ Install_mysql()
 Uninstall_mysql()
 {
 	rm -rf $serverPath/mysql
-	echo '卸载完成'
+	echo 'Penghapusan instalasi selesai'
 }
 
 action=$1

@@ -175,7 +175,7 @@ function getToday(){
 getStatus();
 
 function getStatus(){
-	loadT = layer.msg('Reading, please wait...',{icon:16,time:0})
+	loadT = layer.msg('Lagi baca, tunggu bentar...',{icon:16,time:0})
 	$.post('/system/set_control','type=-1',function(rdata){
 		layer.close(loadT);
 
@@ -202,7 +202,7 @@ function setControl(act, value=false){
 		var type = $("#ctswitch").prop('checked')?'0':'1';
 		var day = $("#save_day").val();
 		if(day < 1){
-			layer.msg('The number of storage days is invalid!',{icon:2});
+			layer.msg('Jumlah hari simpan nggak bener!',{icon:2});
 			return;
 		}
 	} else if (act == 'stat'){
@@ -212,17 +212,17 @@ function setControl(act, value=false){
 		var day = $("#save_day").val();
 
 		if(type == 0){
-			layer.msg('Start monitoring first!',{icon:2});
+			layer.msg('Nyalain monitoring dulu!',{icon:2});
 			return;
 		}
 
 		if(day < 1){
-			layer.msg('The number of storage days is invalid!',{icon:2});
+			layer.msg('Jumlah hari simpan nggak bener!',{icon:2});
 			return;
 		}
 	}
 
-	loadT = layer.msg('Processing, please wait...',{icon:16,time:0})
+	loadT = layer.msg('Lagi diproses, tunggu bentar...',{icon:16,time:0})
 	$.post('/system/set_control','type='+type+'&day='+day,function(rdata){
 		showMsg(rdata.msg, function(){
 			layer.close(loadT);
@@ -232,8 +232,8 @@ function setControl(act, value=false){
 
 
 function closeControl(){
-	layer.confirm('Do you really clear all monitoring records?',{title:'Clear record',icon:3,closeBtn:1}, function() {
-		loadT = layer.msg('Processing, please wait...',{icon:16,time:0})
+	layer.confirm('Yakin mau hapus semua catatan monitoring?',{title:'Hapus catatan',icon:3,closeBtn:1}, function() {
+		loadT = layer.msg('Lagi diproses, tunggu bentar...',{icon:16,time:0})
 		$.post('/system/set_control','type=del',function(rdata){
 			showMsg(rdata.msg, function(){
 				layer.close(loadT);
@@ -465,7 +465,7 @@ function disk(b,e){
 				formatter:"time：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s",
 			},
 			legend: {
-				data:['read bytes','write bytes']
+				data:['baca','tulis']
 			},
 			xAxis: {
 				type: 'category',
@@ -479,7 +479,7 @@ function disk(b,e){
 			},
 			yAxis: {
 				type: 'value',
-				name: 'unit:KB/s',
+				name: 'satuan:KB/s',
 				boundaryGap: [0, '100%'],
 				splitLine:{
 					lineStyle:{
@@ -512,7 +512,7 @@ function disk(b,e){
 			}],
 			series: [
 				{
-					name:'read bytes',
+					name:'baca',
 					type:'line',
 					smooth:true,
 					symbol: 'none',
@@ -525,7 +525,7 @@ function disk(b,e){
 					data: rData
 				},
 				{
-					name:'write bytes',
+					name:'tulis',
 					type:'line',
 					smooth:true,
 					symbol: 'none',
@@ -677,7 +677,7 @@ function getload_old(b,e){
 			},
 			calculable: true,
 			legend: {
-				data:['System resource usage','1 minute','5 minutes','15 minutes'],
+				data:['Pemakaian sumber daya sistem','1 menit','5 menit','15 menit'],
 				selectedMode: 'single',
 			},
 			xAxis: {
@@ -725,7 +725,7 @@ function getload_old(b,e){
 			}],
 			series: [
 				{
-					name:'System resource usage',
+					name:'Pemakaian sumber daya sistem',
 					type:'line',
 					smooth:true,
 					symbol: 'none',
@@ -738,7 +738,7 @@ function getload_old(b,e){
 					data: yData
 				},
 				{
-					name:'1 minute',
+					name:'1 menit',
 					type:'line',
 					smooth:true,
 					symbol: 'none',
@@ -751,7 +751,7 @@ function getload_old(b,e){
 					data: zData
 				},
 				{
-					name:'5 minute',
+					name:'5 menit',
 					type:'line',
 					smooth:true,
 					symbol: 'none',
@@ -764,7 +764,7 @@ function getload_old(b,e){
 					data: aData
 				},
 				{
-					name:'15 minute',
+					name:'15 menit',
 					type:'line',
 					smooth:true,
 					symbol: 'none',
@@ -810,7 +810,7 @@ function getload(b,e){
 	            }
 			},
 			legend: {
-				data:['1 minute','5 minute','15 minute'],
+				data:['1 menit','5 menit','15 menit'],
 				right:'16%',
 				top:'10px'
 			},
@@ -859,7 +859,7 @@ function getload(b,e){
 			],
 			yAxis: [{
 					scale: true,
-					name: 'resource usage %',
+					name: 'pemakaian sumber daya %',
 					splitLine: {
 						show: true,
 						lineStyle:{
@@ -879,7 +879,7 @@ function getload(b,e){
 				},
 				{
 					scale: true,
-					name: 'load details',
+					name: 'detail beban',
 					gridIndex: 1,
 					splitLine: {
 						show: true,
@@ -924,7 +924,7 @@ function getload(b,e){
 			}],
 			series: [
 				{
-					name: 'resource usage %',
+					name: 'pemakaian sumber daya %',
 					type: 'line',
 					lineStyle: {
 						normal: {
@@ -942,7 +942,7 @@ function getload(b,e){
 				{
 					xAxisIndex: 1,
 					yAxisIndex: 1,
-					name: '1 minute',
+					name: '1 menit',
 					type: 'line',
 					lineStyle: {
 						normal: {
@@ -960,7 +960,7 @@ function getload(b,e){
 				{
 					xAxisIndex: 1,
 					yAxisIndex: 1,
-					name: '5 minute',
+					name: '5 menit',
 					type: 'line',
 					lineStyle: {
 						normal: {
@@ -978,7 +978,7 @@ function getload(b,e){
 				{
 					xAxisIndex: 1,
 					yAxisIndex: 1,
-					name: '15 minute',
+					name: '15 menit',
 					type: 'line',
 					lineStyle: {
 						normal: {

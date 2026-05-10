@@ -1023,7 +1023,7 @@ def formatDate(format="%Y-%m-%d %H:%M:%S", times=None):
 
 
 def strfToTime(sdate):
-    # 转换时间
+    # Waktu konversi
     import time
     return time.strftime('%Y-%m-%d', time.strptime(sdate, '%b %d %H:%M:%S %Y %Z'))
 
@@ -1820,13 +1820,13 @@ done
 
 def echoStart(tag):
     print("=" * 90)
-    print("★ begin {} [{}]".format(tag, formatDate()))
+    print("★ mulai {} [{}]".format(tag, formatDate()))
     print("=" * 90)
 
 
 def echoEnd(tag):
     print("=" * 90)
-    print("☆ {} done [{}]".format(tag, formatDate()))
+    print("☆ {} selesai [{}]".format(tag, formatDate()))
     print("=" * 90)
     print("\n")
 

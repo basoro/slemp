@@ -126,7 +126,7 @@ if [ ! -f /usr/sbin/ufw ];then
 
 	apt install -y firewalld
 	systemctl enable firewalld
-	#取消服务锁定
+	#Batal kunci layanan
     systemctl unmask firewalld
 	
 

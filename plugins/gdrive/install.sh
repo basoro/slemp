@@ -81,13 +81,13 @@ Install_App()
             pip install -I google-api-python-client==2.39.0 google-auth-httplib2==0.1.0 google-auth-oauthlib==0.5.0 -i https://pypi.Python.org/simple
             pip install -I httplib2==0.18.1 -i https://pypi.Python.org/simple
         fi
-        echo '正在安装脚本文件...'
+        echo 'Sedang menginstal file skrip...'
 
         
         echo "${VERSION}" > $serverPath/gdrive/version.pl
         echo 'Instalasi selesai'
     else
-        echo '服务器连接不上谷歌云！安装失败！'
+        echo 'Server tidak dapat terhubung ke Google Cloud! Instalasi gagal!'
         exit 1
     fi
 }
@@ -95,7 +95,7 @@ Install_App()
 Uninstall_App()
 {
 	rm -rf $serverPath/gdrive
-	echo '卸载完成'
+	echo 'Penghapusan instalasi selesai'
 }
 
 

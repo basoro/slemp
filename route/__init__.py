@@ -215,12 +215,12 @@ def publicObject(toObject, func, action=None, get=None):
             efunc = 'toObject.' + name + '()'
             data = eval(efunc)
             return data
-        data = {'msg': '404,not find api[' + name + ']', "status": False}
+        data = {'msg': '404, API nggak ketemu [' + name + ']', "status": False}
         return slemp.getJson(data)
     except Exception as e:
         if slemp.isDebugMode():
             print(traceback.print_exc())
-        data = {'msg': 'Access exception:' + str(e) + '!', "status": False}
+        data = {'msg': 'Ada masalah akses:' + str(e) + '!', "status": False}
         return slemp.getJson(data)
 
 
@@ -255,7 +255,7 @@ def webhook():
 
     wh_install_path = slemp.getServerDir() + '/webhook'
     if not os.path.exists(wh_install_path):
-        return slemp.returnJson(False, 'Please install the WebHook plugin first!')
+        return slemp.returnJson(False, 'Pasang plugin WebHook dulu ya!')
 
     sys.path.append('plugins/webhook')
     import index
@@ -306,7 +306,7 @@ def doLogin():
 
     filename = 'data/close.pl'
     if os.path.exists(filename):
-        return slemp.returnJson(False, 'Panel is closed!')
+        return slemp.returnJson(False, 'Panel lagi ditutup!')
 
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '').strip()
@@ -321,11 +321,11 @@ def doLogin():
 
             if login_cache_limit >= login_cache_count:
                 slemp.writeFile(filename, 'True')
-                return slemp.returnJson(False, 'Panel is closed!')
+                return slemp.returnJson(False, 'Panel lagi ditutup!')
 
             cache.set('login_cache_limit', login_cache_limit, timeout=10000)
             login_cache_limit = cache.get('login_cache_limit')
-            code_msg = slemp.getInfo("The verification code is wrong, you can try [{1}] more times!", (str(
+            code_msg = slemp.getInfo("Kode verifikasinya salah, masih ada kesempatan [{1}] kali lagi!", (str(
                 login_cache_count - login_cache_limit)))
             slemp.writeLog('User login', code_msg)
             return slemp.returnJson(False, code_msg)
@@ -339,7 +339,7 @@ def doLogin():
     # print('md5-pass', password)
 
     if userInfo['username'] != username or userInfo['password'] != password:
-        msg = "<a style='color: red'>Password error</a>, account: {1}, password: {2}, login IP: {3}", ((
+        msg = "<a style='color: red'>Password salah</a>, akun: {1}, password: {2}, login IP: {3}", ((
             '****', '******', request.remote_addr))
 
         if login_cache_limit == None:
@@ -349,12 +349,12 @@ def doLogin():
 
         if login_cache_limit >= login_cache_count:
             slemp.writeFile(filename, 'True')
-            return slemp.returnJson(False, 'Panel is closed!')
+            return slemp.returnJson(False, 'Panel lagi ditutup!')
 
         cache.set('login_cache_limit', login_cache_limit, timeout=10000)
         login_cache_limit = cache.get('login_cache_limit')
         slemp.writeLog('User login', slemp.getInfo(msg))
-        return slemp.returnJson(False, slemp.getInfo("Username or password is wrong, you can try [{1}] more times!", (str(login_cache_count - login_cache_limit))))
+        return slemp.returnJson(False, slemp.getInfo("Username atau password salah, masih ada kesempatan [{1}] kali lagi!", (str(login_cache_count - login_cache_limit))))
 
     cache.delete('login_cache_limit')
     session['login'] = True
@@ -363,7 +363,7 @@ def doLogin():
     # session['overdue'] = int(time.time()) + 7
 
     # slemp.writeFile('data/api_login.txt', userInfo['username'])
-    return slemp.returnJson(True, 'Login successful, jumping...')
+    return slemp.returnJson(True, 'Berhasil masuk, tunggu sebentar...')
 
 
 @app.errorhandler(404)
@@ -398,27 +398,27 @@ def admin_safe_path(path, req, data, pageFile):
 
 def login_temp_user(token):
     if len(token) != 48:
-        return 'Wrong parameter!'
+        return 'Parameternya salah!'
 
     skey = slemp.getClientIp() + '_temp_login'
     if not getErrorNum(skey, 10):
-        return '10 consecutive authentication failures, ban for 1 hour'
+        return '10 kali gagal terus, diblokir dulu ya 1 jam.'
 
     stime = int(time.time())
     data = slemp.M('temp_login').where('state=? and expire>?',
                                     (0, stime)).field('id,token,salt,expire,addtime').find()
     if not data:
         setErrorNum(skey)
-        return 'Verification failed!'
+        return 'Gagal verifikasi!'
 
     if stime > int(data['expire']):
         setErrorNum(skey)
-        return "Expired"
+        return "Sudah kedaluwarsa"
 
     r_token = slemp.md5(token + data['salt'])
     if r_token != data['token']:
         setErrorNum(skey)
-        return 'Verification failed!'
+        return 'Gagal verifikasi!'
 
     userInfo = slemp.M('users').where(
         "id=?", (1,)).field('id,username').find()
@@ -430,7 +430,7 @@ def login_temp_user(token):
     session['uid'] = data['id']
 
     login_addr = slemp.getClientIp() + ":" + str(request.environ.get('REMOTE_PORT'))
-    slemp.writeLog('User login', "Successful login, account: {1}, login IP: {2}",
+    slemp.writeLog('User login', "Berhasil masuk, akun: {1}, IP login: {2}",
                 (userInfo['username'], login_addr))
     slemp.M('temp_login').where('id=?', (data['id'],)).update(
         {"login_time": stime, 'state': 1, 'login_addr': login_addr})
@@ -448,7 +448,7 @@ def api(reqClass=None, reqAction=None, reqData=None):
     import config_api
     isOk, data = config_api.config_api().checkPanelToken()
     if not isOk:
-        return slemp.returnJson(False, 'API is not enabled')
+        return slemp.returnJson(False, 'API belum aktif')
 
     request_time = request.form.get('request_time', '')
     request_token = request.form.get('request_token', '')
@@ -457,25 +457,25 @@ def api(reqClass=None, reqAction=None, reqData=None):
 
     # print(request_time, request_token)
     if not slemp.inArray(data['limit_addr'], request_ip):
-        return slemp.returnJson(False, 'IP verification failed, your access IP is [' + request_ip + ']')
+        return slemp.returnJson(False, 'Verifikasi IP gagal, IP kamu: [' + request_ip + ']')
 
     local_token = slemp.deCrypt(data['token'], data['token_crypt'])
     token_md5 = slemp.md5(str(request_time) + slemp.md5(local_token))
 
     if not (token_md5 == request_token):
-        return slemp.returnJson(False, 'Wrong key')
+        return slemp.returnJson(False, 'Kuncinya salah')
 
     if reqClass == None:
-        return slemp.returnJson(False, 'Please specify the request method class')
+        return slemp.returnJson(False, 'Tolong tentukan class method-nya')
 
     if reqAction == None:
-        return slemp.returnJson(False, 'Please specify the request method')
+        return slemp.returnJson(False, 'Tolong tentukan method-nya')
 
     classFile = ('config_api', 'crontab_api', 'files_api', 'firewall_api',
                  'plugins_api', 'system_api', 'site_api', 'task_api')
     className = reqClass + '_api'
     if not className in classFile:
-        return slemp.returnJson(False, 'external api request error')
+        return slemp.returnJson(False, 'Gagal akses API luar')
 
     eval_str = "__import__('" + className + "')." + className + '()'
     newInstance = eval(eval_str)
@@ -538,13 +538,13 @@ def index(reqClass=None, reqAction=None, reqData=None):
         return render_template(reqClass + '.html', data=data)
 
     if not isLogined():
-        return 'error request!'
+        return 'Gagal akses!'
 
     classFile = ('config_api', 'crontab_api', 'files_api', 'firewall_api',
                  'plugins_api', 'system_api', 'site_api', 'task_api')
     className = reqClass + '_api'
     if not className in classFile:
-        return "api error request"
+        return "Gagal akses API"
 
     eval_str = "__import__('" + className + "')." + className + '()'
     newInstance = eval(eval_str)
@@ -560,7 +560,7 @@ shell_client = None
 @socketio.on('webssh_websocketio')
 def webssh_websocketio(data):
     if not isLogined():
-        emit('server_response', {'data': 'Session lost, please log in to the panel again!\r\n'})
+        emit('server_response', {'data': 'Sesi habis, silakan login lagi ya!\r\n'})
         return
 
     global shell_client
@@ -576,7 +576,7 @@ def webssh_websocketio(data):
 def webssh(msg):
     global shell
     if not isLogined():
-        emit('server_response', {'data': 'Session lost, please log in to the panel again!\r\n'})
+        emit('server_response', {'data': 'Sesi habis, silakan login lagi ya!\r\n'})
         return None
 
     if not shell:

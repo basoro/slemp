@@ -80,7 +80,7 @@ Uninstall_phpmyadmin()
 	cd ${rootPath} && python3 ${rootPath}/plugins/phpmyadmin/index.py stop
 	
 	rm -rf ${serverPath}/phpmyadmin
-	echo '卸载完成'
+	echo 'Penghapusan instalasi selesai'
 }
 
 action=$1
