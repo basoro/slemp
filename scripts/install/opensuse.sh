@@ -1,7 +1,5 @@
 #!/bin/bash
-PANEL_DIR=$(cd "$(dirname "$0")/../../"; pwd)
-
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 LANG=en_US.UTF-8
 
@@ -29,14 +27,21 @@ zypper install -y libjpeg-devel libpng-devel
 zypper install -y libevent-devel
 zypper install -y libtirpc-devel
 zypper install -y rpcgen
+zypper install -y libstdc++6
 zypper install -y expect
+zypper install -y pv
+zypper install -y bc
+zypper install -y bzip2
+
 
 zypper install -y libzip libzip-devel
+zypper install -y unrar rar
 zypper install -y libmemcached libmemcached-devel
 
 zypper install -y icu libicu-devel
 zypper install -y sqlite3 sqlite3-devel
 zypper install -y oniguruma-devel
+zypper install -y libzstd-devel
 
 # zypper install -y libmcrypt libmcrypt-devel
 # zypper install -y protobuf
@@ -51,31 +56,24 @@ zypper install -y libtomcrypt-devel
 
 zypper install -y libXpm-devel
 zypper install -y freetype2-devel
+zypper install -y libargon2-devel
+
+zypper install -y net-tools-deprecated
+zypper install -y numactl
+zypper install -y sshpass
+zypper install -y brotli-devel
 
 # zypper install -y  php-config
 
 SSH_PORT=`netstat -ntpl|grep sshd|grep -v grep | sed -n "1,1p" | awk '{print $4}' | awk -F : '{print $2}'`
+if [ "$SSH_PORT" == "" ];then
+	SSH_PORT_LINE=`cat /etc/ssh/sshd_config | grep "Port \d*" | tail -1`
+	SSH_PORT=${SSH_PORT_LINE/"Port "/""}
+fi
 echo "SSH PORT:${SSH_PORT}"
 
-# if [ -f /usr/sbin/iptables ];then
-
-# 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
-# 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
-# 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
-# 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 888 -j ACCEPT
-# 	service iptables save
-
-# 	iptables_status=`service iptables status | grep 'not running'`
-# 	if [ "${iptables_status}" == '' ];then
-# 		service iptables restart
-# 	fi
-
-# 	service iptables stop
-# fi
-
-
 if [ ! -f /usr/sbin/firewalld ];then
-	zypper install -y firewalld
+	zypper install -y firewalld 
 	systemctl enable firewalld
 	systemctl start firewalld
 
@@ -84,16 +82,18 @@ if [ ! -f /usr/sbin/firewalld ];then
 	else
 		firewall-cmd --permanent --zone=public --add-port=22/tcp
 	fi
-
+	
 	firewall-cmd --permanent --zone=public --add-port=80/tcp
 	firewall-cmd --permanent --zone=public --add-port=443/tcp
-	firewall-cmd --permanent --zone=public --add-port=888/tcp
+	firewall-cmd --permanent --zone=public --add-port=443/udp
+	# firewall-cmd --permanent --zone=public --add-port=888/tcp
 
 	sed -i 's#AllowZoneDrifting=yes#AllowZoneDrifting=no#g' /etc/firewalld/firewalld.conf
 	firewall-cmd --reload
+	#安装时不开启
 	systemctl stop firewalld
 fi
 
+cd ${rootPath}/scripts && bash lib.sh
+chmod 755 ${rootPath}/data
 
-cd $PANEL_DIR/scripts && bash lib.sh
-chmod 755 $PANEL_DIR/data

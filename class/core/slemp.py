@@ -56,7 +56,9 @@ def getRunDir():
 
 
 def getRootDir():
-    return os.path.dirname(getRunDir())
+    if isAppleSystem():
+        return os.path.dirname(os.path.dirname(getRunDir()))
+    return '/opt/slemp'
 
 
 def getPluginDir():

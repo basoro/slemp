@@ -77,10 +77,10 @@
 
     var xPath = getCookie('open_dir_path');
     setTimeout(function () {
-        getFiles((xPath != undefined ? xPath : '/opt/slemp/wwwroot'));
+        getFiles((xPath != undefined ? xPath : '{{data.root_path}}/wwwroot'));
     }, 800);
 
-    pathPlaceBtn((xPath != undefined ? xPath : '/opt/slemp/wwwroot'));
+    pathPlaceBtn((xPath != undefined ? xPath : '{{data.root_path}}/wwwroot'));
     setCookie('uploadSize', 1024 * 1024 * 1024);
     if (getCookie('rank') == undefined || getCookie('rank') == null) {
         setCookie('rank', 'a');

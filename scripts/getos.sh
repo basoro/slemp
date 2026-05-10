@@ -1,10 +1,8 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-DIR=$(cd "$(dirname "$0")"; pwd)
-rootPath=$(dirname "$DIR")
-
+#获取信息和版本
 _os=`uname`
 if [ ${_os} == "Darwin" ]; then
     OSNAME='macos'
@@ -12,6 +10,8 @@ elif grep -Eq "openSUSE" /etc/*-release; then
     OSNAME='opensuse'
 elif grep -Eq "FreeBSD" /etc/*-release; then
     OSNAME='freebsd'
+elif grep -Eqi "EulerOS" /etc/*-release || grep -Eqi "openEuler" /etc/*-release; then
+    OSNAME='euler'
 elif grep -Eqi "Arch" /etc/issue || grep -Eq "Arch" /etc/*-release; then
     OSNAME='arch'
 elif grep -Eqi "CentOS" /etc/issue || grep -Eq "CentOS" /etc/*-release; then

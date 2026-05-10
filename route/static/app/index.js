@@ -835,7 +835,7 @@ function pluginInit() {
             },
             cancel: function () {
                 layer.confirm('Whether to no longer show recommended installation kits?', { btn: ['Yes', 'Cancel'], title: "Do not show recommendations again?" }, function () {
-                    $.post('/files/create_dir', 'path=/opt/slemp/server/php', function (rdata) {
+                    $.post('/files/create_dir', 'path=' + SLEMP_ROOT_PATH + '/server/php', function (rdata) {
                         layer.closeAll();
                     }, 'json');
                 });

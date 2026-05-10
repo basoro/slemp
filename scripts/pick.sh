@@ -1,9 +1,11 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 
+
+#----------------------------- 代码打包 -------------------------#
 
 echo $rootPath
 cd $rootPath
@@ -12,11 +14,11 @@ rm -rf ./*/*.pyc
 
 startTime=`date +%s`
 
-zip -r -q -o slemp.zip  ./ -x@$curPath/pick_filter.txt
+zip -r -q -o panel.zip  ./ -x@$curPath/pick_filter.txt
 
 
 
-mv slemp.zip $rootPath/scripts
+mv panel.zip $rootPath/scripts 
 
 endTime=`date +%s`
 ((outTime=($endTime-$startTime)))

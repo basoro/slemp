@@ -871,6 +871,7 @@ class config_api:
 
         data = {}
         data['title'] = slemp.getConfig('title')
+        data['root_path'] = slemp.getRootDir()
         data['site_path'] = slemp.getWwwDir()
         data['backup_path'] = slemp.getBackupDir()
         sformat = 'date +"%Y-%m-%d %H:%M:%S %Z %z"'

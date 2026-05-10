@@ -1,7 +1,5 @@
 #!/bin/bash
-PANEL_DIR=$(cd "$(dirname "$0")/../../"; pwd)
-
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 LANG=en_US.UTF-8
 
@@ -17,9 +15,19 @@ sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config
 
 yum install -y wget curl lsof unzip
 yum install -y expect
+yum install -y ncurses-compat-libs
+yum install -y numactl
+yum install -y sshpass
+yum install -y libzstd-devel
+yum install -y postgresql-devel
+yum install -y brotli-devel
 dnf install crontabs -y
 
 SSH_PORT=`netstat -ntpl|grep sshd|grep -v grep | sed -n "1,1p" | awk '{print $4}' | awk -F : '{print $2}'`
+if [ "$SSH_PORT" == "" ];then
+	SSH_PORT_LINE=`cat /etc/ssh/sshd_config | grep "Port \d*" | tail -1`
+	SSH_PORT=${SSH_PORT_LINE/"Port "/""}
+fi
 echo "SSH PORT:${SSH_PORT}"
 
 # if [ -f /usr/sbin/iptables ];then
@@ -38,6 +46,7 @@ echo "SSH PORT:${SSH_PORT}"
 # 		service iptables restart
 # 	fi
 
+# 	#安装时不开启
 # 	service iptables stop
 # fi
 
@@ -52,14 +61,16 @@ if [ ! -f /usr/sbin/iptables ];then
 	else
 		firewall-cmd --permanent --zone=public --add-port=22/tcp
 	fi
-
+	
 	firewall-cmd --permanent --zone=public --add-port=80/tcp
 	firewall-cmd --permanent --zone=public --add-port=443/tcp
-	firewall-cmd --permanent --zone=public --add-port=888/tcp
+	firewall-cmd --permanent --zone=public --add-port=443/udp
+	# firewall-cmd --permanent --zone=public --add-port=888/tcp
 	firewall-cmd --reload
 fi
 
 
+#安装时不开启
 systemctl stop firewalld
 
 
@@ -67,30 +78,37 @@ yum groupinstall -y "Development Tools"
 yum install -y epel-release
 
 yum install -y libevent libevent-devel zip libmcrypt libmcrypt-devel
-yum install -y gcc libffi-devel python-devel openssl-devel
+yum install -y rar unrar
+yum install -y pv
+yum install -y bc
+yum install -y gcc libffi-devel python-devel openssl-devel 
 yum install -y libmcrypt libmcrypt-devel python3-devel
 
-yum install -y wget python-devel python-imaging libicu-devel unzip bzip2-devel gcc libxml2 libxml2-devel libjpeg-devel libpng-devel libwebp libwebp-devel pcre pcre-devel crontabs
+yum install -y wget python-devel python-imaging libicu-devel unzip gcc libxml2 libxml2-devel libjpeg-devel libpng-devel libwebp libwebp-devel pcre pcre-devel crontabs
 yum install -y net-tools
-yum install -y ncurses-devel
+yum install -y ncurses-devel 
 yum install -y python-devel
 yum install -y MySQL-python
 yum install -y python3-devel
 yum install -y mysql-devel
 
+yum install -y  bzip2
+yum install -y  bzip2-devel
+
 yum install -y libtirpc libtirpc-devel
 yum install -y rpcgen
-yum install -y openldap openldap-devel
+yum install -y openldap openldap-devel  
 yum install -y bison re2c
 yum install -y cmake cmake3
 yum install -y autoconf
+yum install -y libargon2-devel
 
 yum install -y libmemcached libmemcached-devel
 yum install -y curl curl-devel
 yum install -y zlib zlib-devel
 yum install -y libzip libzip-devel
 yum install -y pcre pcre-devel
-yum install -y icu libicu-devel
+yum install -y icu libicu-devel 
 yum install -y freetype freetype-devel
 yum install -y openssl openssl-devel
 yum install -y graphviz libxml2 libxml2-devel
@@ -103,5 +121,6 @@ do yum -y install $yumPack;done
 
 dnf install libxml2 libxml2-devel -y
 
-cd $PANEL_DIR/scripts && bash lib.sh
-chmod 755 $PANEL_DIR/data
+cd ${rootPath}/scripts && bash lib.sh
+chmod 755 ${rootPath}/data
+

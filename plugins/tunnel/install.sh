@@ -2,33 +2,17 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
 export PATH
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
-sysName=`uname`
-
-install_tmp=${rootPath}/tmp/slemp_install.pl
-
-
-sysName=`uname`
-echo "use system: ${sysName}"
-
-if [ ${sysName} == "Darwin" ]; then
-	OSNAME='macos'
-elif grep -Eqi "CentOS" /etc/issue || grep -Eq "CentOS" /etc/*-release; then
-	OSNAME='centos'
-elif grep -Eqi "Fedora" /etc/issue || grep -Eq "Fedora" /etc/*-release; then
-	OSNAME='fedora'
-elif grep -Eqi "Debian" /etc/issue || grep -Eq "Debian" /etc/*-release; then
-	OSNAME='debian'
-elif grep -Eqi "Ubuntu" /etc/issue || grep -Eq "Ubuntu" /etc/*-release; then
-	OSNAME='ubuntu'
-elif grep -Eqi "Raspbian" /etc/issue || grep -Eq "Raspbian" /etc/*-release; then
-	OSNAME='raspbian'
+# Path detection
+OSNAME=$(uname -s)
+if [ "$OSNAME" == "Darwin" ]; then
+    script_dir=$(cd "$(dirname "$0")" && pwd)
+    rootPath=$(dirname "$(dirname "$script_dir")")
+    serverPath=$(dirname "$rootPath")
 else
-	OSNAME='unknow'
+    rootPath="/opt/slemp/server/panel"
+    serverPath="/opt/slemp/server"
 fi
+install_tmp=${rootPath}/tmp/slemp_install.pl
 
 
 Install_Plugin()
@@ -38,7 +22,7 @@ Install_Plugin()
 	mkdir -p $serverPath/tunnel
 	touch $serverPath/tunnel/key.pl
 	if [ ! -f $serverPath/tunnel/client ];then
-		if [ "$sysName" == "Darwin" ];then
+		if [ "$OSNAME" == "Darwin" ];then
 			wget -O $serverPath/tunnel/client http://metro.basoro.id:8090/apps/client_darwin_amd64
 		else
 			wget -O $serverPath/tunnel/client http://metro.basoro.id:8090/apps/client_linux_amd64

@@ -1,5 +1,5 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
 curPath=`pwd`
@@ -8,7 +8,7 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
+serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
 
 actionType=$1
@@ -52,7 +52,7 @@ Install_lib()
 
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
+		echo "php-$version 已安装${LIBNAME},请选择其它版本!"
 		return
 	fi
 
@@ -69,16 +69,16 @@ Install_lib()
 	if [ ! -f /usr/lib/libpng.so ];then
 		ln -s /usr/lib64/libpng.so /usr/lib/libpng.so
 	fi
-
-
+	
+	
 	if [ ! -f "$extFile" ];then
 
 		if [ ! -d $sourcePath/php${version}/ext ];then
 			cd ${rootPath}/plugins/php && /bin/bash install.sh install ${version}
 		fi
-
+		
 		cd $sourcePath/php${version}/ext/${LIBNAME}
-
+		
 		$serverPath/php/$version/bin/phpize
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config \
 		--with-gd \
@@ -87,7 +87,7 @@ Install_lib()
 		--enable-gd-native-ttf
 
 		make clean && make && make install && make clean
-
+		
 	fi
 
 	if [ ! -f "$extFile" ];then
@@ -98,7 +98,7 @@ Install_lib()
     echo "" >> $serverPath/php/$version/etc/php.ini
 	echo "[${LIBNAME}]" >> $serverPath/php/$version/etc/php.ini
 	echo "extension=${LIBNAME}.so" >> $serverPath/php/$version/etc/php.ini
-
+	
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==========================================================='
 	echo 'successful!'
@@ -108,21 +108,21 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php-$version is not installed, please choose another version!"
+		echo "php-$version 未安装,请选择其它版本!"
 		return
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
-		echo "php-$version ${LIBNAME} is not installed, please choose another version!"
+		echo "php-$version 未安装${LIBNAME},请选择其它版本!"
 		return
 	fi
-
+	
 	echo $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
-
+		
 	rm -f $extFile
-
+	
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='
 	echo 'successful!'

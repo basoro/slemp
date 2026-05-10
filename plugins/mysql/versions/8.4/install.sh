@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #!/bin/bash
-
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
 #https://dev.mysql.com/downloads/mysql/5.7.html
@@ -10,11 +9,9 @@ export PATH
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
+serverPath=$(dirname "$rootPath")
 sysName=`uname`
 
-
-install_tmp=${rootPath}/tmp/slemp_install.pl
 mysqlDir=${serverPath}/source/mysql
 
 _os=`uname`
@@ -57,20 +54,14 @@ fi
 VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
 
 
-VERSION=8.4.0
+VERSION=8.4.2
+# https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-${VERSION}.tar.gz
+# https://cdn.mysql.com//Downloads/MySQL-8.4/mysql-boost-${VERSION}.tar.gz
 Install_mysql()
 {
 	mkdir -p ${mysqlDir}
-	echo 'Installing script file...' > $install_tmp
+	echo '正在安装脚本文件...'
 
-
-	if id mysql &> /dev/null ;then
-	    echo "mysql UID is `id -u www`"
-	    echo "mysql Shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
-	else
-	    groupadd mysql
-		useradd -g mysql mysql
-	fi
 
 	# ----- cpu start ------
 	if [ -z "${cpuCore}" ]; then
@@ -108,23 +99,25 @@ Install_mysql()
 		INSTALL_CMD=cmake3
 	fi
 
-	if [ ! -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
-    wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-8.4/mysql-boost-${VERSION}.tar.gz
+	if [ ! -f ${mysqlDir}/mysql-${VERSION}.tar.gz ];then
+         wget --no-check-certificate -O ${mysqlDir}/mysql-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-${VERSION}.tar.gz
 	fi
 
-	md5_mysql_ok=c8cfab52fbde1cca55accb3113c235eb
-	if [ -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
-		md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
+	#检测文件是否损坏.
+	md5_mysql_ok=a632063fdb1c7de2c5db47e1f66191cd
+	if [ -f ${mysqlDir}/mysql-${VERSION}.tar.gz ];then
+		md5_mysql=`md5sum ${mysqlDir}/mysql-${VERSION}.tar.gz  | awk '{print $1}'`
 		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
-			echo "mysql8.0 file  check ok"
+			echo "mysql8.4 file check ok"
 		else
+			# 重新下载
 			rm -rf ${mysqlDir}/mysql-${VERSION}
-			wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-boost-${VERSION}.tar.gz
+			wget --no-check-certificate -O ${mysqlDir}/mysql-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-${VERSION}.tar.gz
 		fi
 	fi
 
 	if [ ! -d ${mysqlDir}/mysql-${VERSION} ];then
-		 cd ${mysqlDir} && tar -zxvf  ${mysqlDir}/mysql-boost-${VERSION}.tar.gz
+		 cd ${mysqlDir} && tar -zxvf  ${mysqlDir}/mysql-${VERSION}.tar.gz
 	fi
 
 	OPTIONS=''
@@ -151,13 +144,13 @@ Install_mysql()
 		echo $WHERE_DIR_GPP
 	fi
 
-	if [ "$OSNAME" == "ubuntu" ] && [ "$VERSION_ID" == "18.04" ];then
+	if [ "$OSNAME" == "ubuntu" ];then
 		apt install -y libudev-dev
 		apt install -y libtirpc-dev
 		apt install -y libssl-dev
 		apt install -y libgssglue-dev
 		apt install -y software-properties-common
-		add-apt-repository ppa:ubuntu-toolchain-r/test
+		add-apt-repository -y ppa:ubuntu-toolchain-r/test
 
 		LIBTIRPC_VER=`pkg-config libtirpc --modversion`
 		if [ ! -f ${mysqlDir}/libtirpc_1.3.3.orig.tar.bz2 ];then
@@ -209,12 +202,11 @@ Install_mysql()
 
 		if [ -d $serverPath/mysql ];then
 			rm -rf ${mysqlDir}/mysql-${VERSION}
-			echo '8.0' > $serverPath/mysql/version.pl
-			echo 'The installation is complete' > $install_tmp
+			echo '8.4' > $serverPath/mysql/version.pl
+			echo "${VERSION}安装完成"
 		else
 			# rm -rf ${mysqlDir}/mysql-${VERSION}
-			echo 'installation failed' > $install_tmp
-			echo 'install fail'>&2
+			echo "${VERSION}安装失败"
 			exit 1
 		fi
 	fi
@@ -223,7 +215,7 @@ Install_mysql()
 Uninstall_mysql()
 {
 	rm -rf $serverPath/mysql
-	echo 'uninstall complete' > $install_tmp
+	echo '卸载完成'
 }
 
 action=$1

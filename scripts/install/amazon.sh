@@ -1,7 +1,5 @@
 #!/bin/bash
-PANEL_DIR=$(cd "$(dirname "$0")/../../"; pwd)
-
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 LANG=en_US.UTF-8
 
@@ -16,14 +14,28 @@ setenforce 0
 sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config
 
 yum install -y wget lsof crontabs
+yum install -y rar unrar
 yum install -y python3-devel
 yum install -y python3-pip
 yum install -y python-devel
 yum install -y curl-devel libmcrypt libmcrypt-devel
 yum install -y mysql-devel
 yum install -y expect
+yum install -y pv
+yum install -y bc
+yum install -y bzip2
+yum install -y bzip2-devel
+yum install -y ncurses-compat-libs
+yum install -y numactl
+yum install -y sshpass
+yum install -y libzstd-devel
+yum install -y brotli-devel
 
 SSH_PORT=`netstat -ntpl|grep sshd|grep -v grep | sed -n "1,1p" | awk '{print $4}' | awk -F : '{print $2}'`
+if [ "$SSH_PORT" == "" ];then
+	SSH_PORT_LINE=`cat /etc/ssh/sshd_config | grep "Port \d*" | tail -1`
+	SSH_PORT=${SSH_PORT_LINE/"Port "/""}
+fi
 echo "SSH PORT:${SSH_PORT}"
 
 # if [ -f /usr/sbin/iptables ];then
@@ -39,6 +51,7 @@ echo "SSH PORT:${SSH_PORT}"
 # 		service iptables restart
 # 	fi
 
+# 	#安装时不开启
 # 	service iptables stop
 # fi
 
@@ -46,6 +59,7 @@ echo "SSH PORT:${SSH_PORT}"
 if [ ! -f /usr/sbin/firewalld ];then
 	yum install firewalld -y
 	systemctl enable firewalld
+	#取消服务锁定
 	systemctl unmask firewalld
 	systemctl start firewalld
 
@@ -57,10 +71,12 @@ if [ ! -f /usr/sbin/firewalld ];then
 
 	firewall-cmd --permanent --zone=public --add-port=80/tcp
 	firewall-cmd --permanent --zone=public --add-port=443/tcp
-	firewall-cmd --permanent --zone=public --add-port=888/tcp
+	firewall-cmd --permanent --zone=public --add-port=443/udp
+	# firewall-cmd --permanent --zone=public --add-port=888/tcp
 
 	sed -i 's#AllowZoneDrifting=yes#AllowZoneDrifting=no#g' /etc/firewalld/firewalld.conf
 	firewall-cmd --reload
+	#安装时不开启
 	systemctl stop firewalld
 fi
 
@@ -79,7 +95,7 @@ fi
 
 yum install -y libtirpc libtirpc-devel
 yum install -y rpcgen
-yum install -y openldap openldap-devel
+yum install -y openldap openldap-devel  
 yum install -y bison re2c
 yum install -y cmake3
 yum install -y autoconf
@@ -90,9 +106,12 @@ yum install -y curl curl-devel
 yum install -y zlib zlib-devel
 yum install -y libzip libzip-devel
 yum install -y pcre pcre-devel
-yum install -y icu libicu-devel
+yum install -y icu libicu-devel 
 yum install -y freetype freetype-devel
+
 yum install -y openssl openssl-devel
+yum install -y libargon2-devel
+
 yum install -y graphviz libxml2 libxml2-devel
 yum install -y sqlite-devel
 yum install -y oniguruma oniguruma-devel
@@ -133,5 +152,8 @@ if [ "$VERSION_ID" -eq "9" ];then
 fi
 
 
-cd $PANEL_DIR/scripts && bash lib.sh
-chmod 755 $PANEL_DIR/data
+cd ${rootPath}/scripts && bash lib.sh
+chmod 755 ${rootPath}/data
+
+
+

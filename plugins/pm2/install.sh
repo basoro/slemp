@@ -3,15 +3,16 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/
 export PATH
 
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
-
-bash ${rootPath}/scripts/getos.sh
-OSNAME=`cat ${rootPath}/data/osname.pl`
-
-echo $OSNAME
+# Path detection
+OSNAME=$(uname -s)
+if [ "$OSNAME" == "Darwin" ]; then
+    script_dir=$(cd "$(dirname "$0")" && pwd)
+    rootPath=$(dirname "$(dirname "$script_dir")")
+    serverPath=$(dirname "$rootPath")
+else
+    rootPath="/opt/slemp/server/panel"
+    serverPath="/opt/slemp/server"
+fi
 install_tmp=${rootPath}/tmp/slemp_install.pl
 
 Install_pm2()

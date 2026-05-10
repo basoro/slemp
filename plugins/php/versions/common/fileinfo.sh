@@ -1,6 +1,6 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
-export PATH
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
+export PATH=$PATH:/opt/homebrew/bin
 
 curPath=`pwd`
 
@@ -8,9 +8,9 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
+serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
-
+SYS_ARCH=`arch`
 actionType=$1
 version=$2
 
@@ -37,32 +37,38 @@ else
 	BAK=''
 fi
 
+OSNAME=`cat ${rootPath}/data/osname.pl`
+
 Install_lib()
 {
 
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
+		echo "php-$version 已安装${LIBNAME},请选择其它版本!"
 		return
 	fi
 	
 	if [ ! -f "$extFile" ];then
 
 		if [ ! -d $sourcePath/php${version}/ext ];then
-			echo "cd ${rootPath}/plugins/php && /bin/bash install.sh install ${version}"
-			cd ${rootPath}/plugins/php && /bin/bash install.sh install ${version}
+			cd ${rootPath}/plugins/php && /bin/bash ${rootPath}/plugins/php/versions/${version}/install.sh install 
 		fi
 
 		cd $sourcePath/php${version}/ext/${LIBNAME}
 		
+		OPTIONS=''
+		if [ "${SYS_ARCH}" == "aarch64" ] && [ "$version" -lt "56" ];then
+			OPTIONS="$OPTIONS --build=aarch64-unknown-linux-gnu --host=aarch64-unknown-linux-gnu"
+		fi
+
+		
 		$serverPath/php/$version/bin/phpize
-		./configure --with-php-config=$serverPath/php/$version/bin/php-config
+		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
 
 
 		# It is considered as a temporary bug
 		if [ "$version" == "81" ] || [ "$version" == "82" ];then
 			bash ${rootPath}/scripts/getos.sh
-			OSNAME=`cat ${rootPath}/data/osname.pl`
 			if [ "$OSNAME" == 'centos' ];then
 				FILE_softmagic=$sourcePath/php${version}/ext/${LIBNAME}/libmagic/softmagic.c
 				FIND_UNDEF_STRNDUP=`cat $FILE_softmagic|grep '#undef strndup'`
@@ -77,8 +83,16 @@ Install_lib()
 			sed -i $BAK 's/CFLAGS \=/CFLAGS \= -std=gnu99/g' Makefile
 		fi
 
+		if [ "$version" -gt "80" ] && [ "$OSNAME" == 'centos' ];then
+			sed -i $BAK "s#CFLAGS = -g -O2#CFLAGS = -std=c99 -g#g" $sourcePath/php${version}/ext/${LIBNAME}/Makefile
+		fi
+
+
 		make clean && make && make install && make clean
 		
+		if [ -d $sourcePath/php${version} ];then
+			cd ${sourcePath} && rm -rf $sourcePath/php${version}
+		fi
 	fi
 
 	if [ ! -f "$extFile" ];then
@@ -91,7 +105,7 @@ Install_lib()
 	echo "[${LIBNAME}]" >> $serverPath/php/$version/etc/php.ini
 	echo "extension=${LIBNAME}.so" >> $serverPath/php/$version/etc/php.ini
 	
-	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
+	cd  ${curPath} && bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==========================================================='
 	echo 'successful!'
 }
@@ -100,12 +114,12 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php-$version is not installed, please choose another version!"
+		echo "php-$version 未安装,请选择其它版本!"
 		return
 	fi
 	
 	if [ ! -f "$extFile" ];then
-		echo "php-$version ${LIBNAME} is not installed, please choose another version"
+		echo "php-$version 未安装${LIBNAME},请选择其它版本!"
 		return
 	fi
 	
@@ -114,7 +128,7 @@ Uninstall_lib()
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
 		
 	rm -f $extFile
-	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
+	cd  ${curPath} && bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='
 	echo 'successful!'
 }

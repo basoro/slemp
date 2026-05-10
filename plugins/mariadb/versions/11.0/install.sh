@@ -1,5 +1,5 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
 #https://dev.mysql.com/downloads/mysql/5.5.html#downloads
@@ -8,26 +8,17 @@ export PATH
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
+serverPath=$(dirname "$rootPath")
 sysName=`uname`
 
-install_tmp=${rootPath}/tmp/slemp_install.pl
 mariadbDir=${serverPath}/source/mariadb
 
-MY_VER=11.0.1
+MY_VER=11.0.5
 
 Install_app()
 {
 	mkdir -p ${mariadbDir}
-	echo 'Installing script file...' > $install_tmp
-
-	if id mysql &> /dev/null ;then
-	    echo "mysql uid is `id -u www`"
-	    echo "mysql shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
-	else
-	    groupadd mysql
-		useradd -g mysql mysql
-	fi
+	echo '正在安装脚本文件...'
 
 	if [ "$sysName" != "Darwin" ];then
 		mkdir -p /var/log/mariadb
@@ -71,7 +62,7 @@ Install_app()
 	if [ ! -d ${mariadbDir}/mariadb-${MY_VER} ];then
 		 cd ${mariadbDir} && tar -zxvf  ${mariadbDir}/mariadb-${MY_VER}.tar.gz
 	fi
-
+	
 	INSTALL_CMD=cmake
 	# check cmake version
 	CMAKE_VERSION=`cmake -version | grep version | awk '{print $3}' | awk -F '.' '{print $1}'`
@@ -100,23 +91,25 @@ Install_app()
 		make -j${cpuCore} && make install && make clean
 
 		if [ -d $serverPath/mariadb ];then
-			echo '10.11' > $serverPath/mariadb/version.pl
-			echo 'The installation is complete' > $install_tmp
+			echo '11.0' > $serverPath/mariadb/version.pl
+			echo '安装完成'
 		else
-			echo 'Installation failed' > $install_tmp
+			echo '安装失败'
 			echo 'install fail'>&2
 			exit 1
 		fi
 	fi
 
-	rm -rf ${mariadbDir}/mariadb-${MY_VER}
-	rm -rf ${mariadbDir}/mariadb-${MY_VER}.tar.gz
+	if [ -d ${mariadbDir}/mariadb-${MY_VER} ];then
+		rm -rf ${mariadbDir}/mariadb-${MY_VER}
+	fi
+
 }
 
 Uninstall_app()
 {
 	rm -rf $serverPath/mariadb
-	echo 'Uninstall complete' > $install_tmp
+	echo '卸载完成'
 }
 
 action=$1

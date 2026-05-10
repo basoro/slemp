@@ -1,24 +1,26 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
+serverPath=$(dirname "$rootPath")
 sysName=`uname`
 
 
+#获取信息和版本
 # bash ${serverPath}/mdsever-web/scripts/getos.sh
 bash ${rootPath}/scripts/getos.sh
 OSNAME=`cat ${rootPath}/data/osname.pl`
+
 
 if [ -f ${rootPath}/bin/activate ];then
 	source ${rootPath}/bin/activate
 fi
 
-if id www &> /dev/null ;then
+if id www &> /dev/null ;then 
     echo "www uid is `id -u www`"
     echo "www shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
 else
@@ -26,15 +28,19 @@ else
 	useradd -g www -s /bin/bash www
 fi
 
-echo $OSNAME
-install_tmp=${rootPath}/tmp/slemp_install.pl
+# echo $OSNAME
+
 Install_rsyncd()
 {
-	echo 'Installing script file...' > $install_tmp
+	echo '正在安装脚本文件...'
+	
 
 	if [ "$OSNAME" == "debian" ] || [ "$OSNAME" == "ubuntu" ];then
 		apt install -y rsync
 		apt install -y lsyncd
+	elif [[ "$OSNAME" == "arch" ]]; then
+		echo y | pacman -Sy rsync
+		echo y | pacman -Sy lsyncd
 	elif [[ "$OSNAME" == "macos" ]]; then
 		# brew install rsync
 		# brew install lsyncd
@@ -47,9 +53,9 @@ Install_rsyncd()
 	mkdir -p $serverPath/rsyncd
 	mkdir -p $serverPath/rsyncd/receive
 	mkdir -p $serverPath/rsyncd/send
-
+	
 	echo '2.0' > $serverPath/rsyncd/version.pl
-	echo 'The installation is complete' > $install_tmp
+	echo '安装完成'
 	cd ${rootPath} && python3 ${rootPath}/plugins/rsyncd/index.py start
 	cd ${rootPath} && python3 ${rootPath}/plugins/rsyncd/index.py initd_install
 }
@@ -75,9 +81,9 @@ Uninstall_rsyncd()
 	if [ -f $serverPath/rsyncd/initd/rsyncd ];then
 		$serverPath/rsyncd/initd/rsyncd stop
 	fi
-
+	
 	rm -rf $serverPath/rsyncd
-	echo "uninstall complete" > $install_tmp
+	echo "卸载完成"
 }
 
 action=$1

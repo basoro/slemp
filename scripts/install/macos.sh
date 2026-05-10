@@ -4,7 +4,7 @@ export PATH
 LANG=en_US.UTF-8
 
 PANEL_DIR=$(cd "$(dirname "$0")/../../"; pwd)
-DEV=$(dirname "$PANEL_DIR")
+DEV=$(dirname "$(dirname "$PANEL_DIR")")
 
 mkdir -p $DEV
 mkdir -p $DEV/wwwroot
@@ -18,7 +18,13 @@ if ! command -v brew &> /dev/null; then
 	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
-brew install libzip bzip2 gcc openssl re2c cmake wget libxml2 pkg-config
+brew install pv
+brew install libzip bzip2 gcc openssl re2c cmake wget pkg-config
+brew install librdkafka
+brew install coreutils libxml2 xml2
+brew install md5sum libevent pidof bison
+brew install pcre2 libxpm libelf
+brew install automake icu4c libmemcached
 
 if [ ! -d $DEV/server/lib ]; then
 	cd $PANEL_DIR/scripts && bash lib.sh

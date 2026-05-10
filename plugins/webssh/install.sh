@@ -1,31 +1,28 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
-
-
-install_tmp=${rootPath}/tmp/slemp_install.pl
+serverPath=$(dirname "$rootPath")
 
 VERSION=$2
 
 Install_webssh()
 {
-	echo 'Installing script file...' > $install_tmp
+	echo '正在安装脚本文件...'
 	mkdir -p $serverPath/webssh
 	echo "${VERSION}" > $serverPath/webssh/version.pl
-	echo 'The installation is complete' > $install_tmp
+	echo '安装完成'
 
 }
 
 Uninstall_webssh()
 {
 	rm -rf $serverPath/webssh
-	echo "uninstall complete" > $install_tmp
+	echo "卸载完成"
 }
 
 action=$1

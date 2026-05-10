@@ -1,12 +1,15 @@
 #!/bin/bash
-PANEL_DIR=$(cd "$(dirname "$0")/../.."; pwd)
-
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 export DEBIAN_FRONTEND=noninteractive
 
+apt autoremove -y
 apt install -y locate
+if [ ! -d /usr/share/locale ];then
+    mkdir -d /usr/share/locale
+fi
 locale-gen en_US.UTF-8
+locale-gen zh_CN.UTF-8
 localedef -v -c -i en_US -f UTF-8 en_US.UTF-8 > /dev/null 2>&1
 export LC_CTYPE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -23,27 +26,31 @@ fi
 
 VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
 if [ "$VERSION_ID" == "9" ];then
-    sed "s/flask==2.0.3/flask==1.1.1/g" -i $PANEL_DIR/requirements.txt
-    sed "s/cryptography==3.3.2/cryptography==2.5/g" -i $PANEL_DIR/requirements.txt
-    sed "s/configparser==5.2.0/configparser==4.0.2/g" -i $PANEL_DIR/requirements.txt
-    sed "s/flask-socketio==5.2.0/flask-socketio==4.2.0/g" -i $PANEL_DIR/requirements.txt
-    sed "s/python-engineio==4.3.2/python-engineio==3.9.0/g" -i $PANEL_DIR/requirements.txt
-    # pip3 install -r $PANEL_DIR/requirements.txt
+    sed "s/flask==2.0.3/flask==1.1.1/g" -i ${rootPath}/requirements.txt
+    sed "s/cryptography==3.3.2/cryptography==2.5/g" -i ${rootPath}/requirements.txt
+    sed "s/configparser==5.2.0/configparser==4.0.2/g" -i ${rootPath}/requirements.txt
+    sed "s/flask-socketio==5.2.0/flask-socketio==4.2.0/g" -i ${rootPath}/requirements.txt
+    sed "s/python-engineio==4.3.2/python-engineio==3.9.0/g" -i ${rootPath}/requirements.txt
+    # pip3 install -r ${rootPath}/requirements.txt
 fi
 
-cd $PANEL_DIR/scripts && bash lib.sh
-chmod 755 $PANEL_DIR/data
+cd ${rootPath}/scripts && bash lib.sh
+chmod 755 ${rootPath}/data
+
 
 if [ -f /etc/rc.d/init.d/slemp ];then
-    bash /etc/rc.d/init.d/slemp stop && rm -rf $PANEL_DIR/scripts/init.d/slemp && rm -rf /etc/rc.d/init.d/slemp
+    if [ -f /usr/bin/slemp ];then
+        rm -rf /usr/bin/slemp
+    fi
+    bash /etc/rc.d/init.d/slemp stop && rm -rf ${rootPath}/scripts/init.d/slemp && rm -rf /etc/rc.d/init.d/slemp
 fi
 
-echo -e "stop slemp"
+echo -e "stop mw"
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 
 port=7200
-if [ -f $PANEL_DIR/data/port.pl ];then
-    port=$(cat $PANEL_DIR/data/port.pl)
+if [ -f ${rootPath}/data/port.pl ];then
+    port=$(cat ${rootPath}/data/port.pl)
 fi
 
 n=0
@@ -59,8 +66,8 @@ do
 done
 
 
-echo -e "start slemp"
-cd $PANEL_DIR && bash cli.sh start
+echo -e "start mw"
+cd ${rootPath} && bash cli.sh start
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 n=0
 while [[ ! -f /etc/rc.d/init.d/slemp ]];
@@ -69,10 +76,10 @@ do
     sleep 1
     let n+=1
     if [ $n -gt 20 ];then
-        echo -e "start slemp fail"
+        echo -e "start mw fail"
         exit 1
     fi
 done
-echo -e "start slemp success"
+echo -e "start mw success"
 
 systemctl daemon-reload

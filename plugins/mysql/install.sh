@@ -1,25 +1,45 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-DIR=$(cd "$(dirname "$0")"; pwd)
-rootPath=$(dirname "$(dirname "$DIR")")
-serverPath=$(dirname "$rootPath")/server
+# 手动主从设置
+# https://www.cnblogs.com/whiteY/p/17331882.html
 
+# cd ${rootPath}/plugins/mysql && bash install.sh install 5.5
+# cd ${rootPath} && source bin/activate && python3 plugins/mysql/index.py try_slave_sync_bugfix {}
+# cd ${rootPath} && source bin/activate && python3 plugins/mysql/index.py do_full_sync  {"db":"xxx","sign":"","begin":1}
+# cd ${rootPath} && source bin/activate && python3 plugins/mysql/index.py sync_database_repair  {"db":"xxx","sign":""}
+# cd ${rootPath} && source bin/activate && python3 plugins/mysql/index.py init_slave_status
+# cd ${rootPath} && source bin/activate && python3 plugins/mysql/index.py install_pre_inspection
+# cd ${rootPath} && source bin/activate && python3 plugins/mysql/index.py set_slave_status {"close":"change"}
+# cd ${rootPath} && source bin/activate && python3 plugins/mysql/index.py set_root_pwd {"password":"root","force":"2"}
+curPath=`pwd`
+rootPath=$(dirname "$curPath")
+rootPath=$(dirname "$rootPath")
+serverPath=$(dirname "$rootPath")
 
-install_tmp=${rootPath}/tmp/slemp_install.pl
-
+if [ -f ${rootPath}/bin/activate ];then
+	source ${rootPath}/bin/activate
+fi
 
 action=$1
 type=$2
 
-if [ "${2}" == "" ];then
-	echo 'Missing install script...' > $install_tmp
-	exit 0
+if id mysql &> /dev/null ;then 
+    echo "mysql UID is `id -u mysql`"
+    echo "mysql Shell is `grep "^mysql:" /etc/passwd |cut -d':' -f7 `"
+else
+    groupadd mysql
+	useradd -g mysql -s /usr/sbin/nologin mysql
 fi
 
-if [ ! -d $DIR/versions/$2 ];then
-	echo 'Missing installation script 2...' > $install_tmp
+if [ "${2}" == "" ];then
+	echo '缺少安装脚本...'
+	exit 0
+fi 
+
+if [ ! -d $curPath/versions/$2 ];then
+	echo '缺少安装脚本2...'
 	exit 0
 fi
 
@@ -28,7 +48,7 @@ if [ -d $serverPath/mysql ];then
 fi
 
 if [ "${action}" == "uninstall" ];then
-
+	
 	if [ -f /usr/lib/systemd/system/mysql.service ] || [ -f /lib/systemd/system/mysql.service ];then
 		systemctl stop mysql
 		systemctl disable mysql
@@ -38,9 +58,10 @@ if [ "${action}" == "uninstall" ];then
 	fi
 fi
 
-sh -x $DIR/versions/$2/install.sh $1
+sh -x $curPath/versions/$2/install.sh $1
 
 if [ "${action}" == "install" ] && [ -d $serverPath/mysql ];then
+	#初始化 
 	cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py start ${type}
 	cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py initd_install ${type}
 fi

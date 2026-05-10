@@ -1,6 +1,6 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
-export PATH
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
+export PATH=$PATH:/opt/homebrew/bin
 
 curPath=`pwd`
 
@@ -10,7 +10,7 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
+serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
 
 actionType=$1
@@ -45,14 +45,14 @@ Install_lib()
 
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
+		echo "php-$version 已安装${LIBNAME},请选择其它版本!"
 		return
 	fi
 	
 	if [ ! -f "$extFile" ];then
 
 		if [ ! -d $sourcePath/php${version}/ext ];then
-			cd ${rootPath}/plugins/php && /bin/bash install.sh install ${version}
+			cd ${rootPath}/plugins/php && /bin/bash ${rootPath}/plugins/php/versions/${version}/install.sh install 
 		fi
 
 		cd $sourcePath/php${version}/ext/${LIBNAME}
@@ -65,8 +65,15 @@ Install_lib()
 		# 	sed -i $BAK 's/CFLAGS \=/CFLAGS \= -std=c99/g' Makefile
 		# fi
 
+		if [ "$sysName" == "Darwin" ];then
+			OPTIONS="$OPTIONS --with-gmp=$(brew --prefix gmp)"
+		fi
+
 		make clean && make && make install && make clean
 		
+		if [ -d $sourcePath/php${version} ];then
+			cd ${sourcePath} && rm -rf $sourcePath/php${version}
+		fi
 	fi
 
 	if [ ! -f "$extFile" ];then
@@ -78,7 +85,7 @@ Install_lib()
 	echo "[${LIBNAME}]" >> $serverPath/php/$version/etc/php.ini
 	echo "extension=${LIBNAME}.so" >> $serverPath/php/$version/etc/php.ini
 	
-	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
+	cd  ${curPath} && bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==========================================================='
 	echo 'successful!'
 }
@@ -87,12 +94,12 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php-$version is not installed, please choose another version!"
+		echo "php-$version 未安装,请选择其它版本!"
 		return
 	fi
 	
 	if [ ! -f "$extFile" ];then
-		echo "php-$version ${LIBNAME} is not installed, please choose another version"
+		echo "php-$version 未安装${LIBNAME},请选择其它版本!"
 		return
 	fi
 	
@@ -101,7 +108,7 @@ Uninstall_lib()
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
 		
 	rm -f $extFile
-	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
+	cd  ${curPath} && bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='
 	echo 'successful!'
 }

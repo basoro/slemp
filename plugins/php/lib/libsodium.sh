@@ -1,5 +1,5 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
 curPath=`pwd`
@@ -10,8 +10,8 @@ rootPath=$(dirname "$rootPath")
 
 # echo $rootPath
 
-SERVER_ROOT=$rootPath/server/lib
-SOURCE_ROOT=$rootPath/server/source/lib
+SERVER_ROOT=$rootPath/lib
+SOURCE_ROOT=$rootPath/source/lib
 
 
 VERSION=1.0.18
@@ -24,6 +24,8 @@ if [ ! -f /usr/local/lib/libsodium.so ];then
     fi 
     tar -zxvf libsodium-${VERSION}-stable.tar.gz
     cd libsodium-stable
-    ./configure  && make && make check && sudo make install
+    ./configure  && make && make check && make install
+
+    cd $SOURCE_ROOT && rm -rf $SOURCE_ROOT/libsodium-stable
 fi
 #----------------------------- libsodium end -------------------------#

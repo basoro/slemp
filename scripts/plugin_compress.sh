@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+###
+### 插件压缩
+###
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 LANG=en_US.UTF-8
 is64bit=`getconf LONG_BIT`

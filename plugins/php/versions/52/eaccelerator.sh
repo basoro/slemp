@@ -1,5 +1,5 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
 # php 5.2.17 + eaccelerator 0.9.5.3
@@ -12,7 +12,7 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
+serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
 
 LIBNAME=eaccelerator
@@ -35,11 +35,11 @@ Install_lib()
 {
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
+		echo "php-$version 已安装${LIBNAME},请选择其它版本!"
 		return
 	fi
-
-
+	
+	
 	if [ ! -f "$extFile" ];then
 
 		php_lib=$sourcePath/php_lib
@@ -58,7 +58,7 @@ Install_lib()
 		make && make install && make clean
 
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
 		echo "ERROR!"
 		return
@@ -74,7 +74,7 @@ Install_lib()
 	echo "${LIBNAME}.optimizer=1" >> $serverPath/php/$version/etc/php.ini
 	echo "${LIBNAME}.shm_size=64" >> $serverPath/php/$version/etc/php.ini
 	echo "${LIBNAME}.cache_dir=${EA_DIR}" >> $serverPath/php/$version/etc/php.ini
-	echo "${LIBNAME}.allowed_admin_path=/opt/slemp/slemp/wwwroot/you_project_dir" >> $serverPath/php/$version/etc/php.ini
+	echo "${LIBNAME}.allowed_admin_path=$(dirname "$serverPath")/wwwroot/you_project_dir" >> $serverPath/php/$version/etc/php.ini
 
 
 
@@ -87,19 +87,19 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php$version is not installed, please choose another version!"
+		echo "php$version 未安装,请选择其它版本!"
 		return
 	fi
-
+	
 	if [ ! -f "$extFile" ];then
-		echo "php$version ${LIBNAME} is not installed, please choose another version!"
+		echo "php$version 未安装${LIBNAME},请选择其它版本!"
 		echo "php-$vphp not install ${LIBNAME}, Plese select other version!"
 		return
 	fi
-
+	
 	sed -i $BAK "/${LIBNAME}.so/d" $serverPath/php/$version/etc/php.ini
 	sed -i $BAK "/${LIBNAME}/d" $serverPath/php/$version/etc/php.ini
-
+		
 	rm -f $extFile
 
 	bash ${rootPath}/plugins/php/versions/lib.sh $version restart

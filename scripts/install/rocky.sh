@@ -1,7 +1,5 @@
 #!/bin/bash
-PANEL_DIR=$(cd "$(dirname "$0")/../../"; pwd)
-
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 LANG=en_US.UTF-8
 
@@ -16,17 +14,30 @@ setenforce 0
 sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config
 
 yum install -y wget lsof
+yum install -y unrar rar
+yum install -y pv
+yum install -y bc
 yum install -y python3-devel
 yum install -y crontabs
 yum install -y expect
 yum install -y curl curl-devel libcurl libcurl-devel
+yum install -y bzip2 
+yum install -y bzip2-devel
+yum install -y libzip-devel
+yum install -y re2c 
+yum install -y ncurses-compat-libs
+yum install -y numactl 
+yum install -y sshpass
+yum install -y libzstd-devel
+yum install -y postgresql-devel
+yum install -y brotli-devel
 
 if [ -f /usr/sbin/iptables ];then
 
 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
 	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
-	iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 888 -j ACCEPT
+	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 888 -j ACCEPT
 	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 7200 -j ACCEPT
 	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 3306 -j ACCEPT
 	# iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 30000:40000 -j ACCEPT
@@ -37,6 +48,7 @@ if [ -f /usr/sbin/iptables ];then
 		service iptables restart
 	fi
 
+	#安装时不开启
 	service iptables stop
 fi
 
@@ -49,7 +61,8 @@ if [ ! -f /usr/sbin/iptables ];then
 	firewall-cmd --permanent --zone=public --add-port=22/tcp
 	firewall-cmd --permanent --zone=public --add-port=80/tcp
 	firewall-cmd --permanent --zone=public --add-port=443/tcp
-	firewall-cmd --permanent --zone=public --add-port=888/tcp
+	firewall-cmd --permanent --zone=public --add-port=443/udp
+	# firewall-cmd --permanent --zone=public --add-port=888/tcp
 	# firewall-cmd --permanent --zone=public --add-port=7200/tcp
 	# firewall-cmd --permanent --zone=public --add-port=3306/tcp
 	# firewall-cmd --permanent --zone=public --add-port=30000-40000/tcp
@@ -60,6 +73,7 @@ if [ ! -f /usr/sbin/iptables ];then
 fi
 
 
+#安装时不开启
 systemctl stop firewalld
 
 yum groupinstall -y "Development Tools"
@@ -71,6 +85,7 @@ yum install -y libpng libpng-devel libwebp libwebp-devel pcre pcre-devel gd gd-d
 yum install -y net-tools
 yum install -y ncurses ncurses-devel mysql-devel make cmake
 yum install -y sqlite-devel
+yum install -y libargon2-dev
 
 # python-imaging
 # yum install -y MySQL-python
@@ -90,7 +105,7 @@ dnf --enablerepo=powertools install -y oniguruma oniguruma-devel
 dnf --enablerepo=powertools install -y re2c bison bison-devel
 dnf install -y libjpeg-turbo libjpeg-turbo-devel
 
-cd $PANEL_DIR/scripts && bash lib.sh
-chmod 755 $PANEL_DIR/data
+cd ${rootPath}/scripts && bash lib.sh
+chmod 755 ${rootPath}/data
 
 echo "rocky ok"

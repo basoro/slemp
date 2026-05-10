@@ -1,5 +1,5 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
 curPath=`pwd`
@@ -8,9 +8,9 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
+serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
-
+SYS_ARCH=`arch`
 LIBNAME=opcache
 LIBV=7.0.5
 sysName=`uname`
@@ -30,7 +30,7 @@ Install_lib()
 {
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
+		echo "php-$version 已安装${LIBNAME},请选择其它版本!"
 		return
 	fi
 	
@@ -39,12 +39,19 @@ Install_lib()
 		php_lib=$sourcePath/php_lib
 		mkdir -p $php_lib
 
-		wget -O $php_lib/zendopcache-7.0.5.tgz http://pecl.php.net/get/zendopcache-7.0.5.tgz
+		if [ ! -d  $php_lib/zendopcache-7.0.5 ];then
+			wget -O $php_lib/zendopcache-7.0.5.tgz http://pecl.php.net/get/zendopcache-7.0.5.tgz
+			cd $php_lib && tar xvf zendopcache-7.0.5.tgz
+		fi
+		cd $php_lib/zendopcache-7.0.5
 
-		cd $php_lib && tar xvf zendopcache-7.0.5.tgz
-		cd zendopcache-7.0.5
+		OPTIONS=''
+		if [ "${SYS_ARCH}" == "aarch64" ] && [ "$version" -lt "56" ];then
+			OPTIONS="$OPTIONS --build=aarch64-unknown-linux-gnu --host=aarch64-unknown-linux-gnu"
+		fi
+
 		$serverPath/php/$version/bin/phpize
-		./configure --with-php-config=$serverPath/php/$version/bin/php-config
+		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
 		make && make install && make clean
 
 		# cp modules/opcache.la $serverPath/php/${version}/lib/php/extensions/no-debug-non-zts-20100525/
@@ -80,12 +87,12 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php-$version is not installed, please choose another version!"
+		echo "php-$version 未安装,请选择其它版本!"
 		return
 	fi
 
 	if [ ! -f "$extFile" ];then
-		echo "php-$version ${LIBNAME} is not installed, please choose another version!"
+		echo "php-$version 未安装${LIBNAME},请选择其它版本!"
 		echo "php-$version not install ${LIBNAME}, Plese select other version!"
 		return
 	fi

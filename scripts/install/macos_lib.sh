@@ -4,11 +4,11 @@ set -e
 # Path detection
 DIR=$(cd "$(dirname "$0")"; pwd)
 rootPath=$(dirname "$(dirname "$DIR")")
-serverPath=$(dirname "$rootPath")/server
+serverPath=$(dirname "$rootPath")
 libPath=$serverPath/lib
 sourcePath=$serverPath/source/lib
 
-PREFIX="$libPath"
+PREFIX="$serverPath"
 BUILD="$sourcePath"
 DEPS="$PREFIX"
 
@@ -40,7 +40,7 @@ download() {
   cd "$BUILD"
   local url="$1"
   local file="${url##*/}"
-  [ -f "$file" ] || curl -L -O "$url"
+  [ -f "$file" ] || curl -f -L -O "$url" || (rm -f "$file" && exit 1)
 }
 
 ########################################
@@ -58,10 +58,10 @@ ln -sf "$DEPS/bin/pkgconf" "$DEPS/bin/pkg-config"
 # zlib
 ########################################
 echo "Installing zlib..."
-download https://zlib.net/zlib-1.3.1.tar.gz
+download https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz
 rm -rf zlib-1.3.1 && tar xf zlib-1.3.1.tar.gz
 cd zlib-1.3.1
-./configure --prefix="$DEPS"
+./configure --prefix="$DEPS" --static
 make -j$CPU && make install
 
 ########################################

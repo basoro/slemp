@@ -1,26 +1,32 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
-export PATH
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
+export PATH=$PATH:/opt/homebrew/bin
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
+serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
-
-
+SYS_ARCH=`arch`
 actionType=$1
 version=$2
 
 LIBNAME=mcrypt
-LIBV=1.0.5
+LIBV=1.0.7
 
 if [ "$version" -lt "72" ];then
 	echo "not need"
 	exit 1
 fi 
+
+if [ "$version" -ge "84" ];then
+	LIBV=1.0.7
+	echo "not need"
+	exit 1
+fi 
+
 
 LIB_PATH_NAME=lib/php
 if [ -d $serverPath/php/${version}/lib64 ];then
@@ -42,7 +48,7 @@ Install_lib()
 	
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
+		echo "php-$version 已安装${LIBNAME},请选择其它版本!"
 		return
 	fi
 
@@ -52,17 +58,33 @@ Install_lib()
 
 		php_lib=$sourcePath/php_lib
 		mkdir -p $php_lib
-		if [ ! -f $php_lib/${LIBNAME}-${LIBV}.tgz ];then
-			wget -O $php_lib/${LIBNAME}-${LIBV}.tgz http://pecl.php.net/get/${LIBNAME}-${LIBV}.tgz
-			cd $php_lib
-			tar xvf ${LIBNAME}-${LIBV}.tgz
-		fi 
+		if [ ! -d $php_lib/${LIBNAME}-${LIBV} ];then
+			if [ ! -f $php_lib/${LIBNAME}-${LIBV}.tgz ];then
+				wget --no-check-certificate -O $php_lib/${LIBNAME}-${LIBV}.tgz http://pecl.php.net/get/${LIBNAME}-${LIBV}.tgz
+			fi
+			cd $php_lib && tar xvf ${LIBNAME}-${LIBV}.tgz
+		fi
 		cd $php_lib/${LIBNAME}-${LIBV}
 
+		OPTIONS=""
+		if [ "${SYS_ARCH}" == "aarch64" ] && [ "$version" -lt "56" ];then
+			OPTIONS="$OPTIONS --build=aarch64-unknown-linux-gnu --host=aarch64-unknown-linux-gnu"
+		fi
+
+		if [ "$sysName" == "Darwin" ];then
+
+			BREW_DIR=`which brew`
+			BREW_DIR=${BREW_DIR/\/bin\/brew/}
+			LIB_DEPEND_DIR=`brew info mcrypt | grep ${BREW_DIR}/Cellar/mcrypt | cut -d \  -f 1 | awk 'END {print}'`
+			OPTIONS="$OPTIONS --with-mcrypt=$(brew --prefix mcrypt)"
+			export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$LIB_DEPEND_DIR/lib/pkgconfig
+		fi
+
 		$serverPath/php/$version/bin/phpize
-		./configure --with-php-config=$serverPath/php/$version/bin/php-config
+		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
 		make clean && make && make install && make clean
-	
+		
+		# cd $php_lib && rm -rf $php_lib/${LIBNAME}-${LIBV}
 	fi
 	
 	if [ ! -f "$extFile" ];then
@@ -74,7 +96,7 @@ Install_lib()
 	echo  "[${LIBNAME}]" >> $serverPath/php/$version/etc/php.ini
 	echo  "extension=${LIBNAME}.so" >> $serverPath/php/$version/etc/php.ini
 	
-	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
+	cd  ${curPath} && bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==========================================================='
 	echo 'successful!'
 }
@@ -83,12 +105,12 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php-$version is not installed, please choose another version!"
+		echo "php-$version 未安装,请选择其它版本!"
 		return
 	fi
 
 	if [ ! -f "$extFile" ];then
-		echo "php-$version ${LIBNAME} is not installed, please choose another version"
+		echo "php-$version 未安装${LIBNAME},请选择其它版本!"
 		return
 	fi
 	
@@ -98,7 +120,7 @@ Uninstall_lib()
 	sed -i $BAK "/\[${LIBNAME}\]/d"  $serverPath/php/$version/etc/php.ini
 		
 	rm -f $extFile
-	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
+	cd  ${curPath} && bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='
 	echo 'successful!'
 }

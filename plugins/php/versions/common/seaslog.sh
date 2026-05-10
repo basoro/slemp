@@ -1,6 +1,6 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
-export PATH
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
+export PATH=$PATH:/opt/homebrew/bin
 
 curPath=`pwd`
 
@@ -8,9 +8,9 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
+serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
-
+SYS_ARCH=`arch`
 LIBNAME=SeasLog
 _LIBNAME=$(echo $LIBNAME | tr '[A-Z]' '[a-z]')
 LIBV=2.2.0
@@ -41,7 +41,7 @@ Install_lib()
 {
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${_LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
+		echo "php-$version 已安装${LIBNAME},请选择其它版本!"
 		return
 	fi
 	
@@ -61,10 +61,15 @@ Install_lib()
 		fi
 		cd $php_lib/${LIBNAME}-${LIBV}
 
+		if [ "${SYS_ARCH}" == "aarch64" ] && [ "$version" -lt "56" ];then
+			OPTIONS="$OPTIONS --build=aarch64-unknown-linux-gnu --host=aarch64-unknown-linux-gnu"
+		fi
+
 		$serverPath/php/$version/bin/phpize
-		./configure --with-php-config=$serverPath/php/$version/bin/php-config
+		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
 		make clean && make && make install && make clean
-		
+
+		cd $php_lib && rm -rf $php_lib/${LIBNAME}-${LIBV}
 	fi
 	sleep 1
 	if [ ! -f "$extFile" ];then
@@ -77,7 +82,7 @@ Install_lib()
 	echo "[${_LIBNAME}]" >> $serverPath/php/$version/etc/php.ini
 	echo "extension=${_LIBNAME}.so" >> $serverPath/php/$version/etc/php.ini
 
-	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
+	cd  ${curPath} && bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==========================================================='
 	echo 'successful!'
 }
@@ -86,12 +91,12 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php$version is not installed, please choose another version!"
+		echo "php$version 未安装,请选择其它版本!"
 		return
 	fi
 	
 	if [ ! -f "$extFile" ];then
-		echo "php-$version ${LIBNAME} is not installed, please choose another version"
+		echo "php-$version 未安装${LIBNAME},请选择其它版本!"
 		echo "php-$version not install ${LIBNAME}, Plese select other version!"
 		return
 	fi
@@ -101,7 +106,7 @@ Uninstall_lib()
 	sed -i $BAK "/${_LIBNAME}/d" $serverPath/php/$version/etc/php.ini
 		
 	rm -f $extFile
-	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
+	cd  ${curPath} && bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='
 	echo 'successful!'
 }

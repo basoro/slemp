@@ -1,13 +1,11 @@
 #!/bin/bash
-PANEL_DIR=$(cd "$(dirname "$0")/../.."; pwd)
-
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 LANG=en_US.UTF-8
 
 
 if [ -f /etc/motd ];then
-    echo "Welcome to SLEMP Panel" > /etc/motd
+    echo "welcome to panel panel" > /etc/motd
 fi
 
 sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config
@@ -15,19 +13,19 @@ sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config
 yum install -y curl-devel libmcrypt libmcrypt-devel python3-devel
 
 
-cd $PANEL_DIR/scripts && bash lib.sh
-chmod 755 $PANEL_DIR/data
+cd ${rootPath}/scripts && bash lib.sh
+chmod 755 ${rootPath}/data
 
 if [ -f /etc/rc.d/init.d/slemp ];then
-    bash /etc/rc.d/init.d/slemp stop && rm -rf $PANEL_DIR/scripts/init.d/slemp && rm -rf /etc/rc.d/init.d/slemp
+    bash /etc/rc.d/init.d/slemp stop && rm -rf ${rootPath}/scripts/init.d/slemp && rm -rf /etc/rc.d/init.d/slemp
 fi
 
-echo -e "stop slemp"
+echo -e "stop mw"
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 
 port=7200
-if [ -f $PANEL_DIR/data/port.pl ]; then
-    port=$(cat $PANEL_DIR/data/port.pl)
+if [ -f ${rootPath}/data/port.pl ]; then
+    port=$(cat ${rootPath}/data/port.pl)
 fi
 
 n=0
@@ -43,8 +41,8 @@ do
 done
 
 
-echo -e "start slemp"
-cd $PANEL_DIR && bash cli.sh start
+echo -e "start mw"
+cd ${rootPath} && bash cli.sh start
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 n=0
 while [[ ! -f /etc/rc.d/init.d/slemp ]];
@@ -53,8 +51,8 @@ do
     sleep 1
     let n+=1
     if [ $n -gt 20 ];then
-        echo -e "start slemp fail"
+        echo -e "start mw fail"
         exit 1
     fi
 done
-echo -e "start slemp success"
+echo -e "start mw success"

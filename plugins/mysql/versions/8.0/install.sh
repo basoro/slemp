@@ -1,23 +1,18 @@
 # -*- coding: utf-8 -*-
 #!/bin/bash
-
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
 #https://dev.mysql.com/downloads/mysql/5.7.html
 #https://dev.mysql.com/downloads/file/?id=489855
 
-DIR=$(cd "$(dirname "$0")"; pwd)
-rootPath=$(dirname "$(dirname "$(dirname "$DIR")")")
-serverPath=$(dirname "$rootPath")/server
+curPath=`pwd`
+rootPath=$(dirname "$curPath")
+rootPath=$(dirname "$rootPath")
+serverPath=$(dirname "$rootPath")
 sysName=`uname`
 
-
-install_tmp=${rootPath}/tmp/slemp_install.pl
 mysqlDir=${serverPath}/source/mysql
-
-# Add our isolated lib bin to PATH
-export PATH=$serverPath/lib/bin:$PATH
 
 _os=`uname`
 echo "use system: ${_os}"
@@ -56,29 +51,14 @@ else
 	OSNAME='unknow'
 fi
 
-if [ $(uname) == "Darwin" ]; then
-	OSNAME='macos'
-else
-	VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
-fi
+VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
 
 
-VERSION=8.0.34
+VERSION=8.0.37
 Install_mysql()
 {
 	mkdir -p ${mysqlDir}
-	echo 'Installing script file...' > $install_tmp
-
-
-	if [ $(uname) != "Darwin" ]; then
-		if id mysql &> /dev/null ;then
-			echo "mysql UID is `id -u www`"
-			echo "mysql Shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
-		else
-			groupadd mysql
-			useradd -g mysql mysql
-		fi
-	fi
+	echo '正在安装脚本文件...'
 
 	# ----- cpu start ------
 	if [ -z "${cpuCore}" ]; then
@@ -87,16 +67,9 @@ Install_mysql()
 
 	if [ -f /proc/cpuinfo ];then
 		cpuCore=`cat /proc/cpuinfo | grep "processor" | wc -l`
-	elif [ $(uname) == "Darwin" ]; then
-		cpuCore=$(sysctl -n hw.ncpu)
 	fi
 
-	if [ -f /proc/meminfo ]; then
-		MEM_INFO=$(free -m|grep Mem|awk '{printf("%.f",($2)/1024)}')
-	elif [ $(uname) == "Darwin" ]; then
-		MEM_INFO=$(sysctl -n hw.memsize | awk '{printf("%.f",$1/1024/1024/1024)}')
-	fi
-
+	MEM_INFO=$(free -m|grep Mem|awk '{printf("%.f",($2)/1024)}')
 	if [ "${cpuCore}" != "1" ] && [ "${MEM_INFO}" != "0" ];then
 	    if [ "${cpuCore}" -gt "${MEM_INFO}" ];then
 	        cpuCore="${MEM_INFO}"
@@ -124,15 +97,18 @@ Install_mysql()
 	fi
 
 	if [ ! -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
-    wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-8.0/mysql-boost-${VERSION}.tar.gz
+		#wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-boost-${VERSION}.tar.gz
+         wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-8.0/mysql-boost-${VERSION}.tar.gz
 	fi
 
-	md5_mysql_ok=c8cfab52fbde1cca55accb3113c235eb
+	#检测文件是否损坏.
+	md5_mysql_ok=e0cb61cbf6e1144c452368c4535ae931
 	if [ -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
 		md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
 		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
 			echo "mysql8.0 file  check ok"
 		else
+			# 重新下载
 			rm -rf ${mysqlDir}/mysql-${VERSION}
 			wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-boost-${VERSION}.tar.gz
 		fi
@@ -172,7 +148,7 @@ Install_mysql()
 		apt install -y libssl-dev
 		apt install -y libgssglue-dev
 		apt install -y software-properties-common
-		add-apt-repository ppa:ubuntu-toolchain-r/test
+		add-apt-repository -y ppa:ubuntu-toolchain-r/test
 
 		LIBTIRPC_VER=`pkg-config libtirpc --modversion`
 		if [ ! -f ${mysqlDir}/libtirpc_1.3.3.orig.tar.bz2 ];then
@@ -225,11 +201,10 @@ Install_mysql()
 		if [ -d $serverPath/mysql ];then
 			rm -rf ${mysqlDir}/mysql-${VERSION}
 			echo '8.0' > $serverPath/mysql/version.pl
-			echo 'The installation is complete' > $install_tmp
+			echo "${VERSION}安装完成"
 		else
 			# rm -rf ${mysqlDir}/mysql-${VERSION}
-			echo 'installation failed' > $install_tmp
-			echo 'install fail'>&2
+			echo "${VERSION}安装失败"
 			exit 1
 		fi
 	fi
@@ -238,7 +213,7 @@ Install_mysql()
 Uninstall_mysql()
 {
 	rm -rf $serverPath/mysql
-	echo 'uninstall complete' > $install_tmp
+	echo '卸载完成'
 }
 
 action=$1

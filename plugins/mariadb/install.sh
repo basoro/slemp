@@ -1,31 +1,43 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
+serverPath=$(dirname "$rootPath")
 
-
-install_tmp=${rootPath}/tmp/slemp_install.pl
+# cd ${rootPath}/plugins/mariadb && bash install.sh install 8.2
+# cd ${rootPath} && source bin/activate && python3 plugins/mariadb/index.py try_slave_sync_bugfix {}
+# cd ${rootPath} && source bin/activate && python3 plugins/mariadb/index.py do_full_sync  {"db":"xxx","sign":"","begin":1}
+# cd ${rootPath} && source bin/activate && python3 plugins/mariadb/index.py sync_database_repair  {"db":"xxx","sign":""}
+# cd ${rootPath} && source bin/activate && python3 plugins/mariadb/index.py init_slave_status
+# cd ${rootPath} && source bin/activate && python3 plugins/mariadb/index.py install_pre_inspection
 
 
 action=$1
 type=$2
 
-if [ "${2}" == "" ];then
-	echo 'Missing install script...' > $install_tmp
-	exit 0
+if id mysql &> /dev/null ;then 
+    echo "mysql UID is `id -u mysql`"
+    echo "mysql Shell is `grep "^mysql:" /etc/passwd |cut -d':' -f7 `"
+else
+    groupadd mysql
+	useradd -g mysql -s /usr/sbin/nologin mysql
 fi
 
+if [ "${2}" == "" ];then
+	echo '缺少安装脚本...'
+	exit 0
+fi 
+
 if [ ! -d $curPath/versions/$2 ];then
-	echo 'Missing installation script 2...' > $install_tmp
+	echo '缺少安装脚本2...'
 	exit 0
 fi
 
 if [ "${action}" == "uninstall" ];then
-
+	
 	if [ -f /usr/lib/systemd/system/mariadb.service ] || [ -f /lib/systemd/system/mariadb.service ];then
 		systemctl stop mariadb
 		systemctl disable mariadb
@@ -38,6 +50,7 @@ fi
 sh -x $curPath/versions/$2/install.sh $1
 
 if [ "${action}" == "install" ] && [ -d $serverPath/mariadb ];then
+	#初始化 
 	cd ${rootPath} && python3 ${rootPath}/plugins/mariadb/index.py start ${type}
 	cd ${rootPath} && python3 ${rootPath}/plugins/mariadb/index.py initd_install ${type}
 fi

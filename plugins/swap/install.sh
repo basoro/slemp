@@ -1,16 +1,16 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
+serverPath=$(dirname "$rootPath")
 SYSOS=`uname`
 
-install_tmp=${rootPath}/tmp/slemp_install.pl
-
 VERSION=$2
+
+# cd ${rootPath}/plugins/swap && /bin/bash install.sh install 1.1
 
 Install_swap()
 {
@@ -18,7 +18,7 @@ Install_swap()
 		exit 0
 	fi
 
-	echo 'Installing script file...' > $install_tmp
+	echo '正在安装脚本文件...'
 	mkdir -p $serverPath/source
 	mkdir -p $serverPath/swap
 	echo "${VERSION}" > $serverPath/swap/version.pl
@@ -30,9 +30,9 @@ Install_swap()
 		chmod 600 $serverPath/swap/swapfile
 		mkswap $serverPath/swap/swapfile
 		swapon $serverPath/swap/swapfile
-	fi
+	fi 
 
-	echo 'The installation is complete' > $install_tmp
+	echo '安装完成'
 
 	cd ${rootPath} && python3 ${rootPath}/plugins/swap/index.py start
 	cd ${rootPath} && python3 ${rootPath}/plugins/swap/index.py initd_install
@@ -56,8 +56,8 @@ Uninstall_swap()
 	fi
 
 	rm -rf $serverPath/swap
-
-	echo "Uninstall_swap" > $install_tmp
+	
+	echo "Uninstall_swap"
 }
 
 action=$1

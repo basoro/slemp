@@ -1,6 +1,6 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
-export PATH
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
+export PATH=$PATH:/opt/homebrew/bin
 
 curPath=`pwd`
 
@@ -8,7 +8,7 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
+serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
 
 
@@ -39,38 +39,57 @@ Install_lib()
 	
 	isInstall=`cat $serverPath/php/$version/etc/php.ini|grep "${LIBNAME}.so"`
 	if [ "${isInstall}" != "" ];then
-		echo "php-$version ${LIBNAME} has been installed, please choose another version!"
+		echo "php-$version 已安装${LIBNAME},请选择其它版本!"
 		return
 	fi
 
-	cd ${rootPath}/plugins/php/lib && bash libsodium.sh
+	if [ "$sysName" != "Darwin" ];then
+		cd ${rootPath}/plugins/php/lib && bash libsodium.sh
+	fi
+	
 	
 	if [ ! -f "$extFile" ];then
 
 		php_lib=$sourcePath/php_lib
 		mkdir -p $php_lib
 		if [ ! -d $php_lib/${LIBNAME}-${LIBV} ];then
-			wget -O $php_lib/${LIBNAME}-${LIBV}.tgz http://pecl.php.net/get/lib${LIBNAME}-${LIBV}.tgz
+			if [ ! -f $php_lib/${LIBNAME}-${LIBV}.tgz ];then
+				wget -O $php_lib/${LIBNAME}-${LIBV}.tgz http://pecl.php.net/get/lib${LIBNAME}-${LIBV}.tgz
+			fi
 			cd $php_lib && tar xvf ${LIBNAME}-${LIBV}.tgz
-		fi 
+		fi
 		cd $php_lib/lib${LIBNAME}-${LIBV}
 
+
+		OPTIONS=""
+		if [ "$sysName" == "Darwin" ];then
+			BREW_DIR=`which brew`
+			BREW_DIR=${BREW_DIR/\/bin\/brew/}
+			LIB_DEPEND_DIR=`brew info libsodium | grep ${BREW_DIR}/Cellar/libsodium | cut -d \  -f 1 | awk 'END {print}'`
+			OPTIONS="$OPTIONS --with-sodium=${LIB_DEPEND_DIR}"
+		else
+			OPTIONS="$OPTIONS --with-sodium=$serverPath/lib/libsodium"
+		fi
+
 		$serverPath/php/$version/bin/phpize
-		./configure --with-php-config=$serverPath/php/$version/bin/php-config --with-sodium=$serverPath/lib/libsodium
+		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
 		make clean && make && make install && make clean
 
+		if [ -d $php_lib/lib${LIBNAME}-${LIBV} ];then
+			cd $php_lib && rm -rf $php_lib/lib${LIBNAME}-${LIBV}
+		fi
 	fi
 	
 	if [ ! -f "$extFile" ];then
 		echo "ERROR!"
-		return;
+		return
 	fi
 	
 	echo  "" >> $serverPath/php/$version/etc/php.ini
 	echo  "[${LIBNAME}]" >> $serverPath/php/$version/etc/php.ini
 	echo  "extension=${LIBNAME}.so" >> $serverPath/php/$version/etc/php.ini
 	
-	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
+	cd  ${curPath} && bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==========================================================='
 	echo 'successful!'
 }
@@ -79,12 +98,12 @@ Install_lib()
 Uninstall_lib()
 {
 	if [ ! -f "$serverPath/php/$version/bin/php-config" ];then
-		echo "php-$version is not installed, please choose another version!"
+		echo "php-$version 未安装,请选择其它版本!"
 		return
 	fi
 
 	if [ ! -f "$extFile" ];then
-		echo "php-$version ${LIBNAME} is not installed, please choose another version"
+		echo "php-$version 未安装${LIBNAME},请选择其它版本!"
 		return
 	fi
 	
@@ -93,7 +112,7 @@ Uninstall_lib()
 	sed -i $BAK "/\[${LIBNAME}\]/d"  $serverPath/php/$version/etc/php.ini
 		
 	rm -rf $extFile
-	bash ${rootPath}/plugins/php/versions/lib.sh $version restart
+	cd  ${curPath} && bash ${rootPath}/plugins/php/versions/lib.sh $version restart
 	echo '==============================================='
 	echo 'successful!'
 }

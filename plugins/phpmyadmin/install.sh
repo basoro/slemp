@@ -1,14 +1,14 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")/server
+serverPath=$(dirname "$rootPath")
 
-install_tmp=${rootPath}/tmp/slemp_install.pl
-
+# cd ${rootPath}/plugins/phpmyadmin && bash install.sh install 4.4.15
+# cd ${rootPath} && python3 plugins/phpmyadmin/index.py start
 
 if [ -f ${rootPath}/bin/activate ];then
 	source ${rootPath}/bin/activate
@@ -45,46 +45,40 @@ Install_phpmyadmin()
 		exit 0
 	fi
 
-	mkdir -p ${serverPath}/phpmyadmin
 	mkdir -p ${serverPath}/source/phpmyadmin
-	echo "${1}" > ${serverPath}/phpmyadmin/version.pl
-
+	
 	VER=$1
-
+	
 	FDIR=phpMyAdmin-${VER}-all-languages
 	FILE=phpMyAdmin-${VER}-all-languages.tar.gz
 	DOWNLOAD=https://files.phpmyadmin.net/phpMyAdmin/${VER}/$FILE
-
+	
 
 	if [ ! -f $serverPath/source/phpmyadmin/$FILE ];then
-		if command -v wget &> /dev/null; then
-			wget --no-check-certificate -O $serverPath/source/phpmyadmin/$FILE $DOWNLOAD
-		else
-			curl -k -L -o $serverPath/source/phpmyadmin/$FILE $DOWNLOAD
-		fi
+		wget --no-check-certificate -O $serverPath/source/phpmyadmin/$FILE $DOWNLOAD
 	fi
 
 	if [ ! -d $serverPath/source/phpmyadmin/$FDIR ];then
 		cd $serverPath/source/phpmyadmin  && tar zxvf $FILE
 	fi
-
+	
+	mkdir -p ${serverPath}/phpmyadmin
 	cp -r $serverPath/source/phpmyadmin/$FDIR $serverPath/phpmyadmin/
 	cd $serverPath/phpmyadmin/ && mv $FDIR phpmyadmin
+	rm -rf $serverPath/source/phpmyadmin/$FDIR
 
-
-
-	echo 'The installation is complete' > $install_tmp
-
+	echo "${1}" > ${serverPath}/phpmyadmin/version.pl
 	cd ${rootPath} && python3 ${rootPath}/plugins/phpmyadmin/index.py start
-
+	
+	echo '安装完成'
 }
 
 Uninstall_phpmyadmin()
 {
 	cd ${rootPath} && python3 ${rootPath}/plugins/phpmyadmin/index.py stop
-
+	
 	rm -rf ${serverPath}/phpmyadmin
-	echo 'uninstall complete' > $install_tmp
+	echo '卸载完成'
 }
 
 action=$1

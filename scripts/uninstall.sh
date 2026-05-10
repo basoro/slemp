@@ -1,96 +1,161 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+export LANG=en_US.UTF-8
+is64bit=`getconf LONG_BIT`
 
-DIR=$(cd "$(dirname "$0")"; pwd)
-PANEL_DIR=$(dirname "$DIR")
-DEV_DIR=$(dirname "$PANEL_DIR")
-SERVER_DIR=$DEV_DIR/server
-
-echo "======================================================"
-echo "          SLEMP Panel Uninstaller                     "
-echo "======================================================"
-
-echo "Are you sure you want to uninstall SLEMP Panel? (y/n)"
-read -r answer
-if [ "$answer" != "y" ]; then
-    echo "Uninstallation cancelled."
-    exit 0
+if [ -f /etc/motd ];then
+    echo "" > /etc/motd
 fi
 
-echo "Do you want to delete all server data (plugins, websites, databases) in $SERVER_DIR and $DEV_DIR/wwwroot? (y/n)"
-read -r delete_data
+startTime=`date +%s`
 
-if [ "$delete_data" == "y" ]; then
-    echo "Do you want to backup your data (databases and wwwroot) before deletion? (y/n)"
-    read -r backup_data
+_os=`uname`
+echo "use system: ${_os}"
 
-    if [ "$backup_data" == "y" ]; then
-        mkdir -p "$DEV_DIR/backup"
-        BACKUP_FILE="$DEV_DIR/backup/slemp_uninstall_backup_$(date +%s).tar.gz"
-        echo "Backing up data to $BACKUP_FILE..."
-        
-        BACKUP_PATHS=""
-        if [ -d "$DEV_DIR/wwwroot" ]; then
-            BACKUP_PATHS="$DEV_DIR/wwwroot"
-        fi
-        
-        if [ -d "$SERVER_DIR/data" ]; then
-            BACKUP_PATHS="$BACKUP_PATHS $SERVER_DIR/data"
-        fi
-        
-        if [ -d "$SERVER_DIR/mariadb/data" ]; then
-            BACKUP_PATHS="$BACKUP_PATHS $SERVER_DIR/mariadb/data"
-        fi
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root!"
+  exit
+fi
 
-        if [ -d "$SERVER_DIR/mysql/data" ]; then
-            BACKUP_PATHS="$BACKUP_PATHS $SERVER_DIR/mysql/data"
-        fi
-        
-        if [ "$BACKUP_PATHS" != "" ]; then
-            tar -czf "$BACKUP_FILE" $BACKUP_PATHS
-            echo "Backup completed successfully."
+UNINSTALL_CHECK()
+{
+    echo -e "----------------------------------------------------"
+    echo -e "暂时只能卸载OpenResty/PHP/MySQL/Redis/Memcached"
+    echo -e "其他插件先手动卸载!"
+    echo -e "----------------------------------------------------"
+    echo -e "已知风险/输入yes强制卸载![yes/no]"
+    read -p "输入yes强制卸载: " yes;
+    if [ "$yes" != "yes" ];then
+        echo -e "------------"
+        echo "取消卸载"
+        exit 1
+    else
+        echo "开始卸载!"
+    fi
+}
+
+
+UNINSTALL_MySQL()
+{
+    MYSQLD_CHECK=$(ps -ef |grep mysqld | grep -v grep | grep ${serverPath}/mysql)
+    if [ "$MYSQLD_CHECK" != "" ];then
+        echo -e "----------------------------------------------------"
+        echo -e "检查已有MySQL环境，卸载可能影响现有站点及数据"
+        echo -e "----------------------------------------------------"
+        echo -e "已知风险/输入yes强制卸载![yes/no]"
+        read -p "输入yes强制卸载: " yes;
+        if [ "$yes" != "yes" ];then
+            echo -e "------------"
+            echo "取消卸载MySQL"
         else
-            echo "No data directories found to backup."
+            cd ${rootPath}/plugins/mysql && sh install.sh uninstall 8.0
+            echo "卸载MySQL成功!"
         fi
     fi
-fi
+}
 
-echo "Stopping SLEMP Panel services..."
-if [ -f "$PANEL_DIR/scripts/init.d/slemp" ]; then
-    bash "$PANEL_DIR/scripts/init.d/slemp" stop
-fi
-
-if [ -f /etc/rc.d/init.d/slemp ]; then
-    /etc/rc.d/init.d/slemp stop
-    rm -f /etc/rc.d/init.d/slemp
-    rm -f /usr/bin/slemp
-fi
-
-# Kill any lingering panel processes
-pids=$(ps aux | grep -E 'gunicorn -c setting.py app:app|task.py' | grep -v grep | awk '{print $2}')
-for pid in $pids; do
-    kill -9 "$pid" > /dev/null 2>&1
-done
-
-if [ "$delete_data" == "y" ]; then
-    echo "Stopping and removing plugin services..."
-    if [ -f "$SERVER_DIR/openresty/init.d/openresty" ]; then
-        bash "$SERVER_DIR/openresty/init.d/openresty" stop
+UNINSTALL_OP()
+{
+    if [ -f ${serverPath}/openresty ];then
+        echo -e "----------------------------------------------------"
+        echo -e "检查已有OpenResty环境，卸载可能影响现有站点及数据"
+        echo -e "----------------------------------------------------"
+        echo -e "已知风险/输入yes强制卸载![yes/no]"
+        read -p "输入yes强制卸载: " yes;
+        if [ "$yes" != "yes" ];then
+            echo -e "------------"
+            echo "取消卸载OpenResty"
+        else
+            cd ${rootPath}/plugins/openresty && sh install.sh uninstall
+            echo "卸载OpenResty成功!"
+        fi
     fi
-    if [ -f "$SERVER_DIR/mysql/init.d/mysqld" ]; then
-        bash "$SERVER_DIR/mysql/init.d/mysqld" stop
-    fi
-    if [ -f "$SERVER_DIR/mariadb/init.d/mysqld" ]; then
-        bash "$SERVER_DIR/mariadb/init.d/mysqld" stop
-    fi
-    
-    echo "Removing server data directories..."
-    rm -rf "$SERVER_DIR"
-    rm -rf "$DEV_DIR/wwwroot"
-    rm -rf "$DEV_DIR/wwwlogs"
-fi
+}
 
-echo "Removing SLEMP Panel directory..."
-rm -rf "$PANEL_DIR"
+UNINSTALL_PHP()
+{
+    if [ -d ${serverPath}/php ];then
+        echo -e "----------------------------------------------------"
+        echo -e "检查已有PHP环境，卸载可能影响现有站点及数据"
+        echo -e "----------------------------------------------------"
+        read -p "输入yes强制卸载所有PHP[yes/no]: " yes;
+        if [ "$yes" != "yes" ];then
+            echo -e "------------"
+            echo "取消卸载PHP"
+        else
+            PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81 82)
+            for PHP_VER in ${PHP_VER_LIST[@]}; do
+                if [ -d ${serverPath}/php/${PHP_VER} ];then
+                    cd ${rootPath}/plugins/php && bash install.sh uninstall ${PHP_VER}
+                fi
+                echo "卸载PHP${PHP_VER}成功!"
+            done
+        fi
+    fi
+}
 
-echo "SLEMP Panel has been successfully uninstalled."
+UNINSTALL_MEMCACHED()
+{
+    if [ -d ${serverPath}/memcached ];then
+        echo -e "----------------------------------------------------"
+        echo -e "检查已有Memcached环境，卸载可能影响现有站点及数据"
+        echo -e "----------------------------------------------------"
+        read -p "输入yes强制卸载所有Memcached[yes/no]: " yes;
+        if [ "$yes" != "yes" ];then
+            echo -e "------------"
+            echo "取消卸载Memcached"
+        else
+            cd ${rootPath}/plugins/memcached && bash install.sh uninstall
+            echo "卸载Memcached成功"
+        fi
+    fi
+}
+
+UNINSTALL_REDIS()
+{
+    if [ -d ${serverPath}/redis ];then
+        echo -e "----------------------------------------------------"
+        echo -e "检查已有Redis环境，卸载可能影响现有站点及数据"
+        echo -e "----------------------------------------------------"
+        read -p "输入yes强制卸载所有Redis[yes/no]: " yes;
+        if [ "$yes" != "yes" ];then
+            echo -e "------------"
+            echo "取消卸载Redis"
+        else
+            cd ${rootPath}/plugins/redis && bash install.sh uninstall 7.0.4
+            echo "卸载Redis成功"
+        fi
+    fi
+}
+
+UNINSTALL_MW()
+{
+    echo -e "----------------------------------------------------"
+    echo -e "检查已有mderver-web环境，卸载可能影响现有站点及数据"
+    echo -e "----------------------------------------------------"
+    read -p "输入yes强制卸载面板: " yes;
+    if [ "$yes" != "yes" ];then
+        echo -e "------------"
+        echo "取消卸载面板"
+    else
+        rm -rf /usr/bin/slemp
+        rm -rf /etc/init.d/slemp
+        systemctl daemon-reload
+        rm -rf ${rootPath}
+        echo "卸载面板成功"
+    fi
+}
+
+UNINSTALL_CHECK
+
+UNINSTALL_OP
+UNINSTALL_PHP
+UNINSTALL_MySQL
+UNINSTALL_MEMCACHED
+UNINSTALL_REDIS
+UNINSTALL_MW
+
+endTime=`date +%s`
+((outTime=(${endTime}-${startTime})/60))
+echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"

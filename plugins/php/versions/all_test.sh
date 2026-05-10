@@ -1,12 +1,14 @@
 #! /bin/sh
 export PATH=$PATH:/opt/local/bin:/opt/local/sbin:/opt/local/share/man:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin
+export PATH=$PATH:/opt/homebrew/bin
+
 DIR=$(cd "$(dirname "$0")"; pwd)
 ROOT_DIR=$(cd "$(dirname "$0")"; pwd)
 
 # cd ${rootPath}/scripts/quick && bash debug.sh
 # cd ${rootPath}/plugins/php/versions && /bin/bash all_test.sh
 
-# cd ${rootPath}/plugins/php && bash install.sh install 55
+# cd ${rootPath}/plugins/php && bash install.sh install 82
 # cd ${rootPath}/plugins/php/versions/common && bash gd.sh install 73
 # cd ${rootPath}/plugins/php/versions/common && bash swoole.sh install 54
 
@@ -26,7 +28,7 @@ ROOT_DIR=$(cd "$(dirname "$0")"; pwd)
 # echo "php${PHP_VER} -- end"
 
 
-PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81 82)
+PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81 82 83 84 85)
 # PHP_VER_LIST=(81)
 for PHP_VER in ${PHP_VER_LIST[@]}; do
 	echo "php${PHP_VER} -- start"
@@ -37,10 +39,11 @@ for PHP_VER in ${PHP_VER_LIST[@]}; do
 done
 
 cd $DIR
-PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81 82)
-PHP_EXT_LIST=(ioncube ZendGuardLoader pdo mysqlnd sqlite3 openssl pcntl opcache mcrypt fileinfo \
-	exif gd intl memcache memcached redis imagemagick xdebug xhprof \
-	swoole yaf yar yac apc mongo mongodb solr seaslog mbstring iconv phalcon)
+PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81 82 83 84 85)
+# yar
+PHP_EXT_LIST=(ZendGuardLoader pdo mysqlnd sqlite3 openssl opcache mcrypt fileinfo \
+	exif gd intl pcntl memcache memcached redis xdebug \
+	swoole yac apc mongo mongodb seaslog mbstring iconv event)
 
 for PHP_VER in ${PHP_VER_LIST[@]}; do
 	echo "php${PHP_VER} -- start"

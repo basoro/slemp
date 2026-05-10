@@ -1,5 +1,5 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
 curPath=`pwd`
@@ -10,8 +10,8 @@ rootPath=$(dirname "$rootPath")
 
 # echo $rootPath
 
-SERVER_ROOT=$rootPath/server/lib
-SOURCE_ROOT=$rootPath/server/source/lib
+SERVER_ROOT=$rootPath/lib
+SOURCE_ROOT=$rootPath/source/lib
 
 
 ISFIND="0"
@@ -31,6 +31,8 @@ if [ $ISFIND == "0" ];then
     tar -zxvf libmcrypt-2.5.8.tar.gz
     cd libmcrypt-2.5.8
     ./configure && make && make install && make clean
+
+    cd $SOURCE_ROOT && rm -rf $SOURCE_ROOT/libmcrypt-2.5.8
 fi
 
 

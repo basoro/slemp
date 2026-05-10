@@ -1,33 +1,36 @@
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/homebrew/bin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-script_dir=$(cd "$(dirname "$0")" && pwd)
-rootPath=$(dirname "$(dirname "$script_dir")")
-serverPath=$(dirname "$rootPath")/server
+curPath=`pwd`
+rootPath=$(dirname "$curPath")
+rootPath=$(dirname "$rootPath")
+serverPath=$(dirname "$rootPath")
+sysName=`uname`
 
-install_tmp=${rootPath}/tmp/slemp_install.pl
+# cd ${rootPath}/plugins/php && bash install.sh install 73
+# cd ${rootPath}/plugins/php && bash install.sh install 85
+# https://www.php.net/releases
 
-if [ $(uname) != "Darwin" ]; then
-	if id www &> /dev/null ;then
-		echo "www uid is `id -u www`"
-		echo "www shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
-	else
-		groupadd www
-		useradd -g www -s /bin/bash www
-	fi
+if id www &> /dev/null ;then 
+    echo "www uid is `id -u www`"
+    echo "www shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
+else
+    groupadd www
+	useradd -g www -s /sbin/nologin www
+	# useradd -g www -s /bin/bash www
 fi
 
 action=$1
 type=$2
 
 if [ "${2}" == "" ];then
-	echo 'Missing install script...' > $install_tmp
+	echo '缺少安装脚本...'
 	exit 0
-fi
+fi 
 
-if [ ! -d $script_dir/versions/$2 ];then
-	echo 'Missing installation script 2...' > $install_tmp
+if [ ! -d $curPath/versions/$2 ];then
+	echo '缺少安装脚本2...'
 	exit 0
 fi
 
@@ -37,7 +40,7 @@ fi
 # fi
 
 if [ "${action}" == "uninstall" ];then
-
+	
 	if [ -f /usr/lib/systemd/system/php${type}.service ] || [ -f /lib/systemd/system/php${type}.service ] ;then
 		systemctl stop php${type}
 		systemctl disable php${type}
@@ -47,16 +50,28 @@ if [ "${action}" == "uninstall" ];then
 	fi
 fi
 
-cd ${script_dir} && sh -x $script_dir/versions/$2/install.sh $1
+cd ${curPath} && sh -x $curPath/versions/$2/install.sh $1
+
 
 if [ "${action}" == "install" ] && [ -d ${serverPath}/php/${type} ];then
 
+	#初始化 
 	cd ${rootPath} && python3 ${rootPath}/plugins/php/index.py start ${type}
 	cd ${rootPath} && python3 ${rootPath}/plugins/php/index.py initd_install ${type}
 
+	# 安装通用扩展
 	echo "install PHP${type} extend start"
 
+	# cd ${rootPath}/plugins/php/versions/common  && bash iconv.sh install 53
+	# cd ${rootPath}/plugins/php/versions/common  && bash intl.sh install 73
+	# cd ${rootPath}/plugins/php/versions/common  && bash gd.sh install 56
+	# cd ${rootPath}/plugins/php/versions/common  && bash openssl.sh install 56
+	# cd ${rootPath}/plugins/php/versions/common  && bash fileinfo.sh install 81
+	# cd ${rootPath}/plugins/php/versions/common  && bash pgsql.sh install 84
+	# cd ${rootPath}/plugins/php/versions/common  && bash pdo_pgsql.sh install 84
+	cd ${rootPath}/plugins/php/versions/common && bash curl.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash gd.sh install ${type}
+	cd ${rootPath}/plugins/php/versions/common && bash readline.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash iconv.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash exif.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash intl.sh install ${type}
@@ -66,17 +81,17 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php/${type} ];then
 	cd ${rootPath}/plugins/php/versions/common && bash gettext.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash redis.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash memcached.sh install ${type}
+	cd ${rootPath}/plugins/php/versions/common && bash pcntl.sh install ${type}
+	cd ${rootPath}/plugins/php/versions/common && bash zip.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash zlib.sh install ${type}
-
-	if [ "${type}" -gt "72" ];then
-		cd ${rootPath}/plugins/php/versions/common && bash zip.sh install ${type}
-	fi
 
 	echo "install PHP${type} extend end"
 
-	if [ ! -f /usr/local/bin/composer ];then
+	if [ ! -f /usr/local/bin/composer ] && [ "$sysName" != "Darwin" ] ;then
 		cd /tmp
 		curl -sS https://getcomposer.org/installer | ${serverPath}/php/${type}/bin/php
 		mv composer.phar /usr/local/bin/composer
 	fi
 fi
+
+
