@@ -24,7 +24,8 @@ brew install librdkafka
 brew install coreutils libxml2 xml2
 brew install md5sum libevent pidof bison
 brew install pcre2 libxpm libelf
-brew install automake icu4c libmemcached
+brew install automake autoconf libtool icu4c libmemcached
+brew install oniguruma jpeg libpng freetype webp zlib
 
 if [ ! -d $DEV/server/lib ]; then
 	cd $PANEL_DIR/scripts && bash lib.sh
@@ -32,13 +33,12 @@ fi
 
 mkdir -p $PANEL_DIR/logs
 chmod 755 $PANEL_DIR/data
-if [ -f $PANEL_DIR/bin/activate ];then
+if [ ! -d $PANEL_DIR/bin ];then
     cd $PANEL_DIR && python3 -m venv $PANEL_DIR
-    source $PANEL_DIR/bin/activate
-    pip3 install -r $PANEL_DIR/requirements.txt
-else
-	cd $PANEL_DIR && pip3 install -r $PANEL_DIR/requirements.txt
 fi
+source $PANEL_DIR/bin/activate
+pip3 install -r $PANEL_DIR/requirements.txt
+
 
 cd $PANEL_DIR && ./cli.sh start
 n=0

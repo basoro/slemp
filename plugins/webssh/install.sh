@@ -3,10 +3,12 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
+DIR=$(cd "$(dirname "$0")"; pwd)
+curPath=$DIR
+rootPath=$(dirname "$(dirname "$DIR")")
 serverPath=$(dirname "$rootPath")
+export rootPath
+export serverPath
 
 VERSION=$2
 
@@ -15,7 +17,7 @@ Install_webssh()
 	echo '正在安装脚本文件...'
 	mkdir -p $serverPath/webssh
 	echo "${VERSION}" > $serverPath/webssh/version.pl
-	echo '安装完成'
+	echo 'Instalasi selesai'
 
 }
 

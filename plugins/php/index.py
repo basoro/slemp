@@ -143,8 +143,7 @@ def contentReplace(content, version):
 
 
 def makeOpenrestyConf():
-    phpversions = ['00', '52', '53', '54', '55', '56',
-                   '70', '71', '72', '73', '74', '80', '81', '82', '83', '84', '85']
+    phpversions = ['00', '70', '71', '72', '73', '74', '80', '81', '82', '83', '84', '85']
 
     sdir = slemp.getServerDir()
 

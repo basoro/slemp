@@ -5,10 +5,11 @@ export PATH
 #https://dev.mysql.com/downloads/mysql/5.5.html#downloads
 #https://dev.mysql.com/downloads/file/?id=480541
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")
+if [ -z "$rootPath" ]; then
+    DIR=$(cd "$(dirname "$0")"; pwd)
+    rootPath=$(dirname "$(dirname "$(dirname "$(dirname "$DIR")")")")
+    serverPath=$(dirname "$rootPath")
+fi
 sysName=`uname`
 
 mariadbDir=${serverPath}/source/mariadb
@@ -92,7 +93,7 @@ Install_app()
 
 		if [ -d $serverPath/mariadb ];then
 			echo '11.2' > $serverPath/mariadb/version.pl
-			echo '安装完成'
+			echo 'Instalasi selesai'
 		else
 			echo '安装失败'
 			echo 'install fail'>&2

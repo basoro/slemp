@@ -8,29 +8,40 @@ rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 
-# echo $rootPath
-
 SERVER_ROOT=$rootPath/lib
 SOURCE_ROOT=$rootPath/source/lib
+mkdir -p $SOURCE_ROOT
 
 HTTP_PREFIX="https://"
-cn=$(curl -fsSL -m 10 http://ipinfo.io/json | grep "\"country\": \"CN\"")
-if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
+cn=$(curl -fsSL -m 10 -s http://ipinfo.io/json | grep "\"country\": \"CN\"")
+if [ ! -z "$cn" ]; then
     HTTP_PREFIX="https://mirror.ghproxy.com/"
 fi
 
-which onig-config
-if [ "$?" != "0" ];then
+if [ ! -f ${SERVER_ROOT}/oniguruma/lib/libonig.a ];then
     cd ${SOURCE_ROOT}
     if [ ! -f ${SOURCE_ROOT}/oniguruma-6.9.4.tar.gz ];then
         wget --no-check-certificate -O ${SOURCE_ROOT}/oniguruma-6.9.4.tar.gz ${HTTP_PREFIX}github.com/kkos/oniguruma/archive/v6.9.4.tar.gz
     fi
 
-    if [ ! -d  cd ${SOURCE_ROOT}/oniguruma-6.9.4 ];then
+    if [ ! -d ${SOURCE_ROOT}/oniguruma-6.9.4 ];then
         cd ${SOURCE_ROOT} && tar -zxvf oniguruma-6.9.4.tar.gz
     fi
     
-    cd ${SOURCE_ROOT}/oniguruma-6.9.4 && ./autogen.sh && ./configure --prefix=/usr && make && make install
+    cd ${SOURCE_ROOT}/oniguruma-6.9.4
+    if [ "$(uname)" == "Darwin" ];then
+        ./autogen.sh
+        ./configure --prefix=${SERVER_ROOT}/oniguruma --host=arm-apple-darwin
+    else
+        ./autogen.sh
+        ./configure --prefix=${SERVER_ROOT}/oniguruma
+    fi
+    make -j${cpuCore} && make install
     cd $SOURCE_ROOT && rm -rf $SOURCE_ROOT/oniguruma-6.9.4
+fi
+
+if [ -d ${SERVER_ROOT}/oniguruma ]; then
+    export ONIG_CFLAGS="-I${SERVER_ROOT}/oniguruma/include"
+    export ONIG_LIBS="-L${SERVER_ROOT}/oniguruma/lib -lonig"
 fi
 

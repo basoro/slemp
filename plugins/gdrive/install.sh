@@ -12,10 +12,12 @@ function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)"
 P_VER=`python3 -V | awk '{print $2}'`
 echo "python:$P_VER"
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
+DIR=$(cd "$(dirname "$0")"; pwd)
+curPath=$DIR
+rootPath=$(dirname "$(dirname "$DIR")")
 serverPath=$(dirname "$rootPath")
+export rootPath
+export serverPath
 
 
 PATH=$PATH:${rootPath}/bin
@@ -83,7 +85,7 @@ Install_App()
 
         
         echo "${VERSION}" > $serverPath/gdrive/version.pl
-        echo '安装完成'
+        echo 'Instalasi selesai'
     else
         echo '服务器连接不上谷歌云！安装失败！'
         exit 1

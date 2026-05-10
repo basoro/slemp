@@ -61,6 +61,10 @@ Install_lib()
 			OPTIONS="$OPTIONS --build=aarch64-unknown-linux-gnu --host=aarch64-unknown-linux-gnu"
 		fi
 
+		if [ "$sysName" == "Darwin" ];then
+			OPTIONS="$OPTIONS --with-zlib=$(brew --prefix zlib)"
+		fi
+
 		$serverPath/php/$version/bin/phpize
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
 		make && make install && make clean

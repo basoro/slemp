@@ -2,10 +2,12 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
+DIR=$(cd "$(dirname "$0")"; pwd)
+curPath=$DIR
+rootPath=$(dirname "$(dirname "$DIR")")
 serverPath=$(dirname "$rootPath")
+export rootPath
+export serverPath
 
 # cd ${rootPath}/plugins/mariadb && bash install.sh install 8.2
 # cd ${rootPath} && source bin/activate && python3 plugins/mariadb/index.py try_slave_sync_bugfix {}

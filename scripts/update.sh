@@ -6,6 +6,17 @@ is64bit=`getconf LONG_BIT`
 
 startTime=`date +%s`
 
+# Path detection
+OSNAME=$(uname -s)
+if [ "$OSNAME" == "Darwin" ]; then
+    DIR=$(cd "$(dirname "$0")"; pwd)
+    rootPath=$(dirname "$DIR")
+    serverPath=$(dirname "$rootPath")
+else
+    rootPath="/opt/slemp/server/panel"
+    serverPath="/opt/slemp/server"
+fi
+
 if [ -f ${rootPath}/tools.py ];then
     echo -e "存在旧版代码,不能安装!,已知风险的情况下" 
     echo -e "rm -rf ${rootPath}"

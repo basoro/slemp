@@ -271,12 +271,7 @@ function webAddPage(type) {
 			});
 
 			$("select[name='version']").change(function(){
-				if($(this).val() == '52'){
-					var msgerr = 'PHP5.2 has cross-site risk when your site has vulnerabilities, please try to use PHP5.3 or above!';
-					$('#php_w').text(msgerr);
-				}else{
-					$('#php_w').text('');
-				}
+				$('#php_w').text('');
 			})
 
 			$('#mainDomain').on('input', function() {

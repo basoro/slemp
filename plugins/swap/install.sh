@@ -2,10 +2,12 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
+DIR=$(cd "$(dirname "$0")"; pwd)
+curPath=$DIR
+rootPath=$(dirname "$(dirname "$DIR")")
 serverPath=$(dirname "$rootPath")
+export rootPath
+export serverPath
 SYSOS=`uname`
 
 VERSION=$2
@@ -32,7 +34,7 @@ Install_swap()
 		swapon $serverPath/swap/swapfile
 	fi 
 
-	echo '安装完成'
+	echo 'Instalasi selesai'
 
 	cd ${rootPath} && python3 ${rootPath}/plugins/swap/index.py start
 	cd ${rootPath} && python3 ${rootPath}/plugins/swap/index.py initd_install

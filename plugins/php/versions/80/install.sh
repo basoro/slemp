@@ -2,16 +2,19 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH=$PATH:/opt/homebrew/bin
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")
+if [ -z "$rootPath" ]; then
+    DIR=$(cd "$(dirname "$0")"; pwd)
+    rootPath=$(dirname "$(dirname "$(dirname "$(dirname "$DIR")")")")
+    serverPath=$(dirname "$rootPath")
+fi
 sourcePath=${serverPath}/source
 sysName=`uname`
+SYS_ARCH=`arch`
 
 version=8.0.30
 PHP_VER=80
-md5_file_ok=216ab305737a5d392107112d618a755dc5df42058226f1670e9db90e77d777d9
+md5_file_ok=d9852028681d4f90653d4554472d829e
+
 Install_php()
 {
 #------------------------ install start ------------------------------------#
@@ -19,19 +22,11 @@ echo "安装php-${version} ..."
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
-cd ${rootPath}/plugins/php/lib && /bin/bash freetype_new.sh
+cd ${rootPath}/plugins/php/lib && /bin/bash freetype_old.sh
 cd ${rootPath}/plugins/php/lib && /bin/bash zlib.sh
-
-# redat ge 8
-which yum
-if [ "$?" == "0" ];then
-	cd ${rootPath}/plugins/php/lib && /bin/bash oniguruma.sh
-fi
 
 if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	
-	# ----------------------------------------------------------------------- #
-	# 中国优化安装
 	cn=$(curl -fsSL -m 10 -s http://ipinfo.io/json | grep "\"country\": \"CN\"")
 	LOCAL_ADDR=common
 	if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
@@ -43,15 +38,13 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 			wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://mirrors.nju.edu.cn/php/php-${version}.tar.xz
 		fi
 	fi
-	# ----------------------------------------------------------------------- #
 
 	if [ ! -f $sourcePath/php/php-${version}.tar.xz ];then
-		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://www.php.net/distributions/php-${version}.tar.xz
+		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://museum.php.net/php8/php-${version}.tar.xz
 	fi
 
-	#检测文件是否损坏.
 	if [ -f $sourcePath/php/php-${version}.tar.xz ];then
-		md5_file=`sha256sum $sourcePath/php/php-${version}.tar.xz  | awk '{print $1}'`
+		md5_file=`md5sum $sourcePath/php/php-${version}.tar.xz  | awk '{print $1}'`
 		if [ "${md5_file}" != "${md5_file_ok}" ]; then
 			echo "PHP${version} 下载文件不完整,重新安装"
 			rm -rf $sourcePath/php/php-${version}.tar.xz
@@ -62,34 +55,25 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
 fi
 
-cd $sourcePath/php/php${PHP_VER}
-
 OPTIONS='--without-iconv'
-
 if [ $sysName == 'Darwin' ]; then
-	OPTIONS="${OPTIONS} --with-external-pcre=$(brew --prefix pcre2)"
+	OPTIONS="${OPTIONS} --with-freetype-dir=${serverPath}/lib/freetype"
+else
+	OPTIONS="${OPTIONS} --with-readline"
 fi
 
 IS_64BIT=`getconf LONG_BIT`
-if [ "$IS_64BIT" == "64" ];then
+if [ "$IS_64BIT" == "64" ] && [ "$sysName" != "Darwin" ];then
 	OPTIONS="${OPTIONS} --with-libdir=lib64"
 fi
-
-
-# argon_version=`pkg-config libargon2 --modversion`
-# if [ "$?" == "0" ];then
-# 	OPTIONS="${OPTIONS} --with-password-argon2"
-# fi
 
 # ----- cpu start ------
 if [ -z "${cpuCore}" ]; then
 	cpuCore="1"
 fi
-
 if [ -f /proc/cpuinfo ];then
 	cpuCore=`cat /proc/cpuinfo | grep "processor" | wc -l`
 fi
-
 MEM_INFO=$(which free > /dev/null && free -m|grep Mem|awk '{printf("%.f",($2)/1024)}')
 if [ "${cpuCore}" != "1" ] && [ "${MEM_INFO}" != "0" ];then
     if [ "${cpuCore}" -gt "${MEM_INFO}" ];then
@@ -98,7 +82,6 @@ if [ "${cpuCore}" != "1" ] && [ "${MEM_INFO}" != "0" ];then
 else
     cpuCore="1"
 fi
-
 if [ "$cpuCore" -gt "2" ];then
 	cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
 else
@@ -106,27 +89,46 @@ else
 fi
 # ----- cpu end ------
 
-# echo "$sourcePath/php/php${PHP_VER}"
+if [ "${SYS_ARCH}" == "arm64" ] && [ "$sysName" == "Darwin" ] ;then
+	PATCH_PATH=${rootPath}/plugins/php/versions/${PHP_VER}/src
+	[ -f ${PATCH_PATH}/ext/pcre/sljitConfigInternal.h ] && cp -f ${PATCH_PATH}/ext/pcre/sljitConfigInternal.h $sourcePath/php/php${PHP_VER}/ext/pcre/pcrelib/sljit/sljitConfigInternal.h
+	[ -f ${PATCH_PATH}/reentrancy.c ] && cp -f ${PATCH_PATH}/reentrancy.c $sourcePath/php/php${PHP_VER}/main/reentrancy.c
+	[ -f ${PATCH_PATH}/mkstemp.c ] && cp -f ${PATCH_PATH}/mkstemp.c $sourcePath/php/php${PHP_VER}/ext/zip/lib/mkstemp.c
+	
+	[ -f $sourcePath/php/php${PHP_VER}/ext/pcre/pcrelib/sljit/sljitConfigInternal.h ] && sed -i '' 's/defined (__aarch64__)/defined (__aarch64__) || defined(__arm64__)/g' $sourcePath/php/php${PHP_VER}/ext/pcre/pcrelib/sljit/sljitConfigInternal.h
+	[ -f $sourcePath/php/php${PHP_VER}/ext/pcre/pcrelib/sljit/sljitConfig.h ] && sed -i '' 's/\/\* #define SLJIT_CONFIG_AUTO 1 \*\//#define SLJIT_CONFIG_AUTO 1/g' $sourcePath/php/php${PHP_VER}/ext/pcre/pcrelib/sljit/sljitConfig.h
+	[ -f $sourcePath/php/php${PHP_VER}/ext/dom/dom_iterators.c ] && sed -i '' 's/void \*payload, void \*data, xmlChar \*name/void \*payload, void \*data, const xmlChar \*name/g' $sourcePath/php/php${PHP_VER}/ext/dom/dom_iterators.c
+	[ -f $sourcePath/php/php${PHP_VER}/ext/pdo_sqlite/sqlite_statement.c ] && sed -i '' 's/zend_ulong \*len/unsigned long \*len/g' $sourcePath/php/php${PHP_VER}/ext/pdo_sqlite/sqlite_statement.c
+	[ -f $sourcePath/php/php${PHP_VER}/ext/libxml/libxml.c ] && sed -i '' 's/void \*userData, xmlErrorPtr error/void \*userData, const xmlError \*error/g' $sourcePath/php/php${PHP_VER}/ext/libxml/libxml.c
+	[ -f $sourcePath/php/php${PHP_VER}/ext/libxml/libxml.c ] && sed -i '' 's/int compression ATTRIBUTE_UNUSED/int compression/g' $sourcePath/php/php${PHP_VER}/ext/libxml/libxml.c
+fi
 
 if [ "$sysName" == "Darwin" ];then
-	BREW_DIR=`which brew`
-	BREW_DIR=${BREW_DIR/\/bin\/brew/}
-
-	LIB_DEPEND_DIR=`brew info openssl@1.0 | grep ${BREW_DIR}/Cellar/openssl@1.0 | cut -d \  -f 1 | awk 'END {print}'`
-	OPTIONS="$OPTIONS --with-openssl=$(brew --prefix openssl@1.0)"
-	export PKG_CONFIG_PATH=$LIB_DEPEND_DIR/lib/pkgconfig
-	export OPENSSL_CFLAGS="-I${LIB_DEPEND_DIR}/include"
-	export OPENSSL_LIBS="-L/${LIB_DEPEND_DIR}/lib -lssl -lcrypto -lz"
-else
 	cd ${rootPath}/plugins/php/lib && /bin/bash openssl_11.sh
-	export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$serverPath/lib/openssl11/lib/pkgconfig
+	OPENSSL_11_DIR=$(dirname $serverPath)/lib/openssl11
+	OPTIONS="$OPTIONS --with-openssl=${OPENSSL_11_DIR}"
+	export PKG_CONFIG_PATH=${OPENSSL_11_DIR}/lib/pkgconfig
+	export OPENSSL_CFLAGS="-I${OPENSSL_11_DIR}/include"
+	export OPENSSL_LIBS="-L${OPENSSL_11_DIR}/lib -lssl -lcrypto -lz"
+	export CPPFLAGS="-I${OPENSSL_11_DIR}/include -I$(brew --prefix zlib)/include"
+	export LDFLAGS="-L${OPENSSL_11_DIR}/lib -L$(brew --prefix zlib)/lib -lresolv"
+	export LIBS="-lresolv -lz"
+	OPTIONS="$OPTIONS --with-zlib=$(brew --prefix zlib) --without-pcre-jit"
+
+	if brew list oniguruma > /dev/null 2>&1; then
+		OPTIONS="$OPTIONS --with-onig=$(brew --prefix oniguruma)"
+	fi
+	if brew list libxml2 > /dev/null 2>&1; then
+		OPTIONS="$OPTIONS --with-libxml-dir=$(brew --prefix libxml2)"
+	fi
+else
+	cd ${rootPath}/plugins/php/lib && /bin/bash openssl_10.sh
+	export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$serverPath/lib/openssl10/lib/pkgconfig
 	OPTIONS="$OPTIONS --with-openssl"
 fi
 
 if [ ! -d $serverPath/php/${PHP_VER} ];then
-	cd $sourcePath/php/php${PHP_VER}
-	./buildconf --force
-	./configure \
+	cd $sourcePath/php/php${PHP_VER} && ./configure \
 	--prefix=$serverPath/php/${PHP_VER} \
 	--exec-prefix=$serverPath/php/${PHP_VER} \
 	--with-config-file-path=$serverPath/php/${PHP_VER}/etc \
@@ -134,10 +136,10 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 	--with-mysql=mysqlnd \
 	--with-mysqli=mysqlnd \
 	--with-pdo-mysql=mysqlnd \
-	--enable-ftp \
 	--enable-mbstring \
-	--enable-sockets \
 	--enable-simplexml \
+	--enable-ftp \
+	--enable-sockets \
 	--enable-soap \
 	--enable-posix \
 	--enable-sysvmsg \
@@ -148,17 +150,15 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 	$OPTIONS \
 	--enable-fpm
 	make clean && make -j${cpuCore} && make install && make clean
-
-	# rm -rf $sourcePath/php/php${PHP_VER}
-fi 
+fi
 #------------------------ install end ------------------------------------#
 }
 
 Uninstall_php()
 {
-	$serverPath/php/init.d/php${PHP_VER} stop
-	rm -rf $serverPath/php/${PHP_VER}
-	echo "卸载php-${version}..."
+	$serverPath/php/init.d/php80 stop
+	rm -rf $serverPath/php/80
+	echo "卸载php-${version} ..."
 }
 
 action=${1}

@@ -158,8 +158,7 @@ class system_api:
         if os.path.exists(sdir + '/openresty/nginx/sbin/nginx'):
             serverInfo['webserver'] = 'OpenResty'
         serverInfo['php'] = []
-        phpversions = ['52', '53', '54', '55', '56', '70', '71',
-                       '72', '73', '74', '80', '81', '82', '83', '84']
+        phpversions = ['70', '71', '72', '73', '74', '80', '81', '82', '83', '84', '85']
         phpPath = sdir + '/php/'
         for pv in phpversions:
             if not os.path.exists(phpPath + pv + '/bin/php'):

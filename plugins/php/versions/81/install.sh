@@ -2,10 +2,11 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH=$PATH:/opt/homebrew/bin
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")
+if [ -z "$rootPath" ]; then
+    DIR=$(cd "$(dirname "$0")"; pwd)
+    rootPath=$(dirname "$(dirname "$(dirname "$(dirname "$DIR")")")")
+    serverPath=$(dirname "$rootPath")
+fi
 sourcePath=${serverPath}/source
 sysName=`uname`
 

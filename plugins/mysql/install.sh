@@ -13,10 +13,12 @@ export PATH
 # cd ${rootPath} && source bin/activate && python3 plugins/mysql/index.py install_pre_inspection
 # cd ${rootPath} && source bin/activate && python3 plugins/mysql/index.py set_slave_status {"close":"change"}
 # cd ${rootPath} && source bin/activate && python3 plugins/mysql/index.py set_root_pwd {"password":"root","force":"2"}
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
+DIR=$(cd "$(dirname "$0")"; pwd)
+curPath=$DIR
+rootPath=$(dirname "$(dirname "$DIR")")
 serverPath=$(dirname "$rootPath")
+export rootPath
+export serverPath
 
 if [ -f ${rootPath}/bin/activate ];then
 	source ${rootPath}/bin/activate

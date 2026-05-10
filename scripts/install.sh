@@ -14,10 +14,16 @@ WARN='[\033[33mWARN\033[0m]'
 ERROR='[\033[31mERROR\033[0m]'
 WORKING='[\033[34m*\033[0m]'
 
-
-# LANG=en_US.UTF-8
-is64bit=`getconf LONG_BIT`
-
+# Path detection
+OSNAME=$(uname -s)
+if [ "$OSNAME" == "Darwin" ]; then
+    DIR=$(cd "$(dirname "$0")"; pwd)
+    rootPath=$(dirname "$DIR")
+    serverPath=$(dirname "$rootPath")
+else
+    rootPath="/opt/slemp/server/panel"
+    serverPath="/opt/slemp/server"
+fi
 if [ -f ${rootPath}/tools.py ];then
 	echo -e "存在旧版代码,不能安装!,已知风险的情况下" 
 	echo -e "rm -rf ${rootPath}"
@@ -25,7 +31,7 @@ if [ -f ${rootPath}/tools.py ];then
 	exit 0
 fi
 
-LOG_FILE=/var/log/mw-install.log
+LOG_FILE=slemp-install.log
 {
 
 HTTP_PREFIX="https://"
@@ -249,7 +255,7 @@ fi
 
 echo "use system version: ${OSNAME}"
 if [ "${OSNAME}" == "macos" ];then
-	curl --insecure -fsSL ${HTTP_PREFIX}raw.githubusercontent.com/midoks/panel/refs/heads/dev/scripts/install/macos.sh | bash
+	bash scripts/install/macos.sh
 else
 	cd ${rootPath} && bash scripts/install/${OSNAME}.sh
 fi
@@ -290,5 +296,4 @@ echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
 
 } 1> >(tee $LOG_FILE) 2>&1
 
-echo -e "\nInstall completed. If error occurs, please contact us with the log file mw-install.log ."
-echo "安装完毕，如果出现错误，请带上同目录下的安装日志 mw-install.log 联系我们反馈."
+echo -e "\nInstall completed. If error occurs, please contact us with the log file slemp-install.log ."

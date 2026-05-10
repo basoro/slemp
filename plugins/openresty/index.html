@@ -1,0 +1,22 @@
+<div class="bt-form">
+	<div class="bt-w-main">
+		<div class="bt-w-menu">
+			<p class="bgw" onclick="orPluginService('openresty');">Service</p>
+			<p onclick="pluginInitD('openresty');">Install Service</p>
+			<p onclick="pluginConfig('openresty');">Config</p>
+			<p onclick="getOpStatus();">Load Status</p>
+			<p onclick="setOpCfg();">Tuning</p>
+			<p onclick="pluginLogs('openresty');">Logs</p>
+		</div>
+		<div class="bt-w-con pd15">
+			<div class="soft-man-con"></div>
+		</div>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+$.getScript( "/plugins/file?name=openresty&f=js/openresty.js", function(){
+	orPluginService('openresty');
+});
+</script>

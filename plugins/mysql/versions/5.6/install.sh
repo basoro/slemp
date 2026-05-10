@@ -6,10 +6,11 @@ export PATH
 #https://dev.mysql.com/downloads/mysql/5.6.html
 #https://dev.mysql.com/downloads/file/?id=489600
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
-serverPath=$(dirname "$rootPath")
+if [ -z "$rootPath" ]; then
+    DIR=$(cd "$(dirname "$0")"; pwd)
+    rootPath=$(dirname "$(dirname "$(dirname "$(dirname "$DIR")")")")
+    serverPath=$(dirname "$rootPath")
+fi
 sysName=`uname`
 sysArch=`arch`
 
@@ -160,7 +161,7 @@ Install_mysql()
 		if [ -d $serverPath/mysql ];then
 			rm -rf ${mysqlDir}/mysql-${VERSION}
 			echo '5.6' > $serverPath/mysql/version.pl
-			echo "${VERSION}安装完成"
+			echo "${VERSION}Instalasi selesai"
 		else
 			# rm -rf ${mysqlDir}/mysql-5.6.*
 			echo "${VERSION}安装失败"

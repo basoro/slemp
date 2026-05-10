@@ -3,10 +3,12 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
+DIR=$(cd "$(dirname "$0")"; pwd)
+curPath=$DIR
+rootPath=$(dirname "$(dirname "$DIR")")
 serverPath=$(dirname "$rootPath")
+export rootPath
+export serverPath
 sysName=`uname`
 
 
@@ -55,7 +57,7 @@ Install_rsyncd()
 	mkdir -p $serverPath/rsyncd/send
 	
 	echo '2.0' > $serverPath/rsyncd/version.pl
-	echo '安装完成'
+	echo 'Instalasi selesai'
 	cd ${rootPath} && python3 ${rootPath}/plugins/rsyncd/index.py start
 	cd ${rootPath} && python3 ${rootPath}/plugins/rsyncd/index.py initd_install
 }

@@ -7,9 +7,8 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
-opensslVersion="1.1.1p"
-# echo $rootPath
 
+opensslVersion="1.1.1p"
 SERVER_ROOT=$rootPath/lib
 SOURCE_ROOT=$rootPath/source/lib
 mkdir -p $SOURCE_ROOT
@@ -21,18 +20,23 @@ if [ ! -d ${SERVER_ROOT}/openssl11 ];then
     fi 
     tar -zxvf openssl-${opensslVersion}.tar.gz
     cd openssl-${opensslVersion}
-    ./config --prefix=${SERVER_ROOT}/openssl11 zlib-dynamic shared
-    make && make install
-
-    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${serverPath}/lib/openssl11/lib
-    if [ -d /etc/ld.so.conf.d ];then
-        echo "${serverPath}/lib/openssl11/lib" > /etc/ld.so.conf.d/openssl11.conf
-    elif [ -f /etc/ld.so.conf ]; then
-        echo "${serverPath}/lib/openssl11/lib" >> /etc/ld.so.conf
+    
+    if [ "$(uname)" == "Darwin" ];then
+        ./Configure darwin64-arm64-cc --prefix=${SERVER_ROOT}/openssl11 zlib-dynamic shared
+    else
+        ./config --prefix=${SERVER_ROOT}/openssl11 zlib-dynamic shared
     fi
-
-    ldconfig
-    # ldconfig -p  | grep openssl
+    
+    make && make install
+    
+    if [ "$(uname)" != "Darwin" ];then
+        if [ -d /etc/ld.so.conf.d ];then
+            echo "${serverPath}/lib/openssl11/lib" > /etc/ld.so.conf.d/openssl11.conf
+        elif [ -f /etc/ld.so.conf ]; then
+            echo "${serverPath}/lib/openssl11/lib" >> /etc/ld.so.conf
+        fi
+        ldconfig
+    fi
 
     cd $SOURCE_ROOT && rm -rf $SOURCE_ROOT/openssl-${opensslVersion}
 fi
