@@ -33,13 +33,13 @@ class files_api:
         line = request.form.get('line', '100')
 
         if not os.path.exists(path):
-            return slemp.returnJson(False, 'File does not exist', (path,))
+            return slemp.returnJson(False, 'Filenya nggak ada', (path,))
 
         try:
             data = slemp.getLastLine(path, int(line))
             return slemp.returnJson(True, 'OK', data)
         except Exception as ex:
-            return slemp.returnJson(False, 'Could not read the file correctly!' + str(ex))
+            return slemp.returnJson(False, 'Gagal baca filenya! ' + str(ex))
 
     def saveBodyApi(self):
         path = request.form.get('path', '')
@@ -73,9 +73,9 @@ class files_api:
         sfile = request.form.get('sfile', '')
         dfile = request.form.get('dfile', '')
         if not self.checkFileName(dfile):
-            return slemp.returnJson(False, 'Filenames cannot contain special characters!')
+            return slemp.returnJson(False, 'Nama file nggak boleh pake karakter aneh-aneh!')
         if not os.path.exists(sfile):
-            return slemp.returnJson(False, 'The specified file does not exist!')
+            return slemp.returnJson(False, 'Filenya nggak ketemu!')
 
         if not self.checkDir(sfile):
             return slemp.returnJson(False, 'FILE_DANGER')
@@ -160,9 +160,9 @@ class files_api:
             self.setFileAccept(file)
             msg = slemp.getInfo('File [{1}] created successfully!', (file,))
             slemp.writeLog('File management', msg)
-            return slemp.returnJson(True, 'File created successfully!')
+            return slemp.returnJson(True, 'File berhasil dibuat!')
         except Exception as e:
-            return slemp.returnJson(True, 'File creation failed!')
+            return slemp.returnJson(True, 'Gagal buat filenya!')
 
     def createDirApi(self):
         path = request.form.get('path', '')
@@ -175,9 +175,9 @@ class files_api:
             self.setFileAccept(path)
             msg = slemp.getInfo('Creating directory [{1}] succeeded!', (path,))
             slemp.writeLog('File management', msg)
-            return slemp.returnJson(True, 'Directory created successfully!')
+            return slemp.returnJson(True, 'Folder berhasil dibuat!')
         except Exception as e:
-            return slemp.returnJson(False, 'Directory creation failed!')
+            return slemp.returnJson(False, 'Gagal buat foldernya!')
 
     def downloadFileApi(self):
         import db
@@ -254,7 +254,7 @@ class files_api:
 
         msg = slemp.getInfo('Upload file [{1}] to [{2}] successfully!', (filename, path))
         slemp.writeLog('File management', msg)
-        return slemp.returnMsg(True, 'Uploaded successfully!')
+        return slemp.returnMsg(True, 'Berhasil diunggah!')
 
     def setMode(self, path):
         s_path = os.path.dirname(path)
@@ -774,8 +774,8 @@ class files_api:
             if path.find("web_conf") > 0:
                 slemp.restartWeb()
 
-            slemp.writeLog('File management', 'File saved successfully', (path,))
-            return slemp.returnJson(True, 'File saved successfully')
+            slemp.writeLog('File management', 'File berhasil disimpan', (path,))
+            return slemp.returnJson(True, 'File berhasil disimpan')
         except Exception as ex:
             return slemp.returnJson(False, 'File save error: ' + str(ex))
 
@@ -799,7 +799,7 @@ class files_api:
                              dfile + "' " + sfiles + " > " + tmps + " 2>&1")
             self.setFileAccept(dfile)
             slemp.writeLog("File management", 'File compressed successfully!', (sfile, dfile))
-            return slemp.returnJson(True, 'File compressed successfully!')
+            return slemp.returnJson(True, 'File berhasil dikompres!')
         except:
             return slemp.returnJson(False, 'File compression failed!')
 

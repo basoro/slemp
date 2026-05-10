@@ -151,7 +151,7 @@ class site_api:
 
         slemp.writeFile('data/default_site.pl', name)
         slemp.restartWeb()
-        return slemp.returnJson(True, 'Successfully set!')
+        return slemp.returnJson(True, 'Berhasil diatur!')
 
     def getDefaultSiteApi(self):
         data = {}
@@ -163,7 +163,7 @@ class site_api:
     def getCliPhpVersionApi(self):
         php_dir = slemp.getServerDir() + '/php'
         if not os.path.exists(php_dir):
-            return slemp.returnJson(False, 'PHP is not installed and cannot be set')
+            return slemp.returnJson(False, 'PHP belum dipasang, jadi nggak bisa diatur')
 
         php_bin = '/usr/bin/php'
         php_versions = self.getPhpVersion()
@@ -184,7 +184,7 @@ class site_api:
 
     def setCliPhpVersionApi(self):
         if slemp.isAppleSystem():
-            return slemp.returnJson(False, "The development machine cannot be set!")
+            return slemp.returnJson(False, 'Komputer pengembangan nggak bisa diatur!')
 
         version = request.form.get('version', '')
 
@@ -199,7 +199,7 @@ class site_api:
         php_pear = '/usr/bin/pear'
         php_pear_src = slemp.getServerDir() + "/php/%s/bin/pear" % version
         if not os.path.exists(php_bin_src):
-            return slemp.returnJson(False, 'The specified PHP version is not installed!')
+            return slemp.returnJson(False, 'Versi PHP yang dipilih belum dipasang!')
 
         is_chattr = slemp.execShell('lsattr /usr|grep /usr/bin')[0].find('-i-')
         if is_chattr != -1:
@@ -220,8 +220,8 @@ class site_api:
         mid = request.form.get('id', '')
         ps = request.form.get('ps', '')
         if slemp.M('sites').where("id=?", (mid,)).setField('ps', ps):
-            return slemp.returnJson(True, 'Successfully modified!')
-        return slemp.returnJson(False, 'Fail to edit!')
+            return slemp.returnJson(True, 'Berhasil diubah!')
+        return slemp.returnJson(False, 'Gagal ubah!')
 
     def stopApi(self):
         mid = request.form.get('id', '')
@@ -233,7 +233,7 @@ class site_api:
         path = self.setupPath + '/stop'
         if not os.path.exists(path):
             os.makedirs(path)
-            default_text = 'The website has been closed!!!'
+            default_text = 'Website-nya lagi ditutup!!!'
             slemp.writeFile(path + '/index.html', default_text)
 
         binding = slemp.M('binding').where('pid=?', (mid,)).field(
@@ -257,7 +257,7 @@ class site_api:
         slemp.restartWeb()
         msg = slemp.getInfo('Site [{1}] has been disabled!', (name,))
         slemp.writeLog('Website management', msg)
-        return slemp.returnJson(True, 'Site disabled!')
+        return slemp.returnJson(True, 'Website dimatikan!')
 
     def startApi(self):
         mid = request.form.get('id', '')
@@ -275,7 +275,7 @@ class site_api:
         slemp.restartWeb()
         msg = slemp.getInfo('Site [{1}] has been enabled!', (name,))
         slemp.writeLog('Website management', msg)
-        return slemp.returnJson(True, 'Site enabled!')
+        return slemp.returnJson(True, 'Website dinyalakan!')
 
     def getBackupApi(self):
         limit = request.form.get('limit', '')
@@ -326,7 +326,7 @@ class site_api:
 
         msg = slemp.getInfo('Backup site [{1}] succeeded!', (find['name'],))
         slemp.writeLog('Website management', msg)
-        return slemp.returnJson(True, 'Backup successful!')
+        return slemp.returnJson(True, 'Backup berhasil!')
 
     def delBackupApi(self):
         mid = request.form.get('id', '')
@@ -338,7 +338,7 @@ class site_api:
         msg = slemp.getInfo('Backup [{2}] of site [{1}] deleted successfully!', (name, filename))
         slemp.writeLog('Website management', msg)
         slemp.M('backup').where("id=?", (mid,)).delete()
-        return slemp.returnJson(True, 'Site deleted successfully!')
+        return slemp.returnJson(True, 'Website berhasil dihapus!')
 
     def getPhpVersionApi(self):
         data = self.getPhpVersion()
@@ -453,12 +453,12 @@ class site_api:
             self.delUserInI(path)
             slemp.execShell("which chattr && chattr -i " + filename)
             os.remove(filename)
-            return slemp.returnJson(True, 'Anti-cross-site setting has been cleared!')
+            return slemp.returnJson(True, 'Pengaturan anti-lintas-situs udah dibersihin!')
 
         self.setDirUserINI(path, runPath)
         slemp.execShell("which chattr && chattr +i " + filename)
 
-        return slemp.returnJson(True, 'The anti-cross-site setting is turned on!')
+        return slemp.returnJson(True, 'Pengaturan anti-lintas-situs dinyalakan!')
 
     def setRewriteApi(self):
         data = request.form.get('data', '')
@@ -481,15 +481,15 @@ class site_api:
         name = request.form.get('name', '')
         path = slemp.getRunDir() + "/rewrite/nginx/" + name + ".conf"
         if os.path.exists(path):
-            return slemp.returnJson(False, 'Template already exists!')
+            return slemp.returnJson(False, 'Template-nya udah ada!')
 
         if data == "":
-            return slemp.returnJson(False, 'Template content cannot be empty!')
+            return slemp.returnJson(False, 'Isi template nggak boleh kosong!')
         ok = slemp.writeFile(path, data)
         if not ok:
             return slemp.returnJson(False, 'Template keeps failing!')
 
-        return slemp.returnJson(True, 'Set template successfully!')
+        return slemp.returnJson(True, 'Berhasil atur template!')
 
     def logsOpenApi(self):
         mid = request.form.get('id', '')
@@ -507,7 +507,7 @@ class site_api:
             slemp.writeFile(filename, conf)
 
         slemp.restartWeb()
-        return slemp.returnJson(True, 'Successful operation!')
+        return slemp.returnJson(True, 'Operasi berhasil!')
 
     def getCertListApi(self):
         try:
@@ -558,7 +558,7 @@ class site_api:
             if os.path.exists(path):
                 slemp.execShell('rm -rf ' + path)
             else:
-                return slemp.returnJson(False, 'Not yet applied!')
+                return slemp.returnJson(False, 'Belum diajukan!')
         elif ssl_type == 'lets':
             ssl_lets_dir = self.sslLetsDir + '/' + site_name
             csr_lets_path = ssl_lets_dir + '/fullchain.pem'
@@ -573,7 +573,7 @@ class site_api:
             slemp.execShell('rm -rf ' + ssl_acme_dir)
 
         # slemp.restartWeb()
-        return slemp.returnJson(True, 'Successfully deleted')
+        return slemp.returnJson(True, 'Berhasil dihapus')
 
     def getSslApi(self):
         site_name = request.form.get('site_name', '')
@@ -635,13 +635,13 @@ class site_api:
         keypath = path + "/privkey.pem"
 
         if(key.find('KEY') == -1):
-            return slemp.returnJson(False, 'The key is wrong, please check!')
+            return slemp.returnJson(False, 'Key-nya salah, coba cek lagi!')
         if(csr.find('CERTIFICATE') == -1):
-            return slemp.returnJson(False, 'Certificate error, please check!')
+            return slemp.returnJson(False, 'Sertifikat bermasalah, coba cek lagi!')
 
         slemp.writeFile('/tmp/cert.pl', csr)
         if not slemp.checkCert('/tmp/cert.pl'):
-            return slemp.returnJson(False, 'Certificate error, please paste the correct certificate in PEM format!')
+            return slemp.returnJson(False, 'Sertifikat bermasalah, silakan tempel sertifikat yang bener dalam format PEM!')
 
         slemp.backFile(keypath)
         slemp.backFile(csrpath)
@@ -661,7 +661,7 @@ class site_api:
 
         slemp.writeLog('Website management', 'Certificate saved!')
         slemp.restartWeb()
-        return slemp.returnJson(True, 'Certificate saved!')
+        return slemp.returnJson(True, 'Sertifikat berhasil disimpan!')
 
     def setCertToSiteApi(self):
         certName = request.form.get('certName', '')
@@ -669,7 +669,7 @@ class site_api:
         try:
             path = self.sslDir + '/' + siteName.strip()
             if not os.path.exists(path):
-                return slemp.returnJson(False, 'Certificate does not exist!')
+                return slemp.returnJson(False, 'Sertifikat nggak ada!')
 
             result = self.setSslConf(siteName)
             if not result['status']:
@@ -677,7 +677,7 @@ class site_api:
 
             slemp.restartWeb()
             slemp.writeLog('Website management', 'The certificate is deployed!')
-            return slemp.returnJson(True, 'The certificate is deployed!')
+            return slemp.returnJson(True, 'Sertifikat udah dipasang!')
         except Exception as ex:
             return slemp.returnJson(False, 'Setting error: ' + str(ex))
 
@@ -686,11 +686,11 @@ class site_api:
         try:
             path = self.sslDir + '/' + certName
             if not os.path.exists(path):
-                return slemp.returnJson(False, 'Certificate no longer exists!')
+                return slemp.returnJson(False, 'Sertifikat udah nggak ada!')
             os.system("rm -rf " + path)
-            return slemp.returnJson(True, 'Certificate deleted!')
+            return slemp.returnJson(True, 'Sertifikat dihapus!')
         except:
-            return slemp.returnJson(False, 'Failed to delete!')
+            return slemp.returnJson(False, 'Gagal hapus!')
 
     def closeSslConfApi(self):
         siteName = request.form.get('siteName', '')
@@ -740,7 +740,7 @@ class site_api:
         msg = slemp.getInfo('Website [{1}] closed SSL successfully!', (siteName,))
         slemp.writeLog('Website management', msg)
         slemp.restartWeb()
-        return slemp.returnJson(True, 'SSL is turned off!')
+        return slemp.returnJson(True, 'SSL dimatikan!')
 
     def deploySslApi(self):
         site_name = request.form.get('site_name', '')
@@ -780,7 +780,7 @@ class site_api:
         result = self.setSslConf(site_name)
         if not result['status']:
             return slemp.getJson(result)
-        return slemp.returnJson(True, 'Successful deployment')
+        return slemp.returnJson(True, 'Berhasil dipasang!')
 
     def getLetsIndex(self, site_name):
         cfg = slemp.getRunDir() + '/data/letsencrypt.json'

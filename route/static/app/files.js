@@ -1344,7 +1344,7 @@ function uploadFiles(){
 		content:'<div class="fileUploadDiv">\
 				<input type="hidden" id="input-val" value="'+path+'" />\
 				<input type="file" id="file_input"  multiple="true" autocomplete="off" />\
-				<button type="button"  id="opt" autocomplete="off">Tambah file</button>\
+				<button type="button"  id="opt" autocomplete="off">Tambah</button>\
 				<button type="button" id="up" autocomplete="off" >Unggah</button>\
 				<span id="totalProgress" style="position: absolute;top: 7px;right: 147px;"></span>\
 				<span style="float:right;margin-top: 9px;">\

@@ -17,15 +17,10 @@ $(function () {
     }).click(function () {
         $(this).find(".mem-re-min").hide();
         if (!($(this).hasClass("mem-action"))) {
-            reMemory();
-            var btlen = $(".mem-release").find(".mask span").text();
-            $(this).addClass("mem-action");
+            $(this).addClass("mem-action mem-releasing");
             $(this).find(".mask").css({ "color": "#20a53a" });
             $(this).find(".mem-re-con").animate({ "top": "-400px", opacity: 0 });
-            $(this).find(".pie_right .right").css({ "transform": "rotate(3deg)" });
-            for (var i = 0; i < btlen; i++) {
-                setTimeout("rocket(" + btlen + "," + i + ")", i * 30);
-            }
+            reMemory();
         }
     });
 });
@@ -105,10 +100,6 @@ function showCpuTips(rdata) {
 }
 
 
-function rocket(sum, m) {
-    var n = sum - m;
-    $(".mem-release").find(".mask span").text(n);
-}
 
 function reMemory() {
     setTimeout(function () {
@@ -126,13 +117,15 @@ function reMemory() {
                 } else {
                     $(".mem-release").find('.mask').css({ 'color': '#20a53a', 'font-size': '14px' }).html("<span style='display:none'>" + percent + "</span>" + lan.index.memre_ok_2);
                 }
-                $(".mem-release").removeClass("mem-action");
+                $(".mem-release").removeClass("mem-action mem-releasing");
                 $("#memory").text(memText);
                 setCookie("memRealUsed", rdata.memRealUsed);
+                setImg(); // Update the circle indicator based on new percentage
             }, 1000);
             setTimeout(function () {
                 $(".mem-release").find('.mask').removeAttr("style").html("<span>" + percent + "</span>%");
                 $(".mem-release").find(".mem-re-min").show();
+                setImg(); // Ensure final position is set
             }, 2000)
         }, 'json');
     }, 2000);

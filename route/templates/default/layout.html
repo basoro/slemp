@@ -8,8 +8,12 @@
     <meta name="renderer" content="webkit">
     <title>{{data['title']}}</title>
     <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="/static/bootstrap-3.3.5/css/bootstrap.min.css?v={{config.version}}" rel="stylesheet">
     <link href="/static/css/site.css?v={{config.version}}" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif !important; }
+    </style>
     <link href="/static/codemirror/lib/codemirror.css?v={{config.version}}" rel="stylesheet">
     <script src="/static/language/Simplified_Chinese/lan.js?v={{config.version}}"></script>
     <!--[if lte IE 9]>
@@ -62,6 +66,37 @@
             </ul>
         </div><!--/.nav-collapse -->
     </nav>
+    <style>
+        .navbar-inverse {
+            background-color: #0f172a !important;
+            border: none !important;
+            box-shadow: var(--shadow);
+            height: 60px;
+        }
+        .navbar-inverse .navbar-brand {
+            color: #f8fafc !important;
+            font-weight: 700;
+            font-size: 20px;
+            line-height: 30px;
+        }
+        .navbar-inverse .navbar-nav > li > a {
+            color: #94a3b8 !important;
+            font-weight: 500;
+            transition: all 0.2s;
+            line-height: 30px;
+        }
+        .navbar-inverse .navbar-nav > li > a:hover {
+            color: #f8fafc !important;
+            background-color: #1e293b !important;
+        }
+        .navbar-inverse .navbar-nav > .active > a {
+            background-color: var(--primary) !important;
+            color: #fff !important;
+        }
+        @media (min-width: 768px) {
+            .navbar-nav > li > a { padding-top: 15px; padding-bottom: 15px; }
+        }
+    </style>
 
     <div class="bt-warp bge6">
         <div id="container" class="container-fluid">
@@ -87,7 +122,8 @@
             <script src="/static/js/xm-select.js"></script>
 
             {% block content %}{% endblock %}
-            <div class="footer bgw">SLEMP &copy; 2018 - 2026.
+            <div class="footer bgw" style="margin-top: 30px; border-top: 1px solid var(--border-color); padding: 20px; text-align: center; color: var(--text-muted);">
+                SLEMP &copy; 2018 - 2026.
             </div>
         </div>
     </div>

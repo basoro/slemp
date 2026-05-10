@@ -34,37 +34,37 @@ class crontab_api:
         for i in range(len(_list)):
             tmp = _list[i]
             if _list[i]['type'] == "day":
-                tmp['type'] = 'Every day'
-                tmp['cycle'] = slemp.getInfo('Execute at {1} and {2} minutes every day', (str(
+                tmp['type'] = 'Setiap hari'
+                tmp['cycle'] = slemp.getInfo('Dijalankan pada pukul {1} lewat {2} menit setiap hari', (str(
                     _list[i]['where_hour']), str(_list[i]['where_minute'])))
             elif _list[i]['type'] == "day-n":
                 tmp['type'] = slemp.getInfo(
-                    'Every {1} days', (str(_list[i]['where1']),))
-                tmp['cycle'] = slemp.getInfo('Execute every {1} days, {2} hours and {3} minutes',  (str(
+                    'Setiap {1} hari', (str(_list[i]['where1']),))
+                tmp['cycle'] = slemp.getInfo('Dijalankan setiap {1} hari, pukul {2} lewat {3} menit',  (str(
                     _list[i]['where1']), str(_list[i]['where_hour']), str(_list[i]['where_minute'])))
             elif _list[i]['type'] == "hour":
-                tmp['type'] = 'Per hour'
+                tmp['type'] = 'Per jam'
                 tmp['cycle'] = slemp.getInfo(
-                    'Every hour, {1} minute Execution', (str(_list[i]['where_minute']),))
+                    'Dijalankan setiap jam, menit ke {1}', (str(_list[i]['where_minute']),))
             elif _list[i]['type'] == "hour-n":
                 tmp['type'] = slemp.getInfo(
-                    'Every {1} hours', (str(_list[i]['where1']),))
-                tmp['cycle'] = slemp.getInfo('Execute every {1} hour, {2} minutes', (str(
+                    'Setiap {1} jam', (str(_list[i]['where1']),))
+                tmp['cycle'] = slemp.getInfo('Dijalankan setiap {1} jam, menit ke {2}', (str(
                     _list[i]['where1']), str(_list[i]['where_minute'])))
             elif _list[i]['type'] == "minute-n":
                 tmp['type'] = slemp.getInfo(
-                    'Every {1} minutes', (str(_list[i]['where1']),))
+                    'Setiap {1} menit', (str(_list[i]['where1']),))
                 tmp['cycle'] = slemp.getInfo(
-                    'Execute every {1} minutes', (str(_list[i]['where1']),))
+                    'Dijalankan setiap {1} menit', (str(_list[i]['where1']),))
             elif _list[i]['type'] == "week":
-                tmp['type'] = 'Weekly'
+                tmp['type'] = 'Mingguan'
                 if not _list[i]['where1']:
                     _list[i]['where1'] = '0'
-                tmp['cycle'] = slemp.getInfo('Execute at {1}, {2} and {3} every week', (self.toWeek(int(
+                tmp['cycle'] = slemp.getInfo('Dijalankan setiap {1}, pukul {2} lewat {3} menit', (self.toWeek(int(
                     _list[i]['where1'])), str(_list[i]['where_hour']), str(_list[i]['where_minute'])))
             elif _list[i]['type'] == "month":
-                tmp['type'] = 'Per month'
-                tmp['cycle'] = slemp.getInfo('Executed at {2} o\'clock {3} on {1} day every month', (str(_list[i]['where1']), str(
+                tmp['type'] = 'Per bulan'
+                tmp['cycle'] = slemp.getInfo('Dijalankan pada hari ke {1}, pukul {2} lewat {3} menit setiap bulan', (str(_list[i]['where1']), str(
                     _list[i]['where_hour']), str(_list[i]['where_minute'])))
             data.append(tmp)
 
@@ -105,7 +105,7 @@ class crontab_api:
         slemp.M('crontab').where('id=?', (mid,)).setField('status', status)
         slemp.writeLog(
             'Scheduled Tasks', 'Modify the status of the scheduled task [' + cronInfo['name'] + '] to [' + str(status) + ']')
-        return slemp.returnJson(True, 'Successfully set')
+        return slemp.returnJson(True, 'Berhasil diatur')
 
     def getCrondFindApi(self):
         sid = request.form.get('id', '')
@@ -219,14 +219,14 @@ class crontab_api:
         self.removeForCrond(cronInfo['echo'])
         self.syncToCrond(cronInfo)
         slemp.writeLog('Scheduled Tasks', 'Modify scheduled task [' + cronInfo['name'] + '] successfully')
-        return slemp.returnJson(True, 'Successfully modified')
+        return slemp.returnJson(True, 'Berhasil diubah')
 
     def logsApi(self):
         sid = request.form.get('id', '')
         echo = slemp.M('crontab').where("id=?", (sid,)).field('echo').find()
         logFile = slemp.getServerDir() + '/cron/' + echo['echo'] + '.log'
         if not os.path.exists(logFile):
-            return slemp.returnJson(False, 'Current log is empty!')
+            return slemp.returnJson(False, 'Log-nya masih kosong!')
         log = slemp.getLastLine(logFile, 500)
         return slemp.returnJson(True, log)
 
@@ -268,8 +268,8 @@ class crontab_api:
 
         addData = self.add(params)
         if addData > 0:
-            return slemp.returnJson(True, 'Added successfully')
-        return slemp.returnJson(False, 'Add failed')
+            return slemp.returnJson(True, 'Berhasil ditambahin')
+        return slemp.returnJson(False, 'Gagal nambahin')
 
     def add(self, params):
 
@@ -315,7 +315,7 @@ class crontab_api:
         execstr = slemp.getServerDir() + '/cron/' + echo
         os.system('chmod +x ' + execstr)
         os.system('nohup ' + execstr + ' >> ' + execstr + '.log 2>&1 &')
-        return slemp.returnJson(True, 'Task executed!')
+        return slemp.returnJson(True, 'Tugas dijalankan!')
 
     def delApi(self):
         task_id = request.form.get('id', '')
@@ -323,7 +323,7 @@ class crontab_api:
             data = self.delete(task_id)
             if not data[0]:
                 return slemp.returnJson(False, data[1])
-            return slemp.returnJson(True, 'Successfully deleted')
+            return slemp.returnJson(True, 'Berhasil dihapus')
         except Exception as e:
             return slemp.returnJson(False, 'Failed to delete:' + str(e))
 
@@ -352,7 +352,7 @@ class crontab_api:
             echo = slemp.M('crontab').where("id=?", (sid,)).getField('echo')
             logFile = slemp.getServerDir() + '/cron/' + echo + '.log'
             os.remove(logFile)
-            return slemp.returnJson(True, 'Mission log has been cleared!')
+            return slemp.returnJson(True, 'Log tugas udah dibersihin!')
         except:
             return slemp.returnJson(False, 'Failed to clear task log!')
 

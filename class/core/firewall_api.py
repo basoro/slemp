@@ -38,7 +38,7 @@ class firewall_api:
 
         rep = r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(\/\d{1,2})?$"
         if not re.search(rep, port):
-            return slemp.returnJson(False, 'The IP address you entered is invalid!')
+            return slemp.returnJson(False, 'Alamat IP yang kamu masukin nggak valid!')
         address = port
         if slemp.M('firewall').where("port=?", (address,)).count() > 0:
             return slemp.returnJson(False, 'The IP you want to block already exists in the block list, so there is no need to repeat it!')
@@ -60,11 +60,11 @@ class firewall_api:
         addtime = time.strftime('%Y-%m-%d %X', time.localtime())
         slemp.M('firewall').add('port,ps,addtime', (address, ps, addtime))
         self.firewallReload()
-        return slemp.returnJson(True, 'Added successfully!')
+        return slemp.returnJson(True, 'Berhasil ditambahin!')
 
     def addAcceptPortApi(self):
         if not self.getFwStatus():
-            return slemp.returnJson(False, 'Rules can only be added when the firewall is started!')
+            return slemp.returnJson(False, 'Aturan cuma bisa ditambahin pas firewall nyala!')
 
         port = request.form.get('port', '').strip()
         ps = request.form.get('ps', '').strip()
@@ -82,7 +82,7 @@ class firewall_api:
 
         rep = r"^\d{1,5}(:\d{1,5})?$"
         if not re.search(rep, port):
-            return slemp.returnData(False, 'Incorrect port range!')
+            return slemp.returnData(False, 'Rentang port salah!')
 
         if slemp.M('firewall').where("port=?", (port,)).count() > 0:
             return slemp.returnData(False, 'The port you want to allow already exists, so there is no need to allow it again!')
@@ -98,7 +98,7 @@ class firewall_api:
 
     def delDropAddressApi(self):
         if not self.getFwStatus():
-            return slemp.returnJson(False, 'Rules can only be deleted when the firewall is started!')
+            return slemp.returnJson(False, 'Aturan cuma bisa dihapus pas firewall nyala!')
 
         port = request.form.get('port', '').strip()
         ps = request.form.get('ps', '').strip()
@@ -117,7 +117,7 @@ class firewall_api:
         slemp.M('firewall').where("id=?", (sid,)).delete()
 
         self.firewallReload()
-        return slemp.returnJson(True, 'Successfully deleted!')
+        return slemp.returnJson(True, 'Berhasil dihapus!')
 
     def delAcceptPortApi(self):
         port = request.form.get('port', '').strip()
@@ -144,7 +144,7 @@ class firewall_api:
             slemp.M('firewall').where("id=?", (sid,)).delete()
 
             self.firewallReload()
-            return slemp.returnJson(True, 'Successfully deleted!')
+            return slemp.returnJson(True, 'Berhasil dihapus!')
         except Exception as e:
             return slemp.returnJson(False, 'Failed to delete!:' + str(e))
 
@@ -220,7 +220,7 @@ class firewall_api:
     def setSshPortApi(self):
         port = request.form.get('port', '1').strip()
         if int(port) < 22 or int(port) > 65535:
-            return slemp.returnJson(False, 'The port range must be between 22-65535!')
+            return slemp.returnJson(False, 'Rentang port harus antara 22-65535!')
 
         ports = ['21', '25', '80', '443', '888']
         if port in ports:
@@ -242,7 +242,7 @@ class firewall_api:
             slemp.execShell("systemctl restart sshd.service")
         else:
             return slemp.returnJson(False, 'Fail to edit!')
-        return slemp.returnJson(True, 'Successfully modified!')
+        return slemp.returnJson(True, 'Berhasil diubah!')
 
     def setSshStatusApi(self):
         if slemp.isAppleSystem():
@@ -265,7 +265,7 @@ class firewall_api:
             slemp.execShell('/etc/init.d/sshd ' + act)
 
         slemp.writeLog("Firewall management", msg)
-        return slemp.returnJson(True, 'Successful operation!')
+        return slemp.returnJson(True, 'Operasi berhasil!')
 
     def setSshPassStatusApi(self):
         if slemp.isAppleSystem():
@@ -308,7 +308,7 @@ class firewall_api:
 
         slemp.writeFile(filename, conf)
         slemp.execShell('sysctl -p')
-        return slemp.returnJson(True, 'Successfully set!')
+        return slemp.returnJson(True, 'Berhasil diatur!')
 
     def setFwApi(self):
         if slemp.isAppleSystem():
@@ -342,7 +342,7 @@ class firewall_api:
 
         if self.__isIptables:
             self.setFwIptables(status)
-            return slemp.returnData(True, 'Successfully set!')
+            return slemp.returnData(True, 'Berhasil diatur!')
 
         if status == '1':
             if self.__isUfw:
@@ -362,12 +362,12 @@ class firewall_api:
             else:
                 pass
 
-        return slemp.returnData(True, 'Successfully set!')
+        return slemp.returnData(True, 'Berhasil diatur!')
 
     def delPanelLogsApi(self):
         slemp.M('logs').where('id>?', (0,)).delete()
         slemp.writeLog('Panel settings', 'Panel operation log has been cleared!')
-        return slemp.returnJson(True, 'Panel operation log has been cleared!')
+        return slemp.returnJson(True, 'Log operasi panel udah dibersihin!')
 
     ##### ----- start ----- ###
 

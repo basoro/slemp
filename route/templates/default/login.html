@@ -6,9 +6,11 @@
 <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
 <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
 <title>SLEMP Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="/static/css/site.css?v={{config.version}}">
 <link rel="stylesheet" type="text/css" href="/static/css/login.css?v={{config.version}}">
 <style type="text/css">
+body { font-family: 'Inter', sans-serif; }
 @media screen and (max-width: 640px) {
     .scanCode{
     	display: none;
@@ -155,11 +157,6 @@ window.onresize=function(){
 function wreset(){
 	var w = $(window).width();
 	var yzmw = $(".login .line").width() - 140;
-	if($(".yzm").is(":visible") && w > 640){
-		$(".login").css({"height":"365px","margin-top":"-230px"});
-	} else {
-		$(".login").removeAttr("style")
-	}
 	$(".login .yzm .inputtxt").width(yzmw);
 }
 

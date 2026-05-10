@@ -110,7 +110,7 @@ class config_api:
         webname = request.form.get('webname', '')
         if webname != slemp.getConfig('title'):
             slemp.setConfig('title', webname)
-        return slemp.returnJson(True, 'Panel alias saved successfully!')
+        return slemp.returnJson(True, 'Alias panel berhasil disimpan!')
 
     def setPortApi(self):
         port = request.form.get('port', '')
@@ -135,25 +135,25 @@ class config_api:
 
             system_api.system_api().restartSlemp()
 
-        return slemp.returnJson(True, 'Port saved successfully!')
+        return slemp.returnJson(True, 'Port berhasil disimpan!')
 
     def setIpApi(self):
         host_ip = request.form.get('host_ip', '')
         if host_ip != slemp.getHostAddr():
             slemp.setHostAddr(host_ip)
-        return slemp.returnJson(True, 'IP saved successfully!')
+        return slemp.returnJson(True, 'IP berhasil disimpan!')
 
     def setWwwDirApi(self):
         sites_path = request.form.get('sites_path', '')
         if sites_path != slemp.getWwwDir():
             slemp.setWwwDir(sites_path)
-        return slemp.returnJson(True, 'Modify the default website directory successfully!')
+        return slemp.returnJson(True, 'Berhasil ubah folder website bawaan!')
 
     def setBackupDirApi(self):
         backup_path = request.form.get('backup_path', '')
         if backup_path != slemp.getBackupDir():
             slemp.setBackupDir(backup_path)
-        return slemp.returnJson(True, 'Modify the default backup directory successfully!')
+        return slemp.returnJson(True, 'Berhasil ubah folder backup bawaan!')
 
     def setBasicAuthApi(self):
         basic_user = request.form.get('basic_user', '').strip()
@@ -167,7 +167,7 @@ class config_api:
         if basic_open == 'false':
             if os.path.exists(path):
                 os.remove(path)
-            return slemp.returnJson(True, 'Delete BasicAuth successfully!')
+            return slemp.returnJson(True, 'Berhasil hapus BasicAuth!')
 
         if basic_user == '' or basic_pwd == '':
             return slemp.returnJson(True, 'User and password cannot be empty!')
@@ -195,7 +195,7 @@ class config_api:
         slemp.writeLog('Panel settings', 'Set the BasicAuth state to: %s' % is_open)
 
         slemp.restartSlemp()
-        return slemp.returnJson(True, 'Successfully set!')
+        return slemp.returnJson(True, 'Berhasil diatur!')
 
     def setApi(self):
         webname = request.form.get('webname', '')
@@ -251,7 +251,7 @@ class config_api:
             'uri': '/config',
             'host': mhost + ':' + port
         }
-        return slemp.returnJson(True, 'Saved successfully!', info)
+        return slemp.returnJson(True, 'Berhasil disimpan!', info)
 
     def setAdminPathApi(self):
         admin_path = request.form.get('admin_path', '').strip()
@@ -502,7 +502,7 @@ class config_api:
             os.remove(cfg_domain)
             os.remove(dst_panel_path)
             slemp.restartWeb()
-            return slemp.returnJson(True, 'The domain name was cleared successfully!')
+            return slemp.returnJson(True, 'Nama domain berhasil dibersihin!')
 
         reg = r"^([\w\-\*]{1,100}\.){1,4}(\w{1,10}|\w{1,10}\.\w{1,10})$"
         if not re.match(reg, domain):
@@ -522,7 +522,7 @@ class config_api:
         slemp.restartWeb()
 
         slemp.writeFile(cfg_domain, domain)
-        return slemp.returnJson(True, 'Successfully set domain name!')
+        return slemp.returnJson(True, 'Berhasil atur nama domain!')
 
     def setPanelSslApi(self):
         sslConf = slemp.getRunDir() + '/data/ssl.pl'
@@ -653,7 +653,7 @@ class config_api:
         sid = request.form.get('id', '10').strip()
         if slemp.M('temp_login').where('id=?', (sid,)).delete():
             slemp.writeLog('Panel settings', 'Delete temporary login connection')
-            return slemp.returnJson(True, 'Successfully deleted')
+            return slemp.returnJson(True, 'Berhasil dihapus')
         return slemp.returnJson(False, 'Failed to delete')
 
     def setTempLoginApi(self):
@@ -681,7 +681,7 @@ class config_api:
         if slemp.M('temp_login').insert(pdata):
             slemp.writeLog('Panel settings', 'Generate temporary connection, expiration time:{}'.format(
                 slemp.formatDate(times=pdata['expire'])))
-            return slemp.getJson({'status': True, 'msg': "A temporary connection has been created", 'token': token, 'expire': pdata['expire']})
+            return slemp.getJson({'status': True, 'msg': "Koneksi sementara udah dibuat", 'token': token, 'expire': pdata['expire']})
         return slemp.returnJson(False, 'Connection generation failed')
 
     def getTempLoginLogsApi(self):
@@ -719,7 +719,7 @@ class config_api:
 
         slemp.writeFile('data/unauthorized_status.pl', str(status_code))
         slemp.writeLog('Panel settings', 'Set the Unauthorized response status code to:{}'.format(status_code))
-        return slemp.returnJson(True, 'Successfully set!')
+        return slemp.returnJson(True, 'Berhasil diatur!')
 
     def getNotifyApi(self):
         data = slemp.getNotifyData(True)
@@ -739,7 +739,7 @@ class config_api:
             cfg[tag] = t
 
         slemp.writeNotify(cfg)
-        return slemp.returnData(True, 'Successfully set')
+        return slemp.returnData(True, 'Berhasil diatur')
 
     def setNotifyTestApi(self):
         tag = request.form.get('tag', '').strip()
@@ -749,7 +749,7 @@ class config_api:
             t = json.loads(tag_data)
             test_bool = slemp.tgbotNotifyTest(t['app_token'], t['chat_id'])
             if test_bool:
-                return slemp.returnData(True, 'Verification successful')
+                return slemp.returnData(True, 'Verifikasi berhasil')
             return slemp.returnData(False, 'Verification failed')
 
         return slemp.returnData(False, 'This verification is not currently supported')
