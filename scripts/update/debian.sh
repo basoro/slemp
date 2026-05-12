@@ -3,6 +3,10 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/hom
 export PATH
 export DEBIAN_FRONTEND=noninteractive
 
+if [ -z "$rootPath" ]; then
+    rootPath="/opt/slemp/server/panel"
+fi
+
 apt autoremove -y
 apt install -y locate
 if [ ! -d /usr/share/locale ];then

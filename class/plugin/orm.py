@@ -6,6 +6,10 @@ import sys
 
 import pymysql.cursors
 
+if __name__ != '__main__':
+    sys.path.append(os.path.abspath(os.path.dirname(__file__) + '/../core'))
+    import slemp
+
 
 class ORM:
     __DB_PASS = None

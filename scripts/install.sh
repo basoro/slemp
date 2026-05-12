@@ -187,13 +187,13 @@ elif grep -Eqi "AlmaLinux" /etc/issue || grep -Eqi "AlmaLinux" /etc/*-release; t
 elif grep -Eqi "Amazon Linux" /etc/issue || grep -Eqi "Amazon Linux" /etc/*-release; then
 	OSNAME='amazon'
 	yum install -y wget curl zip unzip tar crontabs
-elif grep -Eqi "Debian" /etc/issue || grep -Eqi "Debian" /etc/os-release; then
-	OSNAME='debian'
-	# apt update -y
-	apt install -y wget curl zip unzip tar cron
 elif grep -Eqi "Ubuntu" /etc/issue || grep -Eqi "Ubuntu" /etc/os-release; then
 	OSNAME='ubuntu'
-	# apt update -y
+	apt update -y
+	apt install -y wget curl zip unzip tar cron
+elif grep -Eqi "Debian" /etc/issue || grep -Eqi "Debian" /etc/os-release; then
+	OSNAME='debian'
+	apt update -y
 	apt install -y wget curl zip unzip tar cron
 elif grep -Eqi "Alpine" /etc/issue || grep -Eqi "Alpine" /etc/*-release; then
 	OSNAME='alpine'

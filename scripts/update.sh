@@ -10,11 +10,11 @@ startTime=`date +%s`
 OSNAME=$(uname -s)
 if [ "$OSNAME" == "Darwin" ]; then
     DIR=$(cd "$(dirname "$0")"; pwd)
-    rootPath=$(dirname "$DIR")
-    serverPath=$(dirname "$rootPath")
+    export rootPath=$(dirname "$DIR")
+    export serverPath=$(dirname "$rootPath")
 else
-    rootPath="/opt/slemp/server/panel"
-    serverPath="/opt/slemp/server"
+    export rootPath="/opt/slemp/server/panel"
+    export serverPath="/opt/slemp/server"
 fi
 
 _os=`uname`
@@ -179,11 +179,11 @@ elif grep -Eqi "Anolis" /etc/issue || grep -Eqi "Anolis" /etc/*-release; then
 elif grep -Eqi "Amazon Linux" /etc/issue || grep -Eqi "Amazon Linux" /etc/*-release; then
     OSNAME='amazon'
     yum install -y wget zip unzip
-elif grep -Eqi "Debian" /etc/issue || grep -Eqi "Debian" /etc/*-release; then
-    OSNAME='debian'
-    apt install -y wget zip unzip
 elif grep -Eqi "Ubuntu" /etc/issue || grep -Eqi "Ubuntu" /etc/*-release; then
     OSNAME='ubuntu'
+    apt install -y wget zip unzip
+elif grep -Eqi "Debian" /etc/issue || grep -Eqi "Debian" /etc/*-release; then
+    OSNAME='debian'
     apt install -y wget zip unzip
 elif grep -Eqi "Raspbian" /etc/issue || grep -Eqi "Raspbian" /etc/*-release; then
     OSNAME='raspbian'

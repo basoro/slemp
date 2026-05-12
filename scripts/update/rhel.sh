@@ -5,6 +5,10 @@ export LANG=en_US.UTF-8
 
 sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config
 
+if [ -z "$rootPath" ]; then
+    rootPath="/opt/slemp/server/panel"
+fi
+
 
 
 cd ${rootPath}/scripts && bash lib.sh
