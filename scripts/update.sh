@@ -29,7 +29,7 @@ if [ ${_os} != "Darwin" ] && [ ! -d ${rootPath}/logs ]; then
     mkdir -p ${rootPath}/logs
 fi
 
-LOG_FILE=/var/log/mw-update.log
+LOG_FILE=/var/log/slemp-update.log
 {
 
 HTTP_PREFIX="https://"

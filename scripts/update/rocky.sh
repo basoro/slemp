@@ -22,7 +22,7 @@ if [ -f /etc/rc.d/init.d/slemp ];then
     bash /etc/rc.d/init.d/slemp stop && rm -rf ${rootPath}/scripts/init.d/slemp && rm -rf /etc/rc.d/init.d/slemp
 fi
 
-echo -e "stop mw"
+echo -e "stop slemp"
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 
 port=7200
@@ -43,7 +43,7 @@ do
 done
 
 
-echo -e "start mw"
+echo -e "start slemp"
 cd ${rootPath} && sh cli.sh start
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 n=0
@@ -56,4 +56,4 @@ do
         break;
     fi
 done
-echo -e "start mw success"
+echo -e "start slemp success"

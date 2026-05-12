@@ -12,7 +12,7 @@ if [ -f /etc/rc.d/init.d/slemp ];then
     bash /etc/rc.d/init.d/slemp stop && rm -rf ${rootPath}/scripts/init.d/slemp && rm -rf /etc/rc.d/init.d/slemp
 fi
 
-echo -e "start mw"
+echo -e "start slemp"
 cd ${rootPath} && bash cli.sh start
 isStart=`ps -aux|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 n=0
@@ -22,11 +22,11 @@ do
     sleep 1
     let n+=1
     if [ $n -gt 20 ];then
-        echo -e "start mw fail"
+        echo -e "start slemp fail"
         exit 1
     fi
 done
-echo -e "start mw success"
+echo -e "start slemp success"
 
 cd ${rootPath} && bash /etc/rc.d/init.d/slemp stop
 cd ${rootPath} && bash /etc/rc.d/init.d/slemp start
