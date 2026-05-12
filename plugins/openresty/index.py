@@ -145,6 +145,17 @@ def confReplace():
     nconf = getServerDir() + '/nginx/conf/nginx.conf'
     slemp.writeFile(nconf, content)
 
+    # Create cache directories
+    proxy_cache_temp = getServerDir() + '/nginx/proxy_cache_temp'
+    if not os.path.exists(proxy_cache_temp):
+        slemp.execShell('mkdir -p ' + proxy_cache_temp)
+    slemp.execShell('chown -R ' + user + ':' + user_group + ' ' + proxy_cache_temp)
+
+    fastcgi_cache_temp = getServerDir() + '/nginx/fastcgi_cache_temp'
+    if not os.path.exists(fastcgi_cache_temp):
+        slemp.execShell('mkdir -p ' + fastcgi_cache_temp)
+    slemp.execShell('chown -R ' + user + ':' + user_group + ' ' + fastcgi_cache_temp)
+
     lua_conf_dir = slemp.getServerDir() + '/web_conf/nginx/lua'
     if not os.path.exists(lua_conf_dir):
         slemp.execShell('mkdir -p ' + lua_conf_dir)
