@@ -105,7 +105,11 @@ Install_mysql()
 	#Periksa apakah file rusak.
 	md5_mysql_ok=704ad9fb4779e76ce5e327285813c97c
 	if [ -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
-		md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
+		if [ "$sysName" == "Darwin" ];then
+			md5_mysql=`md5 -q ${mysqlDir}/mysql-boost-${VERSION}.tar.gz`
+		else
+			md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
+		fi
 		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
 			echo "mysql8.2 file  check ok"
 		else

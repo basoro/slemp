@@ -1,19 +1,18 @@
 <style>
+.upyunCon {
+    height: 428px;
+}
 
-  .upyunCon {
-    padding: 30px;
-  }
-
-  .up-place {
+.up-place {
     height: 62px;
     border-bottom: 1px solid #ddd;
-  }
+}
 
-  .up-place .btn {
+.up-place .btn {
     border-radius: 0;
-  }
+}
 
-  .up-place .place-input {
+.up-place .place-input {
     background-color: #f3f3f3;
     border: 1px solid #ccc;
     height: 30px;
@@ -21,100 +20,199 @@
     overflow: hidden;
     margin: 1px 0 0 -1px;
     width: 340px;
-  }
+}
 
-  .place-input ul {
+.place-input ul {
     display: inline-block;
     position: relative;
     width: auto;
-  }
+}
 
-  .place-input ul li {
+.place-input ul li {
     background: url("/static/img/ico/ico-ltr.png") no-repeat right center;
     float: left;
     padding-left: 10px;
     padding-right: 18px;
-  }
+}
 
-  .place-input ul li a {
+.place-input ul li a {
     height: 28px;
     cursor: pointer;
     display: inline-block;
-  }
+}
 
-  .upyunlist {
+.upyunlist {
     height: 516px;
     overflow: auto;
-  }
+}
 
-  .up-bottom {
+.up-bottom {
     background-color: #fafafa;
     border-top: 1px solid #eee;
     bottom: 0;
     position: absolute;
     width: 100%;
-  }
+}
 
-  .up-use {
+.up-use {
     line-height: 50px
-  }
+}
 
-  .list-list .cursor span {
+.list-list .cursor span {
     line-height: 30px;
-  }
+}
 
-  .btn-title {
+.btn-title {
     margin-top: 1px
-  }
+}
 
-  .step_item {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 20px;
-  }
+.tip {
+    font-size: 10px;
+    font-style: oblique;
+    color: green;
+}
+</style>
+<div class="upyunCon">
+    <div class="up-place pd15">
+        <button id="backBtn" class="btn btn-default btn-sm glyphicon glyphicon-arrow-left pull-left" title="Kembali"></button>
+        <input id="myPath" type="hidden" value="">
+        <input id="curPath" type="hidden" value="">
+        <div class="place-input pull-left">
+            <div style="width:1400px;height:28px"><ul></ul></div>
+        </div>
+        <button class="refreshBtn btn btn-default btn-sm glyphicon glyphicon-refresh pull-left mr20" title="Segarkan" style="margin-left:-1px;"></button>
+        <button class="btn btn-default btn-sm pull-right btn-title" onclick="authApi()">Otorisasi</button>
+        <button class="btn btn-default btn-sm pull-right mr20 btn-title" onclick="createDir()">Folder Baru</button>
+    </div>
 
-  .step_item .serial_box {
-    flex: 1;
-  }
+    <div class="upyunlist pd15">
+        <div class="divtable" style="margin-bottom:15px">
+            <table class="table table-hover">
+                <thead><tr><th>Nama</th><th>Ukuran</th><th>Waktu Pembaruan</th><th class="text-right">Aksi</th></tr></thead>
+                <tbody class="list-list"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-  .step_item .serial {
-    display: flex;
-    justify-content: center;
-    min-width: 30px;
-    margin-right: 30px;
-  }
-  .step_item .serial span {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+<style type="text/css">
+.check_api {
+    padding: 20px;
+}
+
+.up-place {
+    height: 62px;
+    border-bottom: 1px solid #ddd;
+}
+
+.up-place .btn {
+    border-radius: 0;
+}
+
+.up-place .place-input {
+    background-color: #f3f3f3;
+    border: 1px solid #ccc;
+    height: 30px;
+    line-height: 28px;
+    overflow: hidden;
+    margin: 1px 0 0 -1px;
+    width: 340px;
+}
+
+.place-input ul {
+    display: inline-block;
+    position: relative;
+    width: auto;
+}
+
+.place-input ul li {
+    background: url("/static/img/ico/ico-ltr.png") no-repeat right center;
+    float: left;
+    padding-left: 10px;
+    padding-right: 18px;
+}
+
+.place-input ul li a {
+    height: 28px;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.upyunlist {
+    height: 546px;
+    overflow: auto;
+}
+
+.up-bottom {
+    background-color: #fafafa;
+    border-top: 1px solid #eee;
+    bottom: 0;
+    position: absolute;
+    width: 100%;
+}
+
+.up-use {
+    line-height: 50px
+}
+
+.list-list .cursor span {
+    line-height: 30px;
+}
+
+.btn-title {
+    margin-top: 1px
+}
+
+.step_item{
+    clear: both;
+}
+
+.step_item .serial_box{
+    display: inline-block;
+    clear: both;
+}
+
+.step_item .serial{
+    width: 70px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    display: inline-block;
+    float: left;
+}
+.step_item .serial span{
+    display: inline-block;
     width: 30px;
     height: 30px;
-    border: 2px solid #20a53a;
+    text-align: center;
+    line-height: 28px;
+    font-size: 11px;
     border-radius: 50%;
-    font-size: 12px;
     color: #20a53a;
-  }
-  .step_item .serial_title{
-    margin-bottom: 15px;
-    font-size: 15px;
-    line-height: 30px;
-    color: #666;
-  }
-  .step_two_rul {
+    border: 2px solid #20a53a;
+}
+.step_item .serial_title{
+  margin-bottom: 10px;
+  font-size: 15px;
+  line-height: 30px;
+  color: #666;
+}
+.step_two_url{
     display: inline-block;
     overflow: hidden;
-    width: 200px;
-    text-overflow: ellipsis;
+    width: 380px;
+    /*text-overflow: ellipsis;*/
     white-space: nowrap;
-    height: 30px;
-    line-height: 30px;
-    background: #ececec;
-    margin-right: 10px;
+    height: 35px;
+    line-height: 35px;
+    margin-right: 15px;
     border-radius: 2px;
     padding: 0 10px;
     float: left;
-  }
-  .btn_btlink {
+    width:360px;
+    padding-right: 35px;
+}
+.btn_btlink{
     display: inline-block;
     padding: 5px 10px;
     font-size: 12px;
@@ -128,94 +226,85 @@
     color: #fff;
     background-color: #20a53a;
     margin-right:10px;
-  }
-  .btn_btlink:hover{
-    color: #fff;
-    background-color: #10952a;
-    border-color: #398439;
-  }
-  .btn_btlink a:visited{
-    color: #fff;
-    background-color: #10952a;
-    border-color: #398439;
-  }
-  .view_video{
-    width: 350px;
-    height: 150px;
-    border: 1px solid #ececec;
-  }
-  .serial_conter textarea {
-    width: 350px;
-    height: 100px;
-  }
-  .setp_one {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 180px;
-  }
-  .setp_one i {
-    width: 30px;
-    height: 30px;
-  }
-  .setp_one_tips {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    width: 400px;
-    margin-bottom: 40px;
-    line-height: 30px;
-    font-size: 14px;
-  }
-  .setp_one_tips .text {
-    margin-left: 80px;
-  }
-</style>
-<div class="bt-form">
-	<div class="bt-w-main">
-		<div class="bt-w-menu">
-			<p class="bgw" onclick="pluginService('gdrive');">Service</p>
-			<!--<p onclick="pluginInitD('gdrive');">Init</p>-->
-			<p onclick="setup();">Setup</p>
-      <p onclick="pluginConfig('gdrive');">Config</p>
-		</div>
-		<div class="bt-w-con pd15">
-			<div class="soft-man-con"></div>
-		</div>
-	</div>
-</div>
-<script type="text/javascript">
-$.getScript( "/plugins/file?name=gdrive&f=js/main.js", function(){
-	pluginService('gdrive');
-});
-
-function setup() {
-  var loadT = layer.msg('Setrieving...', { icon: 16, time: 0, shade: 0.3 });
-  $.post('/plugins/run', {name:'gdrive', func:'auth_url'}, function(data) {
-    layer.close(loadT);
-    if (!data.status){
-     layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-     return;
-    }
-    var setup = '';
-    setup += '<div class="upyunCon">';
-    setup += '  <div class="step_form">';
-    setup += '    <div class="step_item">';
-    setup += '      <div class="serial_box">';
-    setup += '        <div class="serial_title">Click the link below 👇 to complete the Google Drive authorization</div>';
-    setup += '        <div class="serial_conter step_two">';
-    setup += '          <a href="" class="step_two_rul" target="_blank"></a>';
-    setup += '          <a href="" class="btn_btlink open_btlink" target="_blank">Open link</a>';
-    setup += '        </div>';
-    setup += '      </div>';
-    setup += '    </div>';
-    setup += '  </div>';
-    setup += '</div>';
-    $('.soft-man-con').html(setup);
-    $('.step_two_rul').attr('href', data.data).text(data.data);
-    $('.open_btlink').attr('href', data.data);
-  },'json');
 }
-
+.btn_btlink:hover{
+    color: #fff;
+    background-color: #10952a;
+    border-color: #398439;
+}
+.btn_btlink a:visited{
+    color: #fff;
+    background-color: #10952a;
+    border-color: #398439;
+}
+.view_video{
+    margin-bottom: 10px;
+}
+.view_video ul li{
+    line-height: 20px;
+    font-size: 13px;
+}
+.setp_one i{
+  position: absolute;
+  top: 8px;
+  left: 25px;
+  width: 30px;
+  height: 30px;
+}
+.google_drive{  
+    width:465px;
+    height:100px;
+    margin-bottom:10px;
+}
+</style>
+<script type="text/html" id="check_api">
+<div class="check_api">
+    <div class="step_two">
+        <div class="step_item">
+            <div class="serial"><span>1</span></div>
+            <div class="serial_box">
+                <div class="serial_title">Tutorial Singkat: Bagaimana cara mendapatkan otorisasi Google Drive?</div>
+                <div class="serial_conter">
+                    <div class="view_video">
+                        <ul>
+                            <li>1. Klik langkah <div class="serial" style="float: none;width: 45px;"><span>2</span></div> di bawah untuk Membuka Tautan Otorisasi.<li>
+                            <li>2. Masuk ke akun Google Drive di jendela baru. Baca izin otorisasi dan setujui.<li>
+                            <li>3. Setelah halaman dialihkan, salin URL dari browser ke kotak teks langkah <div class="serial" style="float: none;width: 45px;"><span>3</span></div>.<li>
+                            <li>4. Klik "Dapatkan Otorisasi" untuk menyelesaikan proses.<li>
+                        </ul>
+                    </div>
+                    <hr/>
+                </div>
+            </div>
+        </div>
+        <div class="step_item pb15">
+            <div class="serial"><span>2</span></div>
+            <div class="serial_box">
+                <div class="serial_title">Langkah 1: 👇 Buka tautan otorisasi dan ikuti petunjuk.</div>
+                <div class="serial_conter step_two" style="width: 500px;">
+                    <input class="bt-input-text mr5 step_two_url" type="text" disabled>
+                    <span class="ico-copy mr10" data-copy="" style="vertical-align: middle;cursor: pointer;margin-left: -37px;margin-right: 20px;"></span>
+                    <a href="" class="btn_btlink open_btlink" target="_blank" style="padding: 7px 10px;">Buka Tautan Otorisasi</a>
+                </div>
+                
+            </div>
+        </div>
+        <div class="step_item">
+            <div class="serial"><span>3</span></div>
+            <div class="serial_box">
+                <div class="serial_title">Langkah 2: Tempel URL pengalihan dari browser:</div>
+                <div class="serial_conter">
+                    <textarea row="3" placeholder="Alamat URL Verifikasi" class="bt-input-text google_drive" style="resize: none;"></textarea></br>
+                    <button type="button" class="btn btn-success btn-sm set_auth_btn">Dapatkan Otorisasi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</script>
+<!-- <script type="text/javascript" src="/plugins/file?name=gdrive&f=js/gdrive.js"></script> -->
+<script type="text/javascript">
+$.getScript( "/plugins/file?name=gdrive&f=js/gdrive.js", function(){
+    gdList('');
+});
 </script>

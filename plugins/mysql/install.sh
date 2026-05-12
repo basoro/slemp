@@ -45,7 +45,7 @@ if [ ! -d $curPath/versions/$2 ];then
 	exit 0
 fi
 
-if [ -d $serverPath/mysql ];then
+if [ "${action}" == "install" ] && [ -d $serverPath/mysql ];then
 	exit 0
 fi
 
@@ -57,6 +57,15 @@ if [ "${action}" == "uninstall" ];then
 		rm -rf /usr/lib/systemd/system/mysql.service
 		rm -rf /lib/systemd/system/mysql.service
 		systemctl daemon-reload
+	fi
+
+	if [ -f $serverPath/mysql/init.d/mysql ];then
+		$serverPath/mysql/init.d/mysql stop
+	fi
+
+	if [ -f /etc/init.d/mysql ];then
+		/etc/init.d/mysql stop
+		rm -rf /etc/init.d/mysql
 	fi
 fi
 

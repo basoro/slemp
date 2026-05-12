@@ -81,12 +81,6 @@ Install_lib()
 			export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$serverPath/lib/openssl10/lib/pkgconfig
 		fi
 
-		# Darwin
-		# otool -L /Users/midoks/Desktop/slemp/server/php/83/bin/php
-		# lldb /Users/midoks/Desktop/slemp/server/php/83/bin/php -r 'phpinfo()'
-		# otool -L /Users/midoks/Desktop/slemp/server/php/83/lib/php/extensions/no-debug-non-zts-20230831/openssl.so 
-		# ldd ${serverPath}/php/83/bin/php
-
 		if [ "$version" -lt "84" ] && [ "$sysName" == "Darwin" ];then
 			BREW_DIR=`which brew`
 			BREW_DIR=${BREW_DIR/\/bin\/brew/}

@@ -143,9 +143,9 @@ data/osname.pl
 data/system.db-journal
 data/hook_backup.json
 
-plugins/l2tp
+plugins/op_waf
 plugins/openlitespeed
-#plugins/gdrive
+plugins/gdrive
 plugins/tbot
 plugins/mtproxy
 plugins/zimg

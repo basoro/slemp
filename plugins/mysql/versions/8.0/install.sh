@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin:/opt/homebrew/opt/bison/bin
 export PATH
 
 #https://dev.mysql.com/downloads/mysql/5.7.html
@@ -14,6 +14,8 @@ fi
 sysName=`uname`
 
 mysqlDir=${serverPath}/source/mysql
+
+VERSION=8.0.37
 
 _os=`uname`
 echo "use system: ${_os}"
@@ -52,10 +54,10 @@ else
 	OSNAME='unknow'
 fi
 
-VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
+if [ "$OSNAME" != "macos" ];then
+	VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
+fi
 
-
-VERSION=8.0.37
 Install_mysql()
 {
 	mkdir -p ${mysqlDir}
@@ -98,20 +100,23 @@ Install_mysql()
 	fi
 
 	if [ ! -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
-		#wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-boost-${VERSION}.tar.gz
-         wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-8.0/mysql-boost-${VERSION}.tar.gz
+		wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-8.0/mysql-boost-${VERSION}.tar.gz
 	fi
 
 	#Periksa apakah file rusak.
 	md5_mysql_ok=e0cb61cbf6e1144c452368c4535ae931
 	if [ -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
-		md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
+		if [ "$sysName" == "Darwin" ];then
+			md5_mysql=`md5 -q ${mysqlDir}/mysql-boost-${VERSION}.tar.gz`
+		else
+			md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
+		fi
 		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
 			echo "mysql8.0 file  check ok"
 		else
 			# Unduh ulang
 			rm -rf ${mysqlDir}/mysql-${VERSION}
-			wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-boost-${VERSION}.tar.gz
+			wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-8.0/mysql-boost-${VERSION}.tar.gz
 		fi
 	fi
 
@@ -131,81 +136,97 @@ Install_mysql()
 
 	WHERE_DIR_GCC=/usr/bin/gcc
 	WHERE_DIR_GPP=/usr/bin/g++
-	if [ "$OSNAME" == "centos" ] && [ "$VERSION_ID" == "7" ];then
-		yum install -y libudev-devel
-		yum install -y centos-release-scl
-        yum install -y devtoolset-11-gcc devtoolset-11-gcc-c++ devtoolset-11-binutils
-
-		gcc --version
-		WHERE_DIR_GCC=/opt/rh/devtoolset-11/root/usr/bin/gcc
-		WHERE_DIR_GPP=/opt/rh/devtoolset-11/root/usr/bin/g++
-		echo $WHERE_DIR_GCC
-		echo $WHERE_DIR_GPP
+	if [ ! -f $WHERE_DIR_GCC ];then
+		WHERE_DIR_GCC=`which gcc`
 	fi
 
-	if [ "$OSNAME" == "ubuntu" ] && [ "$VERSION_ID" == "18.04" ];then
-		apt install -y libudev-dev
-		apt install -y libtirpc-dev
-		apt install -y libssl-dev
-		apt install -y libgssglue-dev
-		apt install -y software-properties-common
-		add-apt-repository -y ppa:ubuntu-toolchain-r/test
-
-		LIBTIRPC_VER=`pkg-config libtirpc --modversion`
-		if [ ! -f ${mysqlDir}/libtirpc_1.3.3.orig.tar.bz2 ];then
-			wget --no-check-certificate -O ${mysqlDir}/libtirpc_1.3.3.orig.tar.bz2 https://downloads.sourceforge.net/libtirpc/libtirpc-1.3.3.tar.bz2
-			cd ${mysqlDir} && tar -jxvf libtirpc_1.3.3.orig.tar.bz2
-			cd libtirpc-1.3.3 && ./configure
-		fi
-
-		export PKG_CONFIG_PATH=/usr/lib/pkgconfig
-		apt install -y gcc-11 g++-11
-		WHERE_DIR_GCC=/usr/bin/gcc-11
-		WHERE_DIR_GPP=/usr/bin/g++-11
-	fi
-
-
-	if [ "$OSNAME" == "opensuse" ];then
-		zypper install -y gcc11
-		zypper install -y gcc11-c++
-
-
-		WHERE_DIR_GCC=/usr/bin/gcc-11
-		WHERE_DIR_GPP=/usr/bin/g++-11
+	if [ ! -f $WHERE_DIR_GPP ];then
+		WHERE_DIR_GPP=`which g++`
 	fi
 
 	if [ ! -d $serverPath/mysql ];then
-		# -DCMAKE_CXX_STANDARD=17 \
-		cd ${mysqlDir}/mysql-${VERSION} && ${INSTALL_CMD} \
-		-DCMAKE_INSTALL_PREFIX=$serverPath/mysql \
-		-DMYSQL_USER=mysql \
-		-DMYSQL_TCP_PORT=3306 \
-		-DMYSQL_UNIX_ADDR=/var/tmp/mysql.sock \
-		-DWITH_MYISAM_STORAGE_ENGINE=1 \
-		-DWITH_INNOBASE_STORAGE_ENGINE=1 \
-		-DWITH_MEMORY_STORAGE_ENGINE=1 \
-		-DENABLED_LOCAL_INFILE=1 \
-		-DWITH_PARTITION_STORAGE_ENGINE=1 \
-		-DWITH_READLINE=1 \
-		-DEXTRA_CHARSETS=all \
-		-DDEFAULT_CHARSET=utf8mb4 \
-		-DDEFAULT_COLLATION=utf8mb4_general_ci \
-		-DDOWNLOAD_BOOST=1 \
-		-DFORCE_INSOURCE_BUILD=1 \
-		$OPTIONS \
-		-DCMAKE_C_COMPILER=$WHERE_DIR_GCC \
-		-DCMAKE_CXX_COMPILER=$WHERE_DIR_GPP \
-		-DDOWNLOAD_BOOST=0 \
-		-DWITH_BOOST=${mysqlDir}/mysql-${VERSION}/boost/
+		cd ${mysqlDir}/mysql-${VERSION}
+		# Clean up any previous in-source build files to avoid conflicts
+		rm -rf CMakeCache.txt CMakeFiles Makefile cmake_install.cmake
+		
+		if [ "$OSNAME" == "macos" ];then
+			# Patch CMakeLists.txt for modern CMake
+			find . -name "CMakeLists.txt" -o -name "*.cmake" | xargs sed -i '' 's/ OLD)/ NEW)/g'
+			# Fix zlib fdopen conflict on macOS
+			# Note: Path might be slightly different in 8.0
+			ZLIB_H=$(find . -name "zutil.h" | grep "zlib-1.2.13")
+			if [ -f "$ZLIB_H" ]; then
+				sed -i '' 's/#        define fdopen(fd,mode) NULL \/\* No fdopen() \*\//#        if !defined(__APPLE__)\n#          define fdopen(fd,mode) NULL\n#        endif/g' "$ZLIB_H"
+			fi
+			
+			rm -rf build
+			mkdir build
+			cd build
+			cmake .. \
+			-DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+			-DCMAKE_CXX_FLAGS="-Wno-enum-constexpr-conversion -Wno-deprecated-copy-with-user-provided-copy" \
+			-DBISON_EXECUTABLE=/opt/homebrew/opt/bison/bin/bison \
+			-DCMAKE_INSTALL_PREFIX=$serverPath/mysql \
+			-DMYSQL_USER=mysql \
+			-DMYSQL_TCP_PORT=3306 \
+			-DMYSQL_UNIX_ADDR=/var/tmp/mysql.sock \
+			-DWITH_MYISAM_STORAGE_ENGINE=1 \
+			-DWITH_INNOBASE_STORAGE_ENGINE=1 \
+			-DWITH_MEMORY_STORAGE_ENGINE=1 \
+			-DENABLED_LOCAL_INFILE=1 \
+			-DWITH_PARTITION_STORAGE_ENGINE=1 \
+			-DEXTRA_CHARSETS=all \
+			-DDEFAULT_CHARSET=utf8mb4 \
+			-DDEFAULT_COLLATION=utf8mb4_general_ci \
+			-DDOWNLOAD_BOOST=1 \
+			-DENABLE_DOWNLOADS=1 \
+			-DWITH_UNIT_TESTS=OFF \
+			-DWITH_CURL=system \
+			-DWITH_DEBUG=OFF \
+			-DWITH_LIBEVENT=bundled \
+			-DWITH_LZ4=bundled \
+			-DWITH_ZLIB=bundled \
+			-DWITH_EDITLINE=system \
+			-DWITH_ROUTER=OFF \
+			-DWITH_X=OFF \
+			-DCMAKE_OSX_ARCHITECTURES=arm64 \
+			-DCMAKE_OSX_SYSROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk \
+			$OPTIONS \
+			-DCMAKE_C_COMPILER=${WHERE_DIR_GCC} \
+			-DCMAKE_CXX_COMPILER=${WHERE_DIR_GPP} \
+			-DWITH_BOOST=${mysqlDir}/mysql-${VERSION}/boost/
+		else
+			cmake \
+			-DCMAKE_INSTALL_PREFIX=$serverPath/mysql \
+			-DMYSQL_USER=mysql \
+			-DMYSQL_TCP_PORT=3306 \
+			-DMYSQL_UNIX_ADDR=/var/tmp/mysql.sock \
+			-DWITH_MYISAM_STORAGE_ENGINE=1 \
+			-DWITH_INNOBASE_STORAGE_ENGINE=1 \
+			-DWITH_MEMORY_STORAGE_ENGINE=1 \
+			-DENABLED_LOCAL_INFILE=1 \
+			-DWITH_PARTITION_STORAGE_ENGINE=1 \
+			-DWITH_READLINE=1 \
+			-DEXTRA_CHARSETS=all \
+			-DDEFAULT_CHARSET=utf8mb4 \
+			-DDEFAULT_COLLATION=utf8mb4_general_ci \
+			-DDOWNLOAD_BOOST=1 \
+			-DFORCE_INSOURCE_BUILD=1 \
+			$OPTIONS \
+			-DCMAKE_C_COMPILER=$WHERE_DIR_GCC \
+			-DCMAKE_CXX_COMPILER=$WHERE_DIR_GPP \
+			-DWITH_BOOST=${mysqlDir}/mysql-${VERSION}/boost/
+		fi
+		
 		make -j${cpuCore} && make install && make clean
 
 		if [ -d $serverPath/mysql ];then
 			rm -rf ${mysqlDir}/mysql-${VERSION}
 			echo '8.0' > $serverPath/mysql/version.pl
-			echo "${VERSION}Instalasi selesai"
+			echo "${VERSION} Instalasi selesai"
 		else
 			# rm -rf ${mysqlDir}/mysql-${VERSION}
-			echo "Instalasi ${VERSION} gagal"
+			echo "${VERSION} Instalasi gagal"
 			exit 1
 		fi
 	fi
@@ -213,8 +234,16 @@ Install_mysql()
 
 Uninstall_mysql()
 {
+	if [ -f $serverPath/mysql/init.d/mysql ];then
+		$serverPath/mysql/init.d/mysql stop
+	fi
+
+	if [ -f /etc/init.d/mysql ];then
+		rm -rf /etc/init.d/mysql
+	fi
+
 	rm -rf $serverPath/mysql
-	echo 'Penghapusan instalasi selesai'
+	echo 'Penghapusan selesai'
 }
 
 action=$1

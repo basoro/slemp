@@ -18,11 +18,11 @@ WORKING='[\033[34m*\033[0m]'
 OSNAME=$(uname -s)
 if [ "$OSNAME" == "Darwin" ]; then
     DIR=$(cd "$(dirname "$0")"; pwd)
-    rootPath=$(dirname "$DIR")
-    serverPath=$(dirname "$rootPath")
+    export rootPath=$(dirname "$DIR")
+    export serverPath=$(dirname "$rootPath")
 else
-    rootPath="/opt/slemp/server/panel"
-    serverPath="/opt/slemp/server"
+    export rootPath="/opt/slemp/server/panel"
+    export serverPath="/opt/slemp/server"
 fi
 
 LOG_FILE=slemp-install.log
@@ -227,11 +227,11 @@ if [ $OSNAME != "macos" ];then
 	mkdir -p $(dirname "$serverPath")/backup/site
 
 	if [ ! -d ${rootPath} ];then
-		curl --insecure -sSLo /tmp/master.tar.gz ${HTTP_PREFIX}github.com/midoks/panel/archive/refs/heads/master.tar.gz
+		curl --insecure -sSLo /tmp/master.tar.gz ${HTTP_PREFIX}github.com/basoro/slemp/archive/refs/heads/master.tar.gz
 		cd /tmp && tar -zxvf /tmp/master.tar.gz
-		mv -f /tmp/panel-master ${rootPath}
+		mv -f /tmp/slemp-master ${rootPath}
 		rm -rf /tmp/master.tar.gz
-		rm -rf /tmp/panel-master
+		rm -rf /tmp/slemp-master
 	fi
 
 	# install acme.sh

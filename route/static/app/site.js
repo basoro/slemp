@@ -932,7 +932,7 @@ function webEdit(id, website, endTime, addtime) {
 		shift: 0,
 		content: "<div class='bt-form'>\
 			<div class='bt-w-menu pull-left' style='height: 565px;'>\
-				<p class='bgw'  onclick=\"domainEdit(" + id + ",'" + website + "')\">" + lan.site.domain_man + "</p>\
+				<p class='bgw'  onclick=\"domainEdit(" + id + ",'" + website + "')\">Manajemen Domain</p>\
 				<p onclick='dirBinding("+ id + ")' title='Binding Subdirektori'>Binding Folder</p>\
 				<p onclick='webPathEdit("+ id + ")' title='Direktori website'>Direktori website</p>\
 				<p onclick='limitNet("+ id + ")' title='Batasan trafik'>Batasan trafik</p>\

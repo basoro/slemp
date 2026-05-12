@@ -2,9 +2,6 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-# cd /Users/midoks/Desktop/slemp/server/panel/plugins/openresty && bash install.sh install 1.29.2
-# cd ${rootPath}/plugins/openresty && bash install.sh install 1.29.2
-
 if [ -z "$rootPath" ]; then
     DIR=$(cd "$(dirname "$0")"; pwd)
     # This script is in plugins/openresty/versions/1.29.2/
@@ -59,10 +56,6 @@ Install_openresty()
 	# wget -O openresty-1.21.4.1.tar.gz https://openresty.org/download/openresty-1.21.4.1.tar.gz
 	if [ ! -f ${openrestyDir}/openresty-${VERSION}.tar.gz ];then
 		wget --no-check-certificate -O ${openrestyDir}/openresty-${VERSION}.tar.gz https://openresty.org/download/openresty-${VERSION}.tar.gz -T 300
-	fi
-
-	if [ ! -f ${openrestyDir}/openresty-${VERSION}.tar.gz ];then
-		wget --no-check-certificate -O ${openrestyDir}/openresty-${VERSION}.tar.gz http://dl.midoks.icu/soft/openresty/openresty-${VERSION}.tar.gz -T 300
 	fi
 
 	if [ ! -f ${openrestyDir}/openresty-${VERSION}.tar.gz ]; then

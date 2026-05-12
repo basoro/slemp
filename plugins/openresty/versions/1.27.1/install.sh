@@ -2,9 +2,6 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-# cd /Users/midoks/Desktop/slemp/server/panel/plugins/openresty && bash install.sh install 1.21.4.2
-# cd ${rootPath}/plugins/openresty && bash install.sh install 1.27.1
-
 if [ -z "$rootPath" ]; then
     DIR=$(cd "$(dirname "$0")"; pwd)
     rootPath=$(dirname "$(dirname "$(dirname "$(dirname "$DIR")")")")
@@ -62,18 +59,8 @@ Install_openresty()
 
 	DOWNLOAD_SIZE=`wc -c ${openrestyDir}/openresty-${VERSION}.tar.gz | awk '{print $1}'`
 	if [ "$DOWNLOAD_SIZE" == "0" ];then
-		echo 'download failed, download again'
-		rm -rf ${openrestyDir}/openresty-${VERSION}.tar.gz
-	fi
-
-	# Last Download Method
-	if [ ! -f ${openrestyDir}/openresty-${VERSION}.tar.gz ];then
-		wget --no-check-certificate -O ${openrestyDir}/openresty-${VERSION}.tar.gz http://dl.midoks.icu/soft/openresty/openresty-${VERSION}.tar.gz -T 30
-	fi
-
-	
-	if [ ! -f ${openrestyDir}/openresty-${VERSION}.tar.gz ]; then
 		echo "Failed to download OpenResty source tarball!"
+		rm -rf ${openrestyDir}/openresty-${VERSION}.tar.gz
 		exit 1
 	fi
 

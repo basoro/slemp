@@ -2,20 +2,6 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-# cd /Users/midoks/Desktop/slemp/server/panel/plugins/openresty && bash install.sh upgrade 1.29.2
-# cd ${rootPath}/plugins/openresty && bash install.sh install 1.21.4
-# cd ${rootPath}/plugins/openresty && bash install.sh install 1.29.2
-# cd ${rootPath}/plugins/openresty && bash install.sh upgrade 1.29.2
-
-# curl -I -H "Accept-Encoding: br" http://localhost
-# curl -I -H "Accept-Encoding: zstd" http://localhost
-# curl --http3 -v https://www.xxx.com
-
-# apt install ncat -y
-# nc -u -v www.xx.com 443
-
-# cd ${rootPath} && python3 plugins/openresty/index.py run_info
-
 DIR=$(cd "$(dirname "$0")"; pwd)
 curPath=$DIR
 rootPath=$(dirname "$(dirname "$DIR")")

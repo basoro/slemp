@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin:/opt/homebrew/opt/bison/bin
 export PATH
 
 #https://dev.mysql.com/downloads/mysql/5.7.html
@@ -54,7 +54,9 @@ else
 	OSNAME='unknow'
 fi
 
-VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
+if [ "$OSNAME" != "macos" ];then
+	VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
+fi
 
 
 Install_common(){
@@ -136,14 +138,19 @@ Install_mysql()
 		wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-5.7/mysql-boost-${VERSION}.tar.gz
 	fi
 
-	#Periksa apakah file rusak.
+	# Memeriksa apakah file rusak.
 	md5_mysql_ok=1a637fce4599d9bf5f1c81699f086274
 	if [ -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
-		md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
+		if [ "$sysName" == "Darwin" ];then
+			md5_mysql=`md5 -q ${mysqlDir}/mysql-boost-${VERSION}.tar.gz`
+		else
+			md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
+		fi
+		
 		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
 			echo "mysql5.7 file check ok"
 		else
-			# Unduh ulang
+			# Mengunduh ulang
 			rm -rf ${mysqlDir}/mysql-${VERSION}
 			wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-5.7/mysql-boost-${VERSION}.tar.gz
 		fi
@@ -182,33 +189,80 @@ Install_mysql()
 	fi
 
 	if [ ! -d $serverPath/mysql ];then
-		cd ${mysqlDir}/mysql-${VERSION} && cmake \
-		-DCMAKE_INSTALL_PREFIX=$serverPath/mysql \
-		-DMYSQL_USER=mysql \
-		-DMYSQL_TCP_PORT=3306 \
-		-DMYSQL_UNIX_ADDR=/var/tmp/mysql.sock \
-		-DWITH_MYISAM_STORAGE_ENGINE=1 \
-		-DWITH_INNOBASE_STORAGE_ENGINE=1 \
-		-DWITH_MEMORY_STORAGE_ENGINE=1 \
-		-DENABLED_LOCAL_INFILE=1 \
-		-DWITH_PARTITION_STORAGE_ENGINE=1 \
-		-DEXTRA_CHARSETS=all \
-		-DDEFAULT_CHARSET=utf8mb4 \
-		-DDEFAULT_COLLATION=utf8mb4_general_ci \
-		-DDOWNLOAD_BOOST=1 \
-		$OPTIONS \
-		-DCMAKE_C_COMPILER=${WHERE_DIR_GCC} \
-		-DCMAKE_CXX_COMPILER=${WHERE_DIR_GPP} \
-		-DWITH_BOOST=${mysqlDir}/mysql-${VERSION}/boost/
+		cd ${mysqlDir}/mysql-${VERSION}
+		
+		if [ "$OSNAME" == "macos" ];then
+			# Patch CMakeLists.txt for modern CMake
+			find . -name "CMakeLists.txt" -o -name "*.cmake" | xargs sed -i '' 's/ OLD)/ NEW)/g'
+			# Fix zlib fdopen conflict on macOS
+			sed -i '' 's/#        define fdopen(fd,mode) NULL \/\* No fdopen() \*\//#        if !defined(__APPLE__)\n#          define fdopen(fd,mode) NULL\n#        endif/g' extra/zlib/zlib-1.2.13/zutil.h
+			
+			rm -rf build
+			mkdir build
+			cd build
+			cmake .. \
+			-DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+			-DCMAKE_CXX_FLAGS="-Wno-enum-constexpr-conversion -Wno-deprecated-copy-with-user-provided-copy" \
+			-DBISON_EXECUTABLE=/opt/homebrew/opt/bison/bin/bison \
+			-DCMAKE_INSTALL_PREFIX=$serverPath/mysql \
+			-DMYSQL_USER=mysql \
+			-DMYSQL_TCP_PORT=3306 \
+			-DMYSQL_UNIX_ADDR=/var/tmp/mysql.sock \
+			-DWITH_MYISAM_STORAGE_ENGINE=1 \
+			-DWITH_INNOBASE_STORAGE_ENGINE=1 \
+			-DWITH_MEMORY_STORAGE_ENGINE=1 \
+			-DENABLED_LOCAL_INFILE=1 \
+			-DWITH_PARTITION_STORAGE_ENGINE=1 \
+			-DEXTRA_CHARSETS=all \
+			-DDEFAULT_CHARSET=utf8mb4 \
+			-DDEFAULT_COLLATION=utf8mb4_general_ci \
+			-DDOWNLOAD_BOOST=1 \
+			-DENABLE_DOWNLOADS=1 \
+			-DWITH_UNIT_TESTS=OFF \
+			-DWITH_CURL=system \
+			-DWITH_DEBUG=OFF \
+			-DWITH_LIBEVENT=bundled \
+			-DWITH_LZ4=bundled \
+			-DWITH_ZLIB=bundled \
+			-DWITH_EDITLINE=system \
+			-DWITH_ROUTER=OFF \
+			-DWITH_X=OFF \
+			-DCMAKE_OSX_ARCHITECTURES=arm64 \
+			-DCMAKE_OSX_SYSROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk \
+			$OPTIONS \
+			-DCMAKE_C_COMPILER=${WHERE_DIR_GCC} \
+			-DCMAKE_CXX_COMPILER=${WHERE_DIR_GPP} \
+			-DWITH_BOOST=${mysqlDir}/mysql-${VERSION}/boost/
+		else
+			cmake \
+			-DCMAKE_INSTALL_PREFIX=$serverPath/mysql \
+			-DMYSQL_USER=mysql \
+			-DMYSQL_TCP_PORT=3306 \
+			-DMYSQL_UNIX_ADDR=/var/tmp/mysql.sock \
+			-DWITH_MYISAM_STORAGE_ENGINE=1 \
+			-DWITH_INNOBASE_STORAGE_ENGINE=1 \
+			-DWITH_MEMORY_STORAGE_ENGINE=1 \
+			-DENABLED_LOCAL_INFILE=1 \
+			-DWITH_PARTITION_STORAGE_ENGINE=1 \
+			-DEXTRA_CHARSETS=all \
+			-DDEFAULT_CHARSET=utf8mb4 \
+			-DDEFAULT_COLLATION=utf8mb4_general_ci \
+			-DDOWNLOAD_BOOST=1 \
+			$OPTIONS \
+			-DCMAKE_C_COMPILER=${WHERE_DIR_GCC} \
+			-DCMAKE_CXX_COMPILER=${WHERE_DIR_GPP} \
+			-DWITH_BOOST=${mysqlDir}/mysql-${VERSION}/boost/
+		fi
+		
 		make -j${cpuCore} && make install && make clean
 
 		if [ -d $serverPath/mysql ];then
 			rm -rf ${mysqlDir}/mysql-${VERSION}
 			echo '5.7' > $serverPath/mysql/version.pl
-			echo "${VERSION}Instalasi selesai"
+			echo "${VERSION} Instalasi selesai"
 		else
 			# rm -rf ${mysqlDir}/mysql-${VERSION}
-			echo "Instalasi ${VERSION} gagal"
+			echo "${VERSION} Instalasi gagal"
 			exit 1
 		fi
 	fi
@@ -216,8 +270,16 @@ Install_mysql()
 
 Uninstall_mysql()
 {
+	if [ -f $serverPath/mysql/init.d/mysql ];then
+		$serverPath/mysql/init.d/mysql stop
+	fi
+
+	if [ -f /etc/init.d/mysql ];then
+		rm -rf /etc/init.d/mysql
+	fi
+
 	rm -rf $serverPath/mysql
-	echo 'Penghapusan instalasi selesai'
+	echo 'Penghapusan selesai'
 }
 
 action=$1

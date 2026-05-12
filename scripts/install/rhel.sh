@@ -4,6 +4,10 @@ export PATH
 export LANG=en_US.UTF-8
 SYS_ARCH=`arch`
 
+if [ -z "$rootPath" ]; then
+    rootPath="/opt/slemp/server/panel"
+fi
+
 if [ ! -f /usr/bin/applydeltarpm ];then
     yum -y provides '*/applydeltarpm'
     yum -y install deltarpm
