@@ -1,0 +1,67 @@
+{
+    "reqfile_path": "{$WAF_PATH}/html",
+    "retry": {
+        "retry_time": 180,
+        "is_open_global": 0,
+        "retry": 6,
+        "retry_cycle": 60
+    },
+    "log": true,
+    "scan": {
+        "status": 444,
+        "ps": "Filter pengujian penetrasi dari alat pemindai umum",
+        "open": true,
+        "reqfile": ""
+    },
+    "cc": {
+        "status": 444,
+        "ps": "Filter CCSerangan",
+        "limit": 120,
+        "endtime": 300,
+        "open": true,
+        "cycle": 60
+    },
+    "safe_verify": {
+        "status": 200,
+        "ps": "Verifikasi keamanan paksa",
+        "reqfile": "safe_js.html",
+        "open": false,
+        "mode": "local",
+        "cpu": 50,
+        "auto": true,
+        "time": 86400
+    },
+    "get": {
+        "status": 200,
+        "ps": "Filter URI, uri Umum dalam Parameter SQL Injeksi, XSS, dan serangan lainnya",
+        "open": true,
+        "reqfile": "get.html"
+    },
+    "log_save": 30,
+    "user-agent": {
+        "status": 200,
+        "ps": "Biasanya digunakan untuk memfilter browser, Spider dan beberapa pemindai otomatis",
+        "open": true,
+        "reqfile": "user_agent.html"
+    },
+    "other": {
+        "status": 200,
+        "ps": "Filter non-umum lainnya",
+        "reqfile": "other.html"
+    },
+    "cookie": {
+        "status": 200,
+        "ps": "Filter penggunaan Cookie Serangan penetrasi yang dipicu",
+        "open": true,
+        "reqfile": "cookie.html"
+    },
+    "logs_path": "/www/wwwlogs/waf",
+    "post": {
+        "status": 200,
+        "ps": "Filter POSTUmum dalam Parameter SQL Injeksi, XSS, dan serangan lainnya",
+        "open": true,
+        "reqfile": "post.html"
+    },
+    "area_limit": false,
+    "open": true
+}

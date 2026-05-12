@@ -143,7 +143,6 @@ data/osname.pl
 data/system.db-journal
 data/hook_backup.json
 
-plugins/op_waf
 plugins/openlitespeed
 plugins/tbot
 plugins/mtproxy

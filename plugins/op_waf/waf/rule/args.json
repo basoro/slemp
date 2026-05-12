@@ -1,0 +1,158 @@
+[
+    [
+        1,
+        "\\.\\./\\.\\./",
+        "目录保护1",
+        0
+    ],
+    [
+        1,
+        "/\\*",
+        "目录保护2",
+        0
+    ],
+    [
+        1,
+        "(?:etc\\/\\W*passwd)",
+        "目录保护3",
+        0
+    ],
+    [
+        1,
+        "(gopher|doc|php|glob|file|phar|zlib|ftp|ldap|dict|ogg|data)\\:\\/",
+        "PHPAliran Protokol Filter 1",
+        0
+    ],
+    [
+        1,
+        "\\:\\$",
+        "Backdoor木马Filter 1",
+        0
+    ],
+    [
+        1,
+        "\\$\\{",
+        "Backdoor木马Filter 2",
+        0
+    ],
+    [
+        1,
+        "base64_decode\\(",
+        "Backdoor木马Filter 3",
+        0
+    ],
+    [
+        1,
+        "(?:define|eval|file_get_contents|include|require|require_once|shell_exec|phpinfo|system|passthru|char|chr|preg_\\w+|execute|echo|print|print_r|var_dump|(fp)open|alert|showmodaldialog)\\(",
+        "Backdoor木马Filter 4",
+        0
+    ],
+    [
+        1,
+        "\\$_(GET|post|cookie|files|session|env|phplib|GLOBALS|SERVER)\\[",
+        "Backdoor木马Filter 5",
+        0
+    ],
+    [
+        1,
+        "\\s+(or|xor|and)\\s+.*(=|<|>|'|\")",
+        "SQLInjeksi Filter 1",
+        0
+    ],
+    [
+        1,
+        "select.+(from|limit)",
+        "SQLInjeksi Filter 2",
+        0
+    ],
+    [
+        1,
+        "(?:(union(.*?)select))",
+        "SQLInjeksi Filter 3",
+        0
+    ],
+    [
+        1,
+        "sleep\\((\\s*)(\\d*)(\\s*)\\)",
+        "SQLInjeksi Filter 5",
+        0
+    ],
+    [
+        1,
+        "benchmark\\((.*)\\,(.*)\\)",
+        "SQLInjeksi Filter 6",
+        0
+    ],
+    [
+        1,
+        "(?:from\\W+information_schema\\W)",
+        "SQLInjeksi Filter 7",
+        0
+    ],
+    [
+        1,
+        "(?:(?:current_)user|database|schema|connection_id)\\s*\\(",
+        "SQLInjeksi Filter 8",
+        0
+    ],
+    [
+        1,
+        "into(\\s+)+(?:dump|out)file\\s*",
+        "SQLInjeksi Filter 9",
+        0
+    ],
+    [
+        1,
+        "group\\s+by.+\\(",
+        "SQLInjeksi Filter 10",
+        0
+    ],
+    [
+        1,
+        "\\<(iframe|script|body|img|layer|div|meta|style|base|object|input)",
+        "XSSFilter 1",
+        0
+    ],
+    [
+        0,
+        "(onmouseover|onerror|onload)\\=",
+        "XSSFilter 2",
+        0
+    ],
+    [
+        1,
+        "(invokefunction|call_user_func_array|\\\\think\\\\)",
+        "Think PHP payload封堵",
+        0
+    ],
+    [
+        1,
+        "^url_array\\[.*\\]$",
+        "Metinfo 6.x XSS漏洞",
+        0
+    ],
+    [
+        1,
+        "(extractvalue\\(|concat\\(0x|user\\(\\)|substring\\(|count\\(\\*\\)|substring\\(hex\\(|updatexml\\()",
+        "SQLError Injeksi Filter 01",
+        0
+    ],
+    [
+        1,
+        "(@@version|load_file\\(|NAME_CONST\\(|exp\\(\\~|floor\\(rand\\(|geometrycollection\\(|multipoint\\(|polygon\\(|multipolygon\\(|linestring\\(|multilinestring\\()",
+        "SQLError Injeksi Filter 02",
+        0
+    ],
+    [
+        1,
+        "(substr\\()",
+        "SQLInjeksi Filter 10",
+        0
+    ],
+    [
+        1,
+        "\\|+\\s+[\\w\\W]+=[\\w\\W]+",
+        "SQLInjeksi Filter 1",
+        0
+    ]
+]

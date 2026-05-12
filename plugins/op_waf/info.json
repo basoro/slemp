@@ -1,0 +1,29 @@
+{
+	"hook":[
+		{
+			"tag":"site_cb",
+			"site_cb": {
+				"title":"Statistik Situs",
+				"name":"op_waf",
+				"add":{"func":"reload_hook"},
+				"update":{"func":"reload_hook"},
+				"delete":{"func":"reload_hook"}
+			}
+		}
+	],
+	"sort":2,
+	"title":"WAF (Firewall Web)",
+	"tip":"soft",
+	"name":"op_waf",
+	"type":"Keamanan",
+	"ps":"Mencegah serangan umum seperti SQL injection, XSS, dan backdoor shell.",
+	"install_pre_inspection":true,
+	"shell":"install.sh",
+	"checks":"server/op_waf",
+	"path":"server/op_waf",
+	"author":"loveshell",
+	"home":"https://github.com/loveshell/ngx_lua_waf",
+	"date":"2019-04-21",
+	"pid": "1",
+	"versions": ["0.4.1"]
+}

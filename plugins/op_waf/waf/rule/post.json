@@ -1,0 +1,134 @@
+[
+    [
+        1,
+        "(gopher|doc|php|glob|file|phar|zlib|ftp|ldap|dict|ogg|data)\\:\\/",
+        "PHPAliran Protokol Filter 1",
+        0
+    ],
+    [
+        1,
+        "base64_decode\\(",
+        "Backdoor*Blokir Kata Kunci*Filter 1",
+        0
+    ],
+    [
+        1,
+        "(?:define|eval|file_get_contents|include|require_once|shell_exec|phpinfo|system|passthru|chr|char|preg_\\w+|execute|echo|print|print_r|var_dump|(fp)open|alert|showmodaldialog|file_put_contents|fopen|urldecode|scandir)\\(",
+        "Backdoor*Blokir Kata Kunci*Filter 2",
+        0
+    ],
+    [
+        1,
+        "\\$_(GET|post|cookie|files|session|env|phplib|GLOBALS|SERVER)",
+        "Backdoor*Blokir Kata Kunci*Filter 3",
+        0
+    ],
+    [
+        1,
+        "\\s+(or|xor|and)\\s+(=|<|>|'|\")",
+        "SQLInjeksi Filter 1",
+        0
+    ],
+    [
+        1,
+        "select\\s+.+(from|limit)\\s+",
+        "SQLInjeksi Filter 2",
+        0
+    ],
+    [
+        1,
+        "(?:(union(.*?)select))",
+        "SQLInjeksi Filter 3",
+        0
+    ],
+    [
+        1,
+        "sleep\\((\\s*)(\\d*)(\\s*)\\)",
+        "SQLInjeksi Filter 5",
+        0
+    ],
+    [
+        1,
+        "benchmark\\((.*)\\,(.*)\\)",
+        "SQLInjeksi Filter 6",
+        0
+    ],
+    [
+        1,
+        "(?:from\\W+information_schema\\W)",
+        "SQLInjeksi Filter 7",
+        0
+    ],
+    [
+        1,
+        "(?:(?:current_)user|database|schema|connection_id)\\s*\\(",
+        "SQLInjeksi Filter 8",
+        0
+    ],
+    [
+        1,
+        "into(\\s+)+(?:dump|out)file\\s*",
+        "SQLInjeksi Filter 9",
+        0
+    ],
+    [
+        1,
+        "group\\s+by.+\\(",
+        "SQLInjeksi Filter 10",
+        0
+    ],
+    [
+        0,
+        "\\<(iframe|script|body|img|layer|div|meta|style|base|object|input)",
+        "XSSFilter 1",
+        0
+    ],
+    [
+        0,
+        "(onmouseover|onerror|onload)\\=",
+        "XSSFilter 2",
+        0
+    ],
+    [
+        1,
+        "(extractvalue\\(|concat\\(0x|user\\(\\)|substring\\(|count\\(\\*\\)|substring\\(hex\\(|updatexml\\()",
+        "SQLError Injeksi Filter 01",
+        0
+    ],
+    [
+        1,
+        "(@@version|load_file\\(|NAME_CONST\\(|exp\\(\\~|floor\\(rand\\(|geometrycollection\\(|multipoint\\(|polygon\\(|multipolygon\\(|linestring\\(|multilinestring\\()",
+        "SQLError Injeksi Filter 02",
+        0
+    ],
+    [
+        1,
+        "(substr\\()",
+        "SQLInjeksi Filter 10",
+        0
+    ],
+    [
+        1,
+        "(ORD\\(|MID\\(|IFNULL\\(|CAST\\(|CHAR\\))",
+        "SQLInjeksi Filter 1",
+        0
+    ],
+    [
+        1,
+        "(EXISTS\\(|SELECT\\#|\\(SELECT)",
+        "SQLInjeksi Filter 1",
+        0
+    ],
+    [
+        1,
+        "(array_map\\(\"ass)",
+        "Chopper Lalu Lintas Filter",
+        0
+    ],
+    [
+        1,
+        "(?:define|eval|file_get_contents|include|require_once|shell_exec|phpinfo|system|passthru|chr|char|preg_\\w+|execute|echo|print|print_r|var_dump|(fp)open|alert|showmodaldialog|file_put_contents|fopen|urldecode)\\(",
+        "Backdoor*Blokir Kata Kunci*Filter 2",
+        0
+    ]
+]
