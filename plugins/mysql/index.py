@@ -82,21 +82,21 @@ def getConf():
 def getDbPort():
     file = getConf()
     content = slemp.readFile(file)
-    rep = 'port\s*=\s*(.*)'
+    rep = r'port\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
 def getDbServerId():
     file = getConf()
     content = slemp.readFile(file)
-    rep = 'server-id\s*=\s*(.*)'
+    rep = r'server-id\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
 def getSocketFile():
     file = getConf()
     content = slemp.readFile(file)
-    rep = 'socket\s*=\s*(.*)'
+    rep = r'socket\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
@@ -104,7 +104,7 @@ def getSocketFile():
 def getErrorLogsFile():
     file = getConf()
     content = slemp.readFile(file)
-    rep = 'log-error\s*=\s*(.*)'
+    rep = r'log-error\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
@@ -280,7 +280,7 @@ def status(version=''):
 def getDataDir():
     file = getConf()
     content = slemp.readFile(file)
-    rep = 'datadir\s*=\s*(.*)'
+    rep = r'datadir\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
@@ -288,7 +288,7 @@ def getDataDir():
 def getPidFile():
     file = getConf()
     content = slemp.readFile(file)
-    rep = 'pid-file\s*=\s*(.*)'
+    rep = r'pid-file\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
@@ -359,7 +359,7 @@ def getErrorLog():
 def getShowLogFile():
     file = getConf()
     content = slemp.readFile(file)
-    rep = 'slow-query-log-file\s*=\s*(.*)'
+    rep = r'slow-query-log-file\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
@@ -627,7 +627,7 @@ def initdUinstall():
 def getMyDbPos():
     file = getConf()
     content = slemp.readFile(file)
-    rep = 'datadir\s*=\s*(.*)'
+    rep = r'datadir\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
@@ -678,7 +678,7 @@ def setMyDbPos():
 def getMyPort():
     file = getConf()
     content = slemp.readFile(file)
-    rep = 'port\s*=\s*(.*)'
+    rep = r'port\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
@@ -692,7 +692,7 @@ def setMyPort():
     port = args['port']
     file = getConf()
     content = slemp.readFile(file)
-    rep = "port\s*=\s*([0-9]+)\s*\n"
+    rep = r"port\s*=\s*([0-9]+)\s*\n"
     content = re.sub(rep, 'port = ' + port + '\n', content)
     slemp.writeFile(file, content)
     restart()
@@ -780,7 +780,7 @@ def setDbStatus(version):
             s = 'K'
         if g in emptys:
             s = ''
-        rep = '\s*' + g + '\s*=\s*\d+(M|K|k|m|G)?\n'
+        rep = r'\s*' + g + r'\s*=\s*\d+(M|K|k|m|G)?\n'
         c = g + ' = ' + args[g] + s + '\n'
         if content.find(g) != -1:
             content = re.sub(rep, '\n' + c, content, 1)

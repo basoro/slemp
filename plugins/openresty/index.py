@@ -388,7 +388,7 @@ def getCfg():
 
     rdata = []
     for i in cfg_args:
-        rep = "(%s)\s+(\w+)" % i["name"]
+        rep = r"(%s)\s+(\w+)" % i["name"]
         k = re.search(rep, content)
         if not k:
             return slemp.returnJson(False, "Failed to get key {}".format(k))
@@ -446,12 +446,12 @@ def setCfg():
     # print(args)
     for k, v in args.items():
         # print(k, v)
-        rep = "%s\s+[^kKmMgG\;\n]+" % k
+        rep = r"%s\s+[^kKmMgG\;\n]+" % k
         if k == "worker_processes" or k == "gzip":
-            if not re.search("auto|on|off|\d+", v):
+            if not re.search(r"auto|on|off|\d+", v):
                 return slemp.returnJson(False, 'Wrong parameter value')
         else:
-            if not re.search("\d+", v):
+            if not re.search(r"\d+", v):
                 return slemp.returnJson(False, 'The parameter value is wrong, please enter a numeric integer')
 
         if re.search(rep, content):
