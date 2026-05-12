@@ -203,8 +203,7 @@ def confReplace():
     for f in vhost_list:
         a_conf = vhost_dir + '/' + f
         a_conf_tpl = vhost_tpl_dir + '/' + f
-        if not os.path.exists(a_conf):
-            slemp.writeFile(a_conf, slemp.readFile(a_conf_tpl))
+        slemp.writeFile(a_conf, slemp.readFile(a_conf_tpl))
 
 def initDreplace():
 
