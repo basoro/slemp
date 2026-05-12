@@ -17,27 +17,52 @@ install_tmp=${rootPath}/tmp/slemp_install.pl
 
 Install_pm2()
 {
-	echo 'Installing script file...' > $install_tmp
+	echo 'Installing PM2 and Node.js...' > $install_tmp
+
+    _os=`uname`
+    if [ "${_os}" == "Darwin" ]; then
+        OSNAME='macos'
+    elif grep -Eqi "Ubuntu" /etc/issue || grep -Eqi "Ubuntu" /etc/os-release; then
+        OSNAME='ubuntu'
+    elif grep -Eqi "Debian" /etc/issue || grep -Eqi "Debian" /etc/os-release; then
+        OSNAME='debian'
+    else
+        OSNAME='linux'
+    fi
 
 	if [ "$OSNAME" == "debian" ] || [ "$OSNAME" == "ubuntu" ];then
+		apt update -y
 		apt install -y nodejs npm
 	elif [[ "$OSNAME" == "macos" ]]; then
-		# brew install nodejs
-		# brew install npm
-		echo "ok"
+        if ! command -v node &> /dev/null; then
+            if command -v brew &> /dev/null; then
+                brew install node
+            else
+                echo "Node.js tidak ditemukan dan Homebrew tidak terinstal. Silakan instal Node.js secara manual."
+            fi
+        fi
 	else
 		yum install -y nodejs
-		curl -fsLS http://npmjs.org/install.sh | sh
+		curl -fsLS https://npmjs.org/install.sh | sh
 	fi
 
-	#curl -o- http://npmjs.org/install.sh | bash
-	npm install pm2 -g
-	#curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
-	curl -fsLS https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | sh
-	nvm install 18.20.4
-	source ~/.nvm/nvm.sh
-	nvm alias default 18.20.4
-	nvm use 18.20.4
+    export NVM_DIR="$HOME/.nvm"
+    if [ ! -d "$NVM_DIR" ]; then
+        curl -fsLS https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+    fi
+    
+    if [ -s "$NVM_DIR/nvm.sh" ]; then
+        . "$NVM_DIR/nvm.sh"
+        nvm install 18
+        nvm alias default 18
+        nvm use 18
+    fi
+
+	if command -v npm &> /dev/null; then
+        npm install pm2 -g
+    else
+        echo "npm tidak ditemukan, instalasi PM2 mungkin gagal."
+    fi
  
 	mkdir -p $serverPath/pm2
 	echo '1.0' > $serverPath/pm2/version.pl
