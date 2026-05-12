@@ -145,7 +145,6 @@ data/hook_backup.json
 
 plugins/op_waf
 plugins/openlitespeed
-plugins/gdrive
 plugins/tbot
 plugins/mtproxy
 plugins/zimg
