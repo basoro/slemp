@@ -46,7 +46,7 @@ def reload():
     return 'ok'
 
 def getConf():
-    path = getServerDir() + "/port.pl"
+    path = getServerDir() + "/.env"
     return path
 
 if __name__ == "__main__":
