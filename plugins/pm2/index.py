@@ -273,7 +273,7 @@ def pm2VerList():
     # Get a list of Node versions
     import re
     result = {}
-    rep = 'v\d+\.\d+\.\d+'
+    rep = r'v\d+\.\d+\.\d+'
 
     cmd = __SR + ' nvm ls-remote|grep -v v0|grep -v iojs'
     # print cmd

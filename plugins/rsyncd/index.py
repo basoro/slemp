@@ -96,7 +96,7 @@ def appAuthPwd(name):
 def getLog():
     conf_path = appConf()
     conf = slemp.readFile(conf_path)
-    rep = 'log file\s*=\s*(.*)'
+    rep = r'log file\s*=\s*(.*)'
     tmp = re.search(rep, conf)
     if not tmp:
         return ''
@@ -106,7 +106,7 @@ def getLog():
 def getLsyncdLog():
     path = getServerDir() + "/lsyncd.conf"
     conf = slemp.readFile(path)
-    rep = 'logfile\s*=\s*\"(.*)\"'
+    rep = r'logfile\s*=\s*\"(.*)\"'
     tmp = re.search(rep, conf)
     if not tmp:
         return ''
@@ -349,7 +349,7 @@ def getRecListData():
         if t1:
             args = t1.groups()[0]
             # print('args start', args, 'args_end')
-            t2 = re.findall('\s*(.*)\s*\=\s*?(.*)?', args, re.M | re.I)
+            t2 = re.findall(r'\s*(.*)\s*\=\s*?(.*)?', args, re.M | re.I)
             for i in range(len(t2)):
                 tmp[t2[i][0].strip()] = t2[i][1].strip()
         ret_list.append(tmp)
@@ -456,9 +456,9 @@ def delRecBy(name):
                     next_name = reclist[x + 1]['name']
         reg = ''
         if is_end:
-            reg = '\[' + name + '\]\s*(.*)'
+            reg = r'\[' + name + r'\]\s*(.*)'
         else:
-            reg = '\[' + name + '\]\s*(.*)\s*\[' + next_name + '\]'
+            reg = r'\[' + name + r'\]\s*(.*)\s*\[' + next_name + r'\]'
 
         conre = re.search(reg,  content, re.S)
         content = content.replace(

@@ -63,7 +63,7 @@ def getConfInc():
 def getPort():
     file = getConf()
     content = slemp.readFile(file)
-    rep = 'listen\s*(.*);'
+    rep = r'listen\s*(.*);'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
@@ -139,7 +139,7 @@ def contentReplace(content):
     content = content.replace('{$PMA_PATH}', cfg['path'])
 
     port = cfg["port"]
-    rep = 'listen\s*(.*);'
+    rep = r'listen\s*(.*);'
     content = re.sub(rep, "listen " + port + ';', content)
     return content
 
@@ -312,7 +312,7 @@ def setPmaPort():
     if not os.path.exists(file):
         return slemp.returnJson(False, 'Plugin not started!')
     content = slemp.readFile(file)
-    rep = 'listen\s*(.*);'
+    rep = r'listen\s*(.*);'
     content = re.sub(rep, "listen " + port + ';', content)
     slemp.writeFile(file, content)
 
