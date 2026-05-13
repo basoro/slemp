@@ -71,12 +71,9 @@ Install_App(){
 	if [ ! -f $serverPath/op_waf/waf/conf/lsqlite3.so ];then
 		if [ "${sys_os}" == "Darwin" ];then
 			cd $serverPath/source/op_waf/lsqlite3_v096
-			find_cfg=`cat Makefile | grep 'SQLITE_DIR'`
-			if [ "$find_cfg" == "" ];then
-				LIB_SQLITE_DIR=`brew info sqlite | grep /opt/homebrew/Cellar/sqlite | cut -d \  -f 1 | awk 'END {print}'`
-				echo $LIB_SQLITE_DIR
-				sed -i $BAK "s#\$(ROCKSPEC)#\$(ROCKSPEC) SQLITE_DIR=${LIB_SQLITE_DIR}#g"  Makefile
-			fi
+			LIB_SQLITE_DIR=`brew --prefix sqlite`
+			echo "SQLite path: $LIB_SQLITE_DIR"
+			sed -i $BAK "s#SQLITE_DIR=#SQLITE_DIR=${LIB_SQLITE_DIR}#g" Makefile
 			make
 		else
 			cd $serverPath/source/op_waf/lsqlite3_v096 && make

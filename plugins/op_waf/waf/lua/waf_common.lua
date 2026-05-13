@@ -15,7 +15,12 @@ local _M = { _VERSION = '0.02' }
 local mt = { __index = _M }
 
 local json = require "cjson"
-local sqlite3 = require "lsqlite3"
+
+local ok, sqlite3 = pcall(require, "lsqlite3")
+if not ok then
+    -- Jika gagal, kita buat stub agar fungsi lain tidak error
+    sqlite3 = nil
+end
 
 local ngx_re = require "ngx.re"
 local ngx_match = ngx.re.find
@@ -70,6 +75,9 @@ function _M.cron(self)
         end
 
         local db = self:initDB()
+        if not db then
+            return true
+        end
 
         db:exec([[BEGIN TRANSACTION]])
 
@@ -121,11 +129,15 @@ function _M.cron(self)
 end
 
 function _M.initDB(self)
+    if not sqlite3 then
+        return nil
+    end
+
     local path = log_dir .. "/waf.db"
     local db, err = sqlite3.open(path)
 
-    if err then
-        self:D("initDB err:"..tostring(err))
+    if not db then
+        self:D("initDB err:" .. tostring(err))
         return nil
     end
 
@@ -156,6 +168,10 @@ function _M.log(self, args, rule_name, reason)
 
     ngx.shared.waf_limit:rpush("waf_limit_logs", push_data)
     -- self:D("push_data:"..push_data)
+
+    if not sqlite3 then
+        return true
+    end
 
     -- local db = self:initDB()
 
