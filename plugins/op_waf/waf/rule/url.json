@@ -2,31 +2,31 @@
     [
         1,
         "\\.(htaccess|mysql_history|bash_history|DS_Store|idea|user\\.ini)",
-        "文件目录Filter 1",
+        "Filter Direktori File 1",
         0
     ],
     [
         1,
         "\\.(bak|inc|old|mdb|sql|php~|swp|java|class)$",
-        "文件目录Filter 2",
+        "Filter Direktori File 2",
         0
     ],
     [
         1,
         "^/(vhost|bbs|host|wwwroot|www|site|root|backup|data|ftp|db|admin|website|web).*\\.(rar|sql|zip|tar\\.gz|tar)$",
-        "文件目录Filter 3",
+        "Filter Direktori File 3",
         0
     ],
     [
         1,
         "/(hack|shell|spy|phpspy)\\.php$",
-        "PHPSkrip执行Filter 1",
+        "Filter Eksekusi Skrip PHP 1",
         0
     ],
     [
         1,
         "^/(attachments|css|uploadfiles|static|forumdata|cache|avatar)/(\\w+).(php|jsp)$",
-        "PHPSkrip执行Filter 2",
+        "Filter Eksekusi Skrip PHP 2",
         0
     ],
     [
@@ -38,7 +38,7 @@
     [
         1,
         "(?:define|eval|file_get_contents|include|require|require_once|shell_exec|phpinfo|system|passthru|preg_\\w+|execute|echo|print|print_r|var_dump|(fp)open|alert|showmodaldialog)\\(",
-        "Backdoor木马Filter 1",
+        "Filter Backdoor Trojan 1",
         1
     ]
 ]

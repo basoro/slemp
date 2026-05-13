@@ -2,19 +2,19 @@
     [
         1,
         "\\.\\./\\.\\./",
-        "目录保护1",
+        "Perlindungan Direktori 1",
         0
     ],
     [
         1,
         "/\\*",
-        "目录保护2",
+        "Perlindungan Direktori 2",
         0
     ],
     [
         1,
         "(?:etc\\/\\W*passwd)",
-        "目录保护3",
+        "Perlindungan Direktori 3",
         0
     ],
     [
@@ -26,31 +26,31 @@
     [
         1,
         "\\:\\$",
-        "Backdoor木马Filter 1",
+        "Filter Backdoor Trojan 1",
         0
     ],
     [
         1,
         "\\$\\{",
-        "Backdoor木马Filter 2",
+        "Filter Backdoor Trojan 2",
         0
     ],
     [
         1,
         "base64_decode\\(",
-        "Backdoor木马Filter 3",
+        "Filter Backdoor Trojan 3",
         0
     ],
     [
         1,
         "(?:define|eval|file_get_contents|include|require|require_once|shell_exec|phpinfo|system|passthru|char|chr|preg_\\w+|execute|echo|print|print_r|var_dump|(fp)open|alert|showmodaldialog)\\(",
-        "Backdoor木马Filter 4",
+        "Filter Backdoor Trojan 4",
         0
     ],
     [
         1,
         "\\$_(GET|post|cookie|files|session|env|phplib|GLOBALS|SERVER)\\[",
-        "Backdoor木马Filter 5",
+        "Filter Backdoor Trojan 5",
         0
     ],
     [
@@ -122,13 +122,13 @@
     [
         1,
         "(invokefunction|call_user_func_array|\\\\think\\\\)",
-        "Think PHP payload封堵",
+        "Pemblokiran Payload Think PHP",
         0
     ],
     [
         1,
         "^url_array\\[.*\\]$",
-        "Metinfo 6.x XSS漏洞",
+        "Kerentanan XSS Metinfo 6.x",
         0
     ],
     [
