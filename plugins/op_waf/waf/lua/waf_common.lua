@@ -456,7 +456,7 @@ end
 
 -- Apakah file dipindahkan ke database
 function  _M.is_migrating(self)
-    local migrating = self.waf_root +"/migrating"
+    local migrating = self.waf_root .. "/migrating"
     local file = io.open(migrating, "rb")
     if file then return true end
     return false
