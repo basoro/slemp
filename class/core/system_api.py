@@ -622,15 +622,27 @@ class system_api:
 
     def versionDiff(self, old, new):
         new_list = new.split('.')
+        old_list = old.split('.')
+
+        while len(new_list) < 3:
+            new_list.append('0')
+        while len(old_list) < 3:
+            old_list.append('0')
+
         if len(new_list) > 3:
             return 'test'
 
-        old_list = old.split('.')
         ret = 'none'
-
-        isHasNew = True
-        if int(new_list[0]) == int(old_list[0]) and int(new_list[1]) == int(old_list[1]) and int(new_list[2]) == int(old_list[2]):
-            isHasNew = False
+        isHasNew = False
+        for i in range(min(len(new_list), len(old_list))):
+            try:
+                if int(new_list[i]) > int(old_list[i]):
+                    isHasNew = True
+                    break
+                elif int(new_list[i]) < int(old_list[i]):
+                    break
+            except:
+                continue
 
         if isHasNew:
             return 'new'
@@ -658,11 +670,14 @@ class system_api:
             version_new_info = self.getServerInfo()
             version_now = config_api.config_api().getVersion()
 
+            if not 'name' in version_new_info:
+                return slemp.returnJson(False, 'Tidak dapat mengambil informasi versi dari server!')
+
             new_ver = version_new_info['name']
 
             if stype == 'check':
                 if not 'name' in version_new_info:
-                    return slemp.returnJson(False, 'There is a problem with server data or network!')
+                    return slemp.returnJson(False, 'Ada masalah dengan data server atau jaringan!')
 
                 diff = self.versionDiff(version_now, new_ver)
                 if diff == 'new':

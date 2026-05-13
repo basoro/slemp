@@ -104,7 +104,6 @@ sockets = Sockets(app)
 # debug macosx dev
 if slemp.isDebugMode():
     app.debug = True
-    app.config.version = app.config.version + str(time.time())
 
 import common
 common.init()
