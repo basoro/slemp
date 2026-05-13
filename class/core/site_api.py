@@ -251,6 +251,9 @@ class site_api:
         conf = slemp.readFile(file)
         if conf:
             conf = conf.replace(sitePath, path)
+            # Disable Proxy
+            rep = r'#PROXY-START(\n|.){1,500}#PROXY-END'
+            conf = re.sub(rep, '#PROXY-START\n\t#Konfigurasi proxy dinonaktifkan sementara karena situs ditutup\n\t#PROXY-END', conf)
             slemp.writeFile(file, conf)
 
         slemp.M('sites').where("id=?", (mid,)).setField('status', '0')
@@ -270,6 +273,11 @@ class site_api:
         if conf:
             conf = conf.replace(path, sitePath)
             slemp.writeFile(file, conf)
+
+            # Re-enable Proxy if config exists
+            proxy_path = self.getProxyPath(name)
+            if os.path.exists(proxy_path):
+                self.operateProxyConf(name, 'start')
 
         slemp.M('sites').where("id=?", (mid,)).setField('status', '1')
         slemp.restartWeb()
