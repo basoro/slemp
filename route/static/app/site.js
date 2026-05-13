@@ -226,22 +226,22 @@ function webAddPage(type) {
 							</div>\
 						</div>\
 	                    <div class='line'>\
-	                    <span class='tname'>Description</span>\
+	                    <span class='tname'>Keterangan</span>\
 	                    <div class='info-r c4'>\
-	                    	<input id='Wbeizhu' class='bt-input-text' type='text' name='ps' placeholder='Site Description' style='width:458px' />\
+	                    	<input id='Wbeizhu' class='bt-input-text' type='text' name='ps' placeholder='Keterangan Situs' style='width:458px' />\
 	                    </div>\
 	                    </div>\
 	                    <div class='line'>\
-	                    <span class='tname'>Root directory</span>\
+	                    <span class='tname'>Direktori root</span>\
 	                    <div class='info-r c4'>\
 	                    	<input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='"+ www['dir'] + "/' placeholder='" + www['dir'] + "' style='width:458px' />\
 	                    	<span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span>\
 	                    </div>\
 	                    </div>\
 						"+ php_version + "\
-	                    <div class='bt-form-submit-btn'>\
-							<button type='button' class='btn btn-danger btn-sm btn-title' onclick='layer.closeAll()'>Cancel</button>\
-							<button type='button' class='btn btn-success btn-sm btn-title' onclick=\"webAdd(1)\">Add</button>\
+		                    <div class='bt-form-submit-btn'>\
+							<button type='button' class='btn btn-danger btn-sm btn-title' onclick='layer.closeAll()'>Batal</button>\
+							<button type='button' class='btn btn-success btn-sm btn-title' onclick=\"webAdd(1)\">Tambah</button>\
 						</div>\
 	                  </form>",
 		});
@@ -295,7 +295,7 @@ function webAddPage(type) {
 				if (len > 20) {
 					str = str.substring(0, 20);
 					$(this).val(str);
-					layer.msg('Cannot exceed 20 characters!', {
+					layer.msg('Tidak boleh melebihi 20 karakter!', {
 						icon: 0
 					});
 				}
@@ -325,35 +325,35 @@ function webPathEdit(id) {
 		}
 		var webPathHtml = "<div class='webedit-box soft-man-con'>\
 					<div class='label-input-group ptb10'>\
-						<input type='checkbox' name='userini' id='userini'"+ userinicheckeds + " /><label class='mr20' for='userini' style='font-weight:normal'>Anti-cross-site attack (open_basedir)</label>\
-						<input type='checkbox' name='logs' id='logs'"+ logscheckeds + " /><label for='logs' style='font-weight:normal'>Write access log</label>\
+						<input type='checkbox' name='userini' id='userini'"+ userinicheckeds + " /><label class='mr20' for='userini' style='font-weight:normal'>Serangan anti-lintas-situs (open_basedir)</label>\
+						<input type='checkbox' name='logs' id='logs'"+ logscheckeds + " /><label for='logs' style='font-weight:normal'>Tulis log akses</label>\
 					</div>\
 					<div class='line mt10'>\
-						<span class='mr5'>Website directory</span>\
-						<input class='bt-input-text mr5' type='text' style='width:50%' placeholder='Website root directory' value='"+ webpath + "' name='webdir' id='inputPath'>\
+						<span class='mr5'>Direktori situs</span>\
+						<input class='bt-input-text mr5' type='text' style='width:50%' placeholder='Direktori root situs' value='"+ webpath + "' name='webdir' id='inputPath'>\
 						<span onclick='changePath(&quot;inputPath&quot;)' class='glyphicon glyphicon-folder-open cursor mr20'></span>\
-						<button class='btn btn-success btn-sm' onclick='setSitePath("+ id + ")'>Save</button>\
+						<button class='btn btn-success btn-sm' onclick='setSitePath("+ id + ")'>Simpan</button>\
 					</div>\
 					<div class='line mtb15'>\
-						<span class='mr5'>Run directory</span>\
+						<span class='mr5'>Direktori jalankan</span>\
 						<select class='bt-input-text' type='text' style='width:50%; margin-right:41px' name='runPath' id='runPath'>"+ opt + "</select>\
-						<button class='btn btn-success btn-sm' onclick='setSiteRunPath("+ id + ")' style='margin-top: -1px;'>Save</button>\
+						<button class='btn btn-success btn-sm' onclick='setSiteRunPath("+ id + ")' style='margin-top: -1px;'>Simpan</button>\
 					</div>\
 					<ul class='help-info-text c7 ptb10'>\
-						<li>Some programs need to specify a secondary directory as the running directory, such as Laravel</li>\
-						<li>Select your running directory, click save</li>\
+						<li>Beberapa program perlu menentukan direktori sekunder sebagai direktori jalankan, seperti Laravel</li>\
+						<li>Pilih direktori jalankan Anda, klik simpan</li>\
 					</ul>"
 			+ '<div class="user_pw_tit" style="margin-top: -8px;padding-top: 11px;">'
-			+ '<span class="tit">Password access</span>'
+			+ '<span class="tit">Akses kata sandi</span>'
 			+ '<span class="btswitch-p"><input ' + (userini.pass ? 'checked' : '') + ' class="btswitch btswitch-ios" id="pathSafe" type="checkbox">'
 			+ '<label class="btswitch-btn phpmyadmin-btn" for="pathSafe" onclick="pathSafe(' + id + ')"></label>'
 			+ '</span>'
 			+ '</div>'
 			+ '<div class="user_pw" style="margin-top: 10px;display:' + (userini.pass ? 'block;' : 'none;') + '">'
-			+ '<p><span>Authorized account</span><input id="username_get" class="bt-input-text" name="username_get" value="" type="text" placeholder="Do not modify please leave blank"></p>'
-			+ '<p><span>Password</span><input id="password_get_1" class="bt-input-text" name="password_get_1" value="" type="password" placeholder="Do not modify please leave blank"></p>'
-			+ '<p><span>Re-Password</span><input id="password_get_2" class="bt-input-text" name="password_get_1" value="" type="password" placeholder="Do not modify please leave blank"></p>'
-			+ '<p><button class="btn btn-success btn-sm" onclick="setPathSafe(' + id + ')">Save</button></p>'
+			+ '<p><span>Akun resmi</span><input id="username_get" class="bt-input-text" name="username_get" value="" type="text" placeholder="Jangan diubah, biarkan kosong"></p>'
+			+ '<p><span>Kata sandi</span><input id="password_get_1" class="bt-input-text" name="password_get_1" value="" type="password" placeholder="Jangan diubah, biarkan kosong"></p>'
+			+ '<p><span>Ulangi Kata sandi</span><input id="password_get_2" class="bt-input-text" name="password_get_1" value="" type="password" placeholder="Jangan diubah, biarkan kosong"></p>'
+			+ '<p><button class="btn btn-success btn-sm" onclick="setPathSafe(' + id + ')">Simpan</button></p>'
 			+ '</div>'
 			+ '</div>';
 
@@ -398,10 +398,10 @@ function setPathSafe(id) {
 	var pass1 = $("#password_get_1").val();
 	var pass2 = $("#password_get_2").val();
 	if (pass1 != pass2) {
-		layer.msg('The two entered passwords do not match!', { icon: 2 });
+		layer.msg('Kedua kata sandi yang dimasukkan tidak cocok!', { icon: 2 });
 		return;
 	}
-	var loadT = layer.msg('Processing, please wait...', { icon: 16, time: 10000, shade: [0.3, '#000'] });
+	var loadT = layer.msg('Sedang memproses, mohon tunggu...', { icon: 16, time: 10000, shade: [0.3, '#000'] });
 	$.post('/site/set_has_pwd', { id: id, username: username, password: pass1 }, function (rdata) {
 		layer.close(loadT);
 		layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -420,7 +420,7 @@ function setSiteRunPath(id) {
 
 function setSitePath(id) {
 	var NewPath = $("#inputPath").val();
-	var loadT = layer.msg('Processing, please wait...', { icon: 16, time: 10000, shade: [0.3, '#000'] });
+	var loadT = layer.msg('Sedang memproses, mohon tunggu...', { icon: 16, time: 10000, shade: [0.3, '#000'] });
 	$.post('/site/set_path', 'id=' + id + '&path=' + NewPath, function (rdata) {
 		layer.close(loadT);
 		layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -434,7 +434,7 @@ function webBakEdit(id) {
 					<label><span>"+ lan.site.note_ph + "</span></label>\
 					<div class='info-r'>\
 					<textarea name='beizhu' id='webbeizhu' col='5' style='width:96%'>"+ rdata + "</textarea>\
-					<br><br><button class='btn btn-success btn-sm' onclick='SetSitePs("+ id + ")'>Save</button>\
+					<br><br><button class='btn btn-success btn-sm' onclick='SetSitePs("+ id + ")'>Simpan</button>\
 					</div>\
 					</div>";
 		$("#webedit-con").html(webBakHtml);
@@ -451,7 +451,7 @@ function setIndexEdit(id) {
 						<button type='button' class='btn btn-success btn-sm pull-right' onclick='setIndexList("+ id + ")' style='margin: 70px 130px 0px 0px;'>" + lan.public.save + "</button>\
 				</div>\
 				<ul class='help-info-text c7 ptb10'>\
-					<li>Default document, one per line, with priority from top to bottom.</li>\
+					<li>Dokumen default, satu per baris, dengan prioritas dari atas ke bawah.</li>\
 				</ul>\
 				</div></div>";
 		$("#webedit-con").html(setIndexHtml);
@@ -459,7 +459,7 @@ function setIndexEdit(id) {
 }
 
 function webStop(wid, wname) {
-	layer.confirm('After the site is disabled, you will not be able to access it. Do you really want to disable this site？', { icon: 3, closeBtn: 2 }, function (index) {
+	layer.confirm('Setelah situs dinonaktifkan, Anda tidak akan dapat mengaksesnya. Apakah Anda yakin ingin menonaktifkan situs ini？', { icon: 3, closeBtn: 2 }, function (index) {
 		if (index > 0) {
 			var loadT = layer.load();
 			$.post("/site/stop", "id=" + wid + "&name=" + wname, function (ret) {
@@ -472,7 +472,7 @@ function webStop(wid, wname) {
 }
 
 function webStart(wid, wname) {
-	layer.confirm('About to launch the site, do you really want to launch this site?', { icon: 3, closeBtn: 2 }, function (index) {
+	layer.confirm('Akan meluncurkan situs, apakah Anda yakin ingin meluncurkan situs ini?', { icon: 3, closeBtn: 2 }, function (index) {
 		if (index > 0) {
 			var loadT = layer.load()
 			$.post("/site/start", "id=" + wid + "&name=" + wname, function (ret) {
@@ -486,15 +486,15 @@ function webStart(wid, wname) {
 
 function webDelete(wid, wname) {
 	var thtml = "<div class='options'>\
-	    	<label><input type='checkbox' id='delpath' name='path'><span>Root directory</span></label>\
+	    	<label><input type='checkbox' id='delpath' name='path'><span>Direktori root</span></label>\
 	    	</div>";
-	var info = 'Do you want to delete the root directory with the same name';
-	safeMessage('Delete site ' + "[" + wname + "]", info, function () {
+	var info = 'Apakah Anda ingin menghapus direktori root dengan nama yang sama?';
+	safeMessage('Hapus situs ' + "[" + wname + "]", info, function () {
 		var path = '';
 		if ($("#delpath").is(":checked")) {
 			path = '&path=1';
 		}
-		var loadT = layer.msg('Processing, please wait...', { icon: 16, time: 10000, shade: [0.3, '#000'] });
+		var loadT = layer.msg('Sedang memproses, mohon tunggu...', { icon: 16, time: 10000, shade: [0.3, '#000'] });
 		$.post("/site/delete", "id=" + wid + "&webname=" + wname + path, function (ret) {
 			layer.closeAll();
 			layer.msg(ret.msg, { icon: ret.status ? 1 : 2 })
@@ -580,7 +580,7 @@ function domainEdit(id, name, msg, status) {
 		if (msg != undefined) {
 			layer.msg(msg, { icon: status ? 1 : 5 });
 		}
-		var placeholder = "<div class='placeholder c9' style='left:28px;width:330px;top:16px;'>Fill in a domain name in each line, the default is port 80<br>Pan analysis method to add *.domain.com<br>If you add another port, the format is www.domain.com:88</div>";
+		var placeholder = "<div class='placeholder c9' style='left:28px;width:330px;top:16px;'>Isi nama domain di setiap baris, defaultnya adalah port 80<br>Metode analisis pan untuk menambahkan *.domain.com<br>Jika Anda menambahkan port lain, formatnya adalah www.domain.com:88</div>";
 		$('#newdomain').after(placeholder);
 		$(".placeholder").click(function () {
 			$(this).hide();
@@ -687,7 +687,7 @@ function webBackup(id, name) {
 }
 
 function webBackupDelete(id, pid) {
-	layer.confirm('Do you really want to delete the backup package?', { title: 'Delete backup file!', icon: 3, closeBtn: 2 }, function (index) {
+	layer.confirm('Apakah Anda yakin ingin menghapus paket cadangan?', { title: 'Hapus file cadangan!', icon: 3, closeBtn: 2 }, function (index) {
 		var loadT = layer.msg('Sedang menghapus, mohon tunggu...', { icon: 16, time: 0, shade: [0.3, '#000'] });
 		$.post('/site/del_backup', 'id=' + id, function (rdata) {
 			layer.closeAll();
@@ -709,11 +709,11 @@ function getBackup(id, name, page) {
 				continue;
 			}
 
-			var ftpdown = "<a class='btlink' href='/files/download?filename=" + frdata.data[i].filename + "&name=" + frdata.data[i].name + "' target='_blank'>Download</a> | ";
+			var ftpdown = "<a class='btlink' href='/files/download?filename=" + frdata.data[i].filename + "&name=" + frdata.data[i].name + "' target='_blank'>Unduh</a> | ";
 			body += "<tr><td><span class='glyphicon glyphicon-file'></span>" + frdata.data[i].name + "</td>\
 					<td>" + (toSize(frdata.data[i].size)) + "</td>\
 					<td>" + frdata.data[i].addtime + "</td>\
-					<td class='text-right' style='color:#ccc'>"+ ftpdown + "<a class='btlink' href='javascript:;' onclick=\"webBackupDelete('" + frdata.data[i].id + "'," + id + ")\">Delete</a></td>\
+					<td class='text-right' style='color:#ccc'>"+ ftpdown + "<a class='btlink' href='javascript:;' onclick=\"webBackupDelete('" + frdata.data[i].id + "'," + id + ")\">Hapus</a></td>\
 				</tr>"
 		}
 
@@ -722,7 +722,7 @@ function getBackup(id, name, page) {
 
 		if (name == 0) {
 			var sBody = "<table width='100%' id='webBackupList' class='table table-hover'>\
-						<thead><tr><th>Filename</th><th>Size</th><th>Modified</th><th width='140px' class='text-right'>Action< /th></tr></thead>\
+						<thead><tr><th>Nama file</th><th>Ukuran</th><th>Diubah</th><th width='140px' class='text-right'>Aksi< /th></tr></thead>\
 						<tbody id='webBackupBody' class='list-list'>"+ body + "</tbody>\
 						</table>"
 			$("#webBackupList").html(sBody);
@@ -734,16 +734,16 @@ function getBackup(id, name, page) {
 			type: 1,
 			skin: 'demo-class',
 			area: '700px',
-			title: 'Package backup',
+			title: 'Paket cadangan',
 			closeBtn: 1,
 			shift: 0,
 			shadeClose: false,
 			content: "<div class='bt-form ptb15 mlr15' id='webBackup'>\
-						<button class='btn btn-default btn-sm' style='margin-right:10px' type='button' onclick=\"webBackup('" + frdata['site']['id'] + "','" + frdata['site']['name'] + "')\">Package backup</button>\
+						<button class='btn btn-default btn-sm' style='margin-right:10px' type='button' onclick=\"webBackup('" + frdata['site']['id'] + "','" + frdata['site']['name'] + "')\">Paket cadangan</button>\
 						<div class='divtable mtb15' style='margin-bottom:0'>\
 							<table width='100%' id='webBackupList' class='table table-hover'>\
 							<thead>\
-								<tr><th>Filename</th><th>Size</th><th>Modified</th><th width='140px' class='text-right'>Action</th> </tr>\
+								<tr><th>Nama file</th><th>Ukuran</th><th>Diubah</th><th width='140px' class='text-right'>Aksi</th> </tr>\
 							</thead>\
 							<tbody id='webBackupBody' class='list-list'>" + body + "</tbody>\
 							</table>\
