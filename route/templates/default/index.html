@@ -1,137 +1,174 @@
 {% extends "layout.html" %} {% block content %}
 <div class="main-content">
 
-    <div class="container-fluid" style="padding-bottom: 66px;">
+  <div class="container-fluid" style="padding-bottom: 66px;">
 
-        <div class="danger-tips">
-            <div class="alert alert-warning" id="messageError" style="display: none;background-color: #ffe0e0;border-color: #ffb0b0;color: #ff2020; margin-bottom:0;margin-top: 12px;"></div>
-        </div>
-
-        <div class="conter-box system-info bgw clearfix mtb15">
-            <div class="title c6 f16 plr15">
-              Dashboard
-              <span class="pull-right f12 c6" style="line-height:52px; margin-right:15px">
-                  <span id="version" style="margin-right:10px">{{config.version}}</span>
-                  <span id="toUpdate"><a class="btlink" href="javascript:checkUpdate();">Update</a></span> |
-                  <!-- <span style="margin:0 10px"><a class="btlink" href="javascript:rePanel();">Repair</a></span> -->
-                  <span><a class="btlink" href="javascript:reBoot();">Restart</a></span>
-              </span>
-            </div>
-            <div class="system-info-con mtb20">
-
-              <div class="col-md-4 col-sm-12 col-xs-12">
-                <div class="info-box">
-                <span class="info-box-icon bg-aqua"><i class="glyphicon glyphicon-hdd"></i></span>
-                <div class="info-box-content">
-                  <span class="info-box-text">Sistem Operasi</span>
-                  <span class="info-box-number" id="info">Tunggu sebentar....</span>
-                </div>
-                </div>
-              </div>
-
-              <div class="col-md-4 col-sm-12 col-xs-12">
-                <div class="info-box">
-                  <span class="info-box-icon bg-red"><i class="glyphicon glyphicon-time"></i></span>
-                  <div class="info-box-content">
-                    <span class="info-box-text">Uptime Server</span>
-                    <span class="info-box-number" id="running">Tunggu sebentar....</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-md-4 col-sm-12 col-xs-12">
-                <div class="info-box">
-                  <span class="info-box-icon bg-green"><i class="glyphicon glyphicon-globe"></i></span>
-                  <div class="info-box-content">
-                    <span class="info-box-text">Data Situs</span>
-                    <span class="info-box-number"><a class="btlink" href="/site">{{data['site_count']}}</a> Situs Web Terdaftar</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-        </div>
-
-        <div class="server bgw mtb15">
-            <div class="title c6 f16 plr15">
-                <h3 class="c6 f16 pull-left">Status</h3>
-            </div>
-            <div class="server-circle">
-                <ul class="row" id="systemInfoList">
-                    <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center" id="LoadList">
-                        <h3 class="c5 f15">Beban Sistem<a href="https://github.com/basoro/slemp/wiki" target="_blank" class="bt-ico-ask" style="cursor: pointer;">?</a></h3>
-                        <div class="circle" style="cursor: pointer;">
-                            <div class="pie_left">
-                                <div class="left"></div>
-                            </div>
-                            <div class="pie_right">
-                                <div class="right"></div>
-                            </div>
-                            <div class="mask"><span id="Load">0</span>%</div>
-                        </div>
-                        <h4 id="LoadState" class="c5 f15">Tunggu...</h4>
-                    </li>
-                    <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center" id="cpuChart">
-                        <h3 class="c5 f15">Pemakaian CPU</h3></h3>
-                        <div class="circle">
-                            <div class="pie_left">
-                                <div class="left"></div>
-                            </div>
-                            <div class="pie_right">
-                                <div class="right"></div>
-                            </div>
-                            <div class="mask"><span id="state">0</span>%</div>
-                        </div>
-                        <h4 id="core" class="c5 f15">Tunggu...</h4>
-                    </li>
-                    <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center">
-                        <h3 class="c5 f15">Pemakaian RAM</h3></h3>
-                        <div class="circle mem-release">
-                            <div class="pie_left">
-                                <div class="left"></div>
-                            </div>
-                            <div class="pie_right">
-                                <div class="right"></div>
-                            </div>
-                            <div class="mask"><span id="left">0</span>%</div>
-                            <div class="mem-re-min" style="display: none;"></div>
-                            <div class="mem-re-con" title=""></div>
-                        </div>
-                        <h4 id="memory" class="c5 f15">Tunggu...</h4>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="col-xs-12 col-sm-12 col-md-6 pull-left pd0">
-            <div class="pr8">
-                <div class="bgw">
-                    <div class="title c6 f16 plr15">Aplikasi Terpasang</div>
-                    <div class="setting-con" style="padding:0; height:442px; margin-right: -4px; overflow: hidden;">
-                        <div class="container-fluid soft-man">
-                            <input name="list1SortOrder" type="hidden" value="" />
-                            <div id="indexsoft" class="row"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xs-12 col-sm-12 col-md-6 pull-left pd0">
-            <div class="pl7">
-                <div class="bgw" style="height:491px">
-                    <div class="title c6 f16 plr15">Statistik</div>
-                    <div class="bw-info">
-                        <div class="col-sm-6 col-md-3"><p class="c9"><span class="ico-up"></span>Upload</p><a id="upSpeed">0</a></div>
-                        <div class="col-sm-6 col-md-3"><p class="c9"><span class="ico-down"></span>Download</p><a id="downSpeed">0</a></div>
-                        <div class="col-sm-6 col-md-3"><p class="c9">Total Upload</p><a id="upAll">0</a></div>
-                        <div class="col-sm-6 col-md-3"><p class="c9">Total Download</p><a id="downAll">0</a></div>
-                    </div>
-                    <div id="netImg" style="width:100%;height:330px;"></div>
-                </div>
-            </div>
-        </div>
+    <div class="danger-tips">
+      <div class="alert alert-warning" id="messageError"
+        style="display: none;background-color: #ffe0e0;border-color: #ffb0b0;color: #ff2020; margin-bottom:0;margin-top: 12px;">
+      </div>
     </div>
+
+    <div class="conter-box system-info bgw clearfix mtb15">
+      <div class="title c6 f16 plr15">
+        Dashboard
+        <span class="pull-right f12 c6" style="line-height:52px; margin-right:15px">
+          <span id="version" style="margin-right:10px">{{config.version}}</span>
+          <span id="toUpdate"><a class="btlink" href="javascript:checkUpdate();">Update</a></span> |
+          <!-- <span style="margin:0 10px"><a class="btlink" href="javascript:rePanel();">Repair</a></span> -->
+          <span><a class="btlink" href="javascript:reBoot();">Restart</a></span>
+        </span>
+      </div>
+      <div class="system-info-con mtb20">
+
+        <div class="col-md-3 col-sm-6 col-xs-12">
+          <div class="info-box">
+            <span class="info-box-icon bg-aqua"><i class="glyphicon glyphicon-hdd"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Sistem Operasi</span>
+              <span class="info-box-number" id="info">Tunggu sebentar....</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6 col-xs-12">
+          <div class="info-box">
+            <span class="info-box-icon bg-red"><i class="glyphicon glyphicon-time"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Uptime Server</span>
+              <span class="info-box-number" id="running">Tunggu sebentar....</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6 col-xs-12">
+          <div class="info-box">
+            <span class="info-box-icon bg-green"><i class="glyphicon glyphicon-globe"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Data Situs</span>
+              <span class="info-box-number">{{data['site_count']}}</span>
+              <div class="info-box-more">
+                <a href="/site" class="badge bg-red"><i class="glyphicon glyphicon-file"></i> Kelola</a>
+                <a href="javascript:webAdd(0)" class="badge bg-blue"><i class="glyphicon glyphicon-plus"></i>
+                  Tambah</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6 col-xs-12">
+          <div class="info-box">
+            <span class="info-box-icon bg-yellow"><i class="glyphicon glyphicon-tasks"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Basis Data</span>
+              <span class="info-box-number">{{data['database_count']}}
+                <small>{% if data['database_type'] %}{{data['database_type']}}[{{data['database_version']}}]{% endif
+                  %}</small>
+              </span>
+              <div class="info-box-more">
+                <a href="javascript:manageDatabase()" class="badge bg-red"><i class="glyphicon glyphicon-file"></i>
+                  Kelola</a>
+                <a href="javascript:addDatabaseModal()" class="badge bg-blue"><i class="glyphicon glyphicon-plus"></i>
+                  Tambah</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="server bgw mtb15">
+      <div class="title c6 f16 plr15">
+        <h3 class="c6 f16 pull-left">Status</h3>
+      </div>
+      <div class="server-circle">
+        <ul class="row" id="systemInfoList">
+          <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center" id="LoadList">
+            <h3 class="c5 f15">Beban Sistem<a href="https://github.com/basoro/slemp/wiki" target="_blank"
+                class="bt-ico-ask" style="cursor: pointer;">?</a></h3>
+            <div class="circle" style="cursor: pointer;">
+              <div class="pie_left">
+                <div class="left"></div>
+              </div>
+              <div class="pie_right">
+                <div class="right"></div>
+              </div>
+              <div class="mask"><span id="Load">0</span>%</div>
+            </div>
+            <h4 id="LoadState" class="c5 f15">Tunggu...</h4>
+          </li>
+          <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center" id="cpuChart">
+            <h3 class="c5 f15">Pemakaian CPU</h3>
+            </h3>
+            <div class="circle">
+              <div class="pie_left">
+                <div class="left"></div>
+              </div>
+              <div class="pie_right">
+                <div class="right"></div>
+              </div>
+              <div class="mask"><span id="state">0</span>%</div>
+            </div>
+            <h4 id="core" class="c5 f15">Tunggu...</h4>
+          </li>
+          <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center">
+            <h3 class="c5 f15">Pemakaian RAM</h3>
+            </h3>
+            <div class="circle mem-release">
+              <div class="pie_left">
+                <div class="left"></div>
+              </div>
+              <div class="pie_right">
+                <div class="right"></div>
+              </div>
+              <div class="mask"><span id="left">0</span>%</div>
+              <div class="mem-re-min" style="display: none;"></div>
+              <div class="mem-re-con" title=""></div>
+            </div>
+            <h4 id="memory" class="c5 f15">Tunggu...</h4>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-xs-12 col-sm-12 col-md-6 pull-left pd0">
+      <div class="pr8">
+        <div class="bgw">
+          <div class="title c6 f16 plr15">Aplikasi Terpasang</div>
+          <div class="setting-con" style="padding:0; height:438px; margin-right: -4px; overflow: hidden;">
+            <div class="container-fluid soft-man">
+              <input name="list1SortOrder" type="hidden" value="" />
+              <div id="indexsoft" class="row"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xs-12 col-sm-12 col-md-6 pull-left pd0">
+      <div class="pl7">
+        <div class="bgw" style="height:491px">
+          <div class="title c6 f16 plr15">Statistik</div>
+          <div class="bw-info">
+            <div class="col-sm-6 col-md-3">
+              <p class="c9"><span class="ico-up"></span>Upload</p><a id="upSpeed">0</a>
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <p class="c9"><span class="ico-down"></span>Download</p><a id="downSpeed">0</a>
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <p class="c9">Total Upload</p><a id="upAll">0</a>
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <p class="c9">Total Download</p><a id="downAll">0</a>
+            </div>
+          </div>
+          <div id="netImg" style="width:100%;height:330px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 </div>
 <script type="text/javascript" src="/static/app/site.js?v={{config.version}}"></script>
@@ -139,22 +176,116 @@
 <script type="text/javascript" src="/static/app/index.js?v={{config.version}}"></script>
 <script type="text/javascript">
 
-netImg();
-setImg();
-pluginInit();
-loadKeyDataCount();
+  function manageDatabase() {
+    var loadT = layer.msg('Lagi cek database...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    $.get('/plugins/list?type=0&limit=100', function (rdata) {
+      layer.close(loadT);
+      var dbPlugin = null;
+      var list = rdata.data || [];
+      for (var i = 0; i < list.length; i++) {
+        var p = list[i];
+        var name = p.name.toLowerCase();
+        if (name.indexOf('mysql') !== -1 || name.indexOf('mariadb') !== -1) {
+          if (p.setup) {
+            dbPlugin = p;
+            break;
+          }
+          if (!dbPlugin) dbPlugin = p;
+        }
+      }
 
-setTimeout(function() {
+      if (dbPlugin) {
+        var version = dbPlugin.setup_version || '';
+        var title = dbPlugin.title;
+        if (typeof softMain === 'function') {
+          softMain(dbPlugin.name, title, version);
+        } else {
+          $.getScript('/static/app/soft.js', function () {
+            softMain(dbPlugin.name, title, version);
+          });
+        }
+      } else {
+        layer.msg('Plugin database belum terpasang atau sedang proses instalasi.', { icon: 2 });
+      }
+    }, 'json');
+  }
+
+  function addDatabaseModal() {
+    var loadT = layer.msg('Lagi cek database...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    $.get('/plugins/list?type=0&limit=100', function (rdata) {
+      layer.close(loadT);
+      var dbPlugin = null;
+      var list = rdata.data || [];
+      for (var i = 0; i < list.length; i++) {
+        var p = list[i];
+        var name = p.name.toLowerCase();
+        if (name.indexOf('mysql') !== -1 || name.indexOf('mariadb') !== -1) {
+          if (p.setup) {
+            dbPlugin = p;
+            break;
+          }
+          if (!dbPlugin) dbPlugin = p;
+        }
+      }
+
+      if (dbPlugin && dbPlugin.setup) {
+        var loadS = layer.msg("Menyiapkan form...", { icon: 16, time: 0, shade: [0.3, '#000'] });
+        $.get('/plugins/setting?name=' + dbPlugin.name, function (html) {
+          layer.close(loadS);
+          var version = dbPlugin.setup_version || '';
+          var title = dbPlugin.title + (version ? '[' + version + ']' : '') + ' manajemen xx';
+          var layerIdx = layer.open({
+            type: 1,
+            area: '640px',
+            title: title,
+            closeBtn: 1,
+            shift: 0,
+            content: html,
+            success: function (layero, index) {
+              layero.hide(); // Hide the background management modal
+              var checkJs = setInterval(function () {
+                if (typeof addDatabase === 'function') {
+                  clearInterval(checkJs);
+                  addDatabase(); // Open the actual "Add Database" modal
+
+                  // Monitor for the Add Database modal to be closed to close the hidden parent
+                  var checkClosed = setInterval(function () {
+                    if ($('.layui-layer-title:contains("Add database")').length == 0) {
+                      clearInterval(checkClosed);
+                      layer.close(index);
+                    }
+                  }, 500);
+                }
+              }, 200);
+              setTimeout(function () { clearInterval(checkJs); }, 5000);
+            }
+          });
+        });
+      } else if (dbPlugin && !dbPlugin.setup) {
+        layer.msg('Plugin database sedang dalam proses instalasi...', { icon: 16 });
+        softMain(dbPlugin.name, dbPlugin.title, '');
+      } else {
+        layer.msg('Plugin database belum terpasang.', { icon: 2 });
+      }
+    }, 'json');
+  }
+
+  netImg();
+  setImg();
+  pluginInit();
+  loadKeyDataCount();
+
+  setTimeout(function () {
     getDiskInfo();
-}, 500)
+  }, 500)
 
-setTimeout(function() {
+  setTimeout(function () {
     indexSoft();
-}, 1000);
+  }, 1000);
 
-setTimeout(function() {
+  setTimeout(function () {
     getInfo();
-}, 1500);
+  }, 1500);
 
 </script>
 {% endblock %}

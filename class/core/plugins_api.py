@@ -51,6 +51,7 @@ class plugins_api:
     def listApi(self):
         sType = request.args.get('type', '0')
         sPage = request.args.get('p', '1')
+        sPageSize = request.args.get('limit', '100')
 
         if not slemp.isNumber(sPage):
             sPage = 1
@@ -60,7 +61,7 @@ class plugins_api:
 
         # print sPage
         search = request.args.get('search', '').lower()
-        data = self.getPluginList(sType, search, int(sPage))
+        data = self.getPluginList(sType, search, int(sPage), int(sPageSize))
         return slemp.getJson(data)
 
     def menuGetAbsPath(self, tag, path):

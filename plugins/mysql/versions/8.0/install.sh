@@ -68,11 +68,18 @@ Install_mysql()
     	cpuCore="1"
 	fi
 
-	if [ -f /proc/cpuinfo ];then
+	if [ "$sysName" == "Darwin" ];then
+		cpuCore=`sysctl -n hw.ncpu`
+	elif [ -f /proc/cpuinfo ];then
 		cpuCore=`cat /proc/cpuinfo | grep "processor" | wc -l`
 	fi
 
-	MEM_INFO=$(free -m|grep Mem|awk '{printf("%.f",($2)/1024)}')
+	if [ "$sysName" == "Darwin" ];then
+		MEM_INFO=`sysctl -n hw.memsize | awk '{printf("%.f",$1/1024/1024/1024)}'`
+	else
+		MEM_INFO=$(free -m|grep Mem|awk '{printf("%.f",($2)/1024)}')
+	fi
+
 	if [ "${cpuCore}" != "1" ] && [ "${MEM_INFO}" != "0" ];then
 	    if [ "${cpuCore}" -gt "${MEM_INFO}" ];then
 	        cpuCore="${MEM_INFO}"
@@ -186,11 +193,15 @@ Install_mysql()
 			-DWITH_LIBEVENT=bundled \
 			-DWITH_LZ4=bundled \
 			-DWITH_ZLIB=bundled \
+			-DWITH_ZSTD=bundled \
+			-DWITH_FIDO=bundled \
 			-DWITH_EDITLINE=system \
 			-DWITH_ROUTER=OFF \
 			-DWITH_X=OFF \
 			-DCMAKE_OSX_ARCHITECTURES=arm64 \
 			-DCMAKE_OSX_SYSROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk \
+			-DCMAKE_DEPENDS_USE_COMPILER=OFF \
+			-DABSL_PROPAGATE_CXX_STD=ON \
 			$OPTIONS \
 			-DCMAKE_C_COMPILER=${WHERE_DIR_GCC} \
 			-DCMAKE_CXX_COMPILER=${WHERE_DIR_GPP} \

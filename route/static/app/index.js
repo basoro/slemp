@@ -204,7 +204,6 @@ function setMemImg(info) {
 
 function getInfo() {
     $.get("/system/system_total", function (info) {
-        console.log(info);
         setCookie("memRealUsed", parseInt(info.memRealUsed));
         $("#memory").html(parseInt(info.memRealUsed) + '/' + parseInt(info.memTotal) + ' (MB)');
         setCookie("mem-before", $("#memory").text());
@@ -861,4 +860,73 @@ function loadKeyDataCount() {
         }
         call(pname);
     }
+}
+
+function manageDatabase() {
+    var loadT = layer.msg('Lagi cek database...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    $.post('/plugins/init_install', '', function (rdata) {
+        layer.close(loadT);
+        var dbPlugin = null;
+        for (var i = 0; i < rdata.length; i++) {
+            if ((rdata[i].name === 'mysql' || rdata[i].name === 'mariadb') && rdata[i].setup) {
+                dbPlugin = rdata[i];
+                break;
+            }
+        }
+        if (dbPlugin) {
+            if (typeof softMain === 'function') {
+                softMain(dbPlugin.name, dbPlugin.title, dbPlugin.setup_version);
+            } else {
+                $.getScript('/static/app/soft.js', function () {
+                    softMain(dbPlugin.name, dbPlugin.title, dbPlugin.setup_version);
+                });
+            }
+        } else {
+            layer.msg('Plugin database belum terpasang.', { icon: 2 });
+        }
+    }, 'json');
+}
+
+function addDatabaseModal() {
+    var loadT = layer.msg('Lagi cek database...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    $.post('/plugins/init_install', '', function (rdata) {
+        layer.close(loadT);
+        var dbPlugin = null;
+        for (var i = 0; i < rdata.length; i++) {
+            if ((rdata[i].name === 'mysql' || rdata[i].name === 'mariadb') && rdata[i].setup) {
+                dbPlugin = rdata[i];
+                break;
+            }
+        }
+
+        if (dbPlugin) {
+            var loadS = layer.msg("Menyiapkan form...", { icon: 16, time: 0, shade: [0.3, '#000'] });
+            $.get('/plugins/setting?name=' + dbPlugin.name, function (html) {
+                layer.close(loadS);
+                // Open the plugin management modal hidden or minimized to initialize JS
+                var layerIdx = layer.open({
+                    type: 1,
+                    area: '640px',
+                    title: dbPlugin.title + ' Manajemen',
+                    closeBtn: 1,
+                    shift: 0,
+                    content: html,
+                    success: function (layero, index) {
+                        // Check for addDatabase function every 200ms
+                        var checkJs = setInterval(function () {
+                            if (typeof addDatabase === 'function') {
+                                clearInterval(checkJs);
+                                addDatabase(); // Open the actual "Add Database" modal
+                            }
+                        }, 200);
+
+                        // Limit the check to 5 seconds to prevent infinite loop
+                        setTimeout(function () { clearInterval(checkJs); }, 5000);
+                    }
+                });
+            });
+        } else {
+            layer.msg('Plugin database belum terpasang.', { icon: 2 });
+        }
+    }, 'json');
 }

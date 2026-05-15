@@ -15,7 +15,7 @@ from flask import request
 
 class config_api:
 
-    __version = '3.14'
+    __version = '4.00'
     __api_addr = 'data/api.json'
 
     def __init__(self):
@@ -932,6 +932,39 @@ class config_api:
             data['api_token'] = ''
 
         data['site_count'] = slemp.M('sites').count()
+
+        # Count databases (MySQL/MariaDB)
+        database_count = 0
+        database_type = ""
+        database_version = ""
+        try:
+            # Check for MySQL
+            mysql_dir = os.path.join(slemp.getServerDir(), 'mysql')
+            mysql_db = os.path.join(mysql_dir, 'mysql.db')
+            if os.path.exists(mysql_db):
+                import db
+                database_count += db.Sql().dbPos(mysql_dir, 'mysql').table('databases').count()
+                database_type = "MySQL"
+                v_path = os.path.join(mysql_dir, 'version.pl')
+                if os.path.exists(v_path):
+                    database_version = slemp.readFile(v_path).strip()
+            
+            # Check for MariaDB
+            mariadb_dir = os.path.join(slemp.getServerDir(), 'mariadb')
+            mariadb_db = os.path.join(mariadb_dir, 'mariadb.db')
+            if os.path.exists(mariadb_db):
+                import db
+                database_count += db.Sql().dbPos(mariadb_dir, 'mariadb').table('databases').count()
+                if not database_type:
+                    database_type = "MariaDB"
+                    v_path = os.path.join(mariadb_dir, 'version.pl')
+                    if os.path.exists(v_path):
+                        database_version = slemp.readFile(v_path).strip()
+        except:
+            pass
+        data['database_count'] = database_count
+        data['database_type'] = database_type
+        data['database_version'] = database_version
 
         data['username'] = slemp.M('users').where(
             "id=?", (1,)).getField('username')

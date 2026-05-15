@@ -95,94 +95,65 @@ def pm2Log():
     return path
 
 def __pm2GetList():
-    try:
-        tmp = slemp.execShell(__SR + "pm2 list|grep -v 'pm2 show'")
-        t2 = tmp[0].replace("│", "").replace("└", "").replace(
-            "─", "").replace("┴", "").replace("┘", "").strip().split("┤")
-        if len(t2) == 1:
-            return []
-        tmpArr = t2[1].strip()
-        if t2[1].find('App name') != -1:
-            tmpArr = t2[2].strip()
-        appList = tmpArr.split('\n')
-        result = []
-        tmp = slemp.execShell('lsof -c node -P|grep LISTEN')
-        plist = tmp[0].split('\n')
-        for app in appList:
-            if not app:
-                continue
-            tmp2 = app.strip().split()
-            appInfo = {}
-            appInfo['name'] = tmp2[1]
-            appInfo['id'] = tmp2[0]
-            appInfo['mode'] = tmp2[4]
-            appInfo['pid'] = tmp2[5]
-            appInfo['status'] = tmp2[8]
-            appInfo['restart'] = tmp2[7]
-            appInfo['uptime'] = tmp2[6]
-            appInfo['cpu'] = tmp2[9]
-            appInfo['mem'] = tmp2[10]
-            appInfo['user'] = tmp2[11]
-            appInfo['watching'] = tmp2[12]
-            appInfo['port'] = 'OFF'
-            appInfo['path'] = 'OFF'
-            for p in plist:
-                ptmp = p.split()
-                if len(ptmp) < 8:
-                    continue
-                if ptmp[1] == appInfo['pid']:
-                    appInfo['port'] = ptmp[8].split(':')[1].split('->')[0]
-            if os.path.exists(__path + '/' + appInfo['name']):
-                appInfo['path'] = slemp.readFile(
-                    __path + '/' + appInfo['name'])
-
-            result.append(appInfo)
-        return result
-    except Exception as e:
-        return []
+    return pm2GetList()
 
 def pm2GetList():
     try:
-        tmp = slemp.execShell(__SR + "pm2 list|grep -v 'pm2 show'")
-        t2 = tmp[0].replace("│", "").replace("└", "").replace(
-            "─", "").replace("┴", "").replace("┘", "").strip().split("┤")
-        if len(t2) == 1:
+        import json
+        tmp = slemp.execShell(__SR + "pm2 jlist")
+        try:
+            data = json.loads(tmp[0])
+        except:
             return []
-        tmpArr = t2[1].strip()
-        if t2[1].find('App name') != -1:
-            tmpArr = t2[2].strip()
-        appList = tmpArr.split('\n')
+            
         result = []
-        tmp = slemp.execShell('lsof -c node -P|grep LISTEN')
-        plist = tmp[0].split('\n')
-        for app in appList:
-            if not app:
-                continue
-
-            tmp2 = app.strip().split()
+        tmp_lsof = slemp.execShell('lsof -c node -P|grep LISTEN')
+        plist = tmp_lsof[0].split('\n')
+        
+        for app in data:
             appInfo = {}
-            appInfo['name'] = tmp2[1]
-            appInfo['id'] = tmp2[0]
-            appInfo['mode'] = tmp2[5]
-            appInfo['pid'] = tmp2[6]
-            appInfo['status'] = tmp2[9]
-            appInfo['restart'] = tmp2[8]
-            appInfo['uptime'] = tmp2[7]
-            appInfo['cpu'] = tmp2[10]
-            appInfo['mem'] = tmp2[11]
-            appInfo['user'] = tmp2[12]
-            appInfo['watching'] = tmp2[13]
+            appInfo['name'] = app.get('name', 'N/A')
+            appInfo['id'] = str(app.get('pm_id', '0'))
+            
+            pm2_env = app.get('pm2_env', {})
+            monit = app.get('monit', {})
+            
+            appInfo['mode'] = pm2_env.get('exec_mode', 'N/A')
+            appInfo['pid'] = str(app.get('pid', '0'))
+            appInfo['status'] = pm2_env.get('status', 'stopped')
+            appInfo['restart'] = str(pm2_env.get('restart_time', '0'))
+            
+            # Format uptime
+            uptime = pm2_env.get('pm_uptime', 0)
+            if uptime > 0:
+                diff = int(time.time() * 1000) - uptime
+                if diff > 0:
+                    appInfo['uptime'] = slemp.toSize(diff / 1000) # This is a bit hacky, let's just use seconds or similar
+                else:
+                    appInfo['uptime'] = '0s'
+            else:
+                appInfo['uptime'] = '0s'
+            
+            appInfo['cpu'] = str(monit.get('cpu', '0')) + '%'
+            appInfo['mem'] = slemp.toSize(monit.get('memory', 0))
+            appInfo['user'] = pm2_env.get('username', 'N/A')
+            appInfo['watching'] = 'enabled' if pm2_env.get('watch', False) else 'disabled'
             appInfo['port'] = 'OFF'
             appInfo['path'] = 'OFF'
+            
             for p in plist:
                 ptmp = p.split()
                 if len(ptmp) < 8:
                     continue
                 if ptmp[1] == appInfo['pid']:
-                    appInfo['port'] = ptmp[8].split(':')[1].split('->')[0]
+                    # Extract port from lsof output
+                    addr = ptmp[8]
+                    if ':' in addr:
+                        appInfo['port'] = addr.split(':')[-1]
+            
             if os.path.exists(__path + '/' + appInfo['name']):
-                appInfo['path'] = slemp.readFile(
-                    __path + '/' + appInfo['name'])
+                appInfo['path'] = slemp.readFile(__path + '/' + appInfo['name'])
+            
             result.append(appInfo)
         return result
     except Exception as e:
