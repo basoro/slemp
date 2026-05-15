@@ -1,6 +1,15 @@
 {
 	"hook":[
 		{
+			"tag":"menu",
+			"menu": {
+				"title":"WAF",
+				"name":"op_waf",
+				"path":"menu/index.html",
+				"js_path":"js/op_waf.js"
+			}
+		},
+		{
 			"tag":"site_cb",
 			"site_cb": {
 				"title":"Statistik Situs",
@@ -11,6 +20,7 @@
 			}
 		}
 	],
+	"id": 4,
 	"sort":2,
 	"title":"WAF (Firewall Web)",
 	"tip":"soft",
