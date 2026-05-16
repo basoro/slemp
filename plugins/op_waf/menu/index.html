@@ -1011,16 +1011,22 @@
         $('.btn-date').click(function () {
             $('.btn-date').removeClass('active');
             $('#select_date_btn').removeClass('active');
-            $('#date_range_label').text('Select Date');
             $(this).addClass('active');
 
-            let dateStr = '';
+            const d = new Date();
             if ($(this).text() === 'Yesterday') {
-                const d = new Date();
                 d.setDate(d.getDate() - 1);
-                dateStr = d.toISOString().split('T')[0];
             }
-            loadDashboardData(dateStr);
+            
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            
+            // Use range format 'YYYY-MM-DD - YYYY-MM-DD' to ensure backend reliability
+            const rangeStr = `${dateStr} - ${dateStr}`;
+            $('#date_range_label').text(dateStr);
+            loadDashboardData(rangeStr);
         });
 
         // Refresh button
