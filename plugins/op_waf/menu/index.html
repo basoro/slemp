@@ -4,7 +4,11 @@
         <div class="date-selector">
             <button class="btn-date">Yesterday</button>
             <button class="btn-date active">Today</button>
-            <div class="custom-date">Select Date <i class="glyphicon glyphicon-calendar"></i></div>
+            <div class="custom-date" id="select_date_btn" style="position:relative;">
+                <span id="date_range_label" style="pointer-events: none;">Select Date</span> <i
+                    class="glyphicon glyphicon-calendar" style="pointer-events: none;"></i>
+                <span id="laydate_dummy" style="position:absolute; bottom:0; left:0; width:100%; height:1px; visibility:hidden;"></span>
+            </div>
         </div>
         <div class="refresh-btn">
             <i class="glyphicon glyphicon-refresh"></i>
@@ -71,8 +75,6 @@
                     <div class="chart-legend">
                         <span class="legend-item"><span class="dot green"></span> Total requests</span>
                         <span class="legend-item"><span class="dot blue"></span> After filtering</span>
-                        <span class="legend-item"><span class="dot lightblue"></span> Traffic</span>
-                        <span class="legend-item"><span class="dot aqua"></span> IP count</span>
                     </div>
                 </div>
                 <div id="main_request_chart" style="height: 250px;"></div>
@@ -197,6 +199,14 @@
         display: flex;
         align-items: center;
         gap: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border-radius: 0 4px 4px 0;
+    }
+
+    .custom-date.active {
+        background-color: #3498db;
+        color: #fff;
     }
 
     .refresh-btn {
@@ -567,30 +577,67 @@
         resChart.setOption(resOpt);
     }
 
-    function initMainChart() {
-        const mainChart = echarts.init(document.getElementById('main_request_chart'));
+    let mainChartInstance = null;
+    function initMainChart(chartData) {
+        if (!mainChartInstance) {
+            mainChartInstance = echarts.init(document.getElementById('main_request_chart'));
+        }
+
+        const labels = chartData ? chartData.labels : ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'];
+        const totalData = chartData ? chartData.total : [150, 130, 160, 140, 180, 150, 170, 200, 180, 220, 250, 230, 210, 190, 200, 230, 260, 240, 220, 250, 280, 270, 260, 290];
+        const blockedData = chartData ? chartData.blocked : [10, 5, 8, 3, 12, 7, 9, 15, 12, 18, 20, 15, 10, 8, 12, 15, 18, 16, 14, 17, 22, 20, 18, 25];
+
         const option = {
             tooltip: { trigger: 'axis', backgroundColor: 'rgba(255, 255, 255, 0.9)', textStyle: { color: '#333' } },
             grid: { left: '3%', right: '4%', bottom: '3%', top: '10%', containLabel: true },
             xAxis: {
                 type: 'category',
                 boundaryGap: false,
-                data: ['00:00', '00:51', '01:42', '02:33', '03:24', '04:15', '05:06', '05:57', '06:49', '07:40', '08:32', '09:23', '10:14', '11:05', '11:56', '12:47', '13:39', '14:30', '15:21', '16:13', '17:04', '17:55', '18:46', '19:37', '20:29', '21:20'],
+                data: labels,
                 axisLine: { lineStyle: { color: '#e2e8f0' } },
                 axisLabel: { color: '#64748b', fontSize: 10 }
             },
             yAxis: {
                 type: 'value',
-                splitLine: { lineStyle: { color: '#f1f5f9' } },
                 axisLine: { show: false },
+                axisTick: { show: false },
+                splitLine: { lineStyle: { color: '#f1f5f9' } },
                 axisLabel: { color: '#64748b' }
             },
             series: [
-                { name: 'Total requests', type: 'line', smooth: true, symbol: 'none', areaStyle: { opacity: 0.1 }, data: [200, 180, 250, 220, 300, 150, 180, 200, 350, 280, 400, 320, 380, 420, 550, 480, 520, 450, 600, 580, 650, 500, 550, 450, 600, 550], color: '#2ecc71' },
-                { name: 'After filtering', type: 'line', smooth: true, symbol: 'none', areaStyle: { opacity: 0.1 }, data: [150, 130, 200, 170, 250, 100, 130, 150, 300, 230, 350, 270, 330, 370, 500, 430, 470, 400, 550, 530, 600, 450, 500, 400, 550, 500], color: '#3498db' }
+                {
+                    name: 'Total requests',
+                    type: 'line',
+                    smooth: true,
+                    symbol: 'none',
+                    data: totalData,
+                    color: '#2ecc71',
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(46, 204, 113, 0.2)' },
+                            { offset: 1, color: 'rgba(46, 204, 113, 0)' }
+                        ])
+                    },
+                    lineStyle: { width: 3 }
+                },
+                {
+                    name: 'After filtering',
+                    type: 'line',
+                    smooth: true,
+                    symbol: 'none',
+                    data: blockedData,
+                    color: '#3498db',
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(52, 152, 219, 0.2)' },
+                            { offset: 1, color: 'rgba(52, 152, 219, 0)' }
+                        ])
+                    },
+                    lineStyle: { width: 3 }
+                }
             ]
         };
-        mainChart.setOption(option);
+        mainChartInstance.setOption(option);
     }
 
     let worldGeoJson = null;
@@ -784,9 +831,9 @@
 
     function switchMapTable(type) {
         if (!dashboardData) return;
-        
+
         const ipRank = dashboardData.ip_ranking || [];
-        
+
         if (type === 'requests') {
             $('#map_type_btns .btn-pill:first').addClass('active').siblings().removeClass('active');
             $('#ip_table_head').html(`<tr>
@@ -827,24 +874,43 @@
         }
     }
 
-    function loadDashboardData() {
-        $.post('/plugins/run', {name:'op_waf', func:'get_index_data', args:JSON.stringify({})}, function(res) {
-            if (!res || !res.status) return;
-            
+    function loadDashboardData(dateStr) {
+        console.log("DEBUG: loadDashboardData called with:", dateStr || "default");
+        const args = {};
+        if (dateStr) {
+            if (dateStr.indexOf(' - ') > -1) {
+                const parts = dateStr.split(' - ');
+                args.start_date = parts[0].trim();
+                args.end_date = parts[1].trim();
+                console.log("DEBUG: Parsed Range -> Start:", args.start_date, "End:", args.end_date);
+            } else {
+                args.date = dateStr.trim();
+                console.log("DEBUG: Parsed Single Date:", args.date);
+            }
+        }
+        
+        console.log("DEBUG: Sending POST to get_index_data with args:", args);
+        $.post('/plugins/run', { name: 'op_waf', func: 'get_index_data', args: JSON.stringify(args) }, function (res) {
+            console.log("DEBUG: API Raw Response:", res);
+            if (!res || !res.status) {
+                console.error("DEBUG: API Error or no status:", res);
+                return;
+            }
+
             let data = res.data;
             if (typeof data === 'string') {
                 try {
                     data = JSON.parse(data);
-                } catch(e) { return; }
+                } catch (e) { return; }
             }
-            
+
             if (!data) return;
-            
+
             // Handle double-nested data from Python's returnJson
             if (data.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
                 data = data.data;
             }
-            
+
             console.log("WAF Dashboard Data (Extracted):", data);
             dashboardData = data;
 
@@ -903,21 +969,69 @@
 
             // Default view
             switchMapTable('blocks');
-            
+
             updateMainChart(data);
         }, 'json');
     }
 
     function updateMainChart(data) {
-        // Optional: Update real-time charts here
+        if (data && data.chart_data) {
+            initMainChart(data.chart_data);
+        }
     }
 
     // Initialize Dashboard
-    $(document).ready(function() {
+    $(document).ready(function () {
         initSmallCharts();
         initMainChart();
         loadDashboardData();
-        
+
+        // Initialize Laydate using a dummy elem to prevent label from disappearing
+        laydate.render({
+            elem: '#laydate_dummy',
+            eventElem: '#select_date_btn',
+            trigger: 'click',
+            range: true,
+            lang: 'en',
+            format: 'yyyy-MM-dd',
+            theme: '#3498db',
+            done: function (value) {
+                console.log("DEBUG: Laydate value selected:", value);
+                if (value) {
+                    $('.btn-date').removeClass('active');
+                    $('#select_date_btn').addClass('active');
+                    $('#date_range_label').text(value);
+                    loadDashboardData(value);
+                } else {
+                    console.log("DEBUG: Laydate value cleared");
+                    $('#date_range_label').text('Select Date');
+                    $('#select_date_btn').removeClass('active');
+                    loadDashboardData();
+                }
+            }
+        });
+
+        // Today/Yesterday buttons
+        $('.btn-date').click(function () {
+            $('.btn-date').removeClass('active');
+            $('#select_date_btn').removeClass('active');
+            $('#date_range_label').text('Select Date');
+            $(this).addClass('active');
+
+            let dateStr = '';
+            if ($(this).text() === 'Yesterday') {
+                const d = new Date();
+                d.setDate(d.getDate() - 1);
+                dateStr = d.toISOString().split('T')[0];
+            }
+            loadDashboardData(dateStr);
+        });
+
+        // Refresh button
+        $('.refresh-btn').click(function () {
+            loadDashboardData();
+        });
+
         // Initial map view - Default to 3D Globe
         initGlobe();
     });

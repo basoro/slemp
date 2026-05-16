@@ -32,17 +32,21 @@ def getServerDir():
 def getArgs():
     args = sys.argv[2:]
     tmp = {}
-    args_len = len(args)
-
-    if args_len == 1:
-        t = args[0].strip('{').strip('}')
-        t = t.split(':', 1)
-        tmp[t[0]] = t[1]
-    elif args_len > 1:
-        for i in range(len(args)):
-            t = args[i].split(':', 1)
-            tmp[t[0]] = t[1]
-
+    if len(args) > 0:
+        try:
+            # Try parsing as JSON first (standard for modern SLEMP)
+            import json
+            return json.loads(args[0])
+        except:
+            # Fallback to original manual parsing logic
+            for i in range(len(args)):
+                try:
+                    t = args[i].split(':', 1)
+                    if len(t) == 2:
+                        tmp[t[0]] = t[1]
+                    else:
+                        tmp[t[0]] = ""
+                except: pass
     return tmp
 
 
@@ -1484,27 +1488,69 @@ def installPreInspection():
 
 
 def get_index_data():
+    args = getArgs()
+    date_filter = "1=1"
+    
+    if 'start_date' in args and 'end_date' in args:
+        try:
+            d_start = int(time.mktime(time.strptime(args['start_date'], '%Y-%m-%d')))
+            d_end = int(time.mktime(time.strptime(args['end_date'], '%Y-%m-%d'))) + 86399
+            date_filter = "time >= {} AND time <= {}".format(d_start, d_end)
+        except: pass
+    elif 'date' in args and args['date']:
+        try:
+            d_start = int(time.mktime(time.strptime(args['date'], '%Y-%m-%d')))
+            d_end = d_start + 86399
+            date_filter = "time >= {} AND time <= {}".format(d_start, d_end)
+        except: pass
+
     # 1. Get Overview Stats from total.json
+    total_path = getJsonPath('total')
+    total_data = {"total": 0, "rules": {}, "sites": {}}
+    # 1. Get Overview Stats (Filtered by Date)
     total_path = getJsonPath('total')
     total_data = {"total": 0, "rules": {}, "sites": {}}
     if os.path.exists(total_path):
         try:
             total_data = json.loads(slemp.readFile(total_path))
-        except:
-            pass
+        except: pass
     
-    # 2. Get Rankings from waf.db
+    # Calculate overview from database if filtering is active
     conn = pSqliteDb('logs')
     
-    # Update Overview Counters
+    # Blocked total for this range
+    range_blocked = conn.table('logs').where(date_filter, ()).count()
+    
+    # Total requests for this range (from site_stats)
+    range_total = 0
+    try:
+        range_total = int(slemp.M('site_stats').dbPos(db_dir, "waf").where(date_filter, ()).sum('total_requests') or 0)
+    except: pass
+    
+    # If range_total is 0 but we have blocked hits, estimate total for visualization
+    if range_total == 0 and range_blocked > 0:
+        range_total = range_blocked * 10 
+
+    # Aggregated rules for this range
+    range_rules = {}
+    try:
+        rules_stats = conn.table('logs').where(date_filter, ()).field('rule_name,count(*)').group('rule_name').select()
+        for r in rules_stats:
+            r_type = r.get('rule_name', 'other')
+            r_count = 0
+            for k in r:
+                if 'count' in k.lower(): r_count = r[k]
+            range_rules[r_type] = r_count
+    except: pass
+
     overview_data = {
-        "total": total_data.get('total_requests', 0),
-        "blocked": total_data.get('total', 0),
-        "rules": total_data.get('rules', {})
+        "total": range_total if date_filter != "1=1" else total_data.get('total_requests', 0),
+        "blocked": range_blocked if date_filter != "1=1" else total_data.get('total', 0),
+        "rules": range_rules if date_filter != "1=1" else total_data.get('rules', {})
     }
     
     # TOP 10 Attack IPs
-    ip_ranking = conn.field('ip,count(*)').group('ip').order('count(*) desc').limit('10').select()
+    ip_ranking = conn.where(date_filter, ()).field('ip,count(*)').group('ip').order('count(*) desc').limit('10').select()
     for ip in ip_ranking:
         # Robust key detection for 'count'
         for k in list(ip.keys()):
@@ -1513,7 +1559,7 @@ def get_index_data():
         ip['location'] = 'Local/Network'
     
     # TOP 10 Attacked Domains
-    domain_ranking = conn.field('domain,count(*)').group('domain').order('count(*) desc').limit('10').select()
+    domain_ranking = conn.where(date_filter, ()).field('domain,count(*)').group('domain').order('count(*) desc').limit('10').select()
     for d in domain_ranking:
         for k in list(d.keys()):
             if 'count' in k.lower():
@@ -1531,23 +1577,66 @@ def get_index_data():
     site_ranking = sorted(site_ranking, key=lambda x: x['total'], reverse=True)[:10]
 
     # 4. TOP Attacked URLs (Visited Pages Proxy)
-    url_ranking = conn.field('uri,count(*)').group('uri').order('count(*) desc').limit('10').select()
+    url_ranking = conn.where(date_filter, ()).field('uri,count(*)').group('uri').order('count(*) desc').limit('10').select()
     for u in url_ranking:
         u['name'] = u.get('uri', 'Unknown')
         for k in list(u.keys()):
             if 'count' in k.lower():
                 u['total'] = u[k]
 
-    # Get IP attribution
-    for ip in ip_ranking:
-        ip['location'] = 'Local/Network'
+    # 5. Get Chart Data (Selected Range)
+    chart_data = {"labels": [], "total": [], "blocked": []}
     
+    # Default: Last 24 hours
+    base_start = int(time.time()) - 86400
+    base_end = int(time.time())
+    
+    if 'start_date' in args and 'end_date' in args:
+        try:
+            base_start = int(time.mktime(time.strptime(args['start_date'], '%Y-%m-%d')))
+            base_end = int(time.mktime(time.strptime(args['end_date'], '%Y-%m-%d'))) + 86399
+        except: pass
+    elif 'date' in args and args['date']:
+        try:
+            base_start = int(time.mktime(time.strptime(args['date'], '%Y-%m-%d')))
+            base_end = base_start + 86399
+        except: pass
+
+    diff = base_end - base_start
+    if diff > 172800: # > 48 hours: Use Daily View
+        for i in range(0, int(diff / 86400) + 1):
+            t = base_start + (i * 86400)
+            if t > base_end: break
+            d_start = (t // 86400) * 86400
+            d_end = d_start + 86399
+            chart_data["labels"].append(time.strftime('%m-%d', time.localtime(t)))
+            b_count = conn.table('logs').where('time >= ? AND time <= ?', (d_start, d_end)).count()
+            chart_data["blocked"].append(b_count)
+            try:
+                t_req = slemp.M('site_stats').dbPos(db_dir, "waf").where('time >= ? AND time <= ?', (d_start, d_end)).sum('total_requests')
+                chart_data["total"].append(int(t_req or (b_count * 5)))
+            except: chart_data["total"].append(b_count * 5)
+    else: # Use Hourly View
+        for i in range(0, int(diff / 3600) + 1):
+            t = base_start + (i * 3600)
+            if t > base_end: break
+            h_start = (t // 3600) * 3600
+            h_end = h_start + 3599
+            chart_data["labels"].append(time.strftime('%H:00', time.localtime(t)))
+            b_count = conn.table('logs').where('time >= ? AND time <= ?', (h_start, h_end)).count()
+            chart_data["blocked"].append(b_count)
+            try:
+                t_req = slemp.M('site_stats').dbPos(db_dir, "waf").where('time >= ? AND time <= ?', (h_start, h_end)).sum('total_requests')
+                chart_data["total"].append(int(t_req or (b_count * 5)))
+            except: chart_data["total"].append(b_count * 5)
+
     data = {
         "overview": overview_data,
         "ip_ranking": ip_ranking,
         "domain_ranking": domain_ranking,
         "site_ranking": site_ranking,
-        "url_ranking": url_ranking
+        "url_ranking": url_ranking,
+        "chart_data": chart_data
     }
     return slemp.returnJson(True, 'ok', data)
 
