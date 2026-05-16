@@ -1319,8 +1319,46 @@ def setSiteObjOpen():
 
 
 def getWafSrceen():
-    conf = getJsonPath('total')
-    return slemp.readFile(conf)
+    conn = pSqliteDb('logs')
+    
+    # 1. Get Total Interceptions
+    total = conn.count()
+    
+    # 2. Get Start Time (Earliest Log Entry)
+    start_time = int(time.time())
+    try:
+        earliest = conn.order('time asc').limit('1').select()
+        if earliest:
+            start_time = int(list(earliest)[0][0] if isinstance(list(earliest)[0], (list, tuple)) else earliest[0].get('time', time.time()))
+    except: pass
+    
+    # 3. Aggregate Rules
+    rules_map = {
+        "args": 0, "post": 0, "cc": 0, "user_agent": 0, "cookie": 0,
+        "scan": 0, "url": 0, "path": 0, "php_path": 0, "upload_ext": 0
+    }
+    
+    try:
+        rules_stats = conn.field('rule_name,count(*)').group('rule_name').select()
+        for r in list(rules_stats):
+            r_name = r[0] if isinstance(r, (list, tuple)) else r.get('rule_name', '')
+            r_count = r[1] if isinstance(r, (list, tuple)) else r.get('count(*)', 0)
+            
+            # Map DB rule names to Frontend keys
+            if r_name in ['sql', 'xss', 'args']:
+                rules_map['args'] += r_count
+            elif r_name in rules_map:
+                rules_map[r_name] = r_count
+            else:
+                rules_map['url'] += r_count
+    except: pass
+
+    data = {
+        "total": total,
+        "start_time": start_time,
+        "rules": rules_map
+    }
+    return json.dumps(data)
 
 
 def getWafConf():
