@@ -674,14 +674,12 @@
         const showMap = (geoJson) => {
             echarts.registerMap('world', geoJson);
 
+            if (!dashboardData) return;
+            const server_location = dashboardData.server_location || [110, -5];
             const scatterData = mapData ? mapData.map(item => ({
-                name: item.name,
-                value: [item.lng, item.lat, item.count],
-                itemStyle: { color: '#5c7bd9' }
-            })) : [
-                { name: 'US', value: [-100, 40, 7], itemStyle: { color: '#5c7bd9' } },
-                { name: 'Indonesia', value: [110, -5, 1950], itemStyle: { color: '#5c7bd9' } }
-            ];
+                name: item.location || item.ip,
+                value: [item.lng, item.lat, item.count]
+            })) : [];
 
             const option = {
                 backgroundColor: '#ffffff',
@@ -711,6 +709,29 @@
                             fontSize: 10,
                             position: 'inside'
                         }
+                    },
+                    {
+                        type: 'lines',
+                        coordinateSystem: 'geo',
+                        zlevel: 1,
+                        effect: {
+                            show: true,
+                            period: 6,
+                            trailLength: 0.7,
+                            color: '#e74c3c',
+                            symbolSize: 3
+                        },
+                        lineStyle: {
+                            color: '#e74c3c',
+                            width: 1,
+                            curveness: 0.2
+                        },
+                        data: mapData ? mapData.map(item => ({
+                            coords: [
+                                [item.lng, item.lat],
+                                server_location
+                            ]
+                        })) : []
                     }
                 ]
             };
@@ -753,12 +774,14 @@
 
             currentMapChart = echarts.init(globeContainer);
 
+            if (!dashboardData) return;
+            const server_location = dashboardData.server_location || [110, -5];
             const linesData = mapData ? mapData.map(item => [
                 [item.lng, item.lat],
-                [110, -5] // Target Indonesia
+                server_location
             ]) : [
-                [[10, 50], [110, -5]],
-                [[-70, 40], [110, -5]]
+                [[10, 50], server_location],
+                [[-70, 40], server_location]
             ];
 
             const option = {
@@ -774,7 +797,7 @@
                     viewControl: {
                         autoRotate: true,
                         autoRotateSpeed: 5,
-                        targetCoord: [110, -5],
+                        targetCoord: (dashboardData && dashboardData.server_location) ? dashboardData.server_location : [110, -5],
                         distance: 200,
                         alpha: 30,
                         zoomSensitivity: 0

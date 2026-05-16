@@ -987,6 +987,7 @@ def setObjStatus():
     return slemp.returnJson(True, 'Berhasil diatur!')
 
 
+
 def setRetry():
     args = getArgs()
     data = checkArgs(args, ['retry', 'retry_time',
@@ -1552,8 +1553,16 @@ def installPreInspection():
 
 
 def get_index_data():
-    with open("/tmp/waf_debug.log", "a") as f:
-        f.write("\n--- get_index_data START ---\n")
+    # Get Server Location Automatically
+    server_location = [110, -5] # Default Indonesia
+    try:
+        res = slemp.httpGet('http://ip-api.com/json/')
+        if res:
+            res_json = json.loads(res)
+            if res_json.get('status') == 'success':
+                server_location = [res_json.get('lon', 110), res_json.get('lat', -5)]
+    except: pass
+
     args = getArgs()
     date_filter = "1=1"
     
@@ -1665,7 +1674,8 @@ def get_index_data():
         "rt_response": rt_response,
         "rt_qps_trend": qps_trend,
         "rt_traffic_trend": traffic_trend,
-        "rt_response_trend": response_trend
+        "rt_response_trend": response_trend,
+        "server_location": server_location
     }
     
     with open("/tmp/waf_debug.log", "a") as f:
