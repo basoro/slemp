@@ -216,6 +216,9 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
         content: "<div class='bt-form pd20 c6'>\
 			<div class='version line'>Versi terpasang：" + option + "</div>\
 	    </div>",
+        end: function() {
+            location.reload();
+        },
         success:function(){
             $('.fangshi input').click(function() {
                 $(this).attr('checked', 'checked').parent().siblings().find("input").removeAttr('checked');
@@ -465,7 +468,10 @@ function importPlugin(file){
                         <li>Kalau plugin ini udah ada, bakal ditimpa!</li>\
                     </ul>\
                     <div class="bt-form-submit-btn"><button type="button" class="btn btn-sm btn-danger mr5" onclick="layer.closeAll()">Batal</button><button type="button" class="btn btn-sm btn-success" onclick="importPluginInstall(\''+ data.name + '\',\'' + data.tmp_path +'\')">Pasang</button></div>\
-                </div>'
+                </div>',
+                end: function() {
+                    location.reload();
+                }
             });
 
         },error: function (responseStr) {

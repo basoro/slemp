@@ -1249,7 +1249,14 @@ function messageBox() {
 							<div class="taskcon"></div>\
 						</div>\
 					</div>\
-				</div>'
+				</div>',
+		// UPDATED_BY_ANTIGRAVITY_v3
+		end: function() {
+			alert("Message box closed! Current URL: " + window.location.href);
+			if (window.location.href.indexOf('soft') != -1) {
+				location.reload();
+			}
+		}
 	});
 	$(".bt-w-menu p").click(function(){
 		$(this).addClass("bgw").siblings().removeClass("bgw");
