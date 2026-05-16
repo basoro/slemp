@@ -643,7 +643,9 @@
     let worldGeoJson = null;
     let currentMapChart = null;
 
+    let currentViewType = '3D';
     function switchView(type) {
+        currentViewType = type;
         $('#view_type_btns .btn-pill').removeClass('active');
 
         // Dispose current chart to ensure a clean switch
@@ -653,26 +655,38 @@
         }
 
         const container = document.getElementById('globe_container');
+        const mapData = dashboardData ? dashboardData.map_data : null;
 
         if (type === '3D') {
             $('#view_type_btns .btn-pill:first').addClass('active');
             $('.globe-halo').show();
             $('#map_legend').hide();
-            initGlobe();
+            initGlobe(mapData);
         } else {
+            // Fix for 2D button class
             $('#view_type_btns .btn-pill:last').addClass('active');
             $('.globe-halo').hide();
             $('#map_legend').show();
-            init2DMap();
+            init2DMap(mapData);
         }
     }
 
-    function init2DMap() {
+    function init2DMap(mapData) {
         const mapContainer = document.getElementById('globe_container');
         currentMapChart = echarts.init(mapContainer);
 
         const showMap = (geoJson) => {
             echarts.registerMap('world', geoJson);
+            
+            const scatterData = mapData ? mapData.map(item => ({
+                name: item.name,
+                value: [item.lng, item.lat, item.count],
+                itemStyle: { color: '#5c7bd9' }
+            })) : [
+                { name: 'US', value: [-100, 40, 7], itemStyle: { color: '#5c7bd9' } },
+                { name: 'Indonesia', value: [110, -5, 1950], itemStyle: { color: '#5c7bd9' } }
+            ];
+
             const option = {
                 backgroundColor: '#ffffff',
                 visualMap: {
@@ -693,13 +707,7 @@
                         coordinateSystem: 'geo',
                         symbol: 'pin',
                         symbolSize: 40,
-                        data: [
-                            { name: 'US', value: [-100, 40, 7], itemStyle: { color: '#5c7bd9' } },
-                            { name: 'Brazil', value: [-50, -15, 503], itemStyle: { color: '#5c7bd9' } },
-                            { name: 'Europe', value: [10, 50, 13], itemStyle: { color: '#5c7bd9' } },
-                            { name: 'India', value: [78, 20, 251], itemStyle: { color: '#5c7bd9' } },
-                            { name: 'Indonesia', value: [110, -5, 1950], itemStyle: { color: '#5c7bd9' } }
-                        ],
+                        data: scatterData,
                         label: {
                             show: true,
                             formatter: '{@[2]}',
@@ -723,60 +731,59 @@
         }
     }
 
-    function initGlobe() {
+    function initGlobe(mapData) {
         const globeContainer = document.getElementById('globe_container');
 
         const renderGlobe = (geoJson) => {
             echarts.registerMap('world', geoJson);
 
-            // Create a hidden canvas to render the map texture
             const canvas = document.createElement('canvas');
             canvas.width = 4096;
             canvas.height = 2048;
             const mapChart = echarts.init(canvas);
 
             mapChart.setOption({
-                backgroundColor: '#e0f2fe', // Light blue ocean
+                backgroundColor: '#e0f2fe',
                 geo: {
                     map: 'world',
                     left: 0, top: 0, right: 0, bottom: 0,
                     boundingCoords: [[-180, 90], [180, -90]],
                     itemStyle: {
-                        areaColor: '#2ecc71', // Emerald green land
+                        areaColor: '#2ecc71',
                         borderColor: '#2ecc71'
                     }
                 }
             });
 
             currentMapChart = echarts.init(globeContainer);
+
+            const linesData = mapData ? mapData.map(item => [
+                [item.lng, item.lat],
+                [110, -5] // Target Indonesia
+            ]) : [
+                [[10, 50], [110, -5]],
+                [[-70, 40], [110, -5]]
+            ];
+
             const option = {
                 backgroundColor: 'transparent',
                 globe: {
-                    baseTexture: canvas, // Use the rendered canvas as texture
+                    baseTexture: canvas,
                     shading: 'lambert',
                     environment: 'none',
                     light: {
-                        main: {
-                            intensity: 1.5,
-                            shadow: false, // Disable shadow for a cleaner look
-                            alpha: 40,
-                            beta: -30
-                        },
-                        ambient: {
-                            intensity: 0.8
-                        }
+                        main: { intensity: 1.5, shadow: false, alpha: 40, beta: -30 },
+                        ambient: { intensity: 0.8 }
                     },
                     viewControl: {
                         autoRotate: true,
                         autoRotateSpeed: 5,
-                        targetCoord: [110, 10],
+                        targetCoord: [110, -5],
                         distance: 200,
                         alpha: 30,
                         zoomSensitivity: 0
                     },
-                    postEffect: {
-                        enable: false // Disable postEffect to avoid gray tint
-                    },
+                    postEffect: { enable: false },
                     atmosphere: {
                         show: true,
                         offset: 5,
@@ -796,18 +803,8 @@
                         trailOpacity: 1
                     },
                     blendMode: 'lighter',
-                    lineStyle: {
-                        width: 2,
-                        color: '#ffa502',
-                        opacity: 0.4
-                    },
-                    data: [
-                        [[10, 50], [110, 10]],
-                        [[-70, 40], [110, 10]],
-                        [[30, 45], [110, 10]],
-                        [[130, -30], [110, 10]],
-                        [[100, 40], [110, 10]]
-                    ]
+                    lineStyle: { width: 2, color: '#ffa502', opacity: 0.4 },
+                    data: linesData
                 }]
             };
             currentMapChart.setOption(option);
@@ -969,6 +966,9 @@
 
             // Default view
             switchMapTable('blocks');
+
+            // Update Map with real data
+            switchView(currentViewType);
 
             updateMainChart(data);
         }, 'json');

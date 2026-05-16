@@ -11,6 +11,7 @@ import re
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + "/class/core")
 import slemp
+sys.path.append("/Users/basoro/SLEMP/server/panel/lib/python3.9/site-packages")
 
 app_debug = False
 if slemp.isAppleSystem():
@@ -1549,15 +1550,50 @@ def get_index_data():
         "rules": range_rules if date_filter != "1=1" else total_data.get('rules', {})
     }
     
-    # TOP 10 Attack IPs
+    # TOP 10 Attack IPs with GeoIP
     ip_ranking = conn.where(date_filter, ()).field('ip,count(*)').group('ip').order('count(*) desc').limit('10').select()
+    
+    map_data = []
+    reader = None
+    debug_log = "/tmp/waf_geoip.log"
+    try:
+        import geoip2.database
+        geoip_path = '/Users/basoro/SLEMP/server/op_waf/GeoLite2-City.mmdb'
+        if os.path.exists(geoip_path):
+            reader = geoip2.database.Reader(geoip_path)
+        else:
+            with open(debug_log, "a") as f: f.write(f"GeoIP file not found at: {geoip_path}\n")
+    except Exception as e:
+        with open(debug_log, "a") as f: f.write(f"GeoIP Import/Init Error: {str(e)}\n")
+
     for ip in ip_ranking:
         # Robust key detection for 'count'
         for k in list(ip.keys()):
             if 'count' in k.lower():
                 ip['count'] = ip[k]
+        
         ip['location'] = 'Local/Network'
+        if reader:
+            try:
+                ip_addr = str(ip.get('ip', '')).strip()
+                if ip_addr:
+                    response = reader.city(ip_addr)
+                    if response.country.name:
+                        ip['location'] = response.country.name
+                    
+                    if response.location.latitude is not None:
+                        map_data.append({
+                            "name": response.city.name or response.country.name or ip_addr,
+                            "lat": response.location.latitude,
+                            "lng": response.location.longitude,
+                            "count": ip['count'],
+                            "ip": ip_addr
+                        })
+            except Exception as e:
+                with open(debug_log, "a") as f: f.write(f"Lookup Error for {ip.get('ip')}: {str(e)}\n")
     
+    if reader: reader.close()
+
     # TOP 10 Attacked Domains
     domain_ranking = conn.where(date_filter, ()).field('domain,count(*)').group('domain').order('count(*) desc').limit('10').select()
     for d in domain_ranking:
@@ -1636,7 +1672,8 @@ def get_index_data():
         "domain_ranking": domain_ranking,
         "site_ranking": site_ranking,
         "url_ranking": url_ranking,
-        "chart_data": chart_data
+        "chart_data": chart_data,
+        "map_data": map_data
     }
     return slemp.returnJson(True, 'ok', data)
 
