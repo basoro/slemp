@@ -994,18 +994,18 @@ function wafScreen(){
         con += '<div class="wavbox alert alert-info" style="margin-right:16px">Perlindungan Keamanan<span>'+cos_day+'</span>Hari</div>';
 
         con += '<div class="screen">\
-            <div class="line"><span class="name">POSTPenetrasi</span><span class="val">'+rdata.rules.post+'</span></div>\
-            <div class="line"><span class="name">GETPenetrasi</span><span class="val">'+rdata.rules.args+'</span></div>\
-            <div class="line"><span class="name">CCSerangan</span><span class="val">'+rdata.rules.cc+'</span></div>\
-            <div class="line"><span class="name">JahatUser-Agent</span><span class="val">'+rdata.rules.user_agent+'</span></div>\
-            <div class="line"><span class="name">CookiePenetrasi</span><span class="val">'+rdata.rules.cookie+'</span></div>\
-            <div class="line"><span class="name">Pemindaian jahat</span><span class="val">'+rdata.rules.scan+'</span></div>\
+            <div class="line"><span class="name">POSTPenetrasi</span><span class="val">'+(rdata.rules.post || 0)+'</span></div>\
+            <div class="line"><span class="name">GETPenetrasi</span><span class="val">'+(rdata.rules.args || 0)+'</span></div>\
+            <div class="line"><span class="name">CCSerangan</span><span class="val">'+(rdata.rules.cc || 0)+'</span></div>\
+            <div class="line"><span class="name">JahatUser-Agent</span><span class="val">'+(rdata.rules.user_agent || 0)+'</span></div>\
+            <div class="line"><span class="name">CookiePenetrasi</span><span class="val">'+(rdata.rules.cookie || 0)+'</span></div>\
+            <div class="line"><span class="name">Pemindaian jahat</span><span class="val">'+(rdata.rules.scan || 0)+'</span></div>\
             <div class="line"><span class="name">JahatHEADPermintaan</span><span class="val">0</span></div>\
-            <div class="line"><span class="name">URIIntersepsi kustom</span><span class="val">'+rdata.rules.url+'</span></div>\
-            <div class="line"><span class="name">URIProteksi</span><span class="val">'+rdata.rules.args+'</span></div>\
-            <div class="line"><span class="name">Unggah file jahat</span><span class="val">'+rdata.rules.upload_ext+'</span></div>\
-            <div class="line"><span class="name">Ekstensi yang dilarang</span><span class="val">'+rdata.rules.path+'</span></div>\
-            <div class="line"><span class="name">LarangPHPSkrip</span><span class="val">'+rdata.rules.php_path+'</span></div>\
+            <div class="line"><span class="name">URIIntersepsi kustom</span><span class="val">'+(rdata.rules.url || 0)+'</span></div>\
+            <div class="line"><span class="name">URIProteksi</span><span class="val">'+(rdata.rules.args || 0)+'</span></div>\
+            <div class="line"><span class="name">Unggah file jahat</span><span class="val">'+(rdata.rules.upload_ext || 0)+'</span></div>\
+            <div class="line"><span class="name">Ekstensi yang dilarang</span><span class="val">'+(rdata.rules.path || 0)+'</span></div>\
+            <div class="line"><span class="name">LarangPHPSkrip</span><span class="val">'+(rdata.rules.php_path || 0)+'</span></div>\
             </div>';
 
         con += '<div style="width:660px;"><ul class="help-info-text c7">\
