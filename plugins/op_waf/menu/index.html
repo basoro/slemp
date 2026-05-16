@@ -839,7 +839,7 @@
             let html = '';
             ipRank.forEach(item => {
                 html += `<tr>
-                    <td><a href="#" class="btlink">${item.ip}</a></td>
+                    <td><a href="javascript:showBlockIPModal('${item.ip}')" class="btlink">${item.ip}</a></td>
                     <td class="text-center">${item.count}</td>
                     <td class="text-center">--</td>
                     <td>${item.location || 'Unknown'}</td>
@@ -858,13 +858,81 @@
             let ipHtml = '';
             ipRank.forEach(ip => {
                 ipHtml += `<tr>
-                    <td><a href="#" class="btlink">${ip.ip}</a></td>
+                    <td><a href="javascript:showBlockIPModal('${ip.ip}')" class="btlink">${ip.ip}</a></td>
                     <td class="text-center">${ip.count}</td>
                     <td>${ip.location || 'Unknown'}</td>
                 </tr>`;
             });
             $('#attack_ip_list').html(ipHtml || '<tr><td colspan="3" class="text-center">No data</td></tr>');
         }
+    }
+
+    function showBlockIPModal(ip) {
+        const c_class = ip.split('.').slice(0, 3).join('.') + '.0/24';
+        layer.open({
+            type: 1,
+            title: 'Add to IP blacklist',
+            area: '400px',
+            closeBtn: 1,
+            shadeClose: true,
+            content: `
+                <div class="pd20">
+                    <div style="display:flex; align-items:center; margin-bottom:20px;">
+                        <i class="glyphicon glyphicon-warning-sign" style="font-size:40px; color:#f39c12; margin-right:20px;"></i>
+                        <div style="font-size:16px;">Do you want to add <span style="color:#e74c3c; font-weight:bold;">${ip}</span> to the IP blacklist?</div>
+                    </div>
+                    <div style="margin-left:60px;">
+                        <label style="font-weight:normal; cursor:pointer;">
+                            <input type="checkbox" id="block_c_class" style="vertical-align:middle; margin-top:-2px;"> Do you pull the entire IP section? (${c_class})
+                        </label>
+                    </div>
+                    <div class="text-right mt20" style="margin-top:30px;">
+                        <button class="btn btn-default btn-sm" onclick="layer.closeAll()">Cancel</button>
+                        <button class="btn btn-primary btn-sm" id="confirm_block_btn">Confirm</button>
+                    </div>
+                </div>
+            `,
+            success: function(layero, index) {
+                $('#confirm_block_btn').click(function() {
+                    const isCClass = $('#block_c_class').is(':checked');
+                    doBlockIP(ip, isCClass, index);
+                });
+            }
+        });
+    }
+
+    function doBlockIP(ip, isCClass, layerIndex) {
+        let start_ip = ip;
+        let end_ip = ip;
+        
+        if (isCClass) {
+            const parts = ip.split('.');
+            start_ip = `${parts[0]}.${parts[1]}.${parts[2]}.0`;
+            end_ip = `${parts[0]}.${parts[1]}.${parts[2]}.255`;
+        }
+
+        const loadT = layer.msg('Blocking IP...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+        $.post('/plugins/run', { 
+            name: 'op_waf', 
+            func: 'add_ip_black', 
+            args: JSON.stringify({ start_ip: start_ip, end_ip: end_ip }) 
+        }, function(res) {
+            layer.close(loadT);
+            let rdata = res;
+            if (typeof res === 'string') {
+                try { rdata = JSON.parse(res); } catch(e) {}
+            }
+            if (rdata.data && typeof rdata.data === 'string') {
+                try { rdata = JSON.parse(rdata.data); } catch(e) {}
+            }
+
+            if (rdata.status) {
+                layer.close(layerIndex);
+                layer.msg(rdata.msg || 'Success', { icon: 1 });
+            } else {
+                layer.msg(rdata.msg || 'Failed to block IP', { icon: 2 });
+            }
+        });
     }
 
     function loadDashboardData(dateStr) {
