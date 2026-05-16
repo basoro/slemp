@@ -1,4 +1,4 @@
-local waf_root = "{$WAF_ROOT}"
+local waf_root = "/Users/basoro/SLEMP/server/panel/plugins/op_waf"
 local waf_cpath = waf_root.."/waf/lua/?.lua;"..waf_root.."/waf/conf/?.lua;"..waf_root.."/waf/html/?.lua;"
 local waf_sopath = waf_root.."/waf/conf/?.so;"
 
@@ -27,8 +27,8 @@ local ngx_match = ngx.re.find
 
 local debug_mode = false
 
-local cpath = waf_root.."/waf/"
-local log_dir = waf_root.."/logs/"
+local cpath = "/Users/basoro/SLEMP/server/op_waf/waf/"
+local log_dir = "/Users/basoro/SLEMP/server/op_waf/logs/"
 local rpath = cpath.."/rule/"
 
 function _M.new(self)
@@ -516,11 +516,40 @@ end
 -- Sinkronisasi info statistik asinkron terjadwal
 function _M.timer_stats_total(self)
     local total_path = self.cpath .. 'total.json'
-    local total = ngx.shared.waf_limit:get(total_path)
-    if not total then
-        return false
+    local total_json = ngx.shared.waf_limit:get(total_path)
+    
+    local total = {}
+    if total_json then
+        total = json.decode(total_json)
+    else
+        local tbody = self:read_file_body(total_path)
+        if tbody then total = json.decode(tbody) end
     end
-    return self:write_file_clear(total_path,total)
+    
+    if not total then total = { total_requests = 0, total = 0, sites = {}, rules = {} } end
+
+    -- Sync Global Total Requests
+    local global_req = ngx.shared.waf_limit:get("total_requests_count") or 0
+    if global_req > 0 then
+        total['total_requests'] = (total['total_requests'] or 0) + global_req
+        ngx.shared.waf_limit:incr("total_requests_count", -global_req)
+    end
+    
+    -- Sync Site Requests
+    if total['sites'] then
+        for site, _ in pairs(total['sites']) do
+            local site_key = "site_req_count:" .. site
+            local site_req = ngx.shared.waf_limit:get(site_key) or 0
+            if site_req > 0 then
+                total['sites'][site]['total_requests'] = (total['sites'][site]['total_requests'] or 0) + site_req
+                ngx.shared.waf_limit:incr(site_key, -site_req)
+            end
+        end
+    end
+
+    local final_json = json.encode(total)
+    ngx.shared.waf_limit:set(total_path, final_json)
+    return self:write_file_clear(total_path, final_json)
 end
 
 function _M.stats_total(self, name, rule)
@@ -537,22 +566,38 @@ function _M.stats_total(self, name, rule)
 
     if not total then return false end
 
-    -- Mulai menghitung
+    -- Intercepted stats
     if not total['sites'] then total['sites'] = {} end
     if not total['sites'][server_name] then total['sites'][server_name] = {} end
     if not total['sites'][server_name][name] then total['sites'][server_name][name] = 0 end
     if not total['rules'] then total['rules'] = {} end
     if not total['rules'][name] then total['rules'][name] = 0 end
     if not total['total'] then total['total'] = 0 end
+    
     total['total'] = total['total'] + 1
     total['sites'][server_name][name] = total['sites'][server_name][name] + 1
     total['rules'][name] = total['rules'][name] + 1
 
     ngx.shared.waf_limit:set(total_path,json.encode(total))
+end
 
-    -- Eksekusi asinkron
-    -- sekarang diubah keinit_workder.lua Eksekusi terjadwal
-    -- ngx.timer.every(3, timer_stats_total_log)
+-- New function to track every request
+function _M.stats_all(self)
+    local server_name = self.params['server_name']
+    local uri = self.params['uri']
+    local ip = self.params['ip']
+    
+    -- Increment total request counters in shared memory (fast)
+    ngx.shared.waf_limit:incr("total_requests_count", 1, 0)
+    ngx.shared.waf_limit:incr("site_req_count:" .. server_name, 1, 0)
+    
+    -- Track top URLs (simplified for performance)
+    -- We only track top URLs in shared dict, then sync later
+    local url_key = "url_count:" .. server_name .. ":" .. uri
+    local ok, err = ngx.shared.waf_limit:incr(url_key, 1)
+    if not ok then
+        ngx.shared.waf_limit:set(url_key, 1, 3600) -- expire in 1 hour
+    end
 end
 
 

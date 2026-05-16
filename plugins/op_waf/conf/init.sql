@@ -25,3 +25,29 @@ CREATE INDEX server_name_idx ON logs (`server_name`);
 CREATE INDEX status_code_idx ON logs (`status_code`);
 CREATE INDEX all_union_idx ON logs (`status_code`, `time`, `ip`, `domain`, `server_name`, `method`, `uri`);
 
+-- Hourly statistics for each site
+CREATE TABLE IF NOT EXISTS `site_stats` (
+    `time` INTEGER,
+    `site` TEXT,
+    `total_requests` INTEGER DEFAULT 0,
+    `intercepted` INTEGER DEFAULT 0,
+    PRIMARY KEY(`time`, `site`)
+);
+
+-- Daily/Hourly statistics for top URLs
+CREATE TABLE IF NOT EXISTS `url_stats` (
+    `time` INTEGER,
+    `url` TEXT,
+    `site` TEXT,
+    `count` INTEGER DEFAULT 0,
+    PRIMARY KEY(`time`, `url`, `site`)
+);
+
+-- Daily/Hourly statistics for top IPs (including non-blocked)
+CREATE TABLE IF NOT EXISTS `ip_stats` (
+    `time` INTEGER,
+    `ip` TEXT,
+    `count` INTEGER DEFAULT 0,
+    PRIMARY KEY(`time`, `ip`)
+);
+

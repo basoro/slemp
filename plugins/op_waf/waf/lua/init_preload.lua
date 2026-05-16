@@ -1,4 +1,4 @@
-local waf_root = "{$WAF_ROOT}"
+local waf_root = "/Users/basoro/SLEMP/server/panel/plugins/op_waf"
 local waf_cpath = waf_root.."/waf/lua/?.lua;"..waf_root.."/waf/conf/?.lua;"..waf_root.."/waf/html/?.lua;"
 local waf_sopath = waf_root.."/waf/conf/?.so;"
 

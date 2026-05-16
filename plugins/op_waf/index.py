@@ -1483,6 +1483,74 @@ def installPreInspection():
     return 'ok'
 
 
+def get_index_data():
+    # 1. Get Overview Stats from total.json
+    total_path = getJsonPath('total')
+    total_data = {"total": 0, "rules": {}, "sites": {}}
+    if os.path.exists(total_path):
+        try:
+            total_data = json.loads(slemp.readFile(total_path))
+        except:
+            pass
+    
+    # 2. Get Rankings from waf.db
+    conn = pSqliteDb('logs')
+    
+    # Update Overview Counters
+    overview_data = {
+        "total": total_data.get('total_requests', 0),
+        "blocked": total_data.get('total', 0),
+        "rules": total_data.get('rules', {})
+    }
+    
+    # TOP 10 Attack IPs
+    ip_ranking = conn.field('ip,count(*)').group('ip').order('count(*) desc').limit('10').select()
+    for ip in ip_ranking:
+        # Robust key detection for 'count'
+        for k in list(ip.keys()):
+            if 'count' in k.lower():
+                ip['count'] = ip[k]
+        ip['location'] = 'Local/Network'
+    
+    # TOP 10 Attacked Domains
+    domain_ranking = conn.field('domain,count(*)').group('domain').order('count(*) desc').limit('10').select()
+    for d in domain_ranking:
+        for k in list(d.keys()):
+            if 'count' in k.lower():
+                d['count'] = d[k]
+    
+    # 3. TOP Sites from total.json (Traffic Ranking)
+    site_ranking = []
+    if 'sites' in total_data:
+        for site in total_data['sites']:
+            site_ranking.append({
+                "name": site,
+                "total": total_data['sites'][site].get('total_requests', 0),
+                "blocked": total_data['sites'][site].get('log', 0)
+            })
+    site_ranking = sorted(site_ranking, key=lambda x: x['total'], reverse=True)[:10]
+
+    # 4. TOP Attacked URLs (Visited Pages Proxy)
+    url_ranking = conn.field('uri,count(*)').group('uri').order('count(*) desc').limit('10').select()
+    for u in url_ranking:
+        u['name'] = u.get('uri', 'Unknown')
+        for k in list(u.keys()):
+            if 'count' in k.lower():
+                u['total'] = u[k]
+
+    # Get IP attribution
+    for ip in ip_ranking:
+        ip['location'] = 'Local/Network'
+    
+    data = {
+        "overview": overview_data,
+        "ip_ranking": ip_ranking,
+        "domain_ranking": domain_ranking,
+        "site_ranking": site_ranking,
+        "url_ranking": url_ranking
+    }
+    return slemp.returnJson(True, 'ok', data)
+
 if __name__ == "__main__":
     func = sys.argv[1]
     if func == 'status':
@@ -1581,5 +1649,7 @@ if __name__ == "__main__":
         print(cleanDropIp())
     elif func == 'test_run':
         print(testRun())
+    elif func == 'get_index_data':
+        print(get_index_data())
     else:
         print('error')

@@ -19,9 +19,9 @@
                 <div class="stat-header">
                     <span class="dot"></span> Request
                 </div>
-                <div class="stat-value">189,471</div>
-                <div class="stat-trend down"><i class="glyphicon glyphicon-arrow-down"></i> -16.36%</div>
-                <div class="stat-footer text-muted">Yesterday: 226530</div>
+                <div class="stat-value" id="total_requests">0</div>
+                <div class="stat-trend text-muted">Real-time total</div>
+                <div class="stat-footer text-muted">Across all sites</div>
                 <div class="bg-icon"><i class="glyphicon glyphicon-globe"></i></div>
             </div>
 
@@ -29,9 +29,9 @@
                 <div class="stat-header">
                     <span class="dot"></span> Malicious request
                 </div>
-                <div class="stat-value">72</div>
-                <div class="stat-trend down"><i class="glyphicon glyphicon-arrow-down"></i> -20.88%</div>
-                <div class="stat-footer text-muted">Yesterday: 91</div>
+                <div class="stat-value" id="total_blocked">0</div>
+                <div class="stat-trend text-muted">Total intercepted</div>
+                <div class="stat-footer text-muted">Based on security rules</div>
                 <div class="bg-icon"><i class="glyphicon glyphicon-flash"></i></div>
             </div>
 
@@ -533,12 +533,6 @@
 <script src="https://cdn.jsdelivr.net/npm/echarts-gl/dist/echarts-gl.min.js"></script>
 
 <script type="text/javascript">
-    $(document).ready(function () {
-        initSmallCharts();
-        initMainChart();
-        initGlobe();
-        loadMockData();
-    });
 
     function initSmallCharts() {
         const commonOption = {
@@ -786,130 +780,145 @@
         }
     }
 
-    function switchMapTable(type) {
-        // Switch active button
-        $('#map_type_btns .btn-pill').removeClass('active');
-        if (type === 'requests') {
-            $('#map_type_btns .btn-pill:first').addClass('active');
-            // Update Table Head
-            $('#ip_table_head').html(`<tr>
-            <th>Req IP</th>
-            <th class="text-center">Req count</th>
-            <th class="text-center">Traffic</th>
-            <th>IP attribution</th>
-        </tr>`);
+    let dashboardData = null;
 
-            // Load Requests Data from Image
-            const data = [
-                { ip: '114.122.213.6', count: 572, traffic: '3.42 MB', loc: 'Indonesia' },
-                { ip: '39.194.3.19', count: 529, traffic: '1.26 MB', loc: 'Indonesia' },
-                { ip: '191.234.164.241', count: 503, traffic: '13.57 MB', loc: 'Brazil' },
-                { ip: '39.194.4.142', count: 396, traffic: '1.05 MB', loc: 'Indonesia' },
-                { ip: '68.183.87.16', count: 251, traffic: '9.27 MB', loc: 'India' },
-                { ip: '114.122.209.98', count: 218, traffic: '14.15 MB', loc: 'Indonesia' },
-                { ip: '39.194.1.93', count: 108, traffic: '1.00 MB', loc: 'Indonesia' },
-                { ip: '45.148.10.21', count: 75, traffic: '2.24 MB', loc: 'Hongkong,China' }
-            ];
+    function switchMapTable(type) {
+        if (!dashboardData) return;
+        
+        const ipRank = dashboardData.ip_ranking || [];
+        
+        if (type === 'requests') {
+            $('#map_type_btns .btn-pill:first').addClass('active').siblings().removeClass('active');
+            $('#ip_table_head').html(`<tr>
+                <th>Request IP</th>
+                <th class="text-center">Requests</th>
+                <th class="text-center">Traffic</th>
+                <th>IP attribution</th>
+            </tr>`);
 
             let html = '';
-            data.forEach(item => {
+            ipRank.forEach(item => {
                 html += `<tr>
-                <td><a href="#" class="btlink">${item.ip}</a></td>
-                <td class="text-center">${item.count}</td>
-                <td class="text-center">${item.traffic}</td>
-                <td>${item.loc}</td>
-            </tr>`;
+                    <td><a href="#" class="btlink">${item.ip}</a></td>
+                    <td class="text-center">${item.count}</td>
+                    <td class="text-center">--</td>
+                    <td>${item.location || 'Unknown'}</td>
+                </tr>`;
             });
-            $('#attack_ip_list').html(html);
+            $('#attack_ip_list').html(html || '<tr><td colspan="4" class="text-center">No data</td></tr>');
 
         } else {
-            $('#map_type_btns .btn-pill:last').addClass('active');
-            // Update Table Head
+            $('#map_type_btns .btn-pill:last').addClass('active').siblings().removeClass('active');
             $('#ip_table_head').html(`<tr>
-            <th>Attack IP</th>
-            <th class="text-center">Attack times</th>
-            <th>IP attribution</th>
-        </tr>`);
+                <th>Attack IP</th>
+                <th class="text-center">Attack times</th>
+                <th>IP attribution</th>
+            </tr>`);
 
-            // Load Blocks Data
-            const ips = [
-                { ip: '45.154.98.198', count: 24, loc: 'Germany' },
-                { ip: '47.84.83.221', count: 14, loc: 'United States' },
-                { ip: '208.84.100.251', count: 9, loc: 'United States' },
-                { ip: '45.148.10.62', count: 6, loc: 'Hongkong,China' },
-                { ip: '91.92.241.254', count: 3, loc: 'Bulgaria' },
-                { ip: '134.199.169.199', count: 3, loc: 'Canada' },
-                { ip: '104.248.149.80', count: 3, loc: 'Singapore' },
-                { ip: '114.122.212.109', count: 2, loc: 'Indonesia' },
-                { ip: '77.68.2.199', count: 1, loc: 'United Kingdom' },
-                { ip: '64.236.133.96', count: 1, loc: 'United States' }
-            ];
             let ipHtml = '';
-            ips.forEach(ip => {
-                ipHtml += `<tr><td><a href="#" class="btlink">${ip.ip}</a></td><td class="text-center">${ip.count}</td><td>${ip.loc}</td></tr>`;
+            ipRank.forEach(ip => {
+                ipHtml += `<tr>
+                    <td><a href="#" class="btlink">${ip.ip}</a></td>
+                    <td class="text-center">${ip.count}</td>
+                    <td>${ip.location || 'Unknown'}</td>
+                </tr>`;
             });
-            $('#attack_ip_list').html(ipHtml);
+            $('#attack_ip_list').html(ipHtml || '<tr><td colspan="3" class="text-center">No data</td></tr>');
         }
     }
 
-    function loadMockData() {
-        // Initial load
-        switchMapTable('blocks');
+    function loadDashboardData() {
+        $.post('/plugins/run', {name:'op_waf', func:'get_index_data', args:JSON.stringify({})}, function(res) {
+            if (!res || !res.status) return;
+            
+            let data = res.data;
+            if (typeof data === 'string') {
+                try {
+                    data = JSON.parse(data);
+                } catch(e) { return; }
+            }
+            
+            if (!data) return;
+            
+            // Handle double-nested data from Python's returnJson
+            if (data.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
+                data = data.data;
+            }
+            
+            console.log("WAF Dashboard Data (Extracted):", data);
+            dashboardData = data;
 
-        // Domains Ranking
-        const domains = [
-            { name: 'rshdbarabai.com', val: 43 },
-            { name: 'simrs.rshdbara...', val: 22 },
-            { name: 'webmail.rshdb...', val: 3 },
-            { name: 'mail.rshdbarabai...', val: 1 }
-        ];
-        let html = '';
-        domains.forEach((d, i) => {
-            html += `<div class="list-item">
-            <div class="list-rank ${i < 3 ? 'top' : ''}">${i + 1}</div>
-            <div class="list-info">
-                <div class="list-name">${d.name} <span>${d.val}</span></div>
-                <div class="progress"><div class="progress-bar" style="width: ${Math.min(d.val * 2, 100)}%"></div></div>
-            </div>
-        </div>`;
-        });
-        $('#attacked_domains').html(html);
+            // Update Overview Counters
+            const overview = data.overview || { total: 0, blocked: 0 };
+            $('#total_requests').text(overview.total || 0);
+            $('#total_blocked').text(overview.blocked || 0);
 
-        // Bottom Rankings
-        const rankings = [
-            { name: '114.122.208.36', val: 126 },
-            { name: '39.194.2.180', val: 816 },
-            { name: '114.123.38.210', val: 1841 },
-            { name: '39.194.2.215', val: 227 }
-        ];
-        let rankHtml = '';
-        rankings.forEach((r, i) => {
-            rankHtml += `<div class="list-item">
-            <div class="list-rank ${i < 3 ? 'top' : ''}">${i + 1}</div>
-            <div class="list-info">
-                <div class="list-name">${r.name} <span>${r.val}</span></div>
-                <div class="progress"><div class="progress-bar" style="width: ${Math.min(r.val / 20, 100)}%; background-color: #3498db"></div></div>
-            </div>
-        </div>`;
-        });
-        $('#traffic_ranking').html(rankHtml);
+            // Domains Ranking
+            let domainHtml = '';
+            const domainRank = data.domain_ranking || [];
+            const maxDomain = domainRank.length > 0 ? (domainRank[0].count || 1) : 1;
+            domainRank.forEach((d, i) => {
+                const percent = Math.min((d.count / maxDomain) * 100, 100);
+                domainHtml += `<div class="list-item">
+                    <div class="list-rank ${i < 3 ? 'top' : ''}">${i + 1}</div>
+                    <div class="list-info">
+                        <div class="list-name">${d.domain} <span>${d.count}</span></div>
+                        <div class="progress"><div class="progress-bar" style="width: ${percent}%"></div></div>
+                    </div>
+                </div>`;
+            });
+            $('#attacked_domains').html(domainHtml || '<div class="text-center pd20">No data yet</div>');
 
-        const pages = [
-            { name: '/service-worke...', val: 8023 },
-            { name: '/api/apam/', val: 7262 },
-            { name: '/admin/rawat_i...', val: 4527 },
-            { name: '/admin/rawat_i...', val: 3904 }
-        ];
-        let pageHtml = '';
-        pages.forEach((p, i) => {
-            pageHtml += `<div class="list-item">
-            <div class="list-rank ${i < 3 ? 'top' : ''}">${i + 1}</div>
-            <div class="list-info">
-                <div class="list-name">${p.name} <span>${p.val}</span></div>
-                <div class="progress"><div class="progress-bar" style="width: ${Math.min(p.val / 80, 100)}%; background-color: #1e293b"></div></div>
-            </div>
-        </div>`;
-        });
-        $('#visited_pages').html(pageHtml);
+            // Traffic Ranking (Sites)
+            let siteHtml = '';
+            const siteRank = data.site_ranking || [];
+            const maxSite = siteRank.length > 0 ? (siteRank[0].total || 1) : 1;
+            siteRank.forEach((s, i) => {
+                const percent = Math.min((s.total / maxSite) * 100, 100);
+                siteHtml += `<div class="list-item">
+                    <div class="list-rank ${i < 3 ? 'top' : ''}">${i + 1}</div>
+                    <div class="list-info">
+                        <div class="list-name">${s.name} <span>${s.total}</span></div>
+                        <div class="progress"><div class="progress-bar" style="width: ${percent}%; background-color: #3498db"></div></div>
+                    </div>
+                </div>`;
+            });
+            $('#traffic_ranking').html(siteHtml || '<div class="text-center pd20">No data yet</div>');
+
+            // Visited Pages
+            let urlHtml = '';
+            const urlRank = data.url_ranking || [];
+            const maxUrl = urlRank.length > 0 ? (urlRank[0].total || 1) : 1;
+            urlRank.forEach((u, i) => {
+                const percent = Math.min((u.total / maxUrl) * 100, 100);
+                urlHtml += `<div class="list-item">
+                    <div class="list-rank ${i < 3 ? 'top' : ''}">${i + 1}</div>
+                    <div class="list-info">
+                        <div class="list-name">${u.name} <span>${u.total}</span></div>
+                        <div class="progress"><div class="progress-bar" style="width: ${percent}%; background-color: #1e293b"></div></div>
+                    </div>
+                </div>`;
+            });
+            $('#visited_pages').html(urlHtml || '<div class="text-center pd20">No data yet</div>');
+
+            // Default view
+            switchMapTable('blocks');
+            
+            updateMainChart(data);
+        }, 'json');
     }
+
+    function updateMainChart(data) {
+        // Optional: Update real-time charts here
+    }
+
+    // Initialize Dashboard
+    $(document).ready(function() {
+        initSmallCharts();
+        initMainChart();
+        loadDashboardData();
+        
+        // Initial map view - Default to 3D Globe
+        initGlobe();
+    });
 </script>

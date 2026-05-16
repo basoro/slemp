@@ -162,7 +162,7 @@ local MMDB_DATA_TYPE_FLOAT                          =   15
 
 -- copy from https://github.com/lilien1010/lua-resty-maxminddb/blob/f96633e2428f8f7bcc1e2a7a28b747b33233a8db/resty/maxminddb.lua#L136-L138
 -- you should install the libmaxminddb to your system
-local maxm                                          = ffi.load('{$WAF_ROOT}/waf/mmdb/lib/libmaxminddb.{$MMDB_FILE_SUFFIX}')
+local maxm                                          = ffi.load('/Users/basoro/SLEMP/server/panel/plugins/op_waf/waf/mmdb/lib/libmaxminddb.{$MMDB_FILE_SUFFIX}')
 --https://github.com/maxmind/libmaxminddb
 local mmdb                                          = ffi_new('MMDB_s')
 local initted                                       = false

@@ -567,7 +567,7 @@ local function initmaxminddb()
     if type(geo)=='number' then return nil end
     local ok2,data=pcall(function()
         if not geo.initted() then
-            geo.init("{$WAF_ROOT}/GeoLite2-City.mmdb")
+            geo.init("/Users/basoro/SLEMP/server/panel/plugins/op_waf/GeoLite2-City.mmdb")
         end
     end )
     if not ok2 then
@@ -657,6 +657,7 @@ local function area_limit(overall_country, server_name, status)
 end
 
 function run_app_waf()
+    C:stats_all()
     min_route()
     -- C:D("min_route")
 
