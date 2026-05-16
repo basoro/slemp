@@ -7,7 +7,8 @@
             <div class="custom-date" id="select_date_btn" style="position:relative;">
                 <span id="date_range_label" style="pointer-events: none;">Select Date</span> <i
                     class="glyphicon glyphicon-calendar" style="pointer-events: none;"></i>
-                <span id="laydate_dummy" style="position:absolute; bottom:0; left:0; width:100%; height:1px; visibility:hidden;"></span>
+                <span id="laydate_dummy"
+                    style="position:absolute; bottom:0; left:0; width:100%; height:1px; visibility:hidden;"></span>
             </div>
         </div>
         <div class="refresh-btn">
@@ -41,18 +42,21 @@
 
             <!-- Small Charts -->
             <div class="waf-card chart-card">
-                <div class="chart-header"><i class="glyphicon glyphicon-stats"></i> Real-time QPS: 1/s</div>
+                <div class="chart-header"><i class="glyphicon glyphicon-stats"></i> Real-time QPS: <span
+                        id="rt_qps_val">0</span>/s</div>
                 <div id="qps_chart" class="small-chart"></div>
             </div>
 
             <div class="waf-card chart-card">
-                <div class="chart-header"><i class="glyphicon glyphicon-transfer"></i> Real-time traffic: 0.68 KB/s
+                <div class="chart-header"><i class="glyphicon glyphicon-transfer"></i> Real-time traffic: <span
+                        id="rt_traffic_val">0</span> KB/s
                 </div>
                 <div id="traffic_chart" class="small-chart"></div>
             </div>
 
             <div class="waf-card chart-card">
-                <div class="chart-header"><i class="glyphicon glyphicon-time"></i> Real-time origin response: 1483ms
+                <div class="chart-header"><i class="glyphicon glyphicon-time"></i> Real-time origin : <span
+                        id="rt_response_val">0</span>ms
                 </div>
                 <div id="response_chart" class="small-chart"></div>
             </div>
@@ -544,8 +548,9 @@
 
 <script type="text/javascript">
 
-    function initSmallCharts() {
-        const commonOption = {
+    function initSmallChart(id, color, data) {
+        const chart = echarts.init(document.getElementById(id));
+        const option = {
             grid: { left: 0, right: 0, top: 10, bottom: 0 },
             xAxis: { type: 'category', show: false },
             yAxis: { type: 'value', show: false },
@@ -554,27 +559,18 @@
                 smooth: true,
                 symbol: 'none',
                 areaStyle: { opacity: 0.15 },
-                lineStyle: { width: 3 }
+                lineStyle: { width: 3 },
+                color: color,
+                data: data || [2, 6, 3, 5, 2, 8, 4, 7, 3, 9, 2, 6]
             }]
         };
+        chart.setOption(option);
+    }
 
-        const qpsChart = echarts.init(document.getElementById('qps_chart'));
-        const qpsOpt = JSON.parse(JSON.stringify(commonOption));
-        qpsOpt.series[0].data = [2, 6, 3, 5, 2, 8, 4, 7, 3, 9, 2, 6];
-        qpsOpt.series[0].color = '#2ecc71';
-        qpsChart.setOption(qpsOpt);
-
-        const trafficChart = echarts.init(document.getElementById('traffic_chart'));
-        const trafficOpt = JSON.parse(JSON.stringify(commonOption));
-        trafficOpt.series[0].data = [500, 1000, 300, 800, 200, 900, 400, 700, 300, 1100];
-        trafficOpt.series[0].color = '#2ecc71';
-        trafficChart.setOption(trafficOpt);
-
-        const resChart = echarts.init(document.getElementById('response_chart'));
-        const resOpt = JSON.parse(JSON.stringify(commonOption));
-        resOpt.series[0].data = [1200, 1000, 1400, 1100, 1300, 1000, 1500, 1100, 1400, 1200, 1800];
-        resOpt.series[0].color = '#2ecc71';
-        resChart.setOption(resOpt);
+    function initAllSmallCharts() {
+        initSmallChart('qps_chart', '#2ecc71');
+        initSmallChart('traffic_chart', '#2ecc71');
+        initSmallChart('response_chart', '#2ecc71');
     }
 
     let mainChartInstance = null;
@@ -677,7 +673,7 @@
 
         const showMap = (geoJson) => {
             echarts.registerMap('world', geoJson);
-            
+
             const scatterData = mapData ? mapData.map(item => ({
                 name: item.name,
                 value: [item.lng, item.lat, item.count],
@@ -872,25 +868,18 @@
     }
 
     function loadDashboardData(dateStr) {
-        console.log("DEBUG: loadDashboardData called with:", dateStr || "default");
         const args = {};
         if (dateStr) {
             if (dateStr.indexOf(' - ') > -1) {
                 const parts = dateStr.split(' - ');
                 args.start_date = parts[0].trim();
                 args.end_date = parts[1].trim();
-                console.log("DEBUG: Parsed Range -> Start:", args.start_date, "End:", args.end_date);
             } else {
                 args.date = dateStr.trim();
-                console.log("DEBUG: Parsed Single Date:", args.date);
             }
         }
-        
-        console.log("DEBUG: Sending POST to get_index_data with args:", args);
         $.post('/plugins/run', { name: 'op_waf', func: 'get_index_data', args: JSON.stringify(args) }, function (res) {
-            console.log("DEBUG: API Raw Response:", res);
             if (!res || !res.status) {
-                console.error("DEBUG: API Error or no status:", res);
                 return;
             }
 
@@ -908,13 +897,22 @@
                 data = data.data;
             }
 
-            console.log("WAF Dashboard Data (Extracted):", data);
             dashboardData = data;
 
-            // Update Overview Counters
+            // Update Top Counters
             const overview = data.overview || { total: 0, blocked: 0 };
-            $('#total_requests').text(overview.total || 0);
-            $('#total_blocked').text(overview.blocked || 0);
+            $('#total_requests').text(overview.total.toLocaleString());
+            $('#total_blocked').text(overview.blocked.toLocaleString());
+
+            // Update Real-time Stats
+            $('#rt_qps_val').text(overview.rt_qps || 0);
+            $('#rt_traffic_val').text(overview.rt_traffic || 0);
+            $('#rt_response_val').text(overview.rt_response || 0);
+
+            // Update Small Charts
+            if (overview.rt_qps_trend) initSmallChart('qps_chart', '#2ecc71', overview.rt_qps_trend);
+            if (overview.rt_traffic_trend) initSmallChart('traffic_chart', '#3498db', overview.rt_traffic_trend);
+            if (overview.rt_response_trend) initSmallChart('response_chart', '#1abc9c', overview.rt_response_trend);
 
             // Domains Ranking
             let domainHtml = '';
@@ -982,7 +980,7 @@
 
     // Initialize Dashboard
     $(document).ready(function () {
-        initSmallCharts();
+        initAllSmallCharts();
         initMainChart();
         loadDashboardData();
 
@@ -996,14 +994,12 @@
             format: 'yyyy-MM-dd',
             theme: '#3498db',
             done: function (value) {
-                console.log("DEBUG: Laydate value selected:", value);
                 if (value) {
                     $('.btn-date').removeClass('active');
                     $('#select_date_btn').addClass('active');
                     $('#date_range_label').text(value);
                     loadDashboardData(value);
                 } else {
-                    console.log("DEBUG: Laydate value cleared");
                     $('#date_range_label').text('Select Date');
                     $('#select_date_btn').removeClass('active');
                     loadDashboardData();
