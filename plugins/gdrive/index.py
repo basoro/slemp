@@ -102,6 +102,8 @@ def isAuthApi():
 def getConf():
     if not isAuthApi():
         sign_in_url, state = gd.get_sign_in_url()
+        if not sign_in_url:
+            return mw.returnJson(False, "Belum diotorisasi: " + str(state))
         return mw.returnJson(False, "Belum diotorisasi!", {'auth_url': sign_in_url})
     return mw.returnJson(True, "OK")
 
@@ -202,7 +204,7 @@ def backupAllFunc(stype):
         return ''
 
     backup_dir = mw.getBackupDir()
-    run_dir = mw.getPanelDir()
+    run_dir = mw.getRunDir()
 
     stype = sys.argv[1]
     name = sys.argv[2]

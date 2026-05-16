@@ -147,8 +147,8 @@ plugins/openlitespeed
 plugins/tbot
 plugins/mtproxy
 plugins/zimg
-plugins/gdrive/credentials.json
-plugins/gdrive/token.json
+# plugins/gdrive/credentials.json
+# plugins/gdrive/token.json
 #plugins/webssh
 data/api.json
 data/hook_menu.json

@@ -111,8 +111,12 @@ class gdriveclient():
             #     return True
 
     def get_sign_in_url(self):
+        cred_file = self.__plugin_dir + '/credentials.json'
+        if not os.path.exists(cred_file):
+             return None, "File credentials.json tidak ditemukan di direktori plugin!"
+        
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-            self.__plugin_dir + '/credentials.json',
+            cred_file,
             scopes=self.__scpos)
         flow.redirect_uri = 'https://mlite.id'
         auth_url, state = flow.authorization_url(
@@ -136,8 +140,12 @@ class gdriveclient():
         if not state:
              return mw.returnJson(False, "State tidak ditemukan dalam URL")
 
+        cred_file = self.__plugin_dir + '/credentials.json'
+        if not os.path.exists(cred_file):
+             return mw.returnJson(False, "File credentials.json tidak ditemukan!")
+
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-            self.__plugin_dir + '/credentials.json',
+            cred_file,
             scopes=self.__scpos,
             state=state)
         
