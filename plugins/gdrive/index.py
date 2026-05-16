@@ -19,17 +19,12 @@ except ImportError:
 
 
 # print(sys.platform)
-if sys.platform != "darwin":
-    os.chdir("/Users/basoro/Desktop/SLEMP/server/panel")
+# dynamic path
+panel_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+os.chdir(panel_path)
 
-web_dir = os.getcwd() + "/web"
-if os.path.exists(web_dir):
-    sys.path.append(web_dir)
-    os.chdir(web_dir)
-
-sys.path.append(os.getcwd() + "/class/core")
+sys.path.append(panel_path + "/class/core")
 import slemp as mw
-import db
 
 app_debug = False
 if mw.isAppleSystem():
@@ -41,11 +36,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return panel_path + '/plugins/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return os.path.dirname(panel_path) + '/' + getPluginName()
 
 
 def in_array(name, arr=[]):
@@ -55,7 +50,8 @@ def in_array(name, arr=[]):
     return False
 
 
-sys.path.append(getPluginDir() + "/class")
+# add class path
+sys.path.append(panel_path + "/plugins/gdrive/class")
 from gdriveclient import gdriveclient
 
 

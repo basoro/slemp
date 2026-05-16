@@ -17,15 +17,12 @@ try:
 except ImportError:
     pass
 
-web_dir = os.getcwd() + "/web"
-if os.path.exists(web_dir):
-    sys.path.append(web_dir)
-    os.chdir(web_dir)
-
-sys.path.append(os.getcwd() + "/class/core")
+# dynamic path
+panel_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.append(panel_path + "/class/core")
 import slemp as mw
 
-gd_dir = mw.getServerDir() +'/gdrive/lib'
+gd_dir = os.path.dirname(panel_path) + '/gdrive/lib'
 cmd = 'ls '+gd_dir+' | grep python  | cut -d \\  -f 1 | awk \'END {print}\''
 info = mw.execShell(cmd)
 p = gd_dir +'/'+ info[0].strip() + "/site-packages"
