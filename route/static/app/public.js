@@ -1250,10 +1250,11 @@ function messageBox() {
 						</div>\
 					</div>\
 				</div>',
-		// UPDATED_BY_ANTIGRAVITY_v3
+		// UPDATED_BY_ANTIGRAVITY_v4
 		end: function() {
-			alert("Message box closed! Current URL: " + window.location.href);
+			console.log("DEBUG: Closing Message Box. URL check for 'soft': " + window.location.href.indexOf('soft'));
 			if (window.location.href.indexOf('soft') != -1) {
+				console.log("DEBUG: Reloading now...");
 				location.reload();
 			}
 		}

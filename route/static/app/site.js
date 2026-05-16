@@ -567,10 +567,10 @@ function domainEdit(id, name, msg, status) {
 				<td class='text-center'><a class='table-btn-del' href='javascript:;' onclick=\"delDomain(" + id + ",'" + name + "','" + domain[i].name + "','" + domain[i].port + "',1)\"><span class='glyphicon glyphicon-trash'></span></a></td>\
 				</tr>";
 		}
-		var bodyHtml = "<textarea id='newdomain' class='bt-input-text' style='height: 100px; width: 340px;padding:5px 10px;line-height:20px'></textarea>\
+		var bodyHtml = "<textarea id='newdomain' class='bt-input-text' style='height: 100px; width: 440px;padding:5px 10px;line-height:20px'></textarea>\
 								<input type='hidden' id='newport' value='80' />\
 								<button type='button' class='btn btn-success btn-sm pull-right' style='margin:30px 35px 0 0' onclick=\"domainAdd(" + id + ",'" + name + "',1)\">Add to</button>\
-							<div class='divtable mtb15' style='height:350px;overflow:auto'>\
+							<div class='divtable mtb15' style='height:450px;overflow:auto'>\
 								<table class='table table-hover' width='100%'>\
 								<thead><tr><th>"+ lan.site.domain + "</th><th width='70px'>Port</th><th width='50px' class='text-center'>Action</th></tr></thead>\
 								<tbody id='checkDomain'>" + echoHtml + "</tbody>\
@@ -580,7 +580,7 @@ function domainEdit(id, name, msg, status) {
 		if (msg != undefined) {
 			layer.msg(msg, { icon: status ? 1 : 5 });
 		}
-		var placeholder = "<div class='placeholder c9' style='left:28px;width:330px;top:16px;'>Isi nama domain di setiap baris, defaultnya adalah port 80<br>Metode analisis pan untuk menambahkan *.domain.com<br>Jika Anda menambahkan port lain, formatnya adalah www.domain.com:88</div>";
+		var placeholder = "<div class='placeholder c9' style='left:28px;width:430px;top:16px;pointer-events:none;font-size:12px;line-height:1.6;color:#bbb;'>Isi nama domain di setiap baris, defaultnya adalah port 80<br>Metode analisis pan untuk menambahkan *.domain.com<br>Jika Anda menambahkan port lain, formatnya adalah www.domain.com:88</div>";
 		$('#newdomain').after(placeholder);
 		$(".placeholder").click(function () {
 			$(this).hide();
