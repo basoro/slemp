@@ -2,6 +2,7 @@
 function owPost(method, args, callback){
     var loadT = layer.msg('Sedang mengambil...', { icon: 16, time: 0, shade: 0.3 });
     $.post('/plugins/run', {name:'op_waf', func:method, args:JSON.stringify(args)}, function(data) {
+        console.log('owPost response (' + method + '):', data);
         layer.close(loadT);
         if (!data.status){
             layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
@@ -30,6 +31,7 @@ function owPostN(method, args, callback){
 
 function getRuleByName(rule_name, callback){
     owPost('get_rule', {rule_name:rule_name}, function(data){
+        console.log('getRuleByName raw data:', data);
         callback(data);
     });
 }
@@ -791,8 +793,11 @@ function urlWhite(type) {
 // AmbilIPV4Daftar Hitam
 function getIpv4Address(callback){
     getRuleByName('ip_black', function(data){
+        console.log('getIpv4Address data:', data);
         var tmp = $.parseJSON(data.data);
+        console.log('getIpv4Address tmp:', tmp);
         var rdata = $.parseJSON(tmp.data);
+        console.log('getIpv4Address rdata:', rdata);
         callback(rdata);
     });
 }

@@ -871,24 +871,24 @@
         const c_class = ip.split('.').slice(0, 3).join('.') + '.0/24';
         layer.open({
             type: 1,
-            title: 'Add to IP blacklist',
-            area: '400px',
+            title: 'Tambahkan ke daftar hitam IP',
+            area: '420px',
             closeBtn: 1,
             shadeClose: true,
             content: `
                 <div class="pd20">
                     <div style="display:flex; align-items:center; margin-bottom:20px;">
                         <i class="glyphicon glyphicon-warning-sign" style="font-size:40px; color:#f39c12; margin-right:20px;"></i>
-                        <div style="font-size:16px;">Do you want to add <span style="color:#e74c3c; font-weight:bold;">${ip}</span> to the IP blacklist?</div>
+                        <div style="font-size:16px;">Apakah Anda ingin menambahkan <span style="color:#e74c3c; font-weight:bold;">${ip}</span> ke daftar hitam IP?</div>
                     </div>
                     <div style="margin-left:60px;">
                         <label style="font-weight:normal; cursor:pointer;">
-                            <input type="checkbox" id="block_c_class" style="vertical-align:middle; margin-top:-2px;"> Do you pull the entire IP section? (${c_class})
+                            <input type="checkbox" id="block_c_class" style="vertical-align:middle; margin-top:-2px;"> Blokir seluruh segmen IP ini? (${c_class})
                         </label>
                     </div>
                     <div class="text-right mt20" style="margin-top:30px;">
-                        <button class="btn btn-default btn-sm" onclick="layer.closeAll()">Cancel</button>
-                        <button class="btn btn-primary btn-sm" id="confirm_block_btn">Confirm</button>
+                        <button class="btn btn-default btn-sm" onclick="layer.closeAll()">Batal</button>
+                        <button class="btn btn-primary btn-sm" id="confirm_block_btn">Konfirmasi</button>
                     </div>
                 </div>
             `,
@@ -911,7 +911,7 @@
             end_ip = `${parts[0]}.${parts[1]}.${parts[2]}.255`;
         }
 
-        const loadT = layer.msg('Blocking IP...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+        const loadT = layer.msg('Sedang memblokir IP...', { icon: 16, time: 0, shade: [0.3, '#000'] });
         $.post('/plugins/run', { 
             name: 'op_waf', 
             func: 'add_ip_black', 
@@ -928,9 +928,9 @@
 
             if (rdata.status) {
                 layer.close(layerIndex);
-                layer.msg(rdata.msg || 'Success', { icon: 1 });
+                layer.msg(rdata.msg || 'Berhasil', { icon: 1 });
             } else {
-                layer.msg(rdata.msg || 'Failed to block IP', { icon: 2 });
+                layer.msg(rdata.msg || 'Gagal memblokir IP', { icon: 2 });
             }
         });
     }

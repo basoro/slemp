@@ -39,19 +39,23 @@ def getArgs():
     args = sys.argv[2:]
     tmp = {}
     if len(args) > 0:
+        import json
         try:
-            # Try parsing as JSON first (standard for modern SLEMP)
-            import json
             return json.loads(args[0])
         except:
-            # Fallback to original manual parsing logic
-            for i in range(len(args)):
+            # Fallback for {key:val} or key:val formats
+            for arg in args:
                 try:
-                    t = args[i].split(':', 1)
-                    if len(t) == 2:
-                        tmp[t[0]] = t[1]
-                    else:
-                        tmp[t[0]] = ""
+                    # Strip { and }
+                    clean_arg = arg.strip('{} ')
+                    # Split by comma if multiple pairs are in one arg
+                    pairs = clean_arg.split(',')
+                    for pair in pairs:
+                        t = pair.split(':', 1)
+                        if len(t) == 2:
+                            key = t[0].strip('\'" ')
+                            val = t[1].strip('\'" ')
+                            tmp[key] = val
                 except: pass
     return tmp
 
@@ -598,7 +602,12 @@ def getJsonPath(name):
 
 
 def getRuleJsonPath(name):
-    path = getServerDir() + "/waf/rule/" + name + ".json"
+    rule_dir = getServerDir() + "/waf/rule/"
+    if not os.path.exists(rule_dir):
+        os.makedirs(rule_dir)
+    path = rule_dir + name + ".json"
+    if not os.path.exists(path):
+        slemp.writeFile(path, '[]')
     return path
 
 
@@ -611,7 +620,11 @@ def getRule():
     rule_name = args['rule_name']
     fpath = getRuleJsonPath(rule_name)
     content = slemp.readFile(fpath)
-    return slemp.returnJson(True, 'ok', content)
+    if not content: content = '[]'
+    # The JS expects double parsing, so we must return a JSON string inside the data field
+    # which itself is inside the main response.
+    res_data = {"status": True, "msg": "ok", "data": content}
+    return json.dumps(res_data)
 
 
 def addRule():
@@ -619,28 +632,35 @@ def addRule():
     data = checkArgs(args, ['ruleName', 'ruleValue', 'ps'])
     if not data[0]:
         return data[1]
-
-    ruleValue = args['ruleValue']
-    ruleName = args['ruleName']
+    
+    rule_name = args['ruleName']
+    rule_value = args['ruleValue']
     ps = args['ps']
-
-    fpath = getRuleJsonPath(ruleName)
+    
+    fpath = getRuleJsonPath(rule_name)
     content = slemp.readFile(fpath)
     content = json.loads(content)
-
-    tmp_k = []
-    tmp_k.append(1)
-    tmp_k.append(ruleValue)
-    tmp_k.append(ps)
-    tmp_k.append(1)
-
-    content.append(tmp_k)
-
-    cjson = slemp.getJson(content)
-    slemp.writeFile(fpath, cjson)
-
+    
+    content.append({'rule': rule_value, 'ps': ps, 'status': True})
+    slemp.writeFile(fpath, json.dumps(content))
     setConfRestartWeb()
-    return slemp.returnJson(True, 'Berhasil diatur!', content)
+    return slemp.returnJson(True, 'Berhasil ditambahkan!')
+
+def getIpBlack():
+    fpath = getRuleJsonPath('ip_black')
+    content = slemp.readFile(fpath)
+    if not content: content = '[]'
+    res_data = {"status": True, "msg": "ok", "data": content}
+    return json.dumps(res_data)
+
+def getIpWhite():
+    fpath = getRuleJsonPath('ip_white')
+    content = slemp.readFile(fpath)
+    if not content: content = '[]'
+    res_data = {"status": True, "msg": "ok", "data": content}
+    return json.dumps(res_data)
+
+    return slemp.returnJson(True, 'Berhasil ditambahkan!')
 
 
 def removeRule():
@@ -1808,14 +1828,18 @@ if __name__ == "__main__":
         print(getSiteRule())
     elif func == 'add_site_rule':
         print(addSiteRule())
-    elif func == 'add_ip_white':
-        print(addIpWhite())
-    elif func == 'remove_ip_white':
-        print(removeIpWhite())
     elif func == 'add_ip_black':
         print(addIpBlack())
+    elif func == 'get_ip_black':
+        print(getIpBlack())
     elif func == 'remove_ip_black':
         print(removeIpBlack())
+    elif func == 'add_ip_white':
+        print(addIpWhite())
+    elif func == 'get_ip_white':
+        print(getIpWhite())
+    elif func == 'remove_ip_white':
+        print(removeIpWhite())
     elif func == 'set_ipv6_black':
         print(setIpv6Black())
     elif func == 'del_ipv6_black':
