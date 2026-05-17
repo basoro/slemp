@@ -78,15 +78,17 @@ Install_App(){
 			sed -i $BAK "s#SQLITE_DIR=#SQLITE_DIR=${LIB_SQLITE_DIR}#g" Makefile
 			make
 		else
-			cd $serverPath/source/op_waf/lsqlite3_v096 && make
+			cd $serverPath/source/op_waf/lsqlite3_v096
+			gcc -O2 -shared -fPIC -o lsqlite3.so lsqlite3.c -I$serverPath/openresty/luajit/include/luajit-2.1 -lsqlite3
 		fi
 	fi
 
 	# copy to code path
-	DEFAULT_DIR=$serverPath/op_waf/luarocks/lib/lua/5.1
-	if [ -f ${DEFAULT_DIR}/lsqlite3.so ];then
-		mkdir -p $serverPath/op_waf/waf/conf
-		cp -rf ${DEFAULT_DIR}/lsqlite3.so $serverPath/op_waf/waf/conf/lsqlite3.so
+	mkdir -p $serverPath/op_waf/waf/conf
+	if [ -f $serverPath/source/op_waf/lsqlite3_v096/lsqlite3.so ];then
+		cp -rf $serverPath/source/op_waf/lsqlite3_v096/lsqlite3.so $serverPath/op_waf/waf/conf/lsqlite3.so
+	elif [ -f $serverPath/op_waf/luarocks/lib/lua/5.1/lsqlite3.so ];then
+		cp -rf $serverPath/op_waf/luarocks/lib/lua/5.1/lsqlite3.so $serverPath/op_waf/waf/conf/lsqlite3.so
 	fi
 
 	cn=$(curl -fsSL -m 10 http://ipinfo.io/json | grep "\"country\": \"CN\"")

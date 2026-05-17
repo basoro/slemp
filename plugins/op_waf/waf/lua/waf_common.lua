@@ -74,56 +74,21 @@ function _M.cron(self)
             return true
         end
 
-        local db = self:initDB()
-        if not db then
+        local log_file = log_dir .. '/blocked_json.log'
+        local fp, err = io.open(log_file, "a+b")
+        if not fp then
+            self:D("Failed to open blocked_json.log: " .. tostring(err))
             return true
         end
 
-        db:exec([[BEGIN TRANSACTION]])
-
-        local stmt2 = db:prepare[[INSERT INTO logs(time, ip, domain, server_name, method, status_code, uri, user_agent, rule_name, reason) 
-            VALUES(:time, :ip, :domain, :server_name, :method, :status_code, :uri, :user_agent, :rule_name, :reason)]]
-
-        if not stmt2 then
-            self:D("waf timer db:prepare fail!:"..tostring(stmt2))
-            return false
-        end
-
-        for i=1,llen do
+        for i = 1, llen do
             local data, _ = ngx.shared.waf_limit:lpop('waf_limit_logs')
-            -- self:D("waf_limit_logs:"..data)
             if not data then
                 break
             end
-
-            local info = json.decode(data)
-    
-            stmt2:bind_names{
-                time=info["time"],
-                ip=info["ip"],
-                domain=info["server_name"],
-                server_name=info["server_name"],
-                method=info["method"],
-                status_code=info["status_code"],
-                user_agent=info["user_agent"],
-                uri=info["request_uri"],
-                rule_name=info['rule_name'],
-                reason=info['reason']
-            }
-
-            local res, err = stmt2:step()
-            if tostring(res) == "5" then
-                self:D("waf the step database connection is busy, so it will be stored later.")
-                return false
-            end
-            stmt2:reset() 
+            fp:write(data .. "\n")
         end
-
-        local res, err = db:execute([[COMMIT]])
-        if db and db:isopen() then
-            db:close()
-        end
-
+        fp:close()
     end
     ngx.timer.every(0.5, timer_every_import_data)
 end
