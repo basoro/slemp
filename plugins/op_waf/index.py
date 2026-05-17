@@ -12,7 +12,20 @@ import random
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + "/class/core")
 import slemp
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + "/lib/python3.9/site-packages")
+
+# Dynamically resolve virtual environment site-packages path based on python version and platform
+py_version = f"python{sys.version_info.major}.{sys.version_info.minor}"
+panel_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+root_path = os.path.dirname(os.path.dirname(panel_path))
+
+paths_to_check = [
+    os.path.join(panel_path, "lib", py_version, "site-packages"),
+    os.path.join(root_path, "lib", py_version, "site-packages"),
+]
+
+for p in paths_to_check:
+    if os.path.exists(p) and p not in sys.path:
+        sys.path.append(p)
 
 app_debug = False
 if slemp.isAppleSystem():

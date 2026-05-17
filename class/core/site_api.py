@@ -60,7 +60,7 @@ class site_api:
                          " && chmod -R 755 " + self.sslLetsDir)
 
     def runHook(self, hook_name, func_name):
-        hook_file = 'data/hook_site_cb.json'
+        hook_file = slemp.getRunDir() + '/data/hook_site_cb.json'
         hook_cfg = []
         if os.path.exists(hook_file):
             t = slemp.readFile(hook_file)
@@ -1578,6 +1578,7 @@ class site_api:
         msg = slemp.getInfo('Website [{1}] deleted domain name [{2}] successfully!', (webname, domain))
         slemp.writeLog('Website management', msg)
         slemp.restartWeb()
+        self.runHook('site_cb', 'delete')
         return slemp.returnJson(True, 'Site deleted successfully!')
 
     def deleteApi(self):

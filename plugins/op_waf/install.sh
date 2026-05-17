@@ -20,6 +20,8 @@ sys_os=`uname`
 
 if [ -f ${rootPath}/bin/activate ];then
 	source ${rootPath}/bin/activate
+elif [ -f $(dirname "$serverPath")/bin/activate ];then
+	source $(dirname "$serverPath")/bin/activate
 fi
 
 if [ "$sys_os" == "Darwin" ];then

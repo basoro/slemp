@@ -1012,11 +1012,7 @@ class plugins_api:
         if not os.path.exists(path):
             path = self.__plugin_dir + '/' + name + '/' + name + '.py'
 
-        py = 'python3'
-        venv_py = slemp.getRunDir() + '/bin/python3'
-        if os.path.exists(venv_py):
-            py = venv_py
-        py = py + ' ' + path
+        py = sys.executable + ' ' + path
 
         if args == '':
             py_cmd = py + ' ' + func + ' ' + version
