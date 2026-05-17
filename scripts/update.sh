@@ -88,8 +88,8 @@ echo "mulai pembaruan kode panel"
 curl --insecure -sSLo /tmp/master.tar.gz ${HTTP_PREFIX}github.com/basoro/slemp/archive/refs/heads/master.tar.gz
 cd /tmp && tar -zxvf /tmp/master.tar.gz
 $CP_CMD -rf /tmp/slemp-master/* ${rootPath}
-# rm -rf /tmp/master.tar.gz
-# rm -rf /tmp/slemp-master
+rm -rf /tmp/master.tar.gz
+rm -rf /tmp/slemp-master
 
 echo "pembaruan kode panel selesai"
 
