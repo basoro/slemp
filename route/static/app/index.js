@@ -670,13 +670,61 @@ function reBoot() {
 
 function repPanel() {
     layer.confirm(lan.index.rep_panel_msg, { title: lan.index.rep_panel_title, closeBtn: 1, icon: 3 }, function () {
-        var loadT = layer.msg(lan.index.rep_panel_the, { icon: 16, time: 0, shade: [0.3, '#000'] });
-        $.get('/system?action=RepPanel', function (rdata) {
-            layer.close(loadT);
-            layer.msg(lan.index.rep_panel_ok, { icon: 1 });
-        }).error(function () {
-            layer.close(loadT);
-            layer.msg(lan.index.rep_panel_ok, { icon: 1 });
+        // Close confirm dialog
+        layer.closeAll('dialog');
+        
+        // Open gorgeous dark-themed realtime terminal console
+        layer.open({
+            type: 1,
+            title: 'Realtime Repair Console - SLEMP Panel',
+            area: ['720px', '460px'],
+            closeBtn: 1,
+            shadeClose: false,
+            content: '<div style="background-color: #121214; color: #e4e4e7; font-family: Consolas, Monaco, monospace; padding: 18px; height: 400px; overflow-y: auto; font-size: 13px; line-height: 1.6;" id="rep-terminal"></div>',
+            success: function(layero, index) {
+                var $terminal = $('#rep-terminal');
+                $terminal.append('<p style="color: #3b82f6;">[System] Menghubungkan ke repositori utama SLEMP...</p>');
+                
+                // Stream output via HTML5 fetch reader API
+                fetch('/system?action=RepPanel')
+                    .then(response => {
+                        const reader = response.body.getReader();
+                        const decoder = new TextDecoder("utf-8");
+                        
+                        function readChunk() {
+                            return reader.read().then(({ done, value }) => {
+                                if (value) {
+                                    const chunk = decoder.decode(value, { stream: !done });
+                                    const escaped = chunk.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                                    $terminal.append(escaped.replace(/\n/g, '<br/>'));
+                                    $terminal.scrollTop($terminal[0].scrollHeight);
+                                }
+                                if (done) {
+                                    $terminal.append('<p style="color: #10b981; font-weight: bold; margin-top: 15px;">[Selesai] Perbaikan panel sukses! Halaman akan disegarkan dalam 3 detik...</p>');
+                                    $terminal.scrollTop($terminal[0].scrollHeight);
+                                    setTimeout(function() {
+                                        window.location.reload();
+                                    }, 3000);
+                                    return;
+                                }
+                                return readChunk();
+                            });
+                        }
+                        return readChunk();
+                    })
+                    .catch(error => {
+                        // If we already received some log output, the panel likely restarted itself as part of the update!
+                        if ($terminal.text().length > 150) {
+                            $terminal.append('<p style="color: #10b981; font-weight: bold; margin-top: 15px;">[Selesai] Panel sedang memuat ulang (restarting) setelah perbaikan... Halaman akan disegarkan otomatis dalam 5 detik...</p>');
+                            $terminal.scrollTop($terminal[0].scrollHeight);
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 5000);
+                        } else {
+                            $terminal.append('<p style="color: #ef4444; margin-top: 10px;">[Error] Koneksi gagal: ' + error + '</p>');
+                        }
+                    });
+            }
         });
     });
 }

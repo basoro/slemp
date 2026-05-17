@@ -496,6 +496,11 @@ def index(reqClass=None, reqAction=None, reqData=None):
         return comReturn
 
     if reqAction == None:
+        query_action = request.args.get('action')
+        if query_action:
+            reqAction = query_action
+
+    if reqAction == None:
         import config_api
         data = config_api.config_api().get()
 

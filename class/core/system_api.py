@@ -402,6 +402,13 @@ class system_api:
             diskInfo.append(arr)
         return diskInfo
 
+    def clearSystemApi(self):
+        count, total = self.clearSystem(None)
+        return slemp.returnJson(True, f"Berhasil membersihkan sampah sistem! Total: {slemp.toSize(total)} ({count} file)")
+
+    def ClearSystemApi(self):
+        return self.clearSystemApi()
+
     def clearSystem(self, get):
         count = total = 0
         tmp_total, tmp_count = self.ClearMail()
@@ -762,13 +769,39 @@ fi
             return slemp.returnJson(False, "Connection failure! " + str(ex))
 
     def repPanel(self, get):
-        vp = ''
-        common_path = slemp.getRunDir() + '/class/core/common.py'
-        if os.path.exists(common_path):
-            if slemp.readFile(common_path).find('checkSafe') != -1:
-                vp = '_pro'
-        slemp.execShell("wget -O update.sh " + slemp.get_url() +
-                     "/install/update" + vp + ".sh && bash update.sh")
-        if 'getCloudPlugin' in session:
-            del session['getCloudPlugin']
-        return True
+        from flask import Response
+        def generate():
+            vp = ''
+            common_path = slemp.getRunDir() + '/class/core/common.py'
+            if os.path.exists(common_path):
+                if slemp.readFile(common_path).find('checkSafe') != -1:
+                    vp = '_pro'
+            cmd = "wget --no-check-certificate -O update.sh https://raw.githubusercontent.com/basoro/slemp/master/install/update" + vp + ".sh && bash update.sh"
+            import subprocess
+            yield "Menghubungkan ke repositori utama SLEMP...\n"
+            yield f"Menjalankan perintah: {cmd}\n\n"
+            p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, universal_newlines=True)
+            while True:
+                line = p.stdout.readline()
+                if not line:
+                    if p.poll() is not None:
+                        break
+                    continue
+                yield line
+            p.wait()
+            if 'getCloudPlugin' in session:
+                del session['getCloudPlugin']
+            yield "\nPerbaikan panel selesai dengan sukses!\n"
+        return Response(generate(), mimetype='text/plain')
+
+    def repPanelApi(self):
+        return self.repPanel(None)
+
+    def RepPanelApi(self):
+        return self.repPanelApi()
+
+    def repPaneApi(self):
+        return self.repPanelApi()
+
+    def RepPaneApi(self):
+        return self.repPanelApi()
