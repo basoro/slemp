@@ -129,6 +129,13 @@ Install_App(){
 		./configure --prefix=$serverPath/op_waf/waf/mmdb && make && make install
 	fi
 
+	# Install geoip2 python library
+	if [ -f ${rootPath}/bin/pip ];then
+		${rootPath}/bin/pip install geoip2
+	else
+		pip install geoip2
+	fi
+
 	echo "${version}" > $serverPath/op_waf/version.pl
 	echo 'Instalasi Firewall WAF berhasil!'
 
