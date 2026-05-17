@@ -669,9 +669,9 @@ function reBoot() {
 }
 
 function repPanel() {
-    layer.confirm(lan.index.rep_panel_msg, { title: lan.index.rep_panel_title, closeBtn: 1, icon: 3 }, function () {
+    layer.confirm(lan.index.rep_panel_msg, { title: lan.index.rep_panel_title, closeBtn: 1, icon: 3 }, function (confirmIndex) {
         // Close confirm dialog
-        layer.closeAll('dialog');
+        layer.close(confirmIndex);
         
         // Open gorgeous dark-themed realtime terminal console
         layer.open({
