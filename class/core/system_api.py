@@ -771,12 +771,7 @@ fi
     def repPanel(self, get):
         from flask import Response
         def generate():
-            vp = ''
-            common_path = slemp.getRunDir() + '/class/core/common.py'
-            if os.path.exists(common_path):
-                if slemp.readFile(common_path).find('checkSafe') != -1:
-                    vp = '_pro'
-            cmd = "wget --no-check-certificate -O update.sh https://raw.githubusercontent.com/basoro/slemp/master/install/update" + vp + ".sh && bash update.sh"
+            cmd = "wget --no-check-certificate -O update.sh https://raw.githubusercontent.com/basoro/slemp/master/scripts/update.sh && bash update.sh"
             import subprocess
             yield "Menghubungkan ke repositori utama SLEMP...\n"
             yield f"Menjalankan perintah: {cmd}\n\n"
