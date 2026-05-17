@@ -2666,7 +2666,7 @@ def doFullSyncSSH(version=''):
 def installPreInspection(version):
     swap_path = slemp.getServerDir() + "/swap"
     if not os.path.exists(swap_path):
-        return "In order to install MariaDB stably, first install the swap plugin!"
+        return "Untuk menginstal MariaDB dengan stabil, silakan instal plugin SWAP (Virtual Memory) terlebih dahulu di menu Software!"
     return 'ok'
 
 

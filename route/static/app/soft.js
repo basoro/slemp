@@ -175,12 +175,12 @@ function installPreInspection(name, ver, callback){
             if (rdata.data == 'ok'){
                 callback();
             } else {
-                layer.msg(rdata.data, { icon: 2 });
+                layer.alert(rdata.data, { icon: 2, title: 'Instalasi Gagal' });
             }
         } else {
-            layer.msg(rdata.data, { icon: rdata.status ? 1 : 2 });
+            layer.alert(rdata.data || 'Terjadi kesalahan sistem.', { icon: 2, title: 'Error' });
         }
-    },'json');
+     },'json');
 }
 
 function runInstall(data){
@@ -261,12 +261,12 @@ function uninstallPreInspection(name, title, ver, callback){
                     callback();
                 }
             } else {
-                layer.msg(rdata.data, { icon: 2 , time: 6666});
+                layer.alert(rdata.data, { icon: 2, title: 'Uninstal Gagal' });
             }
         } else {
-            layer.msg(rdata.data, { icon: rdata.status ? 1 : 2, time: 6666 });
+            layer.alert(rdata.data || 'Terjadi kesalahan sistem.', { icon: 2, title: 'Error' });
         }
-    },'json');
+     },'json');
 }
 
 

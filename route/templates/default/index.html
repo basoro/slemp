@@ -194,7 +194,7 @@
         }
       }
 
-      if (dbPlugin) {
+      if (dbPlugin && dbPlugin.setup) {
         var version = dbPlugin.setup_version || '';
         var title = dbPlugin.title;
         if (typeof softMain === 'function') {
@@ -205,7 +205,13 @@
           });
         }
       } else {
-        layer.msg('Plugin database belum terpasang atau sedang proses instalasi.', { icon: 2 });
+        layer.confirm('Plugin database (MySQL/MariaDB) belum terpasang. Apakah Anda ingin pergi ke menu Software untuk memasangnya?', {
+          title: 'Database Belum Terpasang',
+          btn: ['Ya, ke Software', 'Batal'],
+          icon: 0
+        }, function () {
+          window.location.href = '/soft';
+        });
       }
     }, 'json');
   }
@@ -261,11 +267,14 @@
             }
           });
         });
-      } else if (dbPlugin && !dbPlugin.setup) {
-        layer.msg('Plugin database sedang dalam proses instalasi...', { icon: 16 });
-        softMain(dbPlugin.name, dbPlugin.title, '');
       } else {
-        layer.msg('Plugin database belum terpasang.', { icon: 2 });
+        layer.confirm('Plugin database (MySQL/MariaDB) belum terpasang. Apakah Anda ingin pergi ke menu Software untuk memasangnya?', {
+          title: 'Database Belum Terpasang',
+          btn: ['Ya, ke Software', 'Batal'],
+          icon: 0
+        }, function () {
+          window.location.href = '/soft';
+        });
       }
     }, 'json');
   }

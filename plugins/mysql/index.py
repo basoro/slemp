@@ -2877,7 +2877,7 @@ def fullSync(version=''):
 def installPreInspection(version):
     swap_path = slemp.getServerDir() + "/swap"
     if not os.path.exists(swap_path):
-        return "In order to install MySQL stably, first install the swap plugin!"
+        return "Untuk menginstal MySQL dengan stabil, silakan instal plugin SWAP (Virtual Memory) terlebih dahulu di menu Software!"
     return 'ok'
 
 
