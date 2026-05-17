@@ -104,12 +104,63 @@ def dstWafConfPath():
     return slemp.getServerDir() + "/web_conf/nginx/vhost/opwaf.conf"
 
 
+_in_sync = False
+
+def syncJsonLogs():
+    log_file = getServerDir() + '/logs/blocked_json.log'
+    if not os.path.exists(log_file):
+        return
+    if os.path.getsize(log_file) == 0:
+        return
+
+    lines = []
+    try:
+        with open(log_file, 'r+', encoding='utf-8') as f:
+            lines = f.readlines()
+            f.seek(0)
+            f.truncate()
+    except Exception as e:
+        return
+
+    if not lines:
+        return
+
+    conn = pSqliteDb('logs')
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            info = json.loads(line)
+            conn.insert({
+                'time': int(info.get('time', time.time())),
+                'ip': info.get('ip', ''),
+                'domain': info.get('server_name', ''),
+                'server_name': info.get('server_name', ''),
+                'method': info.get('method', ''),
+                'status_code': int(info.get('status_code', 200)),
+                'user_agent': info.get('user_agent', ''),
+                'uri': info.get('request_uri', ''),
+                'rule_name': info.get('rule_name', ''),
+                'reason': info.get('reason', '')
+            })
+        except Exception as e:
+            try:
+                with open(log_file, 'a', encoding='utf-8') as f_err:
+                    f_err.write(line + '\n')
+            except:
+                pass
+
+
 def pSqliteDb(dbname='logs'):
+    global _in_sync
     name = "waf"
     db_dir = getServerDir() + '/logs/'
 
     if not os.path.exists(db_dir):
         slemp.execShell('mkdir -p ' + db_dir)
+        slemp.execShell('chown -R www:www ' + db_dir)
+        slemp.execShell('chmod -R 755 ' + db_dir)
 
     file = db_dir + name + '.db'
     if not os.path.exists(file):
@@ -125,6 +176,15 @@ def pSqliteDb(dbname='logs'):
     conn.execute("PRAGMA page_size = 4096")
     conn.execute("PRAGMA journal_mode = wal")
     conn.execute("PRAGMA journal_size_limit = 1073741824")
+
+    if not _in_sync:
+        _in_sync = True
+        try:
+            syncJsonLogs()
+        except:
+            pass
+        _in_sync = False
+
     return conn
 
 
@@ -1236,54 +1296,7 @@ def importData():
     return slemp.returnJson(True, 'Berhasil diatur!')
 
 
-def syncJsonLogs():
-    log_file = getServerDir() + '/logs/blocked_json.log'
-    if not os.path.exists(log_file):
-        return
-    if os.path.getsize(log_file) == 0:
-        return
-
-    lines = []
-    try:
-        with open(log_file, 'r+', encoding='utf-8') as f:
-            lines = f.readlines()
-            f.seek(0)
-            f.truncate()
-    except Exception as e:
-        return
-
-    if not lines:
-        return
-
-    conn = pSqliteDb('logs')
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            info = json.loads(line)
-            conn.table('logs').add({
-                'time': int(info.get('time', time.time())),
-                'ip': info.get('ip', ''),
-                'domain': info.get('server_name', ''),
-                'server_name': info.get('server_name', ''),
-                'method': info.get('method', ''),
-                'status_code': int(info.get('status_code', 200)),
-                'user_agent': info.get('user_agent', ''),
-                'uri': info.get('request_uri', ''),
-                'rule_name': info.get('rule_name', ''),
-                'reason': info.get('reason', '')
-            })
-        except Exception as e:
-            try:
-                with open(log_file, 'a', encoding='utf-8') as f_err:
-                    f_err.write(line + '\n')
-            except:
-                pass
-
-
 def getLogsList():
-    syncJsonLogs()
     args = getArgs()
     data = checkArgs(args, ['site', 'page', 'page_size', 'tojs'])
     if not data[0]:
@@ -1613,7 +1626,6 @@ def installPreInspection():
 
 
 def get_index_data():
-    syncJsonLogs()
     # Get Server Location Automatically
     server_location = [110, -5] # Default Indonesia
     try:
