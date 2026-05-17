@@ -12,7 +12,7 @@ import random
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + "/class/core")
 import slemp
-sys.path.append("/Users/basoro/SLEMP/server/panel/lib/python3.9/site-packages")
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + "/lib/python3.9/site-packages")
 
 app_debug = False
 if slemp.isAppleSystem():
@@ -1689,7 +1689,7 @@ def get_index_data():
     debug_log = "/tmp/waf_geoip.log"
     try:
         import geoip2.database
-        geoip_path = '/Users/basoro/SLEMP/server/op_waf/GeoLite2-City.mmdb'
+        geoip_path = getServerDir() + '/GeoLite2-City.mmdb'
         if os.path.exists(geoip_path):
             reader = geoip2.database.Reader(geoip_path)
         else:

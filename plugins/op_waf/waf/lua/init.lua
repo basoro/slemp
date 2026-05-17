@@ -567,7 +567,7 @@ local function initmaxminddb()
     if type(geo)=='number' then return nil end
     local ok2,data=pcall(function()
         if not geo.initted() then
-            geo.init("/Users/basoro/SLEMP/server/panel/plugins/op_waf/GeoLite2-City.mmdb")
+            geo.init("{$WAF_ROOT}/GeoLite2-City.mmdb")
         end
     end )
     if not ok2 then

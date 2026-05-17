@@ -1,4 +1,4 @@
-local waf_root = "/Users/basoro/SLEMP/server/panel/plugins/op_waf"
+local waf_root = "{$WAF_ROOT}"
 local waf_cpath = waf_root.."/waf/lua/?.lua;"..waf_root.."/waf/conf/?.lua;"..waf_root.."/waf/html/?.lua;"
 local waf_sopath = waf_root.."/waf/conf/?.so;"
 
@@ -27,8 +27,8 @@ local ngx_match = ngx.re.find
 
 local debug_mode = false
 
-local cpath = "/Users/basoro/SLEMP/server/op_waf/waf/"
-local log_dir = "/Users/basoro/SLEMP/server/op_waf/logs/"
+local cpath = "{$WAF_PATH}/"
+local log_dir = "{$WAF_ROOT}/logs/"
 local rpath = cpath.."/rule/"
 
 function _M.new(self)
