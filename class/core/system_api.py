@@ -179,7 +179,7 @@ class system_api:
         address = slemp.GetLocalIp()
         try:
             try:
-                port = web.ctx.host.split(':')[1]
+                port = request.host.split(':')[1]
             except:
                 port = slemp.readFile('data/port.pl')
         except:
@@ -243,7 +243,7 @@ class system_api:
         data['time'] = self.GetBootTime()
         # data['system'] = self.GetSystemVersion();
         # data['mem'] = self.GetMemInfo();
-        data['version'] = web.ctx.session.version
+        data['version'] = config_api.config_api().getVersion()
         return data
 
     def getTitle(self):
@@ -763,10 +763,12 @@ fi
 
     def repPanel(self, get):
         vp = ''
-        if slemp.readFile(slemp.getRunDir() + '/class/common.py').find('checkSafe') != -1:
-            vp = '_pro'
-        slemp.ExecShell("wget -O update.sh " + slemp.get_url() +
+        common_path = slemp.getRunDir() + '/class/core/common.py'
+        if os.path.exists(common_path):
+            if slemp.readFile(common_path).find('checkSafe') != -1:
+                vp = '_pro'
+        slemp.execShell("wget -O update.sh " + slemp.get_url() +
                      "/install/update" + vp + ".sh && bash update.sh")
-        if hasattr(web.ctx.session, 'getCloudPlugin'):
-            del(web.ctx.session['getCloudPlugin'])
+        if 'getCloudPlugin' in session:
+            del session['getCloudPlugin']
         return True
