@@ -799,9 +799,3 @@ fi
 
     def RepPanelApi(self):
         return self.repPanelApi()
-
-    def repPaneApi(self):
-        return self.repPanelApi()
-
-    def RepPaneApi(self):
-        return self.repPanelApi()

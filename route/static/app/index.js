@@ -714,7 +714,7 @@ function repPanel() {
                     })
                     .catch(error => {
                         // If we already received some log output, the panel likely restarted itself as part of the update!
-                        if ($terminal.text().length > 150) {
+                        if ($terminal.text().length > 70) {
                             $terminal.append('<p style="color: #10b981; font-weight: bold; margin-top: 15px;">[Selesai] Panel sedang memuat ulang (restarting) setelah perbaikan... Halaman akan disegarkan otomatis dalam 5 detik...</p>');
                             $terminal.scrollTop($terminal[0].scrollHeight);
                             setTimeout(function() {
