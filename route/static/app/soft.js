@@ -178,7 +178,7 @@ function installPreInspection(name, ver, callback){
                 layer.alert(rdata.data, { icon: 2, title: 'Instalasi Gagal' });
             }
         } else {
-            layer.alert(rdata.data || 'Terjadi kesalahan sistem.', { icon: 2, title: 'Error' });
+            layer.alert(rdata.msg || rdata.data || 'Terjadi kesalahan sistem.', { icon: 2, title: 'Error' });
         }
      },'json');
 }
@@ -245,10 +245,11 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
                 installPreInspection(name, version, function(){
                     runInstall(request_args);
                 });
-                return;
+                return false;
             }
 
             runInstall(request_args);
+            return false;
         }
     });
 }
@@ -266,7 +267,7 @@ function uninstallPreInspection(name, title, ver, callback){
                 layer.alert(rdata.data, { icon: 2, title: 'Uninstal Gagal' });
             }
         } else {
-            layer.alert(rdata.data || 'Terjadi kesalahan sistem.', { icon: 2, title: 'Error' });
+            layer.alert(rdata.msg || rdata.data || 'Terjadi kesalahan sistem.', { icon: 2, title: 'Error' });
         }
      },'json');
 }
@@ -501,12 +502,6 @@ function importPluginInstall(plugin_name, tmp_path) {
 
 $(function() {
     if (window.document.location.pathname == '/soft/' || window.document.location.pathname == '/soft') {
-        setInterval(function() {
-            var taskCount = parseInt($(".task").text());
-            if (taskCount > 0) {
-                getSList(true);
-            }
-        }, 8000);
 
         if (localStorage.getItem('open_task_box') === '1') {
             localStorage.removeItem('open_task_box');

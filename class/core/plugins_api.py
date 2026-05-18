@@ -375,10 +375,25 @@ class plugins_api:
         script = request.form.get('script', 'index')
 
         data = self.run(name, func, version, args, script)
-        if data[1] == '':
+        
+        # Clean stderr of standard warnings (SSL warnings, deprecation notices, etc.)
+        stderr_clean = ''
+        if data[1] != '':
+            stderr_lines = data[1].strip().split('\n')
+            clean_lines = []
+            for line in stderr_lines:
+                if not line:
+                    continue
+                line_lower = line.lower()
+                if 'warning' in line_lower or 'deprecation' in line_lower:
+                    continue
+                clean_lines.append(line)
+            stderr_clean = '\n'.join(clean_lines).strip()
+
+        if stderr_clean == '':
             r = slemp.returnJson(True, "OK", data[0].strip())
         else:
-            r = slemp.returnJson(False, data[1].strip())
+            r = slemp.returnJson(False, stderr_clean)
         return r
 
     def callbackApi(self):
