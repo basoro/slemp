@@ -124,7 +124,7 @@ if [ "$sysName" == "Darwin" ];then
 else
 	cd ${rootPath}/plugins/php/lib && /bin/bash openssl_10.sh
 	export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$serverPath/lib/openssl10/lib/pkgconfig
-	OPTIONS="$OPTIONS --with-openssl"
+	OPTIONS="$OPTIONS --with-openssl=$serverPath/lib/openssl10"
 fi
 
 if [ ! -d $serverPath/php/${PHP_VER} ];then
