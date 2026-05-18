@@ -463,15 +463,15 @@ def setMaxTime(version):
 
     filefpm = getFpmConfFile(version)
     conf = slemp.readFile(filefpm)
-    rep = "request_terminate_timeout\s*=\s*([0-9]+)\r?\n"
+    rep = r"request_terminate_timeout\s*=\s*([0-9]+)\r?\n"
     conf = re.sub(rep, "request_terminate_timeout = " + time + "\n", conf)
     slemp.writeFile(filefpm, conf)
 
     fileini = getServerDir() + "/" + version + "/etc/php.ini"
     phpini = slemp.readFile(fileini)
-    rep = "max_execution_time\s*=\s*([0-9]+)\r?\n"
+    rep = r"max_execution_time\s*=\s*([0-9]+)\r?\n"
     phpini = re.sub(rep, "max_execution_time = " + time + "\n", phpini)
-    rep = "max_input_time\s*=\s*([0-9]+)\r?\n"
+    rep = r"max_input_time\s*=\s*([0-9]+)\r?\n"
     phpini = re.sub(rep, "max_input_time = " + time + "\n", phpini)
     slemp.writeFile(fileini, phpini)
     return slemp.returnJson(True, 'Successfully set!')
@@ -489,10 +489,10 @@ def setMaxSize(version):
 
     path = getConf(version)
     conf = slemp.readFile(path)
-    rep = u"\nupload_max_filesize\s*=\s*[0-9]+M"
-    conf = re.sub(rep, u'\nupload_max_filesize = ' + maxVal + 'M', conf)
-    rep = u"\npost_max_size\s*=\s*[0-9]+M"
-    conf = re.sub(rep, u'\npost_max_size = ' + maxVal + 'M', conf)
+    rep = r"\nupload_max_filesize\s*=\s*[0-9]+M"
+    conf = re.sub(rep, '\nupload_max_filesize = ' + maxVal + 'M', conf)
+    rep = r"\npost_max_size\s*=\s*[0-9]+M"
+    conf = re.sub(rep, '\npost_max_size = ' + maxVal + 'M', conf)
     slemp.writeFile(path, conf)
 
     msg = slemp.getInfo('Set PHP-{1} maximum upload size to [{2}MB]!', (version, maxVal,))
