@@ -925,7 +925,7 @@ function manageDatabase() {
             if (typeof softMain === 'function') {
                 softMain(dbPlugin.name, dbPlugin.title, dbPlugin.setup_version);
             } else {
-                $.getScript('/static/app/soft.js', function () {
+                $.getScript('/static/app/soft.js?v=' + new Date().getTime(), function () {
                     softMain(dbPlugin.name, dbPlugin.title, dbPlugin.setup_version);
                 });
             }

@@ -200,7 +200,7 @@
         if (typeof softMain === 'function') {
           softMain(dbPlugin.name, title, version);
         } else {
-          $.getScript('/static/app/soft.js', function () {
+          $.getScript('/static/app/soft.js?v=' + new Date().getTime(), function () {
             softMain(dbPlugin.name, title, version);
           });
         }
