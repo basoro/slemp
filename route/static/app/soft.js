@@ -501,7 +501,12 @@ function importPluginInstall(plugin_name, tmp_path) {
 
 $(function() {
     if (window.document.location.pathname == '/soft/' || window.document.location.pathname == '/soft') {
-        setInterval(function() { getSList(); }, 8000);
+        setInterval(function() {
+            var taskCount = parseInt($(".task").text());
+            if (taskCount > 0) {
+                getSList(true);
+            }
+        }, 8000);
 
         if (localStorage.getItem('open_task_box') === '1') {
             localStorage.removeItem('open_task_box');
