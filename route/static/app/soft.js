@@ -186,9 +186,13 @@ function installPreInspection(name, ver, callback){
 function runInstall(data){
     var loadT = layer.msg('Lagi ditambahin ke installer...', { icon: 16, time: 0, shade: [0.3, '#000'] });
     $.post("/plugins/install", data, function(rdata) {
-        layer.closeAll();
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
-        getSList();
+        layer.close(loadT);
+        if (rdata.status) {
+            localStorage.setItem('open_task_box', '1');
+            flySlow('layui-layer-btn0');
+        } else {
+            layer.msg(rdata.msg, { icon: 2 });
+        }
     },'json');
 }
 
@@ -240,13 +244,11 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
             if (install_pre_inspection){
                 installPreInspection(name, version, function(){
                     runInstall(request_args);
-                    flySlow('layui-layer-btn0');
                 });
                 return;
             }
 
             runInstall(request_args);
-            flySlow('layui-layer-btn0');
         }
     });
 }
@@ -279,6 +281,11 @@ function runUninstallVersion(name, title, version){
             layer.close(loadT)
             getSList();
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+            if (rdata.status) {
+                setTimeout(function() {
+                    task();
+                }, 1000);
+            }
         },'json');
     });
 }
@@ -493,7 +500,12 @@ function importPluginInstall(plugin_name, tmp_path) {
 }
 
 $(function() {
-    if (window.document.location.pathname == '/soft/') {
+    if (window.document.location.pathname == '/soft/' || window.document.location.pathname == '/soft') {
         setInterval(function() { getSList(); }, 8000);
+
+        if (localStorage.getItem('open_task_box') === '1') {
+            localStorage.removeItem('open_task_box');
+            task();
+        }
     }
 });
