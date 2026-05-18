@@ -15,7 +15,8 @@ SERVER_ROOT=$rootPath/lib
 SOURCE_ROOT=$rootPath/source/lib
 
 
-if [ ! -d ${SERVER_ROOT}/openssl10 ];then
+if [ ! -d ${SERVER_ROOT}/openssl10 ] || [ ! -f ${SERVER_ROOT}/openssl10/include/openssl/evp.h ];then
+    rm -rf ${SERVER_ROOT}/openssl10
     cd ${SOURCE_ROOT}
 
     if [ ! -f ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz ];then
@@ -24,7 +25,7 @@ if [ ! -d ${SERVER_ROOT}/openssl10 ];then
 
     tar -zxf openssl-${opensslVersion}.tar.gz
     cd openssl-${opensslVersion}
-    ./config --openssldir=${SERVER_ROOT}/openssl10 zlib-dynamic shared
+    ./config --prefix=${SERVER_ROOT}/openssl10 --openssldir=${SERVER_ROOT}/openssl10 zlib-dynamic shared
     make && make install
 
     # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${serverPath}/lib/openssl10/lib
