@@ -431,14 +431,14 @@ def getLimitConf(version):
         data['max'] = '50'
 
     try:
-        rep = r"request_terminate_timeout\s*=\s*([0-9]+)\n"
+        rep = r"request_terminate_timeout\s*=\s*([0-9]+)\r?\n"
         tmp = re.search(rep, phpfpm).groups()
         data['maxTime'] = tmp[0]
     except:
         data['maxTime'] = 0
 
     try:
-        rep = r"\n;*\s*cgi\.fix_pathinfo\s*=\s*([0-9]+)\s*\n"
+        rep = r"\n;*\s*cgi\.fix_pathinfo\s*=\s*([0-9]+)\s*\r?\n"
         tmp = re.search(rep, phpini).groups()
 
         if tmp[0] == '1':
@@ -463,7 +463,7 @@ def setMaxTime(version):
 
     filefpm = getFpmConfFile(version)
     conf = slemp.readFile(filefpm)
-    rep = "request_terminate_timeout\s*=\s*([0-9]+)\n"
+    rep = "request_terminate_timeout\s*=\s*([0-9]+)\r?\n"
     conf = re.sub(rep, "request_terminate_timeout = " + time + "\n", conf)
     slemp.writeFile(filefpm, conf)
 
@@ -806,7 +806,7 @@ def getDisableFunc(version):
 
     phpini = slemp.readFile(filename)
     data = {}
-    rep = r"disable_functions\s*=\s{0,1}(.*)\n"
+    rep = r"disable_functions\s*=\s{0,1}(.*)\r?\n"
     tmp = re.search(rep, phpini).groups()
     data['disable_functions'] = tmp[0]
     return slemp.getJson(data)
@@ -821,7 +821,7 @@ def setDisableFunc(version):
     disable_functions = args['disable_functions']
 
     phpini = slemp.readFile(filename)
-    rep = r"disable_functions\s*=\s*.*\n"
+    rep = r"disable_functions\s*=\s*.*\r?\n"
     phpini = re.sub(rep, 'disable_functions = ' +
                     disable_functions + "\n", phpini)
 
