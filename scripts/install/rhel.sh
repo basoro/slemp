@@ -205,7 +205,7 @@ if [ "$VERSION_ID" -ge "8" ];then
         libicu-devel libidn libidn-devel libmcrypt libmcrypt-devel libmemcached libmemcached-devel \
         libpng libpng-devel libstdc++.so.6 libtirpc libtirpc-devel libtool libtool-libs libwebp libwebp-devel \
         libxml2 libxml2-devel libxslt libxslt-devel libarchive make mysql-devel ncurses ncurses-devel net-tools \
-        oniguruma oniguruma-devel patch pcre pcre-devel perl perl-Data-Dumper perl-devel procps psmisc python3-devel \
+        oniguruma oniguruma-devel patch pcre pcre-devel perl perl-Data-Dumper perl-devel perl-IPC-Cmd perl-Test-Simple procps psmisc python3-devel \
         openssl openssl-devel patchelf libargon2-devel \
         ImageMagick ImageMagick-devel libyaml-devel \
         pv bc bind-utils \
@@ -228,7 +228,7 @@ else
         libmemcached libmemcached-devel libpng-devel libstdc++.so.6 libtirpc libtirpc-devel libtool libtool-libs \
         libwebp libwebp-devel libxml2 libxml2-devel libxslt libxslt-devel libzip libzip-devel libzstd-devel \
         make mysql-devel ncurses ncurses-devel net-tools oniguruma oniguruma-devel openldap openldap-devel \
-        openssl openssl-devel patch pcre pcre-devel perl perl-Data-Dumper perl-devel psmisc python-devel \
+        openssl openssl-devel patch pcre pcre-devel perl perl-Data-Dumper perl-devel perl-IPC-Cmd perl-Test-Simple psmisc python-devel \
         pv bc bind-utils \
         ncurses-compat-libs numactl \
         python3-devel python3-pip re2c readline-devel rpcgen sqlite-devel tar unzip rar unrar vim-minimal vixie-cron \

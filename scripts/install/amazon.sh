@@ -129,7 +129,7 @@ yum install -y net-tools
 yum install -y ncurses-devel
 
 
-for yumPack in flex file libtool libtool-libs kernel-devel patch wget glib2 glib2-devel tar bzip2 bzip2-devel libevent libevent-devel ncurses ncurses-devel curl curl-devel libcurl libcurl-devel e2fsprogs e2fsprogs-devel libidn libidn-devel vim-minimal gettext gettext-devel ncurses-devel gmp-devel libcap diffutils ca-certificates net-tools psmisc libXpm-devel git-core c-ares-devel libicu-devel libxslt libxslt-devel zip unzip glibc.i686 libstdc++.so.6 cairo-devel ncurses-devel libaio-devel perl perl-devel perl-Data-Dumper expat-devel readline-devel;
+for yumPack in flex file libtool libtool-libs kernel-devel patch wget glib2 glib2-devel tar bzip2 bzip2-devel libevent libevent-devel ncurses ncurses-devel curl curl-devel libcurl libcurl-devel e2fsprogs e2fsprogs-devel libidn libidn-devel vim-minimal gettext gettext-devel ncurses-devel gmp-devel libcap diffutils ca-certificates net-tools psmisc git-core c-ares-devel libicu-devel libxslt libxslt-devel zip unzip glibc.i686 libstdc++.so.6 cairo-devel ncurses-devel libaio-devel perl perl-devel perl-Data-Dumper perl-IPC-Cmd perl-Test-Simple expat-devel readline-devel;
 do yum -y install $yumPack;done
 
 

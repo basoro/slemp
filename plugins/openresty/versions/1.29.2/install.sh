@@ -50,6 +50,14 @@ Install_openresty()
 	fi
 	# ----- cpu end ------
 
+	if [ "$sysName" != "Darwin" ]; then
+		if [ -f /usr/bin/yum ]; then
+			yum install -y perl-IPC-Cmd perl-Test-Simple
+		elif [ -f /usr/bin/dnf ]; then
+			dnf install -y perl-IPC-Cmd perl-Test-Simple
+		fi
+	fi
+
 	mkdir -p ${openrestyDir}
 	echo 'Sedang menginstal file skrip...'
 
