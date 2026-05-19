@@ -123,6 +123,14 @@ else
 	# cd ${rootPath}/plugins/php/lib && /bin/bash openssl_35.sh
 	# export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$serverPath/lib/openssl35/lib/pkgconfig
 	OPTIONS="$OPTIONS --with-openssl"
+
+	if [ -f /usr/bin/yum ]; then
+		libxml_ver=$(pkg-config --modversion libxml-2.0 2>/dev/null)
+		if [ "$?" != "0" ] || [ "$(printf '%s\n' "2.9.4" "$libxml_ver" | sort -V | head -n1)" != "2.9.4" ]; then
+			cd ${rootPath}/plugins/php/lib && /bin/bash libxml2.sh
+			export PKG_CONFIG_PATH=${serverPath}/lib/libxml2/lib/pkgconfig:$PKG_CONFIG_PATH
+		fi
+	fi
 fi
 
 echo "$sourcePath/php/php${PHP_VER}"
