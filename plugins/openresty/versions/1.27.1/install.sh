@@ -51,9 +51,9 @@ Install_openresty()
 
 	if [ "$sysName" != "Darwin" ]; then
 		if [ -f /usr/bin/yum ]; then
-			yum install -y perl-IPC-Cmd perl-Test-Simple
+			yum install -y perl-IPC-Cmd perl-Time-Piece perl-Test-Simple
 		elif [ -f /usr/bin/dnf ]; then
-			dnf install -y perl-IPC-Cmd perl-Test-Simple
+			dnf install -y perl-IPC-Cmd perl-Time-Piece perl-Test-Simple
 		fi
 	fi
 

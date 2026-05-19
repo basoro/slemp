@@ -91,7 +91,7 @@ yum install -y libargon2-dev
 # yum install -y MySQL-python
 
 
-yum install -y perl perl-devel perl-Data-Dumper perl-IPC-Cmd perl-Test-Simple
+yum install -y perl perl-devel perl-Data-Dumper perl-IPC-Cmd perl-Time-Piece perl-Test-Simple
 
 for yumPack in  gcc gcc-c++ flex file libtool libtool-libs autoconf kernel-devel patch glib2 glib2-devel tar e2fsprogs e2fsprogs-devel libidn libidn-devel vim-minimal gmp-devel libcap diffutils ca-certificates libc-client-devel psmisc libXpm-devel c-ares-devel libxslt libxslt-devel glibc.i686 libstdc++.so.6 cairo-devel libaio-devel expat-devel;
 do dnf --enablerepo=powertools install -y $yumPack;done
