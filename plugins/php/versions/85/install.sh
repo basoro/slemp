@@ -132,6 +132,12 @@ else
 			cd ${rootPath}/plugins/php/lib && /bin/bash libxml2.sh
 			export PKG_CONFIG_PATH=${serverPath}/lib/libxml2/lib/pkgconfig:$PKG_CONFIG_PATH
 		fi
+
+		zlib_ver=$(pkg-config --modversion zlib 2>/dev/null)
+		if [ "$?" != "0" ] || [ "$(printf '%s\n' "1.2.11" "$zlib_ver" | sort -V | head -n1)" != "1.2.11" ]; then
+			cd ${rootPath}/plugins/php/lib && /bin/bash zlib.sh
+			export PKG_CONFIG_PATH=${serverPath}/lib/zlib/lib/pkgconfig:$PKG_CONFIG_PATH
+		fi
 	fi
 fi
 
