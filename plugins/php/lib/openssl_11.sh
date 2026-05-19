@@ -15,9 +15,45 @@ mkdir -p $SOURCE_ROOT
 
 if [ ! -d ${SERVER_ROOT}/openssl11 ];then
     cd ${SOURCE_ROOT}
-    if [ ! -f ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz ];then
-        wget --no-check-certificate -O ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz https://www.openssl.org/source/openssl-${opensslVersion}.tar.gz
-    fi 
+    DOWNLOAD_SUCCESS=false
+    if [ -f ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz ]; then
+        DOWNLOAD_SIZE=`wc -c ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz | awk '{print $1}'`
+        if [ "$DOWNLOAD_SIZE" -gt "1000000" ]; then
+            DOWNLOAD_SUCCESS=true
+        else
+            rm -f ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz
+        fi
+    fi
+
+    # Try downloading from official old archive
+    if [ "$DOWNLOAD_SUCCESS" = false ]; then
+        echo "Downloading OpenSSL 1.1.1p from official OpenSSL archive..."
+        wget --no-check-certificate -O ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz https://www.openssl.org/source/old/1.1.1/openssl-${opensslVersion}.tar.gz -T 30
+        if [ -f ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz ]; then
+            DOWNLOAD_SIZE=`wc -c ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz | awk '{print $1}'`
+            if [ "$DOWNLOAD_SIZE" -gt "1000000" ]; then
+                DOWNLOAD_SUCCESS=true
+            fi
+        fi
+    fi
+
+    # Try standard source directory
+    if [ "$DOWNLOAD_SUCCESS" = false ]; then
+        echo "Downloading from standard OpenSSL source directory..."
+        wget --no-check-certificate -O ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz https://www.openssl.org/source/openssl-${opensslVersion}.tar.gz -T 30
+        if [ -f ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz ]; then
+            DOWNLOAD_SIZE=`wc -c ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz | awk '{print $1}'`
+            if [ "$DOWNLOAD_SIZE" -gt "1000000" ]; then
+                DOWNLOAD_SUCCESS=true
+            fi
+        fi
+    fi
+
+    if [ "$DOWNLOAD_SUCCESS" = false ]; then
+        echo "Failed to download OpenSSL ${opensslVersion} source tarball!"
+        exit 1
+    fi
+
     tar -zxvf openssl-${opensslVersion}.tar.gz
     cd openssl-${opensslVersion}
     

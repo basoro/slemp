@@ -122,9 +122,9 @@ if [ "$sysName" == "Darwin" ];then
 	export OPENSSL_LIBS="-L/${LIB_DEPEND_DIR}/lib -lssl -lcrypto -lz"
 else
 	echo "lib"
-	# cd ${rootPath}/plugins/php/lib && /bin/bash openssl_35.sh
-	# export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$serverPath/lib/openssl35/lib/pkgconfig
-	OPTIONS="$OPTIONS --with-openssl"
+	cd ${rootPath}/plugins/php/lib && /bin/bash openssl_11.sh
+	export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$serverPath/lib/openssl11/lib/pkgconfig
+	OPTIONS="$OPTIONS --with-openssl=$serverPath/lib/openssl11"
 
 	if [ -f /usr/bin/yum ]; then
 		libxml_ver=$(pkg-config --modversion libxml-2.0 2>/dev/null)
