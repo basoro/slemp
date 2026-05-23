@@ -1027,7 +1027,7 @@ class plugins_api:
         if not os.path.exists(path):
             path = self.__plugin_dir + '/' + name + '/' + name + '.py'
 
-        py = sys.executable + ' ' + path
+        py = sys.executable + ' -W ignore ' + path
 
         if args == '':
             py_cmd = py + ' ' + func + ' ' + version

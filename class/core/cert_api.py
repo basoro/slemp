@@ -368,12 +368,10 @@ fi
 
         header = {"alg": "RS256", "nonce": nonce, "url": url}
         if url in [self.__apis['newAccount'], 'GET_THUMBPRINT']:
-            from cryptography.hazmat.backends import default_backend
             from cryptography.hazmat.primitives import serialization
             private_key = serialization.load_pem_private_key(
                 self.getAccountKey().encode(),
                 password=None,
-                backend=default_backend(),
             )
             public_key_public_numbers = private_key.public_key().public_numbers()
 
