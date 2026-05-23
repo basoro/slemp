@@ -66,6 +66,7 @@ Install_lib()
 
 
 		$serverPath/php/$version/bin/phpize
+		export CFLAGS="$CFLAGS -std=c99"
 		echo "./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS"
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
 		
