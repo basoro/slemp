@@ -122,9 +122,13 @@ if [ "$sysName" == "Darwin" ];then
 		OPTIONS="$OPTIONS --with-libxml-dir=$(brew --prefix libxml2)"
 	fi
 else
-	cd ${rootPath}/plugins/php/lib && /bin/bash openssl_10.sh
-	export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$serverPath/lib/openssl10/lib/pkgconfig
-	OPTIONS="$OPTIONS --with-openssl=$serverPath/lib/openssl10"
+	if [ -f /usr/include/openssl/evp.h ]; then
+		OPTIONS="$OPTIONS --with-openssl"
+	else
+		cd ${rootPath}/plugins/php/lib && /bin/bash openssl_10.sh
+		export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$serverPath/lib/openssl10/lib/pkgconfig
+		OPTIONS="$OPTIONS --with-openssl=$serverPath/lib/openssl10"
+	fi
 fi
 
 if [ ! -d $serverPath/php/${PHP_VER} ];then
