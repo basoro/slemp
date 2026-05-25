@@ -2889,7 +2889,7 @@ def uninstallPreInspection(version):
     import plugins_api
     plugins_api.plugins_api().removeIndex(getPluginName(), version)
 
-    return "Please manually delete MySQL[{}]<br/> rm -rf {}".format(version, getServerDir())
+    return "Silahkan backup data MySQL [{}] sebelum menghapus secara manual atau hapus folder {} secara manual".format(version, getServerDir()) 
 
 if __name__ == "__main__":
     func = sys.argv[1]
