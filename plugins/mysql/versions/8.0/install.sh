@@ -143,6 +143,36 @@ Install_mysql()
 
 	WHERE_DIR_GCC=/usr/bin/gcc
 	WHERE_DIR_GPP=/usr/bin/g++
+	if [ "$OSNAME" == "centos" ] && [ "$VERSION_ID" == "7" ];then
+		echo "Fixing CentOS 7 repositories to use Vault..."
+		sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/CentOS-*.repo
+		sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/CentOS-*.repo
+		sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/CentOS-*.repo
+
+		yum install -y libudev-devel
+		yum install -y centos-release-scl
+
+		echo "Fixing CentOS SCL repositories to use Vault..."
+		if [ -f /etc/yum.repos.d/CentOS-SCLo-scl-rh.repo ]; then
+			sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/CentOS-SCLo-scl-rh.repo
+			sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/CentOS-SCLo-scl-rh.repo
+			sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/CentOS-SCLo-scl-rh.repo
+		fi
+		if [ -f /etc/yum.repos.d/CentOS-SCLo-scl.repo ]; then
+			sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/CentOS-SCLo-scl.repo
+			sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/CentOS-SCLo-scl.repo
+			sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/CentOS-SCLo-scl.repo
+		fi
+
+		yum install -y devtoolset-11-gcc devtoolset-11-gcc-c++ devtoolset-11-binutils
+
+		gcc --version
+		WHERE_DIR_GCC=/opt/rh/devtoolset-11/root/usr/bin/gcc
+		WHERE_DIR_GPP=/opt/rh/devtoolset-11/root/usr/bin/g++
+		echo $WHERE_DIR_GCC
+		echo $WHERE_DIR_GPP
+	fi
+
 	if [ ! -f $WHERE_DIR_GCC ];then
 		WHERE_DIR_GCC=`which gcc`
 	fi
@@ -155,6 +185,7 @@ Install_mysql()
 		cd ${mysqlDir}/mysql-${VERSION}
 		# Clean up any previous in-source build files to avoid conflicts
 		rm -rf CMakeCache.txt CMakeFiles Makefile cmake_install.cmake
+		find . -name "CMakeCache.txt" -o -name "CMakeFiles" | xargs rm -rf
 		
 		if [ "$OSNAME" == "macos" ];then
 			# Patch CMakeLists.txt for modern CMake
@@ -207,7 +238,7 @@ Install_mysql()
 			-DCMAKE_CXX_COMPILER=${WHERE_DIR_GPP} \
 			-DWITH_BOOST=${mysqlDir}/mysql-${VERSION}/boost/
 		else
-			cmake \
+			${INSTALL_CMD} \
 			-DCMAKE_INSTALL_PREFIX=$serverPath/mysql \
 			-DMYSQL_USER=mysql \
 			-DMYSQL_TCP_PORT=3306 \
