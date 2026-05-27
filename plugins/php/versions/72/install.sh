@@ -13,7 +13,7 @@ SYS_ARCH=`arch`
 
 version=7.2.34
 PHP_VER=72
-md5_file_ok=339fd64f899e46a74c4314e3ef47f08b
+md5_file_ok=adb64072b9b7e4634844a72512239a34
 
 Install_php()
 {
@@ -48,6 +48,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 		if [ "${md5_file}" != "${md5_file_ok}" ]; then
 			echo "File unduhan PHP${version} tidak lengkap, instal ulang"
 			rm -rf $sourcePath/php/php-${version}.tar.xz
+			exit 1
 		fi
 	fi
 	
