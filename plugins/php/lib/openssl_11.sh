@@ -8,7 +8,7 @@ rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 
-opensslVersion="1.1.1p"
+opensslVersion="1.1.1w"
 SERVER_ROOT=$rootPath/lib
 SOURCE_ROOT=$rootPath/source/lib
 mkdir -p $SOURCE_ROOT
@@ -27,7 +27,7 @@ if [ ! -d ${SERVER_ROOT}/openssl11 ];then
 
     # Try downloading from official old archive
     if [ "$DOWNLOAD_SUCCESS" = false ]; then
-        echo "Downloading OpenSSL 1.1.1p from official OpenSSL archive..."
+        echo "Downloading OpenSSL ${opensslVersion} from official OpenSSL archive..."
         wget --no-check-certificate -O ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz https://www.openssl.org/source/old/1.1.1/openssl-${opensslVersion}.tar.gz -T 30
         if [ -f ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz ]; then
             DOWNLOAD_SIZE=`wc -c ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz | awk '{print $1}'`
@@ -60,6 +60,7 @@ if [ ! -d ${SERVER_ROOT}/openssl11 ];then
     if [ "$(uname)" == "Darwin" ];then
         ./Configure darwin64-arm64-cc --prefix=${SERVER_ROOT}/openssl11 zlib-dynamic shared
     else
+        export CFLAGS="-w -fPIC -O2"
         ./config --prefix=${SERVER_ROOT}/openssl11 zlib-dynamic shared
     fi
     
@@ -67,9 +68,11 @@ if [ ! -d ${SERVER_ROOT}/openssl11 ];then
     
     if [ "$(uname)" != "Darwin" ];then
         if [ -d /etc/ld.so.conf.d ];then
-            echo "${serverPath}/lib/openssl11/lib" > /etc/ld.so.conf.d/openssl11.conf
+            echo "${SERVER_ROOT}/openssl11/lib" > /etc/ld.so.conf.d/openssl11.conf
+            echo "${SERVER_ROOT}/openssl11/lib64" >> /etc/ld.so.conf.d/openssl11.conf
         elif [ -f /etc/ld.so.conf ]; then
-            echo "${serverPath}/lib/openssl11/lib" >> /etc/ld.so.conf
+            echo "${SERVER_ROOT}/openssl11/lib" >> /etc/ld.so.conf
+            echo "${SERVER_ROOT}/openssl11/lib64" >> /etc/ld.so.conf
         fi
         ldconfig
     fi

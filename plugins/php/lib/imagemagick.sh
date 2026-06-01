@@ -26,9 +26,9 @@ if [ ! -d ${SERVER_ROOT}/ImageMagick ];then
     make && make install
 
     if [ -d /etc/ld.so.conf.d ];then
-        echo "${serverPath}/lib/ImageMagick/lib" > /etc/ld.so.conf.d/ImageMagick.conf
+        echo "${SERVER_ROOT}/ImageMagick/lib" > /etc/ld.so.conf.d/ImageMagick.conf
     elif [ -f /etc/ld.so.conf ]; then
-        echo "${serverPath}/lib/ImageMagick/lib" >> /etc/ld.so.conf
+        echo "${SERVER_ROOT}/ImageMagick/lib" >> /etc/ld.so.conf
     fi
 
     ldconfig

@@ -62,15 +62,18 @@ if [ ! -d ${SERVER_ROOT}/openssl10 ] || [ ! -f ${SERVER_ROOT}/openssl10/include/
     fi
 
     tar -zxf openssl-${opensslVersion}.tar.gz
-    cd openssl-${opensslVersion}
-    ./config --prefix=${SERVER_ROOT}/openssl10 --openssldir=${SERVER_ROOT}/openssl10 zlib-dynamic shared
+    if [ "$(uname)" == "Darwin" ];then
+        ./Configure darwin64-arm64-cc --prefix=${SERVER_ROOT}/openssl10 --openssldir=${SERVER_ROOT}/openssl10 zlib-dynamic shared
+    else
+        export CFLAGS="-w -fPIC -O2"
+        ./config --prefix=${SERVER_ROOT}/openssl10 --openssldir=${SERVER_ROOT}/openssl10 zlib-dynamic shared
+    fi
     make && make install
 
-    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${serverPath}/lib/openssl10/lib
     if [ -d /etc/ld.so.conf.d ];then
-        echo "${serverPath}/lib/openssl10/lib" > /etc/ld.so.conf.d/openssl10.conf
+        echo "${SERVER_ROOT}/openssl10/lib" > /etc/ld.so.conf.d/openssl10.conf
     elif [ -f /etc/ld.so.conf ]; then
-        echo "${serverPath}/lib/openssl10/lib" >> /etc/ld.so.conf
+        echo "${SERVER_ROOT}/openssl10/lib" >> /etc/ld.so.conf
     fi
 
     ldconfig

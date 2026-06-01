@@ -27,11 +27,10 @@ if [ ! -d ${SERVER_ROOT}/icu ];then
 		cd ${SOURCE_ROOT}/icu/source
 		./runConfigureICU Linux --prefix=${SERVER_ROOT}/icu && make  CXXFLAGS="-g -O2 -std=c++11" && make install
 
-		# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${serverPath}/lib/icu/lib
 		if [ -d /etc/ld.so.conf.d ];then
-			echo "${serverPath}/lib/icu/lib" > /etc/ld.so.conf.d/mw-icu.conf
+			echo "${SERVER_ROOT}/icu/lib" > /etc/ld.so.conf.d/mw-icu.conf
 		elif [ -f /etc/ld.so.conf ]; then
-			echo "${serverPath}/lib/icu/lib" >> /etc/ld.so.conf
+			echo "${SERVER_ROOT}/icu/lib" >> /etc/ld.so.conf
 		fi
 
 		ldconfig

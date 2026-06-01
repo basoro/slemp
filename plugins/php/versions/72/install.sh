@@ -22,6 +22,11 @@ echo "Menginstal php-${version} ..."
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
+# Clean up failed source code builds to avoid stale config cache
+if [ -d $sourcePath/php/php${PHP_VER} ] && [ ! -d $serverPath/php/${PHP_VER} ]; then
+	rm -rf $sourcePath/php/php${PHP_VER}
+fi
+
 cd ${rootPath}/plugins/php/lib && /bin/bash freetype_old.sh
 cd ${rootPath}/plugins/php/lib && /bin/bash zlib.sh
 
@@ -126,9 +131,14 @@ else
 	if [ -f /usr/include/openssl/evp.h ] && ! openssl version 2>&1 | grep -qE "OpenSSL (3\.|[4-9]\.)"; then
 		OPTIONS="$OPTIONS --with-openssl"
 	else
-		cd ${rootPath}/plugins/php/lib && /bin/bash openssl_10.sh
-		export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$serverPath/lib/openssl10/lib/pkgconfig
-		OPTIONS="$OPTIONS --with-openssl=$serverPath/lib/openssl10"
+		cd ${rootPath}/plugins/php/lib && /bin/bash openssl_11.sh
+		OPENSSL_11_DIR=${serverPath}/lib/openssl11
+		export PKG_CONFIG_PATH=${OPENSSL_11_DIR}/lib/pkgconfig:$PKG_CONFIG_PATH
+		export OPENSSL_CFLAGS="-I${OPENSSL_11_DIR}/include"
+		export OPENSSL_LIBS="-L${OPENSSL_11_DIR}/lib -L${OPENSSL_11_DIR}/lib64 -lssl -lcrypto -lz -Wl,-rpath,${OPENSSL_11_DIR}/lib -Wl,-rpath,${OPENSSL_11_DIR}/lib64"
+		export CPPFLAGS="-I${OPENSSL_11_DIR}/include"
+		export LDFLAGS="-L${OPENSSL_11_DIR}/lib -L${OPENSSL_11_DIR}/lib64 -Wl,-rpath,${OPENSSL_11_DIR}/lib -Wl,-rpath,${OPENSSL_11_DIR}/lib64"
+		OPTIONS="$OPTIONS --with-openssl=${OPENSSL_11_DIR}"
 	fi
 fi
 
