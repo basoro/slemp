@@ -770,23 +770,55 @@ fi
 
     def repPanel(self, get):
         from flask import Response
+        import subprocess
+        import os
+        import time
+
+        log_file = "/tmp/slemp-repair.log"
+        # Truncate/initialize the log file
+        with open(log_file, "w") as f:
+            f.write("Menghubungkan ke repositori utama SLEMP...\n")
+
+        cmd = "wget --no-check-certificate -O update.sh https://raw.githubusercontent.com/basoro/slemp/master/scripts/update.sh && bash update.sh"
+        
+        # Start the subprocess completely detached, redirecting output to log_file
+        with open(log_file, "a") as f:
+            p = subprocess.Popen(
+                cmd,
+                shell=True,
+                stdout=f,
+                stderr=f,
+                start_new_session=True
+            )
+
         def generate():
-            cmd = "wget --no-check-certificate -O update.sh https://raw.githubusercontent.com/basoro/slemp/master/scripts/update.sh && bash update.sh"
-            import subprocess
             yield "Menghubungkan ke repositori utama SLEMP...\n"
             yield f"Menjalankan perintah: {cmd}\n\n"
-            p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, universal_newlines=True)
-            while True:
-                line = p.stdout.readline()
-                if not line:
-                    if p.poll() is not None:
-                        break
-                    continue
-                yield line
-            p.wait()
+            
+            # Read from log_file and stream back to browser
+            with open(log_file, "r") as f:
+                f.seek(0)
+                last_pos = 0
+                while True:
+                    f.seek(last_pos)
+                    line = f.readline()
+                    if not line:
+                        # Check if process has finished
+                        if p.poll() is not None:
+                            line = f.readline()
+                            if not line:
+                                break
+                        time.sleep(0.2)
+                        continue
+                    last_pos = f.tell()
+                    if line.strip() == "Menghubungkan ke repositori utama SLEMP...":
+                        continue
+                    yield line
+            
             if 'getCloudPlugin' in session:
                 del session['getCloudPlugin']
             yield "\nPerbaikan panel selesai dengan sukses!\n"
+            
         return Response(generate(), mimetype='text/plain')
 
     def repPanelApi(self):

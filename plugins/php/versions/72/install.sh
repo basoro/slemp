@@ -123,7 +123,7 @@ if [ "$sysName" == "Darwin" ];then
 		OPTIONS="$OPTIONS --with-libxml-dir=$(brew --prefix libxml2)"
 	fi
 else
-	if [ -f /usr/include/openssl/evp.h ]; then
+	if [ -f /usr/include/openssl/evp.h ] && ! openssl version 2>&1 | grep -qE "OpenSSL (3\.|[4-9]\.)"; then
 		OPTIONS="$OPTIONS --with-openssl"
 	else
 		cd ${rootPath}/plugins/php/lib && /bin/bash openssl_10.sh

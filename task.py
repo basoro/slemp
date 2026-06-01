@@ -64,8 +64,15 @@ def slemp_async(f):
 @slemp_async
 def restartSlemp():
     time.sleep(1)
-    cmd = slemp.getRunDir() + '/scripts/init.d/slemp reload &'
-    slemp.execShell(cmd)
+    cmd = '/etc/init.d/slemp'
+    if not os.path.exists(cmd):
+        cmd = '/etc/rc.d/init.d/slemp'
+    if not os.path.exists(cmd):
+        cmd = slemp.getRunDir() + '/scripts/init.d/slemp'
+    
+    import subprocess
+    restart_cmd = f'nohup bash -c "sleep 1 && {cmd} restart" > /dev/null 2>&1 &'
+    subprocess.Popen(restart_cmd, shell=True, start_new_session=True)
 
 
 def execShell(cmdstring, cwd=None, timeout=None, shell=True):
@@ -530,7 +537,15 @@ def restartPanelService():
     while True:
         if os.path.exists(restartTip):
             os.remove(restartTip)
-            service_cmd('restart_panel')
+            cmd = '/etc/init.d/slemp'
+            if not os.path.exists(cmd):
+                cmd = '/etc/rc.d/init.d/slemp'
+            if not os.path.exists(cmd):
+                cmd = slemp.getRunDir() + '/scripts/init.d/slemp'
+            
+            import subprocess
+            restart_cmd = f'nohup bash -c "sleep 1 && {cmd} restart" > /dev/null 2>&1 &'
+            subprocess.Popen(restart_cmd, shell=True, start_new_session=True)
         time.sleep(1)
 # --------------------------------------Panel Restart End   --------------------------------------------- #
 
