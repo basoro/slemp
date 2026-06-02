@@ -144,9 +144,9 @@ else
 		fi
 		export PKG_CONFIG_PATH=${OPENSSL_11_DIR}/lib/pkgconfig:$PKG_CONFIG_PATH
 		export OPENSSL_CFLAGS="-I${OPENSSL_11_DIR}/include"
-		export OPENSSL_LIBS="-L${OPENSSL_11_DIR}/lib -L${OPENSSL_11_DIR}/lib64 -lssl -lcrypto -lz -Wl,-rpath,${OPENSSL_11_DIR}/lib -Wl,-rpath,${OPENSSL_11_DIR}/lib64"
-		export CPPFLAGS="-I${OPENSSL_11_DIR}/include"
-		export LDFLAGS="-L${OPENSSL_11_DIR}/lib -L${OPENSSL_11_DIR}/lib64 -Wl,-rpath,${OPENSSL_11_DIR}/lib -Wl,-rpath,${OPENSSL_11_DIR}/lib64"
+		export OPENSSL_LIBS="-L${OPENSSL_11_DIR}/lib -L${OPENSSL_11_DIR}/lib64 -lssl -lcrypto -lz -ldl -Wl,-rpath,${OPENSSL_11_DIR}/lib -Wl,-rpath,${OPENSSL_11_DIR}/lib64"
+		export CPPFLAGS="-I${OPENSSL_11_DIR}/include -Wno-error"
+		export LDFLAGS="-L${OPENSSL_11_DIR}/lib -L${OPENSSL_11_DIR}/lib64 -ldl -Wl,-rpath,${OPENSSL_11_DIR}/lib -Wl,-rpath,${OPENSSL_11_DIR}/lib64"
 		OPTIONS="$OPTIONS --with-openssl=${OPENSSL_11_DIR}"
 	fi
 fi
@@ -155,8 +155,6 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 	if [ "$sysName" != "Darwin" ]; then
 		export CFLAGS="-w -O2 -fPIC -Wno-error"
 		export CXXFLAGS="-w -O2 -fPIC -Wno-error"
-		export CC="gcc -Wno-error"
-		export CXX="g++ -Wno-error"
 	fi
 
 	cd $sourcePath/php/php${PHP_VER} && ./configure \
