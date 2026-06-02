@@ -149,8 +149,8 @@ fi
 
 if [ ! -d $serverPath/php/${PHP_VER} ];then
 	if [ "$sysName" != "Darwin" ]; then
-		export CFLAGS="-w -O2 -fPIC -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=implicit-int -Wno-error=return-type"
-		export CXXFLAGS="-w -O2 -fPIC -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=implicit-int -Wno-error=return-type"
+		export CFLAGS="-w -O2 -fPIC -Wno-error"
+		export CXXFLAGS="-w -O2 -fPIC -Wno-error"
 	fi
 
 	cd $sourcePath/php/php${PHP_VER} && ./configure \

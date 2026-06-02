@@ -65,8 +65,8 @@ if [ ! -d ${SERVER_ROOT}/openssl10 ] || [ ! -f ${SERVER_ROOT}/openssl10/include/
     if [ "$(uname)" == "Darwin" ];then
         ./Configure darwin64-arm64-cc --prefix=${SERVER_ROOT}/openssl10 --openssldir=${SERVER_ROOT}/openssl10 zlib-dynamic shared
     else
-        export CFLAGS="-w -fPIC -O2"
-        ./config --prefix=${SERVER_ROOT}/openssl10 --openssldir=${SERVER_ROOT}/openssl10 zlib-dynamic shared
+        export CFLAGS="-w -fPIC -O2 -Wno-error"
+        ./config --prefix=${SERVER_ROOT}/openssl10 --openssldir=${SERVER_ROOT}/openssl10 zlib-dynamic shared -w -fPIC -O2 -Wno-error
     fi
     make && make install
 

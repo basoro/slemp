@@ -126,6 +126,10 @@ else
 fi
 
 if [ ! -d $serverPath/php/${PHP_VER} ];then
+	if [ "$sysName" != "Darwin" ]; then
+		export CFLAGS="-w -O2 -fPIC -Wno-error"
+		export CXXFLAGS="-w -O2 -fPIC -Wno-error"
+	fi
 	cd $sourcePath/php/php${PHP_VER}
 	./configure \
 	--prefix=$serverPath/php/${PHP_VER} \

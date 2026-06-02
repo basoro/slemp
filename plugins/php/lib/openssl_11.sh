@@ -60,8 +60,8 @@ if [ ! -d ${SERVER_ROOT}/openssl11 ];then
     if [ "$(uname)" == "Darwin" ];then
         ./Configure darwin64-arm64-cc --prefix=${SERVER_ROOT}/openssl11 zlib-dynamic shared
     else
-        export CFLAGS="-w -fPIC -O2 -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=implicit-int"
-        ./config --prefix=${SERVER_ROOT}/openssl11 zlib-dynamic shared
+        export CFLAGS="-w -fPIC -O2 -Wno-error"
+        ./config --prefix=${SERVER_ROOT}/openssl11 zlib-dynamic shared -w -fPIC -O2 -Wno-error
     fi
     
     make && make install
