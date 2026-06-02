@@ -150,6 +150,8 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 	if [ "$sysName" != "Darwin" ]; then
 		export CFLAGS="-w -O2 -fPIC -Wno-error"
 		export CXXFLAGS="-w -O2 -fPIC -Wno-error"
+		export CC="gcc -Wno-error"
+		export CXX="g++ -Wno-error"
 	fi
 
 	cd $sourcePath/php/php${PHP_VER} && ./configure \
