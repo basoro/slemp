@@ -45,7 +45,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	fi
 
 	if [ ! -f $sourcePath/php/php-${version}.tar.xz ];then
-		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://museum.php.net/php8/php-${version}.tar.xz
+		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://www.php.net/distributions/php-${version}.tar.xz
 	fi
 
 	if [ -f $sourcePath/php/php-${version}.tar.xz ];then
