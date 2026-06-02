@@ -133,6 +133,11 @@ else
 	else
 		cd ${rootPath}/plugins/php/lib && /bin/bash openssl_11.sh
 		OPENSSL_11_DIR=${serverPath}/lib/openssl11
+		if [ -d ${OPENSSL_11_DIR}/lib64 ] && [ ! -d ${OPENSSL_11_DIR}/lib ]; then
+			ln -sf ${OPENSSL_11_DIR}/lib64 ${OPENSSL_11_DIR}/lib
+		elif [ -d ${OPENSSL_11_DIR}/lib64 ] && [ -d ${OPENSSL_11_DIR}/lib ]; then
+			cp -fr ${OPENSSL_11_DIR}/lib64/* ${OPENSSL_11_DIR}/lib/
+		fi
 		export PKG_CONFIG_PATH=${OPENSSL_11_DIR}/lib/pkgconfig:$PKG_CONFIG_PATH
 		export OPENSSL_CFLAGS="-I${OPENSSL_11_DIR}/include"
 		export OPENSSL_LIBS="-L${OPENSSL_11_DIR}/lib -L${OPENSSL_11_DIR}/lib64 -lssl -lcrypto -lz -Wl,-rpath,${OPENSSL_11_DIR}/lib -Wl,-rpath,${OPENSSL_11_DIR}/lib64"

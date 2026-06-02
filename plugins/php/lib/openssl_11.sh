@@ -66,6 +66,12 @@ if [ ! -d ${SERVER_ROOT}/openssl11 ];then
     
     make && make install
     
+    if [ -d ${SERVER_ROOT}/openssl11/lib64 ] && [ ! -d ${SERVER_ROOT}/openssl11/lib ]; then
+        ln -sf ${SERVER_ROOT}/openssl11/lib64 ${SERVER_ROOT}/openssl11/lib
+    elif [ -d ${SERVER_ROOT}/openssl11/lib64 ] && [ -d ${SERVER_ROOT}/openssl11/lib ]; then
+        cp -fr ${SERVER_ROOT}/openssl11/lib64/* ${SERVER_ROOT}/openssl11/lib/
+    fi
+
     if [ "$(uname)" != "Darwin" ];then
         if [ -d /etc/ld.so.conf.d ];then
             echo "${SERVER_ROOT}/openssl11/lib" > /etc/ld.so.conf.d/openssl11.conf
