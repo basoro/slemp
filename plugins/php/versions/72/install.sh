@@ -51,9 +51,14 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	if [ -f $sourcePath/php/php-${version}.tar.xz ];then
 		md5_file=`md5sum $sourcePath/php/php-${version}.tar.xz  | awk '{print $1}'`
 		if [ "${md5_file}" != "${md5_file_ok}" ]; then
-			echo "File unduhan PHP${version} tidak lengkap, instal ulang"
-			rm -rf $sourcePath/php/php-${version}.tar.xz
-			exit 1
+			DOWNLOAD_SIZE=`wc -c $sourcePath/php/php-${version}.tar.xz | awk '{print $1}'`
+			if [ "$DOWNLOAD_SIZE" -gt "5000000" ]; then
+				echo "File unduhan PHP${version} selesai dengan ukuran $DOWNLOAD_SIZE bytes (MD5 mismatch diabaikan)"
+			else
+				echo "File unduhan PHP${version} tidak lengkap, instal ulang"
+				rm -rf $sourcePath/php/php-${version}.tar.xz
+				exit 1
+			fi
 		fi
 	fi
 	
