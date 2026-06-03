@@ -84,6 +84,9 @@ if [ ! -d ${SERVER_ROOT}/openssl11 ] || [ ! -f ${SERVER_ROOT}/openssl11/include/
     elif [ -d ${SERVER_ROOT}/openssl11/lib64 ] && [ -d ${SERVER_ROOT}/openssl11/lib ]; then
         cp -fr ${SERVER_ROOT}/openssl11/lib64/* ${SERVER_ROOT}/openssl11/lib/
     fi
+    if [ -d ${SERVER_ROOT}/openssl11/lib ] && [ ! -d ${SERVER_ROOT}/openssl11/lib64 ]; then
+        ln -sf lib ${SERVER_ROOT}/openssl11/lib64
+    fi
 
     if [ "$(uname)" != "Darwin" ];then
         if [ -d /etc/ld.so.conf.d ];then

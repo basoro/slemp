@@ -142,6 +142,9 @@ else
 		elif [ -d ${OPENSSL_11_DIR}/lib64 ] && [ -d ${OPENSSL_11_DIR}/lib ]; then
 			cp -fr ${OPENSSL_11_DIR}/lib64/* ${OPENSSL_11_DIR}/lib/
 		fi
+		if [ -d ${OPENSSL_11_DIR}/lib ] && [ ! -d ${OPENSSL_11_DIR}/lib64 ]; then
+			ln -sf lib ${OPENSSL_11_DIR}/lib64
+		fi
 		export PKG_CONFIG_PATH=${OPENSSL_11_DIR}/lib/pkgconfig:$PKG_CONFIG_PATH
 		export OPENSSL_CFLAGS="-I${OPENSSL_11_DIR}/include"
 		export OPENSSL_LIBS="-L${OPENSSL_11_DIR}/lib -L${OPENSSL_11_DIR}/lib64 -lssl -lcrypto -lz -ldl -Wl,-rpath,${OPENSSL_11_DIR}/lib -Wl,-rpath,${OPENSSL_11_DIR}/lib64"
