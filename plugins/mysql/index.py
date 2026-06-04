@@ -361,7 +361,11 @@ def getShowLogFile():
     content = slemp.readFile(file)
     rep = r'slow-query-log-file\s*=\s*(.*)'
     tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    if tmp:
+        path = tmp.groups()[0].strip().strip('"').strip("'")
+        path = path.replace('{$SERVER_APP_PATH}', getServerDir())
+        return path
+    return getServerDir() + '/data/mysql-slow.log'
 
 
 def pGetDbUser():
