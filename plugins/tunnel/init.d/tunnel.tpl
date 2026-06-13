@@ -19,8 +19,8 @@ app_start(){
 	isStart=`ps -ef | grep metro.basoro.id | grep -v grep | awk '{print $2}'`
 	if [ "$isStart" == '' ];then
       echo -e "Starting tunnel... \c"
-			key=`cat ${serverPath}/tunnel/key.pl`
-			${serverPath}/tunnel/client -s metro.basoro.id -p 4900 -k "$key" &
+			key=`cat {$SERVER_PATH}/tunnel/key.pl`
+			{$SERVER_PATH}/tunnel/client -s metro.basoro.id -p 4900 -k "$key" &
       echo -e "\033[32mdone\033[0m"
   else
       echo "Starting tunnel already running"
@@ -30,7 +30,7 @@ app_start(){
 app_stop()
 {
     echo -e "Stopping tunnel... \c";
-		isStart = `ps -ef | grep metro.basoro.id | grep -v grep | awk '{print $2}'`
+		isStart=`ps -ef | grep metro.basoro.id | grep -v grep | awk '{print $2}'`
 		if [ "$isStart" != '' ];then
 			kill -9 "$isStart"
 		fi

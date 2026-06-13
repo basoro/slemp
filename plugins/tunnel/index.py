@@ -66,7 +66,7 @@ def getInitDTpl():
 def initDreplace():
 
     file_tpl = getInitDTpl()
-    service_path = os.path.dirname(os.getcwd())
+    service_path = slemp.getServerDir()
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
@@ -74,10 +74,10 @@ def initDreplace():
     file_bin = initD_path + '/' + getPluginName()
 
     # initd replace
-    if not os.path.exists(file_bin):
-        content = slemp.readFile(file_tpl)
-        slemp.writeFile(file_bin, content)
-        slemp.execShell('chmod +x ' + file_bin)
+    content = slemp.readFile(file_tpl)
+    content = content.replace('{$SERVER_PATH}', service_path)
+    slemp.writeFile(file_bin, content)
+    slemp.execShell('chmod +x ' + file_bin)
 
     # systemd
     systemDir = slemp.systemdCfgDir()
