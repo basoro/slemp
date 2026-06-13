@@ -149,7 +149,7 @@ do
     sleep 1
     let n+=1
     if [ $n -gt 20 ];then
-    	echo -e "mulai mw gagal"
+    	echo -e "mulai slemp gagal"
     	exit 1
     fi
 done
