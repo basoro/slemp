@@ -1,0 +1,22 @@
+<div class="bt-form">
+	<div class='plugin_version'></div>
+	<div class="bt-w-main">
+		<div class="bt-w-menu">
+			<p class="bgw" onclick="pluginService('ollama', $('.plugin_version').attr('version'));">Layanan</p>
+			<p onclick="pluginInitD('ollama', $('.plugin_version').attr('version'));">Instal Layanan</p>
+			<p onclick="ollama.openwebui();">WebUI</p>
+			<p onclick="ollama.readme();">Panduan</p>
+		</div>
+		<div class="bt-w-con pd15">
+			<div class="soft-man-con"></div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+resetPluginWinHeight(530);
+$.getScript( "/plugins/file?name=ollama&f=js/ollama.js", function(){
+	ollama.init();
+	pluginService('ollama');
+});
+</script>
