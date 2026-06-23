@@ -551,7 +551,14 @@ def openwebuiInstall():
     writeOpenWebUIInstallState('running', 1, 'Menyiapkan proses instalasi OpenWebUI...')
     install_cmd = 'nohup "{}" "{}" openwebui_install_worker > /dev/null 2>&1 & echo $!'.format(
         sys.executable, os.path.realpath(__file__))
+    #region debug-point openwebui-install-launch
+    appendOpenWebUIInstallLog('DEBUG launch worker command: ' + install_cmd)
+    #endregion
     result = slemp.execShell(install_cmd)
+    #region debug-point openwebui-install-launch-result
+    appendOpenWebUIInstallLog('DEBUG launch worker stdout: ' + result[0].strip())
+    appendOpenWebUIInstallLog('DEBUG launch worker stderr: ' + result[1].strip())
+    #endregion
     pid = 0
     try:
         pid = int(result[0].strip().split('\n')[-1])
@@ -719,6 +726,10 @@ if __name__ == "__main__":
         print(openwebuiStatus())
     elif func == 'openwebui_install':
         print(openwebuiInstall())
+    elif func == 'openwebui_install_worker':
+        print(openwebuiInstallWorker())
+    elif func == 'openwebui_install_progress':
+        print(openwebuiInstallProgress())
     elif func == 'openwebui_start':
         print(openwebuiStart())
     elif func == 'openwebui_stop':
@@ -734,4 +745,8 @@ if __name__ == "__main__":
     elif func == 'openwebui_get_config':
         print(openwebuiGetConfig())
     else:
+        #region debug-point openwebui-dispatcher-miss
+        if func.startswith('openwebui'):
+            appendOpenWebUIInstallLog('DEBUG dispatcher miss for func: ' + func)
+        #endregion
         print('error')
