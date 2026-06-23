@@ -1,6 +1,35 @@
 var ollama = {
     plugin_name: 'ollama',
+    openwebui_install_timer: null,
+    openwebui_install_layer: null,
     init: function () {},
+
+    request: function (method, args, callback) {
+        var data = {};
+        data['name'] = 'ollama';
+        data['func'] = method;
+        data['version'] = $('.plugin_version').attr('version');
+
+        if (typeof (args) == 'string') {
+            data['args'] = JSON.stringify(toArrayObject(args));
+        } else {
+            data['args'] = JSON.stringify(args || {});
+        }
+
+        $.post('/plugins/run', data, function (res) {
+            if (!res.status) {
+                if (typeof (callback) == 'function') {
+                    callback({ status: false, msg: res.msg, data: {} });
+                }
+                return;
+            }
+
+            var ret_data = $.parseJSON(res.data);
+            if (typeof (callback) == 'function') {
+                callback(ret_data);
+            }
+        }, 'json');
+    },
 
     send: function (info) {
         var tips = info['tips'];
@@ -195,6 +224,10 @@ var ollama = {
             'method': 'openwebui_install',
             'data': {},
             'success': function (rdata) {
+                if (rdata.data && rdata.data.installing) {
+                    _this.openwebuiInstallProgress();
+                    return;
+                }
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2, time: 3000 });
                 if (rdata.status) {
                     setTimeout(function () {
@@ -203,6 +236,79 @@ var ollama = {
                 }
             }
         });
+    },
+
+    openwebuiInstallProgress: function () {
+        var _this = this;
+        if (this.openwebui_install_timer) {
+            clearInterval(this.openwebui_install_timer);
+            this.openwebui_install_timer = null;
+        }
+
+        var con = '';
+        con += '<div class="bt-form pd15" style="padding-bottom:20px">';
+        con += '<p id="openwebui_install_msg" style="margin-bottom:10px">Menyiapkan instalasi OpenWebUI...</p>';
+        con += '<div style="height:12px;background:#f1f1f1;border-radius:10px;overflow:hidden">';
+        con += '<div id="openwebui_install_bar" style="width:0%;height:12px;background:#20a53a;transition:width .3s"></div>';
+        con += '</div>';
+        con += '<p id="openwebui_install_percent" style="margin-top:8px;color:#666">0%</p>';
+        con += '<pre id="openwebui_install_log" style="margin-top:10px;height:220px;overflow:auto;background:#111;color:#ddd;padding:10px;border-radius:4px;white-space:pre-wrap"></pre>';
+        con += '</div>';
+
+        this.openwebui_install_layer = layer.open({
+            type: 1,
+            title: 'Instalasi OpenWebUI',
+            area: ['680px', '420px'],
+            shadeClose: false,
+            closeBtn: 1,
+            content: con,
+            cancel: function () {
+                if (_this.openwebui_install_timer) {
+                    clearInterval(_this.openwebui_install_timer);
+                    _this.openwebui_install_timer = null;
+                }
+            }
+        });
+
+        var poll = function () {
+            _this.request('openwebui_install_progress', {}, function (rdata) {
+                var percent = 0;
+                var msg = 'Menunggu status instalasi...';
+                var log_text = '';
+                var status = 'idle';
+
+                if (rdata.data) {
+                    percent = rdata.data.percent || 0;
+                    msg = rdata.data.msg || msg;
+                    log_text = rdata.data.log || '';
+                    status = rdata.data.status || status;
+                } else {
+                    msg = rdata.msg || 'Gagal membaca status instalasi.';
+                    status = 'failed';
+                }
+
+                $('#openwebui_install_bar').css('width', percent + '%');
+                $('#openwebui_install_percent').text(percent + '%');
+                $('#openwebui_install_msg').text(msg);
+                $('#openwebui_install_log').text(log_text);
+                var log_box = document.getElementById('openwebui_install_log');
+                if (log_box) log_box.scrollTop = log_box.scrollHeight;
+
+                if (status == 'success' || status == 'failed') {
+                    if (_this.openwebui_install_timer) {
+                        clearInterval(_this.openwebui_install_timer);
+                        _this.openwebui_install_timer = null;
+                    }
+                    layer.msg(msg, { icon: status == 'success' ? 1 : 2, time: 4000 });
+                    setTimeout(function () {
+                        _this.openwebui();
+                    }, 1500);
+                }
+            });
+        };
+
+        poll();
+        this.openwebui_install_timer = setInterval(poll, 1500);
     },
 
     openwebuiStart: function () {

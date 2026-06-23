@@ -5,6 +5,7 @@ import os
 import time
 import re
 import json
+import subprocess
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + "/class/core")
 import slemp
@@ -264,6 +265,14 @@ def getOpenWebUIVenvCli():
     return getOpenWebUIVenvDir() + '/bin/open-webui'
 
 
+def getOpenWebUIInstallStateFile():
+    return getServerDir() + '/openwebui_install.json'
+
+
+def getOpenWebUIInstallLogFile():
+    return getServerDir() + '/openwebui_install.log'
+
+
 def checkPythonVersion():
     """Memeriksa apakah Python version >= 3.11"""
     version = sys.version_info
@@ -311,9 +320,99 @@ def getOpenWebUIStartCommands(port):
     return ['open-webui serve --port ' + str(port)]
 
 
+def tailOpenWebUILog(line_count=20):
+    log_file = getOpenWebUIInstallLogFile()
+    if not os.path.exists(log_file):
+        return ''
+
+    content = slemp.readFile(log_file)
+    lines = content.splitlines()
+    return '\n'.join(lines[-line_count:])
+
+
+def writeOpenWebUIInstallState(status, percent, msg, pid=0):
+    data = {
+        'status': status,
+        'percent': percent,
+        'msg': msg,
+        'pid': pid,
+        'env_mode': 'venv' if useOpenWebUIVenv() else 'system',
+        'log_file': getOpenWebUIInstallLogFile(),
+        'update_time': int(time.time())
+    }
+    if not os.path.exists(getServerDir()):
+        os.makedirs(getServerDir())
+    slemp.writeFile(getOpenWebUIInstallStateFile(), json.dumps(data))
+    return data
+
+
+def readOpenWebUIInstallState():
+    state_file = getOpenWebUIInstallStateFile()
+    if not os.path.exists(state_file):
+        return {
+            'status': 'idle',
+            'percent': 0,
+            'msg': 'Belum ada proses instalasi OpenWebUI.',
+            'env_mode': 'venv' if useOpenWebUIVenv() else 'system',
+            'log_file': getOpenWebUIInstallLogFile(),
+            'update_time': int(time.time())
+        }
+
+    try:
+        data = json.loads(slemp.readFile(state_file))
+    except Exception:
+        data = {
+            'status': 'failed',
+            'percent': 0,
+            'msg': 'Status instalasi OpenWebUI tidak dapat dibaca.'
+        }
+
+    data['log'] = tailOpenWebUILog()
+    return data
+
+
+def appendOpenWebUIInstallLog(message):
+    log_file = getOpenWebUIInstallLogFile()
+    log_dir = os.path.dirname(log_file)
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    with open(log_file, 'a') as fp:
+        fp.write(message + '\n')
+
+
+def resetOpenWebUIInstallLog():
+    log_file = getOpenWebUIInstallLogFile()
+    if os.path.exists(log_file):
+        os.remove(log_file)
+
+
+def runOpenWebUIInstallCommand(command, progress, message):
+    writeOpenWebUIInstallState('running', progress, message)
+    appendOpenWebUIInstallLog('$ ' + ' '.join(command))
+
+    process = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True
+    )
+
+    while True:
+        line = process.stdout.readline()
+        if not line and process.poll() is not None:
+            break
+        if line:
+            appendOpenWebUIInstallLog(line.rstrip())
+
+    code = process.wait()
+    if code != 0:
+        raise Exception('Perintah gagal dijalankan: ' + ' '.join(command))
+
+
 def checkOpenWebUIPipInstalled():
     """Memeriksa apakah OpenWebUI terinstal via pip"""
-    result = slemp.execShell('pip show open-webui')
+    result = slemp.execShell('"{}" -m pip show open-webui'.format(sys.executable))
     if result[1] != '' and 'not found' in result[1].lower():
         return False
     return result[0] != ''
@@ -323,6 +422,75 @@ def checkOpenWebUIInstalled():
     if useOpenWebUIVenv():
         return os.path.exists(getOpenWebUIVenvCli())
     return checkOpenWebUIPipInstalled()
+
+
+def openwebuiInstallProgress():
+    state = readOpenWebUIInstallState()
+    return slemp.returnJson(state.get('status') != 'failed', state.get('msg', 'ok'), state)
+
+
+def openwebuiInstallWorker():
+    try:
+        resetOpenWebUIInstallLog()
+        writeOpenWebUIInstallState('running', 5, 'Memeriksa lingkungan OpenWebUI...')
+        appendOpenWebUIInstallLog('Memulai instalasi OpenWebUI...')
+
+        if checkOpenWebUIInstalled():
+            appendOpenWebUIInstallLog('OpenWebUI sudah tersedia, proses instalasi dilewati.')
+            writeOpenWebUIInstallState('success', 100, 'OpenWebUI sudah terinstal.')
+            return 'ok'
+
+        if useOpenWebUIVenv():
+            python311 = findPython311()
+            if python311 == '':
+                writeOpenWebUIInstallState('failed', 0, 'python3.11 tidak ditemukan untuk membuat virtualenv OpenWebUI.')
+                appendOpenWebUIInstallLog('python3.11 tidak ditemukan.')
+                return 'fail'
+
+            if not os.path.exists(getServerDir()):
+                os.makedirs(getServerDir())
+
+            if not os.path.exists(getOpenWebUIVenvDir()):
+                runOpenWebUIInstallCommand(
+                    [python311, '-m', 'venv', getOpenWebUIVenvDir()],
+                    25,
+                    'Membuat virtualenv OpenWebUI di server/ollama/openwebui...'
+                )
+            else:
+                writeOpenWebUIInstallState('running', 25, 'Virtualenv OpenWebUI sudah ada, lanjut instalasi paket...')
+                appendOpenWebUIInstallLog('Virtualenv sudah ada di ' + getOpenWebUIVenvDir())
+
+            runOpenWebUIInstallCommand(
+                [getOpenWebUIVenvPython(), '-m', 'pip', 'install', '-U', 'open-webui'],
+                70,
+                'Menginstal paket OpenWebUI ke virtualenv server/ollama/openwebui...'
+            )
+        else:
+            runOpenWebUIInstallCommand(
+                [sys.executable, '-m', 'pip', 'install', '-U', 'open-webui'],
+                70,
+                'Menginstal paket OpenWebUI ke Python sistem...'
+            )
+
+        writeOpenWebUIInstallState('running', 90, 'Memverifikasi hasil instalasi OpenWebUI...')
+        appendOpenWebUIInstallLog('Memverifikasi instalasi OpenWebUI...')
+
+        if not checkOpenWebUIInstalled():
+            writeOpenWebUIInstallState('failed', 90, 'OpenWebUI gagal diverifikasi setelah instalasi.')
+            appendOpenWebUIInstallLog('Verifikasi gagal: binary OpenWebUI tidak ditemukan.')
+            return 'fail'
+
+        if useOpenWebUIVenv():
+            writeOpenWebUIInstallState('success', 100, 'OpenWebUI berhasil diinstal pada virtualenv server/ollama/openwebui.')
+            appendOpenWebUIInstallLog('Instalasi selesai pada virtualenv server/ollama/openwebui.')
+        else:
+            writeOpenWebUIInstallState('success', 100, 'OpenWebUI berhasil diinstal pada Python sistem.')
+            appendOpenWebUIInstallLog('Instalasi selesai pada Python sistem.')
+        return 'ok'
+    except Exception as e:
+        appendOpenWebUIInstallLog('ERROR: ' + str(e))
+        writeOpenWebUIInstallState('failed', 0, 'Gagal menginstal OpenWebUI: ' + str(e))
+        return 'fail'
 
 
 def checkOpenWebUIPipRunning():
@@ -380,27 +548,21 @@ def openwebuiInstall():
                 'env_mode': 'venv'
             })
 
-        if not os.path.exists(getServerDir()):
-            os.makedirs(getServerDir())
-
-        cmd = 'cd "{}" && "{}" -m venv "ollama/openwebui" && . "ollama/openwebui/bin/activate" && pip install -U open-webui'.format(
-            getOpenWebUIServerRoot(), python311)
-        result = slemp.execShell(cmd)
-        if not os.path.exists(getOpenWebUIVenvCli()):
-            return slemp.returnJson(False, 'Gagal menginstal OpenWebUI: ' + result[1])
-        return slemp.returnJson(True, 'OpenWebUI berhasil diinstal pada virtualenv server/ollama/openwebui.', {
-            'status': 'installed',
-            'env_mode': 'venv'
-        })
-
-    result = slemp.execShell('pip install -U open-webui')
-
-    if result[1] != '' and 'error' in result[1].lower():
-        return slemp.returnJson(False, 'Gagal menginstal OpenWebUI: ' + result[1])
-
-    return slemp.returnJson(True, 'OpenWebUI berhasil diinstal pada Python sistem. Silakan mulai dengan tombol Mulai.', {
-        'status': 'installed',
-        'env_mode': 'system'
+    writeOpenWebUIInstallState('running', 1, 'Menyiapkan proses instalasi OpenWebUI...')
+    install_cmd = 'nohup "{}" "{}" openwebui_install_worker > /dev/null 2>&1 & echo $!'.format(
+        sys.executable, os.path.realpath(__file__))
+    result = slemp.execShell(install_cmd)
+    pid = 0
+    try:
+        pid = int(result[0].strip().split('\n')[-1])
+    except Exception:
+        pid = 0
+    writeOpenWebUIInstallState('running', 3, 'Proses instalasi OpenWebUI dimulai...', pid)
+    return slemp.returnJson(True, 'Instalasi OpenWebUI dimulai.', {
+        'status': 'running',
+        'pid': pid,
+        'installing': True,
+        'env_mode': 'venv' if useOpenWebUIVenv() else 'system'
     })
 
 
@@ -487,7 +649,7 @@ def openwebuiUninstall():
         if os.path.exists(getOpenWebUIVenvDir()):
             return slemp.returnJson(False, 'Gagal menghapus virtualenv OpenWebUI')
     else:
-        result = slemp.execShell('pip uninstall open-webui -y')
+        result = slemp.execShell('"{}" -m pip uninstall open-webui -y'.format(sys.executable))
         if result[1] != '' and 'error' in result[1].lower():
             return slemp.returnJson(False, 'Gagal menghapus OpenWebUI: ' + result[1])
 
