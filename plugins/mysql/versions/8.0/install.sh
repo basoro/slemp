@@ -173,6 +173,21 @@ Install_mysql()
 		echo $WHERE_DIR_GPP
 	fi
 
+	# MySQL builds the group replication plugin against the system RPC
+	# headers, cmake stops with "Could not find rpc/rpc.h" without them.
+	if [ "$OSNAME" == "debian" ] || [ "$OSNAME" == "ubuntu" ];then
+		apt install -y libtirpc-dev
+	elif [ "$OSNAME" == "centos" ] || [ "$OSNAME" == "rocky" ] || [ "$OSNAME" == "alma" ] || [ "$OSNAME" == "fedora" ];then
+		yum install -y libtirpc-devel
+	elif [ "$OSNAME" == "opensuse" ];then
+		zypper install -y libtirpc-devel
+	fi
+
+	if [ "$OSNAME" != "macos" ] && [ ! -f /usr/include/tirpc/rpc/rpc.h ] && [ ! -f /usr/include/rpc/rpc.h ];then
+		echo "rpc/rpc.h tidak ditemukan, silakan pasang libtirpc-dev (Debian/Ubuntu) atau libtirpc-devel (RHEL/openSUSE) lalu coba lagi"
+		exit 1
+	fi
+
 	if [ ! -f $WHERE_DIR_GCC ];then
 		WHERE_DIR_GCC=`which gcc`
 	fi

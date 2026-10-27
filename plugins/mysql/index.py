@@ -729,7 +729,7 @@ def runInfo(version):
 
     # print(result, int(result['Uptime']))
     result['Run'] = int(time.time()) - int(result['Uptime'])
-    tmp = db.query('show master status')
+    tmp = db.query(showMasterStatusSql(version))
     try:
         result['File'] = tmp[0]["File"]
         result['Position'] = tmp[0]["Position"]
@@ -971,7 +971,7 @@ def importDbBackup():
     local_mode = recognizeDbMode()
     if local_mode == 'gtid':
         pdb = pMysqlDb()
-        pdb.execute('reset master')
+        pdb.execute(resetMasterSql())
 
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
     sock = getSocketFile()
@@ -1728,27 +1728,239 @@ def findBinlogSlaveDoDb():
     return dodb
 
 
+def isSqlFail(result):
+    '''The ORM hands back the exception object when a statement fails.'''
+    return isinstance(result, Exception)
+
+
+def getDbMajorVersion(version=''):
+    '''Major version of the running server (8 for 8.0/8.4/9.x).'''
+    if version == '':
+        data = pMysqlDb().query("show variables like 'version'")
+        if isinstance(data, list) and len(data) > 0:
+            version = data[0]['Value']
+    try:
+        return int(str(version).split('.')[0])
+    except:
+        return 8
+
+
+def useReplicaTerms(version=''):
+    '''MySQL 9.0 removed the SLAVE/MASTER replication statements.'''
+    return getDbMajorVersion(version) >= 9
+
+
+def useNativePassword(version=''):
+    '''mysql_native_password is disabled from MySQL 9.0 on.'''
+    return getDbMajorVersion(version) < 9
+
+
+def replicaStatusSql(version=''):
+    if useReplicaTerms(version):
+        return 'show replica status'
+    return 'show slave status'
+
+
+def showMasterStatusSql(version=''):
+    if useReplicaTerms(version):
+        return 'show binary log status'
+    return 'show master status'
+
+
+def resetMasterSql(version=''):
+    if useReplicaTerms(version):
+        return 'reset binary logs and gtids'
+    return 'reset master'
+
+
+def startReplicaSql(version='', channel='', user='', password=''):
+    if useReplicaTerms(version):
+        sql = 'start replica'
+    else:
+        sql = 'start slave'
+    if user != '' and getDbMajorVersion(version) >= 8:
+        sql += " user='" + user + "' password='" + password + "'"
+    if channel != '':
+        sql += " for channel '" + channel + "'"
+    return sql
+
+
+def stopReplicaSql(version='', channel=''):
+    if useReplicaTerms(version):
+        sql = 'stop replica'
+    else:
+        sql = 'stop slave'
+    if channel != '':
+        sql += " for channel '" + channel + "'"
+    return sql
+
+
+def resetReplicaSql(version='', channel=''):
+    if useReplicaTerms(version):
+        sql = 'reset replica all'
+    else:
+        sql = 'reset slave all'
+    if channel != '':
+        sql += " for channel '" + channel + "'"
+    return sql
+
+
+def makeChangeSourceSql(version='', ip='', port='', username='', password='', log_file='', log_pos='', channel=''):
+    '''CHANGE MASTER TO is gone in MySQL 9.0, only the SOURCE keywords remain.'''
+    if getDbMajorVersion(version) >= 8:
+        sql = "CHANGE REPLICATION SOURCE TO SOURCE_HOST='" + ip + "', SOURCE_PORT=" + str(port) + \
+            ", SOURCE_USER='" + username + "', SOURCE_PASSWORD='" + password + "'"
+        auto_key = 'SOURCE_AUTO_POSITION'
+        file_key = 'SOURCE_LOG_FILE'
+        pos_key = 'SOURCE_LOG_POS'
+    else:
+        sql = "CHANGE MASTER TO MASTER_HOST='" + ip + "', MASTER_PORT=" + str(port) + \
+            ", MASTER_USER='" + username + "', MASTER_PASSWORD='" + password + "'"
+        auto_key = 'MASTER_AUTO_POSITION'
+        file_key = 'MASTER_LOG_FILE'
+        pos_key = 'MASTER_LOG_POS'
+
+    if str(log_file) == '':
+        sql += ', ' + auto_key + '=1'
+    else:
+        sql += ", " + file_key + "='" + str(log_file) + "', " + pos_key + \
+            '=' + str(log_pos)
+
+    if channel != '':
+        sql += " for channel '" + channel + "';"
+    return sql
+
+
+def replicaStatusValue(row, key):
+    '''SHOW REPLICA STATUS names its columns Replica_IO_Running and so on.'''
+    if not isinstance(row, dict):
+        return ''
+    for name in ('Replica_' + key, 'Slave_' + key):
+        if name in row:
+            return row[name]
+    return ''
+
+
+def normalizeReplicaStatus(rows):
+    '''Keep the Slave_/Master_ column names the panel frontend reads.'''
+    if not isinstance(rows, list):
+        return []
+
+    alias = {'Source_Host': 'Master_Host',
+             'Source_Port': 'Master_Port',
+             'Source_User': 'Master_User',
+             'Source_Log_File': 'Master_Log_File',
+             'Read_Source_Log_Pos': 'Read_Master_Log_Pos',
+             'Relay_Source_Log_File': 'Relay_Master_Log_File',
+             'Replica_IO_State': 'Slave_IO_State',
+             'Replica_IO_Running': 'Slave_IO_Running',
+             'Replica_SQL_Running': 'Slave_SQL_Running',
+             'Replica_SQL_Running_State': 'Slave_SQL_Running_State'}
+
+    for row in rows:
+        for src, dst in alias.items():
+            if src in row and dst not in row:
+                row[dst] = row[src]
+    return rows
+
+
+def setRepUserPassword(pdb, username, password, host='%', version=''):
+    '''Change a sync account password in place, its privileges stay intact.'''
+    major = getDbMajorVersion(version)
+    if major >= 8 and useNativePassword(version):
+        sql = "ALTER USER '%s'@'%s' IDENTIFIED WITH mysql_native_password BY '%s'" % (
+            username, host, password)
+    else:
+        sql = "ALTER USER '%s'@'%s' IDENTIFIED BY '%s'" % (
+            username, host, password)
+
+    result = pdb.execute(sql)
+    if isSqlFail(result) and major < 8:
+        # MySQL 5.5/5.6 has no ALTER USER statement
+        result = pdb.execute(
+            "SET PASSWORD FOR '%s'@'%s' = PASSWORD('%s')" % (username, host, password))
+    return result
+
+
+def ensureRepUser(pdb, username, password, host, version=''):
+    '''Make sure the sync account exists for this host and keeps its privileges.'''
+    major = getDbMajorVersion(version)
+    if major >= 8 and useNativePassword(version):
+        sql = "CREATE USER '%s'@'%s' IDENTIFIED WITH mysql_native_password BY '%s'" % (
+            username, host, password)
+    else:
+        sql = "CREATE USER '%s'@'%s' IDENTIFIED BY '%s'" % (
+            username, host, password)
+
+    result = pdb.execute(sql)
+    if isSqlFail(result):
+        if result.args and result.args[0] == 1396:
+            # 1396: the account already exists, only align its password
+            result = setRepUserPassword(pdb, username, password, host, version)
+        else:
+            return result
+        if isSqlFail(result):
+            return result
+
+    result = pdb.execute(
+        "grant all privileges on *.* to '%s'@'%s'" % (username, host))
+    if isSqlFail(result):
+        return result
+
+    return pdb.execute(
+        "grant replication slave on *.* to '%s'@'%s'" % (username, host))
+
+
 def setDbMasterAccess():
     args = getArgs()
     data = checkArgs(args, ['username', 'access'])
     if not data[0]:
         return data[1]
-    username = args['username']
-    access = args['access']
+
+    username = args['username'].strip()
+    access = args['access'].strip()
+    if username == '' or access == '':
+        return slemp.returnJson(False, 'Invalid sync account or access permission!')
+
     pdb = pMysqlDb()
     psdb = pSqliteDb('master_replication_user')
-    password = psdb.where("username=?", (username,)).getField('password')
-    users = pdb.query("select Host from mysql.user where User='" +
-                      username + "' AND Host!='localhost'")
-    for us in users:
-        pdb.execute("drop user '" + username + "'@'" + us["Host"] + "'")
 
-    dbname = '*'
+    # Read a single row: a duplicated entry used to hand a list to the SQL
+    # below, which corrupted the account (it was dropped before recreating).
+    uinfo = psdb.field('username,password').where(
+        "username=?", (username,)).limit('1').select()
+    if len(uinfo) < 1:
+        return slemp.returnJson(False, 'Sync account [' + username + '] is not registered, please add it again!')
+
+    password = uinfo[0]['password']
+    if password is None or str(password) == '':
+        return slemp.returnJson(False, 'The password of sync account [' + username + '] is empty, please update the account first!')
+
+    hosts = []
     for a in access.split(','):
-        pdb.execute(
-            "CREATE USER `%s`@`%s` IDENTIFIED BY '%s'" % (username, a, password))
-        pdb.execute(
-            "grant all privileges on %s.* to `%s`@`%s`" % (dbname, username, a))
+        a = a.strip()
+        if a != '' and a not in hosts:
+            hosts.append(a)
+    if len(hosts) < 1:
+        return slemp.returnJson(False, 'Invalid access permission!')
+
+    # Create the new hosts first: the old accounts are only dropped after the
+    # new ones are working, so a failure never leaves the account missing.
+    for a in hosts:
+        result = ensureRepUser(pdb, username, password, a)
+        if isSqlFail(result):
+            return slemp.returnJson(False, 'Failed to set permissions: ' + str(result))
+
+    users = pdb.query("select Host from mysql.user where User='" + username + "'")
+    if isSqlFail(users):
+        return slemp.returnJson(False, 'Connection failure! ' + str(users))
+    for us in users:
+        if us['Host'] == 'localhost' or us['Host'] in hosts:
+            continue
+        result = pdb.execute(
+            "drop user '" + username + "'@'" + us['Host'] + "'")
+        if isSqlFail(result):
+            return slemp.returnJson(False, 'Failed to remove the old permission: ' + str(result))
 
     pdb.execute("flush privileges")
     psdb.where('username=?', (username,)).save('accept', (access,))
@@ -1890,10 +2102,10 @@ def getMasterStatus(version=''):
         data['slave_status'] = False
 
         db = pMysqlDb()
-        dlist = db.query('show slave status')
+        dlist = normalizeReplicaStatus(db.query(replicaStatusSql(version)))
 
         for v in dlist:
-            if v["Slave_IO_Running"] == 'Yes' or v["Slave_SQL_Running"] == 'Yes':
+            if 'Yes' in (replicaStatusValue(v, 'IO_Running'), replicaStatusValue(v, 'SQL_Running')):
                 data['slave_status'] = True
 
         return slemp.returnJson(master_status, 'Successfully set', data)
@@ -1997,34 +2209,54 @@ def addMasterRepSlaveUser(version=''):
     pdb = pMysqlDb()
     psdb = pSqliteDb('master_replication_user')
 
-    if psdb.where("username=?", (username)).count() > 0:
-        return slemp.returnJson(False, 'User already exists!')
+    # (username) is a string and not a tuple, so this query never bound its
+    # parameter and the count always came back 0: every submit stacked another
+    # row for the same account.
+    if psdb.where("username=?", (username,)).count() > 0:
+        return slemp.returnJson(False, 'Sync account [' + username + '] already exists, update it from the list instead of adding it again!')
 
-    if version == "8.0" or version == "8.4" or version == "9.7":
-        sql = "CREATE USER '" + username + \
-            "'  IDENTIFIED WITH mysql_native_password BY '" + password + "';"
-        pdb.execute(sql)
-        sql = "grant replication slave on *.* to '" + username + "'@'%';"
+    users = pdb.query("select User from mysql.user where User='" + username + "'")
+    if isSqlFail(users):
+        return slemp.returnJson(False, 'Connection failure! ' + str(users))
+    if len(users) > 0:
+        return slemp.returnJson(False, 'Sync account [' + username + '] already exists in MySQL, please use the existing account or add another username!')
+
+    if getDbMajorVersion(version) >= 8:
+        if useNativePassword(version):
+            sql = "create user '" + username + \
+                "'@'%' identified with mysql_native_password by '" + password + "'"
+        else:
+            sql = "create user '" + username + \
+                "'@'%' identified by '" + password + "'"
         result = pdb.execute(sql)
-        isError = isSqlError(result)
-        if isError != None:
-            return isError
+        if isSqlFail(result):
+            return slemp.returnJson(False, 'Failed to create the sync account: ' + str(result))
+
+        result = pdb.execute(
+            "grant replication slave on *.* to '" + username + "'@'%'")
+        if isSqlFail(result):
+            return slemp.returnJson(False, 'Failed to grant the replication privileges: ' + str(result))
 
     else:
-        sql = "grant replication SLAVE ON *.* TO  '" + username + \
-            "'@'%' identified by '" + password + "';"
+        sql = "grant replication slave on *.* to '" + username + \
+            "'@'%' identified by '" + password + "'"
         result = pdb.execute(sql)
-        isError = isSqlError(result)
-        if isError != None:
-            return isError
+        if isSqlFail(result):
+            return slemp.returnJson(False, 'Failed to create the sync account: ' + str(result))
 
-    sql_select = "grant select,lock tables,PROCESS on *.* to " + username + "@'%';"
-    pdb.execute(sql_select)
-    pdb.execute('FLUSH PRIVILEGES;')
+    result = pdb.execute(
+        "grant select, lock tables, process on *.* to '" + username + "'@'%'")
+    if isSqlFail(result):
+        return slemp.returnJson(False, 'Failed to grant the read privileges: ' + str(result))
+    pdb.execute('flush privileges')
 
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
-    psdb.add('username,password,accept,ps,addtime',
-             (username, password, '%', '', addTime))
+    # Replace instead of append so a double submit cannot leave two rows.
+    psdb.where("username=?", (username,)).delete()
+    result = psdb.add('username,password,accept,ps,addtime',
+                      (username, password, '%', '', addTime))
+    if isinstance(result, str) and result.find('error') == 0:
+        return slemp.returnJson(False, 'Failed to save the sync account: ' + result)
     return slemp.returnJson(True, 'Added successfully!')
 
 
@@ -2052,8 +2284,8 @@ def getMasterRepSlaveUserCmd(version):
     port = getMyPort()
     db = pMysqlDb()
 
-    mstatus = db.query('show master status')
-    if len(mstatus) == 0:
+    mstatus = db.query(showMasterStatusSql(version))
+    if not isinstance(mstatus, list) or len(mstatus) == 0:
         return slemp.returnJson(False, 'Stopped!')
 
     mode = recognizeDbMode()
@@ -2061,31 +2293,17 @@ def getMasterRepSlaveUserCmd(version):
     sid = getDbServerId()
     channel_name = ""
     if sid != '':
-        channel_name = " for channel 'r{}';".format(sid)
+        channel_name = 'r' + sid
 
     if mode == "gtid":
-        sql = "CHANGE MASTER TO MASTER_HOST='" + ip + "', MASTER_PORT=" + port + ", MASTER_USER='" + \
-            clist[0]['username'] + "', MASTER_PASSWORD='" + \
-            clist[0]['password'] + "', MASTER_AUTO_POSITION=1" + channel_name
-        if version == '8.0' or version == '8.4' or version == '9.7':
-            sql = "CHANGE REPLICATION SOURCE TO SOURCE_HOST='" + ip + "', SOURCE_PORT=" + port + ", SOURCE_USER='" + \
-                clist[0]['username']  + "', SOURCE_PASSWORD='" + \
-                clist[0]['password'] + \
-                "', MASTER_AUTO_POSITION=1" + channel_name
+        sql = makeChangeSourceSql(version, ip, port, clist[0]['username'],
+                                  clist[0]['password'], channel=channel_name)
     else:
-        sql = "CHANGE MASTER TO MASTER_HOST='" + ip + "', MASTER_PORT=" + port + ", MASTER_USER='" + \
-            clist[0]['username']  + "', MASTER_PASSWORD='" + \
-            clist[0]['password'] + \
-            "', MASTER_LOG_FILE='" + mstatus[0]["File"] + \
-            "',MASTER_LOG_POS=" + str(mstatus[0]["Position"]) + channel_name
-
-        if version == "8.0" or version == "8.4" or version == "9.7":
-            sql = "CHANGE REPLICATION SOURCE TO SOURCE_HOST='" + ip + "', SOURCE_PORT=" + port + ", SOURCE_USER='" + \
-                clist[0]['username']  + "', SOURCE_PASSWORD='" + \
-                clist[0]['password'] + \
-                "', SOURCE_LOG_FILE='" + mstatus[0]["File"] + \
-                "',SOURCE_LOG_POS=" + \
-                str(mstatus[0]["Position"]) + channel_name
+        sql = makeChangeSourceSql(version, ip, port, clist[0]['username'],
+                                  clist[0]['password'],
+                                  log_file=mstatus[0]["File"],
+                                  log_pos=mstatus[0]["Position"],
+                                  channel=channel_name)
 
 
     data = {}
@@ -2125,16 +2343,38 @@ def updateMasterRepSlaveUser(version=''):
     if not data[0]:
         return data[1]
 
+    username = args['username'].strip()
+    password = args['password']
+    if username == '' or password == '':
+        return slemp.returnJson(False, 'Invalid sync account or password!')
+
     pdb = pMysqlDb()
     psdb = pSqliteDb('master_replication_user')
-    pdb.execute("drop user '" + args['username'] + "'@'%'")
 
-    pdb.execute("GRANT REPLICATION SLAVE ON *.* TO  '" +
-                args['username'] + "'@'%' identified by '" + args['password'] + "'")
+    users = pdb.query("select Host from mysql.user where User='" + username + "'")
+    if isSqlFail(users):
+        return slemp.returnJson(False, 'Connection failure! ' + str(users))
+    if len(users) < 1:
+        return slemp.returnJson(False, 'Sync account [' + username + '] does not exist on the server, please delete it from the list and add it again!')
 
-    psdb.where("username=?", (args['username'],)).save(
-        'password', args['password'])
+    hosts = []
+    for us in users:
+        if us['Host'] == 'localhost':
+            continue
+        hosts.append(us['Host'])
+    if len(hosts) < 1:
+        hosts = ['%']
 
+    # Change the password in place: dropping the account first used to break
+    # replication whenever the statements below failed (MySQL 8.0+ has no
+    # GRANT ... IDENTIFIED BY syntax).
+    for host in hosts:
+        result = setRepUserPassword(pdb, username, password, host, version)
+        if isSqlFail(result):
+            return slemp.returnJson(False, 'Failed to update the password: ' + str(result))
+
+    pdb.execute("flush privileges")
+    psdb.where("username=?", (username,)).save('password', (password,))
     return slemp.returnJson(True, 'Update completed!')
 
 
@@ -2359,7 +2599,7 @@ def updateSlaveSSH(version=''):
 def getSlaveList(version=''):
 
     db = pMysqlDb()
-    dlist = db.query('show slave status')
+    dlist = normalizeReplicaStatus(db.query(replicaStatusSql(version)))
 
     data = {}
     data['data'] = dlist
@@ -2396,13 +2636,7 @@ def makeSyncUsercmd(u, version=''):
     username = u['user']
     password = u['pass']
     if mode == "gtid":
-        sql = "CHANGE MASTER TO MASTER_HOST='" + ip + "', MASTER_PORT=" + port + ", MASTER_USER='" + \
-            username + "', MASTER_PASSWORD='" + \
-            password + "', MASTER_AUTO_POSITION=1"
-        if version == '8.0' or version == '8.4' or version == '9.7':
-            sql = "CHANGE REPLICATION SOURCE TO SOURCE_HOST='" + ip  + "', SOURCE_PORT=" + port + ", SOURCE_USER='" + \
-                username  + "', SOURCE_PASSWORD='" + \
-                password + "', MASTER_AUTO_POSITION=1"
+        sql = makeChangeSourceSql(version, ip, port, username, password)
     return sql
 
 
@@ -2436,7 +2670,7 @@ def initSlaveStatusSyncUser(version=''):
     # print(data)
     pdb = pMysqlDb()
     if len(slave_data) == 1:
-        dlist = pdb.query('show slave status')
+        dlist = normalizeReplicaStatus(pdb.query(replicaStatusSql(version)))
         if len(dlist) > 0:
             return slemp.returnJson(False, 'Already initialized zzzz...')
 
@@ -2466,12 +2700,12 @@ def initSlaveStatusSyncUser(version=''):
             return slemp.returnJson(False, base_t + '->CMD synchronization command is out of specification!')
         # print(u['cmd'])
         t = pdb.query(cmd_sql)
-        isError = isSqlError(t)
-        if isError:
-            return isError
+        if isSqlFail(t):
+            return slemp.returnJson(False, base_t + '->' + str(t))
 
-    pdb.query("start slave")
-    pdb.query("start all slaves")
+    result = pdb.query(startReplicaSql(version))
+    if isSqlFail(result):
+        return slemp.returnJson(False, str(result))
 
     if msg == '':
         msg = 'Initialization successful!'
@@ -2480,7 +2714,7 @@ def initSlaveStatusSyncUser(version=''):
 
 def initSlaveStatusSSH(version=''):
     db = pMysqlDb()
-    dlist = db.query('show slave status')
+    conn = pSqliteDb('slave_id_rsa')
     ssh_list = conn.field('ip,port,id_rsa,db_user').select()
 
     if len(ssh_list) < 1:
@@ -2492,8 +2726,8 @@ def initSlaveStatusSSH(version=''):
     paramiko.util.log_to_file('paramiko.log')
     ssh = paramiko.SSHClient()
 
-    db.query('stop slave')
-    db.query('reset slave all')
+    db.query(stopReplicaSql(version))
+    db.query(resetReplicaSql(version))
     for data in ssh_list:
         ip = data['ip']
         SSH_PRIVATE_KEY = "/tmp/t_ssh_" + ip + ".txt"
@@ -2530,7 +2764,7 @@ def initSlaveStatusSSH(version=''):
             ps = u['username'] + "|" + u['password']
             print(ps)
             conn.where('ip=?', (ip,)).setField('ps', ps)
-            db.query('stop slave')
+            db.query(stopReplicaSql(version))
 
             cmd = cmd_data['data']['cmd']
             if cmd.find('SOURCE_HOST') > -1:
@@ -2540,13 +2774,17 @@ def initSlaveStatusSSH(version=''):
             if cmd.find('MASTER_HOST') > -1:
                 cmd = re.sub(r"MASTER_HOST='(.*?)'",
                              "MASTER_HOST='" + ip + "'", cmd, 1)
-            db.query(cmd)
+            result = db.query(cmd)
+            if isSqlFail(result):
+                return slemp.returnJson(False, '[Host][' + ip + ']:' + str(result))
             ssh.close()
             if os.path.exists(SSH_PRIVATE_KEY):
                 os.system("rm -rf " + SSH_PRIVATE_KEY)
         except Exception as e:
             return slemp.returnJson(False, '[Host][' + ip + ']:SSH authentication configuration connection failed!' + str(e))
-    db.query('start slave')
+    result = db.query(startReplicaSql(version))
+    if isSqlFail(result):
+        return slemp.returnJson(False, str(result))
     return slemp.returnJson(True, 'Initialization successful!')
 
 
@@ -2556,21 +2794,19 @@ def setSlaveStatus(version=''):
         return slemp.returnJson(False, 'Synchronization configuration needs to be set first')
 
     pdb = pMysqlDb()
-    dlist = pdb.query('show slave status')
+    dlist = normalizeReplicaStatus(pdb.query(replicaStatusSql(version)))
     if len(dlist) == 0:
         return slemp.returnJson(False, 'You need to manually add a synchronization account or perform initialization!')
 
     for v in dlist:
-        connection_name = ''
-        cmd = "slave"
+        ch_name = ''
         if 'Channel_Name' in v:
             ch_name = v['Channel_Name']
-            cmd = "slave for channel '{}'".format(ch_name)
 
-        if (v["Slave_IO_Running"] == 'Yes' or v["Slave_SQL_Running"] == 'Yes'):
-            pdb.query("stop {}".format(cmd))
+        if 'Yes' in (replicaStatusValue(v, 'IO_Running'), replicaStatusValue(v, 'SQL_Running')):
+            pdb.query(stopReplicaSql(version, ch_name))
         else:
-            pdb.query("start {}".format(cmd))
+            pdb.query(startReplicaSql(version, ch_name))
 
     return slemp.returnJson(True, 'Successfully set!')
 
@@ -2580,11 +2816,11 @@ def deleteSlave(version=''):
     db = pMysqlDb()
     if 'sign' in args:
         sign = args['sign']
-        db.query("stop slave for channel '{}'".format(sign))
-        db.query("reset slave all for channel '{}'".format(sign))
+        db.query(stopReplicaSql(version, sign))
+        db.query(resetReplicaSql(version, sign))
     else:
-        db.query('stop slave')
-        db.query('reset slave all')
+        db.query(stopReplicaSql(version))
+        db.query(resetReplicaSql(version))
 
     return slemp.returnJson(True, 'Successfully deleted!')
 
@@ -2699,10 +2935,10 @@ def doFullSyncUser(version=''):
             ' ' + sync_db_import + ' < ' + bak_file
         slemp.execShell(my_import_cmd)
 
-    if version == '8.0' or version == '8.4' or version == '9.7':
-        db.query("start slave user='{}' password='{}';".format(user, apass))
-    else:
-        db.query("start slave")
+    result = db.query(startReplicaSql(version, user=user, password=apass))
+    if isSqlFail(result):
+        writeDbSyncStatus({'code': 6, 'msg': 'Failed to start replication: ' + str(result), 'progress': 100})
+        return False
 
     writeDbSyncStatus({'code': 6, 'msg': 'Restart complete from library...', 'progress': 100})
     if os.path.exists(bak_file):
@@ -2799,7 +3035,7 @@ def doFullSyncSSH(version=''):
     result = result.decode('utf-8')
     cmd_data = json.loads(result)
 
-    db.query('stop slave')
+    db.query(stopReplicaSql(version))
     writeDbSyncStatus({'code': 3, 'msg': 'Stop slave completion...', 'progress': 45})
 
     cmd = cmd_data['data']['cmd']
@@ -2812,7 +3048,10 @@ def doFullSyncSSH(version=''):
         cmd = re.sub(r"MASTER_HOST='(.*?)'",
                      "MASTER_HOST='" + ip + "'", cmd, 1)
 
-    db.query(cmd)
+    change_result = db.query(cmd)
+    if isSqlFail(change_result):
+        writeDbSyncStatus({'code': 4, 'msg': 'Failed to set the source: ' + str(change_result), 'progress': 100})
+        return 'fail'
     uinfo = cmd_data['data']['info']
     ps = uinfo['username'] + "|" + uinfo['password']
     id_rsa_conn.where('ip=?', (ip,)).setField('ps', ps)
@@ -2835,7 +3074,7 @@ def doFullSyncSSH(version=''):
         writeDbSyncStatus({'code': 5, 'msg': 'Failed to import data...', 'progress': 100})
         return 'fail'
 
-    db.query("start slave")
+    db.query(startReplicaSql(version))
     writeDbSyncStatus({'code': 6, 'msg': 'Restart complete from library...', 'progress': 100})
 
     os.system("rm -rf " + SSH_PRIVATE_KEY)
@@ -2855,7 +3094,8 @@ def fullSync(version=''):
 
     status_file = asyncTmpfile()
     if args['begin'] == '1':
-        cmd = 'cd ' + slemp.getRunDir() + ' && python3 ' + getPluginDir() + \
+        # run with the panel interpreter: the system python3 has no pymysql
+        cmd = 'cd ' + slemp.getRunDir() + ' && ' + sys.executable + ' ' + getPluginDir() + \
             '/index.py do_full_sync {"db":"' + \
             args['db'] + '","sign":"' + sign + '"} &'
         slemp.execShell(cmd)
