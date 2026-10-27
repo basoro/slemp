@@ -60,22 +60,84 @@ jobs:
         if: steps.check.outputs.exists == 'false'
         env:
           VERSION: ${{ steps.version.outputs.version }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           PREV=$(git tag --list --sort=-v:refname | head -n1 || true)
-          {
-            echo "Rilis panel SLEMP ${VERSION}."
-            echo
-            if [ -n "${PREV}" ]; then
-              echo "Perubahan sejak ${PREV}:"
-              echo
-              git log --no-merges --pretty='- %s' -n 30 "${PREV}..HEAD"
-            else
-              echo "Perubahan:"
-              echo
-              git log --no-merges --pretty='- %s' -n 30 HEAD
-            fi
-          } > "$RUNNER_TEMP/notes.md"
+          if [ -n "${PREV}" ]; then
+            RANGE="${PREV}..HEAD"
+          else
+            RANGE="HEAD"
+          fi
+          git log --no-merges --pretty='%h%x09%s' -n 300 "${RANGE}" > "$RUNNER_TEMP/commits.tsv"
+          PREV="${PREV}" python3 - "$RUNNER_TEMP/commits.tsv" "$RUNNER_TEMP/notes.md" <<'PY'
+          import os
+          import re
+          import sys
+
+          version = os.environ['VERSION']
+          repo = os.environ['REPO']
+          prev = os.environ.get('PREV', '').strip()
+
+          rows = []
+          for line in open(sys.argv[1], encoding='utf-8'):
+              line = line.rstrip('\n')
+              if not line.strip():
+                  continue
+              sha, _, subject = line.partition('\t')
+              rows.append((sha.strip(), subject.strip()))
+
+          buckets = {'Fitur': [], 'Perbaikan': [], 'Pemeliharaan': [], 'Lainnya': []}
+          skipped = 0
+
+          for sha, subject in rows:
+              # Judul commit yang tidak informatif (mis. "Update") tidak ditampilkan.
+              if subject.lower() in ('update', 'updates', 'wip', '.'):
+                  skipped += 1
+                  continue
+
+              m = re.match(r'^(feat|fix|perf|refactor|docs|ci|chore|style|test|build)(\([^)]+\))?!?:\s*(.+)$', subject)
+              if m:
+                  kind, scope, rest = m.group(1), m.group(2) or '', m.group(3).strip()
+                  scope = scope.strip('()')
+                  text = f"{scope}: {rest}" if scope else rest
+                  bucket = {'feat': 'Fitur', 'fix': 'Perbaikan', 'perf': 'Perbaikan'}.get(kind, 'Pemeliharaan')
+              else:
+                  text = subject
+                  bucket = 'Lainnya'
+              buckets[bucket].append(f"- {text} ({sha})")
+
+          out = []
+          title = f"Rilis panel SLEMP {version}"
+          out.append(title)
+          out.append('=' * len(title))
+          out.append('')
+
+          total = sum(len(v) for v in buckets.values())
+          if prev:
+              out.append(f"{total} perubahan sejak {prev}")
+          else:
+              out.append(f"{total} perubahan")
+          out.append('')
+
+          for name in ('Fitur', 'Perbaikan', 'Pemeliharaan', 'Lainnya'):
+              if not buckets[name]:
+                  continue
+              out.append(f"{name}:")
+              out.extend(buckets[name])
+              out.append('')
+
+          if skipped:
+              out.append(f"({skipped} commit tanpa judul deskriptif tidak ditampilkan)")
+              out.append('')
+
+          if prev:
+              out.append(f"Perbandingan: https://github.com/{repo}/compare/{prev}...{version}")
+          out.append(f"Unduhan: https://github.com/{repo}/archive/refs/tags/{version}.zip")
+
+          with open(sys.argv[2], 'w', encoding='utf-8') as f:
+              f.write('\n'.join(out).rstrip() + '\n')
+          PY
           cat "$RUNNER_TEMP/notes.md"
 
       - name: Buat tag dan release
