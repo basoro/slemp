@@ -46,6 +46,7 @@ class plugins_api:
         self.__plugin_dir = slemp.getRunDir() + '/plugins'
         self.__type = slemp.getRunDir() + '/data/json/type.json'
         self.__index = slemp.getRunDir() + '/data/json/index.json'
+        self.__versionCache = {}
 
     ##### ----- start ----- ###
     def listApi(self):
@@ -58,6 +59,9 @@ class plugins_api:
 
         if not slemp.isNumber(sType):
             sType = 0
+
+        if not slemp.isNumber(sPageSize):
+            sPageSize = 100
 
         # print sPage
         search = request.args.get('search', '').lower()
@@ -220,6 +224,61 @@ class plugins_api:
 
         slemp.triggerTask()
         return slemp.returnJson(True, 'Added installation task to queue!')
+
+    def updateApi(self):
+        name = request.form.get('name', '').strip()
+        version = request.form.get('version', '').strip()
+        target = request.form.get('target', '').strip()
+
+        if not re.match(r'^[a-zA-Z0-9_\-]+$', name):
+            return slemp.returnJson(False, 'Nama plugin tidak valid!')
+
+        if not re.match(r'^\d{2,3}$', version):
+            return slemp.returnJson(False, 'Versi plugin tidak valid!')
+
+        if not re.match(r'^\d+\.\d+\.\d+$', target):
+            return slemp.returnJson(False, 'Versi target tidak valid!')
+
+        infoJsonPos = self.__plugin_dir + '/' + name + '/info.json'
+        if not os.path.exists(infoJsonPos):
+            return slemp.returnJson(False, 'Config file does not exist!')
+
+        pluginInfo = json.loads(slemp.readFile(infoJsonPos))
+        updateInfo = self.getUpdateInfo(pluginInfo, version)
+        if not updateInfo or updateInfo.get('version') != target:
+            return slemp.returnJson(False, 'Versi update tidak tersedia untuk plugin ini!')
+
+        tmpInfo = pluginInfo.copy()
+        tmpInfo['versions'] = version
+        pInfo = self.getPluginInfo(tmpInfo)
+
+        if not pInfo['setup']:
+            return slemp.returnJson(False, 'Plugin belum terpasang!')
+
+        if pInfo['task'] != '1':
+            return slemp.returnJson(False, 'Masih ada tugas yang berjalan untuk plugin ini!')
+
+        installed = pInfo['installed_version'] or self.getInstalledVersion(
+            pInfo['path'])
+        if not installed:
+            return slemp.returnJson(False, 'Versi terpasang tidak dapat dideteksi!')
+
+        needsUpdate = self.versionLess(installed, target)
+        if updateInfo.get('patch') and not pInfo['update_patched']:
+            needsUpdate = True
+        if not needsUpdate:
+            return slemp.returnJson(False, 'Plugin sudah menggunakan versi terbaru!')
+
+        shell = pluginInfo.get('shell', 'install.sh')
+        execstr = 'cd ' + slemp.getPluginDir() + '/' + name + ' && bash ' + \
+            shell + ' update ' + version + ' ' + target
+
+        taskAdd = ('Update[' + name + '-' + version + ']',
+                   'execshell', '0', time.strftime('%Y-%m-%d %H:%M:%S'), execstr)
+
+        slemp.M('tasks').add('name,type,status,addtime, execstr', taskAdd)
+        slemp.triggerTask()
+        return slemp.returnJson(True, 'Tugas update ditambahkan ke antrean!')
 
     def hookInstallFile(self, hook_name, info):
         hookPath = slemp.getPanelDataDir() + "/hook_" + hook_name + ".json"
@@ -407,81 +466,6 @@ class plugins_api:
             return slemp.returnJson(True, "OK", data[1])
         return slemp.returnJson(False, data[1])
 
-    def updateZipApi(self):
-        tmp_path = slemp.getRootDir() + '/temp'
-        if not os.path.exists(tmp_path):
-            os.makedirs(tmp_path)
-        slemp.execShell("rm -rf " + tmp_path + '/*')
-
-        tmp_file = tmp_path + '/plugin_tmp.zip'
-        from werkzeug.utils import secure_filename
-        from flask import request
-        f = request.files['plugin_zip']
-        if f.filename[-4:] != '.zip':
-            return slemp.returnJson(False, 'Only zip files are supported!')
-        f.save(tmp_file)
-        slemp.execShell('cd ' + tmp_path + ' && unzip ' + tmp_file)
-        os.remove(tmp_file)
-
-        p_info = tmp_path + '/info.json'
-        if not os.path.exists(p_info):
-            d_path = None
-            for df in os.walk(tmp_path):
-                if len(df[2]) < 3:
-                    continue
-                if not 'info.json' in df[2]:
-                    continue
-                if not 'install.sh' in df[2]:
-                    continue
-                if not os.path.exists(df[0] + '/info.json'):
-                    continue
-                d_path = df[0]
-            if d_path:
-                tmp_path = d_path
-                p_info = tmp_path + '/info.json'
-        try:
-            data = json.loads(slemp.readFile(p_info))
-            data['size'] = slemp.getPathSize(tmp_path)
-            if not 'author' in data:
-                data['author'] = 'Unknown'
-            if not 'home' in data:
-                data['home'] = 'https://github.com/basoro/slemp'
-            plugin_path = slemp.getPluginDir() + data['name'] + '/info.json'
-            data['old_version'] = '0'
-            data['tmp_path'] = tmp_path
-            if os.path.exists(plugin_path):
-                try:
-                    old_info = json.loads(slemp.ReadFile(plugin_path))
-                    data['old_version'] = old_info['versions']
-                except:
-                    pass
-        except:
-            slemp.execShell("rm -rf " + tmp_path)
-            return slemp.returnJson(False, 'No plug-in information found in the compressed package, please check the plug-in package!')
-        protectPlist = ('openresty', 'mysql', 'php', 'redis', 'memcached'
-                        'swap', 'gogs', 'pureftp')
-        if data['name'] in protectPlist:
-            return slemp.returnJson(False, '[' + data['name'] + '], Important plugins cannot be modified!')
-        return slemp.getJson(data)
-
-    def inputZipApi(self):
-        plugin_name = request.form.get('plugin_name', '')
-        tmp_path = request.form.get('tmp_path', '')
-
-        if not os.path.exists(tmp_path):
-            return slemp.returnJson(False, 'Temporary file does not exist, please upload again!')
-        plugin_path = slemp.getPluginDir() + '/' + plugin_name
-        if not os.path.exists(plugin_path):
-            print(slemp.execShell('mkdir -p ' + plugin_path))
-        slemp.execShell("\cp -rf " + tmp_path + '/* ' + plugin_path + '/')
-        slemp.execShell('chmod -R 755 ' + plugin_path)
-        p_info = slemp.readFile(plugin_path + '/info.json')
-        if p_info:
-            slemp.writeLog('Software management', 'Install third-party plug-in [%s]' %
-                        json.loads(p_info)['title'])
-            return slemp.returnJson(True, 'Successful installation!')
-        slemp.execShell("rm -rf " + plugin_path)
-        return slemp.returnJson(False, 'Installation failed!')
     ##### ----- end ----- ###
 
     def processExists(self, pname, exe=None):
@@ -508,6 +492,7 @@ class plugins_api:
             self.__tasks = slemp.M('tasks').where(
                 "status!=?", ('1',)).field('status,name').select()
         isTask = '1'
+        taskLabel = ''
         for task in self.__tasks:
             tmpt = slemp.getStrBetween('[', ']', task['name'])
             if not tmpt:
@@ -524,10 +509,12 @@ class plugins_api:
             if sCoexist:
                 if task_name == sName and task_ver == sVer:
                     isTask = task['status']
+                    taskLabel = task['name'].split('[')[0].strip()
             else:
                 if task_name == sName:
                     isTask = task['status']
-        return isTask
+                    taskLabel = task['name'].split('[')[0].strip()
+        return (isTask, taskLabel)
 
     def checkStatus(self, info):
         if not info['setup']:
@@ -636,6 +623,118 @@ class plugins_api:
             return slemp.readFile(version_f).strip()
         return ''
 
+    def getInstalledVersion(self, path):
+        if path in self.__versionCache:
+            return self.__versionCache[path]
+
+        version = ''
+        version_f = path + '/version.pl'
+        if os.path.exists(version_f):
+            v = slemp.readFile(version_f).strip()
+            if re.match(r'^\d+\.\d+\.\d+$', v):
+                version = v
+
+        if version == '':
+            php_bin = path + '/bin/php'
+            if os.path.exists(php_bin):
+                try:
+                    data = slemp.execShell(
+                        php_bin + " -r 'echo PHP_VERSION;'", timeout=5)
+                    found = re.findall(r'\b\d+\.\d+\.\d+\b', data[0])
+                    if found:
+                        version = found[-1]
+                except Exception:
+                    pass
+
+        self.__versionCache[path] = version
+        return version
+
+    def versionLess(self, current, latest):
+        try:
+            c = [int(x) for x in current.split('.')]
+            l = [int(x) for x in latest.split('.')]
+            length = max(len(c), len(l))
+            c += [0] * (length - len(c))
+            l += [0] * (length - len(l))
+            return c < l
+        except Exception:
+            return False
+
+    def getUpdateInfo(self, info, version):
+        updates = info.get('updates', {})
+        if not isinstance(updates, dict) or not isinstance(version, str):
+            return {}
+        item = updates.get(version, {})
+        if isinstance(item, dict) and item.get('version'):
+            return item
+        return {}
+
+    def getSecurityUpdates(self):
+        result = []
+        infoPath = self.__plugin_dir + '/php/info.json'
+        if not os.path.exists(infoPath):
+            return result
+
+        try:
+            info = json.loads(slemp.readFile(infoPath))
+        except Exception:
+            return result
+
+        updates = info.get('updates', {})
+        if not isinstance(updates, dict):
+            return result
+
+        for branch in sorted(updates.keys()):
+            updateInfo = updates[branch]
+            if not isinstance(updateInfo, dict) or not updateInfo.get('version'):
+                continue
+
+            tmpInfo = info.copy()
+            tmpInfo['versions'] = branch
+            pInfo = self.getPluginInfo(tmpInfo)
+
+            if not pInfo['setup'] or not pInfo['installed_version']:
+                continue
+
+            if not pInfo['update_available']:
+                continue
+
+            result.append({
+                'name': info.get('name', 'php'),
+                'branch': branch,
+                'title': info.get('title', 'PHP') + '-' + branch,
+                'installed': pInfo['installed_version'],
+                'target': updateInfo['version'],
+                'security': updateInfo.get('security', ''),
+                'changelog': updateInfo.get('changelog', []),
+                'patch': updateInfo.get('patch', ''),
+                'eol': updateInfo.get('eol', False),
+            })
+
+        eolOnly = info.get('eol_only', [])
+        if isinstance(eolOnly, list):
+            for branch in eolOnly:
+                if not isinstance(branch, str):
+                    continue
+                tmpInfo = info.copy()
+                tmpInfo['versions'] = branch
+                pInfo = self.getPluginInfo(tmpInfo)
+                if not pInfo['setup'] or not pInfo['installed_version']:
+                    continue
+                result.append({
+                    'name': info.get('name', 'php'),
+                    'branch': branch,
+                    'title': info.get('title', 'PHP') + '-' + branch,
+                    'installed': pInfo['installed_version'],
+                    'target': '',
+                    'security': 'PHP2Shell: CVE-2026-109618, CVE-2026-109619',
+                    'changelog': [],
+                    'patch': '',
+                    'eol': True,
+                })
+
+        return result
+
     def getPluginInfo(self, info):
         checks = ''
         path = ''
@@ -674,6 +773,15 @@ class plugins_api:
             "display": False,
             "setup": False,
             "setup_version": "",
+            "installed_version": "",
+            "latest_version": "",
+            "update_available": False,
+            "update_target": "",
+            "update_security": "",
+            "update_changelog": [],
+            "update_patch": "",
+            "update_patched": False,
+            "task_label": "",
             "status": False,
             "install_pre_inspection": False,
             "uninstall_pre_inspection": False,
@@ -690,7 +798,7 @@ class plugins_api:
             pInfo['path'] = path.replace(
                 'VERSION', info['versions'])
 
-        pInfo['task'] = self.checkSetupTask(
+        pInfo['task'], pInfo['task_label'] = self.checkSetupTask(
             pInfo['name'], info['versions'], coexist)
         pInfo['display'] = self.checkDisplayIndex(
             info['name'], pInfo['versions'])
@@ -701,6 +809,29 @@ class plugins_api:
             pInfo['setup_version'] = info['versions']
         else:
             pInfo['setup_version'] = self.getVersion(pInfo['install_checks'])
+
+        if coexist and pInfo['setup']:
+            pInfo['installed_version'] = self.getInstalledVersion(
+                pInfo['path'])
+
+        updateInfo = self.getUpdateInfo(info, info['versions'])
+        if updateInfo and pInfo['setup']:
+            pInfo['latest_version'] = updateInfo['version']
+            pInfo['update_security'] = updateInfo.get('security', '')
+            pInfo['update_changelog'] = updateInfo.get('changelog', [])
+            pInfo['update_patch'] = updateInfo.get('patch', '')
+            if pInfo['update_patch']:
+                pInfo['update_patched'] = os.path.exists(
+                    pInfo['path'] + '/.php2shell_patched')
+
+            if pInfo['installed_version']:
+                needsUpdate = self.versionLess(
+                    pInfo['installed_version'], updateInfo['version'])
+                if pInfo['update_patch'] and not pInfo['update_patched']:
+                    needsUpdate = True
+                if needsUpdate:
+                    pInfo['update_available'] = True
+                    pInfo['update_target'] = updateInfo['version']
         # pluginInfo['status'] = self.checkStatus(pluginInfo)
 
         if 'install_pre_inspection' in info:
@@ -807,9 +938,12 @@ class plugins_api:
                     except Exception as e:
                         print(slemp.getTracebackInfo())
 
-        start = (page - 1) * pageSize
-        end = start + pageSize
-        _plugins_info = plugins_info[start:end]
+        if pageSize > 0:
+            start = (page - 1) * pageSize
+            end = start + pageSize
+            _plugins_info = plugins_info[start:end]
+        else:
+            _plugins_info = plugins_info
 
         _plugins_info = self.checkStatusMThreads(_plugins_info)
         return (_plugins_info, len(plugins_info))
@@ -945,13 +1079,17 @@ class plugins_api:
         data = self.getAllListPage(sType, kw, sPage, sPageSize)
         ret['data'] = data[0]
 
-        args = {}
-        args['count'] = data[1]
-        args['p'] = sPage
-        args['tojs'] = 'getSList'
-        args['row'] = sPageSize
+        if sPageSize == 0:
+            ret['php_security'] = self.getSecurityUpdates()
 
-        ret['list'] = slemp.getPage(args)
+        if sPageSize > 0:
+            args = {}
+            args['count'] = data[1]
+            args['p'] = sPage
+            args['tojs'] = 'getSList'
+            args['row'] = sPageSize
+
+            ret['list'] = slemp.getPage(args)
         return ret
 
     def getIndexList(self):

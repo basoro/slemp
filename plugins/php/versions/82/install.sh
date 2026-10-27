@@ -10,9 +10,93 @@ fi
 sourcePath=${serverPath}/source
 sysName=`uname`
 
-version=8.2.30
+version=${3:-8.2.35}
 PHP_VER=82
-md5_file_ok=bc90523e17af4db46157e75d0c9ef0b9d0030b0514e62c26ba7b513b8c4eb015
+IS_UPDATE=${PHP_UPDATE:-0}
+INSTALL_ROOT_PATH=${PHP_INSTALL_ROOT:-}
+
+getSha256()
+{
+	local info_file="${rootPath}/plugins/php/info.json"
+	local sha=""
+	if [ -f "${info_file}" ] && command -v python3 >/dev/null 2>&1; then
+		sha=$(python3 - "$info_file" "$PHP_VER" "$version" <<'PY'
+import json, sys
+try:
+    data = json.load(open(sys.argv[1]))
+    updates = data.get('updates', {})
+    item = updates.get(sys.argv[2], {}) if isinstance(updates, dict) else {}
+    if isinstance(item, dict) and item.get('version') == sys.argv[3]:
+        print(item.get('sha256', ''))
+    else:
+        print('')
+except Exception:
+    print('')
+PY
+)
+	fi
+
+	if [ -z "${sha}" ]; then
+		case "${version}" in
+			8.2.35) sha="5737b98601fe5ab1b8c5db0c82ed3158acb9283ed3081ffe2faffb9ac81455e6" ;;
+			8.2.30) sha="bc90523e17af4db46157e75d0c9ef0b9d0030b0514e62c26ba7b513b8c4eb015" ;;
+		esac
+	fi
+
+	echo "${sha}"
+}
+
+md5_file_ok=$(getSha256)
+if [ -z "${md5_file_ok}" ]; then
+	echo "Checksum PHP ${version} tidak tersedia, instalasi dibatalkan."
+	exit 1
+fi
+
+Download_php()
+{
+	local tar_file=$sourcePath/php/php-${version}.tar.xz
+
+	if [ ! -f $tar_file ];then
+		# ----------------------------------------------------------------------- #
+		# Instalasi dengan optimasi Tiongkok
+		cn=$(curl -fsSL -m 10 -s http://ipinfo.io/json | grep "\"country\": \"CN\"")
+		LOCAL_ADDR=common
+		if [ ! -z "$cn" ];then
+			LOCAL_ADDR=cn
+		fi
+
+		if [ "$LOCAL_ADDR" == "cn" ];then
+			wget --no-check-certificate -O $tar_file https://mirrors.nju.edu.cn/php/php-${version}.tar.xz
+		fi
+		# ----------------------------------------------------------------------- #
+
+		if [ ! -f $tar_file ];then
+			wget --no-check-certificate -O $tar_file https://www.php.net/distributions/php-${version}.tar.xz
+		fi
+	fi
+
+	#Periksa apakah file rusak.
+	if [ ! -f $tar_file ];then
+		echo "Gagal mengunduh PHP ${version}."
+		return 1
+	fi
+
+	local sha_file=`sha256sum $tar_file | awk '{print $1}'`
+	if [ "${sha_file}" != "${md5_file_ok}" ]; then
+		echo "File unduhan PHP${version} tidak lengkap, unduh ulang"
+		rm -f $tar_file
+		wget --no-check-certificate -O $tar_file https://www.php.net/distributions/php-${version}.tar.xz
+		sha_file=`sha256sum $tar_file | awk '{print $1}'`
+		if [ "${sha_file}" != "${md5_file_ok}" ]; then
+			echo "Checksum PHP ${version} tidak cocok, instalasi dibatalkan."
+			rm -f $tar_file
+			return 1
+		fi
+	fi
+
+	return 0
+}
+
 Install_php()
 {
 #------------------------ install start ------------------------------------#
@@ -29,37 +113,20 @@ if [ "$?" == "0" ];then
 	cd ${rootPath}/plugins/php/lib && /bin/bash oniguruma.sh
 fi
 
+# Saat update, source lama harus diganti dengan source versi target.
+if [ "${IS_UPDATE}" == "1" ];then
+	rm -rf $sourcePath/php/php${PHP_VER}
+fi
+
 if [ ! -d $sourcePath/php/php${PHP_VER} ];then
+	Download_php || exit 1
 
-	# ----------------------------------------------------------------------- #
-	# Instalasi dengan optimasi Tiongkok
-	cn=$(curl -fsSL -m 10 -s http://ipinfo.io/json | grep "\"country\": \"CN\"")
-	LOCAL_ADDR=common
-	if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
-		LOCAL_ADDR=cn
-	fi
-
-	if [ "$LOCAL_ADDR" == "cn" ];then
-		if [ ! -f $sourcePath/php/php-${version}.tar.xz ];then
-			wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://mirrors.nju.edu.cn/php/php-${version}.tar.xz
-		fi
-	fi
-	# ----------------------------------------------------------------------- #
-
-	if [ ! -f $sourcePath/php/php-${version}.tar.xz ];then
-		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://www.php.net/distributions/php-${version}.tar.xz
-	fi
-
-	#Periksa apakah file rusak.
-	if [ -f $sourcePath/php/php-${version}.tar.xz ];then
-		md5_file=`sha256sum $sourcePath/php/php-${version}.tar.xz  | awk '{print $1}'`
-		if [ "${md5_file}" != "${md5_file_ok}" ]; then
-			echo "File unduhan PHP${version} tidak lengkap, instal ulang"
-			rm -rf $sourcePath/php/php-${version}.tar.xz
-		fi
-	fi
-	
 	cd $sourcePath/php && tar -Jxf $sourcePath/php/php-${version}.tar.xz
+	if [ ! -d $sourcePath/php/php-${version} ];then
+		echo "Ekstraksi PHP ${version} gagal."
+		exit 1
+	fi
+	rm -rf $sourcePath/php/php${PHP_VER}
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
 fi
 
@@ -126,7 +193,7 @@ else
 fi
 
 # echo "$sourcePath/php/php${PHP_VER}"
-if [ ! -d $serverPath/php/${PHP_VER} ];then
+if [ "${IS_UPDATE}" == "1" ] || [ ! -d $serverPath/php/${PHP_VER} ];then
 	cd $sourcePath/php/php${PHP_VER}
 	./configure \
 	--prefix=$serverPath/php/${PHP_VER} \
@@ -148,11 +215,22 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 	--disable-intl \
 	--disable-fileinfo \
 	$OPTIONS \
-	--enable-fpm
-	make clean && make -j${cpuCore} && make install && make clean
+	--enable-fpm || exit 1
+
+	make clean && make -j${cpuCore} || exit 1
+	if [ -n "${INSTALL_ROOT_PATH}" ];then
+		make install INSTALL_ROOT=${INSTALL_ROOT_PATH} || exit 1
+	else
+		make install || exit 1
+	fi
+	make clean
+
+	if [ -z "${INSTALL_ROOT_PATH}" ];then
+		echo "${version}" > $serverPath/php/${PHP_VER}/version.pl
+	fi
 
 	# rm -rf $sourcePath/php/php${PHP_VER}
-fi 
+fi
 #------------------------ install end ------------------------------------#
 }
 

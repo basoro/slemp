@@ -10,15 +10,81 @@ fi
 sourcePath=${serverPath}/source
 sysName=`uname`
 
-version=8.1.33
+version=${3:-8.1.34}
 PHP_VER=81
-md5_file_ok=9db83bf4590375562bc1a10b353cccbcf9fcfc56c58b7c8fb814e6865bb928d1
+IS_UPDATE=${PHP_UPDATE:-0}
+INSTALL_ROOT_PATH=${PHP_INSTALL_ROOT:-}
+
+php2shellGetSha256()
+{
+	local info_file="${rootPath}/plugins/php/info.json"
+	local sha=""
+	if [ -f "${info_file}" ] && command -v python3 >/dev/null 2>&1; then
+		sha=$(python3 - "$info_file" "$PHP_VER" "$version" <<'PY'
+import json, sys
+try:
+    data = json.load(open(sys.argv[1]))
+    updates = data.get('updates', {})
+    item = updates.get(sys.argv[2], {}) if isinstance(updates, dict) else {}
+    if isinstance(item, dict) and item.get('version') == sys.argv[3]:
+        print(item.get('sha256', ''))
+    else:
+        print('')
+except Exception:
+    print('')
+PY
+)
+	fi
+	if [ -z "${sha}" ]; then
+		case "${version}" in
+			8.1.34) sha="ffa9e0982e82eeaea848f57687b425ed173aa278fe563001310ae2638db5c251" ;;
+			8.1.33) sha="9db83bf4590375562bc1a10b353cccbcf9fcfc56c58b7c8fb814e6865bb928d1" ;;
+		esac
+	fi
+	echo "${sha}"
+}
+
+php2shellGetPatch()
+{
+	local info_file="${rootPath}/plugins/php/info.json"
+	local patch=""
+	if [ -f "${info_file}" ] && command -v python3 >/dev/null 2>&1; then
+		patch=$(python3 - "$info_file" "$PHP_VER" "$version" <<'PY'
+import json, sys
+try:
+    data = json.load(open(sys.argv[1]))
+    updates = data.get('updates', {})
+    item = updates.get(sys.argv[2], {}) if isinstance(updates, dict) else {}
+    if isinstance(item, dict) and item.get('version') == sys.argv[3]:
+        print(item.get('patch', ''))
+    else:
+        print('')
+except Exception:
+    print('')
+PY
+)
+	fi
+	if [ -n "${patch}" ] && [ -f "${rootPath}/plugins/php/patches/${patch}" ]; then
+		echo "${rootPath}/plugins/php/patches/${patch}"
+	fi
+}
+
+md5_file_ok=$(php2shellGetSha256)
+if [ -z "${md5_file_ok}" ]; then
+	echo "Checksum PHP ${version} tidak tersedia, instalasi dibatalkan."
+	exit 1
+fi
 Install_php()
 {
 #------------------------ install start ------------------------------------#
 echo "Menginstal php-${version} ..."
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
+
+# Clean up failed source code builds to avoid stale config cache
+if [ -d $sourcePath/php/php${PHP_VER} ] && [ ! -d $serverPath/php/${PHP_VER} ]; then
+	rm -rf $sourcePath/php/php${PHP_VER}
+fi
 
 cd ${rootPath}/plugins/php/lib && /bin/bash freetype_new.sh
 cd ${rootPath}/plugins/php/lib && /bin/bash zlib.sh
@@ -27,6 +93,11 @@ cd ${rootPath}/plugins/php/lib && /bin/bash zlib.sh
 which yum
 if [ "$?" == "0" ];then
 	cd ${rootPath}/plugins/php/lib && /bin/bash oniguruma.sh
+fi
+
+patched=0
+if [ "${IS_UPDATE}" == "1" ];then
+	rm -rf $sourcePath/php/php${PHP_VER}
 fi
 
 if [ ! -d $sourcePath/php/php${PHP_VER} ];then
@@ -51,16 +122,33 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	fi
 		
 	#Periksa apakah file rusak.
-	if [ -f $sourcePath/php/php-${version}.tar.xz ];then
-		md5_file=`sha256sum $sourcePath/php/php-${version}.tar.xz  | awk '{print $1}'`
-		if [ "${md5_file}" != "${md5_file_ok}" ]; then
-			echo "File unduhan PHP${version} tidak lengkap, instal ulang"
-			rm -rf $sourcePath/php/php-${version}.tar.xz
-		fi
+	if [ ! -f $sourcePath/php/php-${version}.tar.xz ];then
+		echo "Gagal mengunduh PHP ${version}."
+		exit 1
+	fi
+
+	md5_file=`sha256sum $sourcePath/php/php-${version}.tar.xz  | awk '{print $1}'`
+	if [ "${md5_file}" != "${md5_file_ok}" ]; then
+		echo "Checksum PHP ${version} tidak cocok, instalasi dibatalkan."
+		rm -rf $sourcePath/php/php-${version}.tar.xz
+		exit 1
 	fi
 
 	cd $sourcePath/php && tar -Jxf $sourcePath/php/php-${version}.tar.xz
+	if [ ! -d $sourcePath/php/php-${version} ];then
+		echo "Ekstraksi PHP ${version} gagal."
+		exit 1
+	fi
+	rm -rf $sourcePath/php/php${PHP_VER}
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
+
+	patchFile="${PHP_PATCH_FILE:-$(php2shellGetPatch)}"
+	if [ -n "${patchFile}" ] && [ -f "${patchFile}" ];then
+		echo "Menerapkan patch PHP2Shell pada PHP ${version} ..."
+		cd $sourcePath/php/php${PHP_VER}
+		patch -p1 --batch --forward < "${patchFile}" || exit 1
+		patched=1
+	fi
 fi
 
 cd $sourcePath/php/php${PHP_VER}
@@ -138,7 +226,7 @@ else
 	fi
 fi
 
-if [ ! -d $serverPath/php/${PHP_VER} ];then
+if [ "${IS_UPDATE}" == "1" ] || [ ! -d $serverPath/php/${PHP_VER} ];then
 	if [ "$sysName" != "Darwin" ]; then
 		export CFLAGS="-w -O2 -fPIC -Wno-error"
 		export CXXFLAGS="-w -O2 -fPIC -Wno-error"
@@ -164,8 +252,22 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 	--disable-intl \
 	--disable-fileinfo \
 	$OPTIONS \
-	--enable-fpm
-	make clean && make -j${cpuCore} && make install && make clean
+	--enable-fpm || exit 1
+
+	make clean && make -j${cpuCore} || exit 1
+	if [ -n "${INSTALL_ROOT_PATH}" ];then
+		make install INSTALL_ROOT=${INSTALL_ROOT_PATH} || exit 1
+	else
+		make install || exit 1
+	fi
+	make clean
+
+	if [ -z "${INSTALL_ROOT_PATH}" ];then
+		echo "${version}" > $serverPath/php/${PHP_VER}/version.pl
+		if [ "${patched}" == "1" ];then
+			touch $serverPath/php/${PHP_VER}/.php2shell_patched
+		fi
+	fi
 
 	# rm -rf $sourcePath/php/php${PHP_VER}
 fi 

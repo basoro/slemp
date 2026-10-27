@@ -36,6 +36,21 @@ if [ ! -d $curPath/versions/$2 ];then
 	exit 0
 fi
 
+if [ "${action}" == "update" ];then
+	if [ -z "$3" ];then
+		echo 'Versi target update tidak ditemukan...'
+		exit 1
+	fi
+
+	if [ ! -f $curPath/versions/$2/install.sh ];then
+		echo 'Fitur update tidak tersedia untuk versi PHP ini...'
+		exit 1
+	fi
+
+	cd ${curPath} && bash $curPath/update.sh $2 $3
+	exit $?
+fi
+
 
 # if [ "${action}" == "install" ] && [ -d $serverPath/php/${type} ];then
 # 	exit 0

@@ -7,6 +7,52 @@ function resetPluginWinHeight(height){
     $(".bt-form .bt-w-main").height(height-42);
 }
 
+var phpUpdateInfo = {};
+
+function renderPhpSecurityNotice(items) {
+    var box = $('#phpSecurityNotice');
+    if (!box.length) {
+        return;
+    }
+
+    if (!items || items.length === 0) {
+        box.hide().empty();
+        return;
+    }
+
+    var list = '';
+    for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        if (item.eol && !item.target) {
+            list += '<li style="margin-bottom:4px;">' + item.title +
+                ': terpasang <b>' + item.installed + '</b> &mdash; sudah EOL dan tidak ada patch resmi. ' +
+                'Migrasikan ke PHP 8.3 atau lebih baru.</li>';
+            continue;
+        }
+
+        list += '<li style="margin-bottom:4px;">' + item.title +
+            ': terpasang <b>' + item.installed + '</b>, patch <b>' + item.target + '</b>' +
+            (item.patch ? ' (backport)' : '') + ' tersedia. ' +
+            '<a class="btlink" onclick="softUpdate(\'' + item.name + '\',\'' + item.branch + '\',\'' + item.title + '\',\'' + item.installed + '\',\'' + item.target + '\')">Update sekarang</a></li>';
+    }
+
+    box.html('<div class="alert alert-warning" style="margin:0;">' +
+        '<b>Peringatan keamanan PHP2Shell.</b> Branch PHP yang perlu ditindaklanjuti:' +
+        '<ul style="margin:8px 0 0 18px;">' + list + '</ul>' +
+        '</div>').show();
+}
+
+function pluginTaskText(plugin) {
+    var label = (plugin.task_label || '').toLowerCase();
+    if (label.indexOf('update') === 0) {
+        return 'Lagi update...';
+    }
+    if (label.indexOf('uninstall') === 0 || label.indexOf('hapus') > -1) {
+        return 'Lagi dihapus...';
+    }
+    return 'Lagi dipasang...';
+}
+
 function softMain(name, title, version) {
 
     var _title = title.replace('-'+version,'')
@@ -31,49 +77,24 @@ function softMain(name, title, version) {
     });
 }
 
-function getSList(isdisplay) {
-    if (isdisplay !== true) {
-        var loadT = layer.msg('Lagi ambil daftar...', { icon: 16, time: 0, shade: [0.3, '#000'] })
-    }
-    if (!isdisplay || isdisplay === true)
-        isdisplay = getCookie('p' + getCookie('soft_type'));
-    if (isdisplay == true || isdisplay == 'true') isdisplay = 1;
+function getSList() {
+    var loadT = layer.msg('Lagi ambil daftar...', { icon: 16, time: 0, shade: [0.3, '#000'] })
 
     var search = $("#SearchValue").val();
     if (search != '') {
         search = '&search=' + search;
     }
-    var type = '';
-    var istype = getCookie('soft_type');
-    if (istype == 'undefined' || istype == 'null' || !istype) {
-        istype = '0';
-    }
 
-    type = '&type=' + istype;
-    var page = '';
-    if (isdisplay) {
-        page = '&p=' + isdisplay;
-        setCookie('p' + getCookie('soft_type'), isdisplay);
-    }
-
-    var condition = (search + type + page).slice(1);
-    $.get('/plugins/list?' + condition, '', function(rdata) {
+    $.get('/plugins/list?limit=0' + search, '', function(rdata) {
         layer.close(loadT);
-        var tBody = '';
         var sBody = '';
-        var pBody = '';
 
-        for (var i = 0; i < rdata.type.length; i++) {
-            var c = '';
-            if (istype == rdata.type[i].type) {
-                c = 'class="on"';
-            }
-            tBody += '<span typeid="' + rdata.type[i].type + '" ' + c + '>' + rdata.type[i].title + '</span>';
+        phpUpdateInfo = {};
+        var phpSecurity = rdata.php_security || [];
+        for (var s = 0; s < phpSecurity.length; s++) {
+            phpUpdateInfo[phpSecurity[s].branch] = phpSecurity[s];
         }
-
-        $(".softtype").html(tBody);
-        $("#softPage").html(rdata.list);
-        $("#softPage .Pcount").css({ "position": "absolute", "left": "0" })
+        renderPhpSecurityNotice(phpSecurity);
 
         $(".task").text(rdata.data[rdata.length - 1]);
         for (var i = 0; i < rdata.data.length; i++) {
@@ -105,9 +126,14 @@ function getSList(isdisplay) {
 
             if (plugin.setup == true) {
 
-                var mupdate = '';//(plugin.versions[n] == plugin.updates[n]) '' : '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + plugin.versions[n].version + '\',\'' + plugin.updates[n] + '\')">Renew</a> | ';
-                // if (plugin.versions[n] == '') mupdate = '';
-                handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')">Atur</a> | <a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.title +'\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection +')">Hapus</a>';
+                var updateLink = '';
+                if (plugin.update_available) {
+                    var updateTip = plugin.update_security ? plugin.update_security : ('Update ke ' + plugin.update_target);
+                    updateLink = '<a class="btlink" style="color:#e6a23c" title="' + updateTip + '" onclick="softUpdate(\'' + plugin.name + '\',\'' + plugin.versions + '\',\'' + plugin.title + '\',\'' + plugin.installed_version + '\',\'' + plugin.update_target + '\')">Update</a> | ';
+                }
+
+                var mupdate = '';
+                handle = updateLink + mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')">Atur</a> | <a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.title +'\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection +')">Hapus</a>';
                 titleClick = 'onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
 
                 softPath = '<span class="glyphicon glyphicon-folder-open" title="' + plugin.path + '" onclick="openPath(\'' + plugin.path + '\')"></span>';
@@ -127,7 +153,7 @@ function getSList(isdisplay) {
             if (plugin.task == '-2') {
                 handle = '<a style="color:green;" href="javascript:task();">Lagi dihapus...</a>';
             } else if (plugin.task == '-1') {
-                handle = '<a style="color:green;" href="javascript:task();">Lagi dipasang...</a>';
+                handle = '<a style="color:green;" href="javascript:task();">' + pluginTaskText(plugin) + '</a>';
             } else if (plugin.task == '0') {
                 handle = '<a style="color:#C0C0C0;" href="javascript:task();">Nunggu...</a>';
             }
@@ -135,6 +161,8 @@ function getSList(isdisplay) {
             var plugin_title = plugin.title;
             if (plugin.setup && !plugin.coexist){
                 plugin_title = plugin.title + ' ' + plugin.setup_version;
+            } else if (plugin.setup && plugin.coexist && plugin.installed_version){
+                plugin_title = plugin.title + ' <span class="f12 c9">' + plugin.installed_version + '</span>';
             }
 
             icon_link = "/plugins/file?name="+plugin.name+"&f=ico.png";
@@ -153,18 +181,69 @@ function getSList(isdisplay) {
                 '</tr>';
         }
 
-        sBody += pBody;
-
-
         $("#softList").html(sBody);
-        $(".menu-sub span").click(function() {
-            setCookie('soft_type', $(this).attr('typeid'));
-            $(this).addClass("on").siblings().removeClass("on");
-            getSList();
-        });
 
         loadImage();
     },'json');
+}
+
+function softUpdate(name, version, title, installed, target) {
+    var plugTitle = title.replace('-' + version, '');
+    var updateInfo = phpUpdateInfo[version] || {};
+    var changelog = updateInfo.changelog || [];
+    var changelogHtml = '';
+    var patchHtml = '';
+    var targetLabel = 'Versi tersedia';
+
+    if (updateInfo.patch) {
+        targetLabel = 'Patch tersedia';
+        patchHtml = '<p class="mb10" style="color:#e6a23c;"><b>Backport resmi:</b> nomor versi tetap ' + target + ', patch PHP2Shell diterapkan saat build.</p>';
+    }
+
+    if (changelog.length > 0) {
+        changelogHtml = '<p class="mb10"><b>Changelog:</b></p>' +
+            '<ul class="help-info-text c7">';
+        for (var i = 0; i < changelog.length; i++) {
+            changelogHtml += '<li>' + changelog[i] + '</li>';
+        }
+        changelogHtml += '</ul>';
+    }
+
+    layer.open({
+        type: 1,
+        area: '440px',
+        title: 'Update ' + plugTitle + ' ' + version,
+        closeBtn: 1,
+        shadeClose: false,
+        btn: ['Update', 'Batal'],
+        content: '<div class="bt-form pd20 c6">\
+            <p class="mb10">Versi terpasang: <b>' + installed + '</b></p>\
+            <p class="mb10">' + targetLabel + ': <b>' + target + '</b></p>\
+            ' + patchHtml + '\
+            ' + changelogHtml + '\
+            <ul class="help-info-text c7">\
+                <li style="color:red;">Perbaikan keamanan PHP2Shell (CVE-2026-109618, CVE-2026-109619).</li>\
+                <li>Proses build butuh 10-30 menit. PHP-FPM ' + version + ' akan restart dan situs sesaat menampilkan 502.</li>\
+                <li>Konfigurasi php.ini dan pool PHP-FPM dipertahankan; backup otomatis dibuat sebelum update.</li>\
+            </ul>\
+        </div>',
+        yes: function(index) {
+            var loadT = layer.msg('Menambahkan tugas update...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+            $.post('/plugins/update', { name: name, version: version, target: target }, function(rdata) {
+                layer.close(loadT);
+                if (rdata.status) {
+                    layer.close(index);
+                    localStorage.setItem('open_task_box', '1');
+                    setTimeout(function() {
+                        task();
+                        getSList();
+                    }, 1000);
+                } else {
+                    layer.msg(rdata.msg, { icon: 2 });
+                }
+            }, 'json');
+        }
+    });
 }
 
 function installPreInspection(name, ver, callback){
@@ -417,87 +496,6 @@ function indexSoft() {
             }
         },'json');
     };
-}
-
-
-function importPluginOpen(){
-    $("#update_zip").on("change", function () {
-        var files = $("#update_zip")[0].files;
-        if (files.length == 0) {
-            return;
-        }
-        importPlugin(files[0]);
-        $("#update_zip").val('')
-    });
-    $("#update_zip").click();
-}
-
-
-function importPlugin(file){
-    var formData = new FormData();
-    formData.append("plugin_zip", file);
-    $.ajax({
-        url: "/plugins/update_zip",
-        type: "POST",
-        data: formData,
-        processData: false,
-        dataType:'json',
-        contentType: false,
-        success: function (data) {
-            if (data.status === false) {
-                layer.msg(data.msg, { icon: 2 });
-                return;
-            }
-            var loadT = layer.open({
-                type: 1,
-                area: "500px",
-                title: "Pasang paket plugin pihak ketiga",
-                closeBtn: 1,
-                shift: 5,
-                shadeClose: false,
-                content: '<style>\
-                    .install_three_plugin{padding:25px;padding-bottom:70px}\
-                    .plugin_user_info p { font-size: 14px;}\
-                    .plugin_user_info {padding: 15px 30px;line-height: 26px;background: #f5f6fa;border-radius: 5px;border: 1px solid #efefef;}\
-                    .btn-content{text-align: center;margin-top: 25px;}\
-                </style>\
-                <div class="bt-form c7  install_three_plugin pb70">\
-                    <div class="plugin_user_info">\
-                        <p><b>Nama：</b>'+ data.title + '</p>\
-                        <p><b>Versi：</b>' + data.versions +'</p>\
-                        <p><b>Catatan：</b>' + data.ps + '</p>\
-                        <p><b>Ukuran：</b>' + toSize(data.size) + '</p>\
-                        <p><b>Pembuat：</b>' + data.author + '</p>\
-                        <p><b>Sumber：</b><a class="btlink" href="'+data.home+'" target="_blank">' + data.home + '</a></p>\
-                    </div>\
-                    <ul class="help-info-text c7">\
-                        <li style="color:red;">Ini plugin pihak ketiga, keamanannya belum terjamin!</li>\
-                        <li>Proses pasang butuh waktu beberapa menit, sabar ya!</li>\
-                        <li>Kalau plugin ini udah ada, bakal ditimpa!</li>\
-                    </ul>\
-                    <div class="bt-form-submit-btn"><button type="button" class="btn btn-sm btn-danger mr5" onclick="layer.closeAll()">Batal</button><button type="button" class="btn btn-sm btn-success" onclick="importPluginInstall(\''+ data.name + '\',\'' + data.tmp_path +'\')">Pasang</button></div>\
-                </div>',
-                end: function() {
-                    location.reload();
-                }
-            });
-
-        },error: function (responseStr) {
-            layer.msg('Upload failed 2!:' + responseStr, { icon: 2 });
-        }
-    });
-}
-
-
-function importPluginInstall(plugin_name, tmp_path) {
-    layer.msg('Lagi dipasang, butuh waktu beberapa menit ya...', { icon: 16, time: 0, shade: [0.3, '#000'] });
-    $.post('/plugins/input_zip', { plugin_name: plugin_name, tmp_path: tmp_path }, function (rdata) {
-        layer.closeAll()
-        if (rdata.status) {
-            getSList(true);
-        }
-        setTimeout(function () { layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 }) }, 1000);
-    },'json');
 }
 
 $(function() {
