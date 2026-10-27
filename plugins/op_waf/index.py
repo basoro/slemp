@@ -500,6 +500,54 @@ def restartWeb():
     slemp.opWeb('start')
 
 
+def opLuaSetLogHook(path):
+    '''Point the http level log_by_lua_file directive at the stats hook.'''
+    conf_path = slemp.getServerDir() + '/web_conf/nginx/lua/lua.conf'
+    conf = ''
+    if os.path.exists(conf_path):
+        conf = slemp.readFile(conf_path)
+
+    if 'log_by_lua_file' in conf:
+        conf = re.sub(r'log_by_lua_file\s+[^;]+;',
+                      'log_by_lua_file ' + path + ';', conf)
+    else:
+        conf = conf.rstrip() + "\n\n#log_by_lua_file\nlog_by_lua_file " + path + ";"
+    slemp.writeFile(conf_path, conf)
+    return True
+
+
+def deployLuaFile(src, dsts, conf_reload=False):
+    '''(Re)write a rendered lua file when it is missing, outdated or on a reload.'''
+    if not isinstance(dsts, (list, tuple)):
+        dsts = [dsts]
+
+    content = contentReplace(slemp.readFile(src))
+    for dst in dsts:
+        if not conf_reload and os.path.exists(dst):
+            try:
+                if slemp.readFile(dst) == content:
+                    continue
+            except Exception:
+                pass
+        slemp.writeFile(dst, content)
+
+
+def makeOpDstLogLua(conf_reload=False, remove=False):
+    '''Deploy (or remove) the log phase hook that feeds the realtime cards.'''
+    lua_dir = slemp.getServerDir() + '/web_conf/nginx/lua'
+    log_dst = lua_dir + '/log_by_lua_file.lua'
+    empty_lua = lua_dir + '/empty.lua'
+
+    if remove:
+        if os.path.exists(log_dst):
+            os.remove(log_dst)
+        return opLuaSetLogHook(empty_lua)
+
+    deployLuaFile(getPluginDir() + '/waf/lua/opwaf_log.lua', log_dst, conf_reload)
+    slemp.execShell('chown www:www ' + log_dst)
+    return opLuaSetLogHook(log_dst)
+
+
 def makeOpDstRunLua(conf_reload=False):
     root_init_dir = slemp.getServerDir() + '/web_conf/nginx/lua/init_by_lua_file'
     root_worker_dir = slemp.getServerDir() + '/web_conf/nginx/lua/init_worker_by_lua_file'
@@ -508,43 +556,24 @@ def makeOpDstRunLua(conf_reload=False):
     path_tpl = getPluginDir()
 
     waf_common_dst = path + "/waf/lua/waf_common.lua"
-    if not os.path.exists(waf_common_dst) or conf_reload:
-        waf_common_tpl = path_tpl + "/waf/lua/waf_common.lua"
-        content = slemp.readFile(waf_common_tpl)
-        content = contentReplace(content)
-        slemp.writeFile(waf_common_dst, content)
+    deployLuaFile(path_tpl + "/waf/lua/waf_common.lua", waf_common_dst, conf_reload)
 
     waf_init_dst = root_init_dir + "/waf_init_preload.lua"
-    if not os.path.exists(waf_init_dst) or conf_reload:
-        waf_init_tpl = path_tpl + "/waf/lua/init_preload.lua"
-        content = slemp.readFile(waf_init_tpl)
-        content = contentReplace(content)
-        slemp.writeFile(waf_init_dst, content)
+    deployLuaFile(path_tpl + "/waf/lua/init_preload.lua", waf_init_dst, conf_reload)
 
     init_worker_dst = root_worker_dir + '/opwaf_init_worker.lua'
-    if not os.path.exists(init_worker_dst) or conf_reload:
-        init_worker_tpl = path_tpl + "/waf/lua/init_worker.lua"
-        content = slemp.readFile(init_worker_tpl)
-        content = contentReplace(content)
-        slemp.writeFile(init_worker_dst, content)
+    deployLuaFile(path_tpl + "/waf/lua/init_worker.lua", init_worker_dst, conf_reload)
 
     access_file_dst = root_access_dir + '/opwaf_init.lua'
-    if not os.path.exists(access_file_dst) or conf_reload:
-        access_file_tpl = path_tpl + "/waf/lua/init.lua"
-        access_file_dst_s = path + "/waf/lua/init.lua"
-        content = slemp.readFile(access_file_tpl)
-        content = contentReplace(content)
-        slemp.writeFile(access_file_dst, content)
-        slemp.writeFile(access_file_dst_s, content)
+    access_file_dst_s = path + "/waf/lua/init.lua"
+    deployLuaFile(path_tpl + "/waf/lua/init.lua",
+                  [access_file_dst, access_file_dst_s], conf_reload)
 
     waf_mmdb_dst = path + "/waf/lua/waf_maxminddb.lua"
-    if not os.path.exists(waf_mmdb_dst) or conf_reload:
-        waf_mmdb_tpl = path_tpl + "/waf/lua/waf_maxminddb.lua"
-        content = slemp.readFile(waf_mmdb_tpl)
-        content = contentReplace(content)
-        slemp.writeFile(waf_mmdb_dst, content)
+    deployLuaFile(path_tpl + "/waf/lua/waf_maxminddb.lua", waf_mmdb_dst, conf_reload)
 
     slemp.opLuaMakeAll()
+    makeOpDstLogLua(conf_reload)
     return True
 
 
@@ -570,6 +599,7 @@ def makeOpDstStopLua():
         os.remove(wafconf)
 
     slemp.opLuaMakeAll()
+    makeOpDstLogLua(remove=True)
     return True
 
 
@@ -1625,6 +1655,61 @@ def installPreInspection():
     return 'ok'
 
 
+def readRealtimeStats():
+    '''Aggregate the per-10s counters the WAF log phase writes to realtime.json.'''
+    stats = {
+        'qps': 0.0,
+        'traffic': 0.0,
+        'response': 0,
+        'qps_trend': [],
+        'traffic_trend': [],
+        'response_trend': []
+    }
+
+    path = getServerDir() + '/logs/realtime.json'
+    if not os.path.exists(path):
+        return stats
+
+    try:
+        data = json.loads(slemp.readFile(path))
+    except Exception:
+        return stats
+
+    buckets = data.get('buckets') or []
+    size = int(data.get('size') or 10)
+    if len(buckets) < 1 or size < 1:
+        return stats
+
+    def bucket_value(bucket, idx):
+        try:
+            return float(bucket[idx] or 0)
+        except Exception:
+            return 0.0
+
+    # Current values: the last minute of traffic
+    window = buckets[-6:]
+    counts = sum(bucket_value(b, 1) for b in window)
+    seconds = float(size * len(window))
+    if seconds > 0:
+        stats['qps'] = round(counts / seconds, 2)
+        stats['traffic'] = round(sum(bucket_value(b, 2) for b in window) / seconds / 1024.0, 2)
+    if counts > 0:
+        stats['response'] = int(sum(bucket_value(b, 3) for b in window) / counts)
+
+    # Trend: one point per bucket
+    for b in buckets[-10:]:
+        count = bucket_value(b, 1)
+        stats['qps_trend'].append(round(count / float(size), 2))
+        stats['traffic_trend'].append(round(bucket_value(b, 2) / float(size) / 1024.0, 2))
+        stats['response_trend'].append(int(bucket_value(b, 3) / count) if count > 0 else 0)
+
+    return stats
+
+
+def getRealtimeStats():
+    return slemp.returnJson(True, 'ok', readRealtimeStats())
+
+
 def get_index_data():
     # Get Server Location Automatically
     server_location = [110, -5] # Default Indonesia
@@ -1666,52 +1751,14 @@ def get_index_data():
     # Calculate overview from database if filtering is active
     conn = pSqliteDb('logs')
     
-    # Real-time Stats & Trends Calculation
-    rt_qps = 0.0
-    rt_traffic = 0.0
-    rt_response = 0
-    qps_trend = []
-    traffic_trend = []
-    response_trend = []
-    
-    with open("/tmp/waf_debug.log", "a") as f:
-        f.write(f"SYS PATH: {sys.path}\n")
-
-    try:
-        # Get last 10 entries for trend using existing conn
-        trends = list(conn.table('site_stats').order('time desc').limit('10').select())
-        if trends:
-            with open("/tmp/waf_debug.log", "a") as f:
-                f.write(f"RAW TREND DATA SAMPLE: {str(trends[0])}\n")
-            
-            # Current value is the latest
-            latest = trends[0]
-            
-            # Safe extraction for both dict and list
-            def get_val(obj, key, idx):
-                if isinstance(obj, dict): return obj.get(key, 0)
-                if isinstance(obj, (list, tuple)) and len(obj) > idx: return obj[idx]
-                return 0
-
-            # Assuming schema: [time, site, total_requests, intercepted]
-            requests_val = int(get_val(latest, 'total_requests', 2))
-            
-            rt_qps = round(requests_val / 3600.0, 2)
-            if rt_qps < 0.1: rt_qps = round(random.uniform(0.1, 0.5), 2)
-            rt_traffic = round(rt_qps * random.uniform(5, 15), 2)
-            rt_response = random.randint(100, 350)
-
-            # Format trends
-            trends_copy = list(trends)
-            trends_copy.reverse()
-            for t in trends_copy:
-                q = round(int(get_val(t, 'total_requests', 2)) / 3600.0, 2)
-                qps_trend.append(q)
-                traffic_trend.append(round(q * random.uniform(5, 15), 2))
-                response_trend.append(random.randint(100, 350))
-    except Exception as e:
-        with open("/tmp/waf_debug.log", "a") as f:
-            f.write(f"STATS ERROR: {str(e)}\n")
+    # Real-time Stats & Trends (written by the WAF log phase every 5 seconds)
+    realtime = readRealtimeStats()
+    rt_qps = realtime['qps']
+    rt_traffic = realtime['traffic']
+    rt_response = realtime['response']
+    qps_trend = realtime['qps_trend']
+    traffic_trend = realtime['traffic_trend']
+    response_trend = realtime['response_trend']
 
     # Blocked total for this range
     range_blocked = conn.table('logs').where(date_filter, ()).count()
@@ -1750,9 +1797,6 @@ def get_index_data():
         "rt_response_trend": response_trend,
         "server_location": server_location
     }
-    
-    with open("/tmp/waf_debug.log", "a") as f:
-        f.write(f"DEBUG OVERVIEW: {json.dumps(overview_data)}\n")
     
     # TOP 10 Attack IPs with GeoIP
     ip_ranking = conn.where(date_filter, ()).field('ip,count(*)').group('ip').order('count(*) desc').limit('10').select()
@@ -1987,5 +2031,7 @@ if __name__ == "__main__":
         print(testRun())
     elif func == 'get_index_data':
         print(get_index_data())
+    elif func == 'get_realtime_stats':
+        print(getRealtimeStats())
     else:
         print('error')

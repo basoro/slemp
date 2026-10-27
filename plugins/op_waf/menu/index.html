@@ -549,11 +549,15 @@
 <script type="text/javascript">
 
     function initSmallChart(id, color, data) {
-        const chart = echarts.init(document.getElementById(id));
+        const el = document.getElementById(id);
+        if (!el) return null;
+        const chart = echarts.getInstanceByDom(el) || echarts.init(el);
+        // Keep the line honest while there is no traffic yet instead of drawing a fake wave
+        const series = (data && data.length) ? data : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         const option = {
             grid: { left: 0, right: 0, top: 10, bottom: 0 },
-            xAxis: { type: 'category', show: false },
-            yAxis: { type: 'value', show: false },
+            xAxis: { type: 'category', show: false, boundaryGap: false },
+            yAxis: { type: 'value', show: false, min: 0 },
             series: [{
                 type: 'line',
                 smooth: true,
@@ -561,10 +565,24 @@
                 areaStyle: { opacity: 0.15 },
                 lineStyle: { width: 3 },
                 color: color,
-                data: data || [2, 6, 3, 5, 2, 8, 4, 7, 3, 9, 2, 6]
+                data: series
             }]
         };
         chart.setOption(option);
+        return chart;
+    }
+
+    // The plugin API wraps the plugin's own JSON string twice, so unwrap both layers
+    function unwrapPayload(res) {
+        let data = res && res.data;
+        if (data === undefined || data === null) return null;
+        if (typeof data === 'string') {
+            try { data = JSON.parse(data); } catch (e) { return null; }
+        }
+        if (data && typeof data === 'object' && data.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
+            data = data.data;
+        }
+        return data;
     }
 
     function initAllSmallCharts() {
@@ -974,19 +992,8 @@
                 return;
             }
 
-            let data = res.data;
-            if (typeof data === 'string') {
-                try {
-                    data = JSON.parse(data);
-                } catch (e) { return; }
-            }
-
+            const data = unwrapPayload(res);
             if (!data) return;
-
-            // Handle double-nested data from Python's returnJson
-            if (data.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
-                data = data.data;
-            }
 
             dashboardData = data;
 
@@ -1001,9 +1008,9 @@
             $('#rt_response_val').text(overview.rt_response || 0);
 
             // Update Small Charts
-            if (overview.rt_qps_trend) initSmallChart('qps_chart', '#2ecc71', overview.rt_qps_trend);
-            if (overview.rt_traffic_trend) initSmallChart('traffic_chart', '#3498db', overview.rt_traffic_trend);
-            if (overview.rt_response_trend) initSmallChart('response_chart', '#1abc9c', overview.rt_response_trend);
+            if (overview.rt_qps_trend && overview.rt_qps_trend.length) initSmallChart('qps_chart', '#2ecc71', overview.rt_qps_trend);
+            if (overview.rt_traffic_trend && overview.rt_traffic_trend.length) initSmallChart('traffic_chart', '#3498db', overview.rt_traffic_trend);
+            if (overview.rt_response_trend && overview.rt_response_trend.length) initSmallChart('response_chart', '#1abc9c', overview.rt_response_trend);
 
             // Domains Ranking
             let domainHtml = '';
@@ -1060,6 +1067,22 @@
             switchView(currentViewType);
 
             updateMainChart(data);
+        }, 'json');
+    }
+
+    // Poll the lightweight realtime endpoint so the small cards stay live
+    function refreshRealtimeStats() {
+        $.post('/plugins/run', { name: 'op_waf', func: 'get_realtime_stats', args: '{}' }, function (res) {
+            const data = unwrapPayload(res);
+            if (!data) return;
+
+            $('#rt_qps_val').text(data.qps || 0);
+            $('#rt_traffic_val').text(data.traffic || 0);
+            $('#rt_response_val').text(data.response || 0);
+
+            initSmallChart('qps_chart', '#2ecc71', data.qps_trend);
+            initSmallChart('traffic_chart', '#3498db', data.traffic_trend);
+            initSmallChart('response_chart', '#1abc9c', data.response_trend);
         }, 'json');
     }
 
@@ -1123,7 +1146,10 @@
         // Refresh button
         $('.refresh-btn').click(function () {
             loadDashboardData();
+            refreshRealtimeStats();
         });
+
+        setInterval(refreshRealtimeStats, 5000);
 
         // Initial map view - Default to 3D Globe
         initGlobe();

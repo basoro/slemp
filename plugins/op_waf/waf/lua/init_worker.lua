@@ -30,6 +30,10 @@ local function waf_clean_expire_data(premature)
     WAF_C:clean_log()
 end
 
+local function waf_timer_realtime_stats(premature)
+    WAF_C:write_realtime()
+end
+
 ngx.shared.waf_limit:set("cpu_usage", 0, 10)
 function waf_timer_every_get_cpu(premature)
     if WAF_C:file_exists('/proc/stat') then
@@ -52,6 +56,7 @@ if ngx.worker.id() == 0 then
     ngx.timer.every(6, waf_timer_every_get_cpu)
     -- Eksekusi asinkron
     ngx.timer.every(3, waf_timer_stats_total_log)
+    ngx.timer.every(5, waf_timer_realtime_stats)
     ngx.timer.every(10, waf_clean_expire_data)
 
     WAF_C:cron()

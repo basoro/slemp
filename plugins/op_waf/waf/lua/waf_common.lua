@@ -517,6 +517,35 @@ function _M.timer_stats_total(self)
     return self:write_file_clear(total_path, final_json)
 end
 
+function _M.write_realtime(self)
+    local dict = ngx.shared.waf_limit
+    if not dict then
+        return false
+    end
+
+    local bucket_size = 10
+    local keep = 30
+    local now = ngx.time()
+    local current = math.floor(now / bucket_size)
+    local buckets = {}
+
+    for b = current - keep + 1, current do
+        local count = dict:get('rt_c:' .. b)
+        if count then
+            buckets[#buckets + 1] = {
+                b * bucket_size,
+                count,
+                dict:get('rt_b:' .. b) or 0,
+                dict:get('rt_t:' .. b) or 0
+            }
+        end
+    end
+
+    local data = json.encode({time = now, size = bucket_size, buckets = buckets})
+    return self:write_file_clear(log_dir .. 'realtime.json', data)
+end
+
+
 function _M.stats_total(self, name, rule)
     local server_name = self.params['server_name']
     local total_path = cpath .. 'total.json'
