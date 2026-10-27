@@ -13,7 +13,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib64/
+/lib64
 parts/
 sdist/
 var/
@@ -110,6 +110,7 @@ tmp/*
 scripts/init.d/slemp
 logs/*
 data/*.db
+data/backup/
 data/control.conf
 data/iplist.txt
 data/json/index.json
