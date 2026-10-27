@@ -529,14 +529,36 @@ function _M.write_realtime(self)
     local current = math.floor(now / bucket_size)
     local buckets = {}
 
+    -- Hanya situs yang terdaftar (ditambah 'unset' milik panel) yang dibaca,
+    -- agar shared dict tidak perlu di-enumerasi seluruhnya.
+    local sites = {}
+    if type(self.site_config) == 'table' then
+        for name in pairs(self.site_config) do
+            sites[#sites + 1] = name
+        end
+    end
+    sites[#sites + 1] = 'unset'
+
     for b = current - keep + 1, current do
         local count = dict:get('rt_c:' .. b)
         if count then
+            local per_site = nil
+            for i = 1, #sites do
+                local site_count = dict:get('rt_s:' .. sites[i] .. ':' .. b)
+                if site_count then
+                    if not per_site then
+                        per_site = {}
+                    end
+                    per_site[sites[i]] = site_count
+                end
+            end
+
             buckets[#buckets + 1] = {
                 b * bucket_size,
                 count,
                 dict:get('rt_b:' .. b) or 0,
-                dict:get('rt_t:' .. b) or 0
+                dict:get('rt_t:' .. b) or 0,
+                per_site
             }
         end
     end

@@ -39,6 +39,10 @@ local waf_area_limit = require "waf_area_limit"
 
 -- local server_name = string.gsub(C:get_sn(config_domains),'_','.')
 local server_name = C:get_sn(config_domains)
+
+-- Diteruskan ke fase log agar statistik per situs memakai nama yang sama
+ngx.ctx.waf_site_name = server_name
+
 local function initParams()
     local data = {}
     data['server_name'] = server_name

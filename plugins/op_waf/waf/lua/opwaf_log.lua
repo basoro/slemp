@@ -9,12 +9,14 @@ end
 
 local BUCKET = 10
 local TTL = 640
+-- Per-site buckets only need to outlive the writer's 30 bucket window
+local SITE_TTL = 320
 
 local bucket = math.floor(ngx.now() / BUCKET)
 
-local function bump(key, value)
+local function bump(key, value, ttl)
     -- add is atomic: it fails when another worker already created the key
-    if not dict:add(key, value, TTL) then
+    if not dict:add(key, value, ttl or TTL) then
         dict:incr(key, value)
     end
 end
@@ -40,4 +42,12 @@ end
 
 if ms > 0 then
     bump('rt_t:' .. bucket, math.floor(ms))
+end
+
+-- Per-site count for the "QPS per site" card. The access phase stores the same
+-- site name the WAF uses in its logs and totals; the vhost name is only a
+-- fallback for requests that never reached the WAF.
+local site = ngx.ctx.waf_site_name or ngx.var.server_name
+if site and site ~= '' then
+    bump('rt_s:' .. site .. ':' .. bucket, 1, SITE_TTL)
 end

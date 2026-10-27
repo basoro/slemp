@@ -507,11 +507,14 @@ def opLuaSetLogHook(path):
     if os.path.exists(conf_path):
         conf = slemp.readFile(conf_path)
 
-    if 'log_by_lua_file' in conf:
-        conf = re.sub(r'log_by_lua_file\s+[^;]+;',
-                      'log_by_lua_file ' + path + ';', conf)
-    else:
-        conf = conf.rstrip() + "\n\n#log_by_lua_file\nlog_by_lua_file " + path + ";"
+    # Baris lama dibuang lebih dulu: mengganti inline hanya akan memindahkan
+    # komentar '#log_by_lua_file' sehingga directive-nya ikut ter-nonaktifkan
+    # setiap kali deploy dijalankan lagi.
+    label = re.compile(r'^[ \t]*#*[ \t]*log_by_lua_file\b')
+    lines = [line for line in conf.split('\n') if not label.match(line)]
+
+    conf = '\n'.join(lines).rstrip()
+    conf = conf + "\n\n#log_by_lua_file\nlog_by_lua_file " + path + ";\n"
     slemp.writeFile(conf_path, conf)
     return True
 
@@ -1663,7 +1666,8 @@ def readRealtimeStats():
         'response': 0,
         'qps_trend': [],
         'traffic_trend': [],
-        'response_trend': []
+        'response_trend': [],
+        'sites': []
     }
 
     path = getServerDir() + '/logs/realtime.json'
@@ -1702,6 +1706,26 @@ def readRealtimeStats():
         stats['qps_trend'].append(round(count / float(size), 2))
         stats['traffic_trend'].append(round(bucket_value(b, 2) / float(size) / 1024.0, 2))
         stats['response_trend'].append(int(bucket_value(b, 3) / count) if count > 0 else 0)
+
+    # Per-site QPS over the same window as the global figure
+    site_counts = {}
+    for b in window:
+        if not isinstance(b, (list, tuple)) or len(b) < 5:
+            continue
+        per_site = b[4]
+        if not isinstance(per_site, dict):
+            continue
+        for name, count in per_site.items():
+            try:
+                site_counts[name] = site_counts.get(name, 0.0) + float(count or 0)
+            except Exception:
+                pass
+
+    if seconds > 0:
+        sites = [{'name': name, 'qps': round(total / seconds, 2)}
+                 for name, total in site_counts.items()]
+        sites.sort(key=lambda x: x['qps'], reverse=True)
+        stats['sites'] = sites[:10]
 
     return stats
 
@@ -1795,6 +1819,7 @@ def get_index_data():
         "rt_qps_trend": qps_trend,
         "rt_traffic_trend": traffic_trend,
         "rt_response_trend": response_trend,
+        "rt_sites": realtime['sites'],
         "server_location": server_location
     }
     

@@ -61,6 +61,14 @@
                 <div id="response_chart" class="small-chart"></div>
             </div>
 
+            <!-- Real-time QPS per Site -->
+            <div class="waf-card list-card">
+                <div class="list-header"><i class="glyphicon glyphicon-signal"></i> Real-time QPS per site</div>
+                <div class="list-body" id="site_qps">
+                    <!-- QPS per site will be loaded dynamically -->
+                </div>
+            </div>
+
             <!-- Top 10 Domains -->
             <div class="waf-card list-card">
                 <div class="list-header"><i class="glyphicon glyphicon-warning-sign"></i> Attacked domains TOP10</div>
@@ -1012,6 +1020,8 @@
             if (overview.rt_traffic_trend && overview.rt_traffic_trend.length) initSmallChart('traffic_chart', '#3498db', overview.rt_traffic_trend);
             if (overview.rt_response_trend && overview.rt_response_trend.length) initSmallChart('response_chart', '#1abc9c', overview.rt_response_trend);
 
+            renderSiteQps(overview.rt_sites);
+
             // Domains Ranking
             let domainHtml = '';
             const domainRank = data.domain_ranking || [];
@@ -1070,6 +1080,23 @@
         }, 'json');
     }
 
+    function renderSiteQps(sites) {
+        const list = sites || [];
+        const maxQps = list.length > 0 ? (list[0].qps || 1) : 1;
+        let html = '';
+        list.forEach((s, i) => {
+            const percent = Math.min(((s.qps || 0) / maxQps) * 100, 100);
+            html += `<div class="list-item">
+                <div class="list-rank ${i < 3 ? 'top' : ''}">${i + 1}</div>
+                <div class="list-info">
+                    <div class="list-name">${s.name} <span>${s.qps} /s</span></div>
+                    <div class="progress"><div class="progress-bar" style="width: ${percent}%"></div></div>
+                </div>
+            </div>`;
+        });
+        $('#site_qps').html(html || '<div class="text-center pd20">No data yet</div>');
+    }
+
     // Poll the lightweight realtime endpoint so the small cards stay live
     function refreshRealtimeStats() {
         $.post('/plugins/run', { name: 'op_waf', func: 'get_realtime_stats', args: '{}' }, function (res) {
@@ -1083,6 +1110,8 @@
             initSmallChart('qps_chart', '#2ecc71', data.qps_trend);
             initSmallChart('traffic_chart', '#3498db', data.traffic_trend);
             initSmallChart('response_chart', '#1abc9c', data.response_trend);
+
+            renderSiteQps(data.sites);
         }, 'json');
     }
 
