@@ -1,0 +1,96 @@
+name: Release panel version
+
+# Panel membandingkan versinya dengan `name` pada releases/latest dari repo ini
+# (lihat class/core/system_api.py: getServerInfo), dan mengunduh
+# archive/refs/tags/<versi>.zip. Jadi setiap kenaikan versi di config_api.py
+# perlu menghasilkan tag sekaligus release dengan nama yang sama.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - class/core/config_api.py
+      - .github/workflows/release-tag.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-tag
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Baca versi dari config_api.py
+        id: version
+        run: |
+          set -euo pipefail
+          VERSION=$(grep -oE "__version[[:space:]]*=[[:space:]]*'[0-9]+(\.[0-9]+)*'" class/core/config_api.py \
+            | head -n1 | grep -oE "[0-9]+(\.[0-9]+)*")
+          if [ -z "${VERSION}" ]; then
+            echo "::error::Tidak dapat membaca __version dari class/core/config_api.py"
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Versi terdeteksi: ${VERSION}"
+
+      - name: Cek apakah tag sudah ada
+        id: check
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --tags origin "refs/tags/${VERSION}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Tag ${VERSION} sudah ada, tidak ada yang perlu dibuat."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Tag ${VERSION} belum ada, akan dibuat."
+          fi
+
+      - name: Siapkan catatan rilis
+        if: steps.check.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          PREV=$(git tag --list --sort=-v:refname | head -n1 || true)
+          {
+            echo "Rilis panel SLEMP ${VERSION}."
+            echo
+            if [ -n "${PREV}" ]; then
+              echo "Perubahan sejak ${PREV}:"
+              echo
+              git log --no-merges --pretty='- %s' -n 30 "${PREV}..HEAD"
+            else
+              echo "Perubahan:"
+              echo
+              git log --no-merges --pretty='- %s' -n 30 HEAD
+            fi
+          } > "$RUNNER_TEMP/notes.md"
+          cat "$RUNNER_TEMP/notes.md"
+
+      - name: Buat tag dan release
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${VERSION}" -m "SLEMP ${VERSION}"
+          git push origin "refs/tags/${VERSION}"
+          # --title harus sama dengan versi: panel membacanya sebagai field `name`
+          gh release create "${VERSION}" \
+            --title "${VERSION}" \
+            --notes-file "$RUNNER_TEMP/notes.md" \
+            --verify-tag
